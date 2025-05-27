@@ -1,0 +1,75 @@
+# Dependencies
+/.pnp
+.pnp.js
+.yarn/cache
+node_modules/
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Testing
+/out/
+/dist
+/build
+/coverage
+/.next/
+test-results/
+/blob-report/
+/playwright-report/
+/playwright/.cache/
+
+# Next.js Build Output
+/out/
+/dist
+/build
+/.next/
+
+# OS Generated Files
+*~
+*.tmp
+*.temp
+Thumbs.db
+.DS_Store
+.DS_Store?
+ehthumbs.db
+ehthumbs_vista.db
+Thumbs.db:encryptable
+
+# Environment Variables
+.env
+.env.*
+!.env.test
+!.env.example
+!.env.local.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime Data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Caching
+.npm
+.eslintcache
+*.tsbuildinfo
+next-env.d.ts
+.stylelintcache
+
+# IDE & Editor Files
+*~
+*.swo
+*.swp
+.idea/
+.vscode/
+
+# Temporary Files
+.tmp/
+.cache/
