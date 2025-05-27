@@ -1,12 +1,19 @@
 {
-  "name": "vesitrail",
-  "version": "0.1.0",
   "private": true,
+  "version": "1.0.0",
+  "name": "vesitrail",
+  "author": "VESITRail",
+  "homepage": "https://vesitrail.ves.ac.in",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaykerkar0405/VESITRail.git"
+  },
+  "description": "VESIT's comprehensive railway concession platform featuring automated workflows, digital applications, and instant approval tracking.",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "lint": "next lint",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "dev": "next dev --turbopack"
   },
   "dependencies": {
     "react": "^19.0.0",
