@@ -3,10 +3,17 @@ enum Gender {
   Female
 }
 
-enum ApprovalStatus {
+enum StudentApprovalStatus {
   Pending
   Approved
   Rejected
+}
+
+enum ConcessionBookletStatus {
+  InUse
+  Damaged
+  Available
+  Exhausted
 }
 
 enum ConcessionApplicationType {
@@ -18,19 +25,4 @@ enum ConcessionApplicationStatus {
   Pending
   Approved
   Rejected
-}
-
-enum ConcessionBookletStatus {
-  Available
-  InUse
-  Exhausted
-  Damaged
-}
-
-enum Action {
-  Create
-  Update
-  Delete
-  Approve
-  Reject
 }

@@ -1,0 +1,66 @@
+model Student {
+  address            String
+  gender             Gender
+  verificationDocUrl String
+  dateOfBirth        DateTime
+  approvalStatus     StudentApprovalStatus
+
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  classId                     String
+  stationId                   String
+  preferredConcessionClassId  String
+  preferredConcessionPeriodId String
+  userId                      String @unique
+
+  ConcessionApplication     ConcessionApplication[]
+  class                     Class                   @relation(fields: [classId], references: [id])
+  station                   Station                 @relation(fields: [stationId], references: [id])
+  user                      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredConcessionClass  ConcessionClass         @relation("StudentPreferredClass", fields: [preferredConcessionClassId], references: [id])
+  preferredConcessionPeriod ConcessionPeriod        @relation("StudentPreferredPeriod", fields: [preferredConcessionPeriodId], references: [id])
+}
+
+model Class {
+  id   String @id @default(uuid())
+  code String
+
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  yearId   String
+  branchId String
+
+  students Student[]
+  year     Year      @relation(fields: [yearId], references: [id])
+  branch   Branch    @relation(fields: [branchId], references: [id])
+}
+
+model Branch {
+  id   String @id @default(uuid())
+  code String
+  name String
+
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  classes Class[]
+}
+
+model Year {
+  id   String @id @default(uuid())
+  name String
+
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  classes Class[]
+}

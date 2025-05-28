@@ -1,0 +1,8 @@
+model Admin {
+    userId    String   @unique
+    updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+
+    approvedApplications ConcessionApplication[]
+    user                 User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
