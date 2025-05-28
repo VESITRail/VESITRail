@@ -1,0 +1,28 @@
+enum Gender {
+  Male
+  Female
+}
+
+enum StudentApprovalStatus {
+  Pending
+  Approved
+  Rejected
+}
+
+enum ConcessionBookletStatus {
+  InUse
+  Damaged
+  Available
+  Exhausted
+}
+
+enum ConcessionApplicationType {
+  New
+  Renewal
+}
+
+enum ConcessionApplicationStatus {
+  Pending
+  Approved
+  Rejected
+}
