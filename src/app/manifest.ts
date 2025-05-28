@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 const manifest = (): MetadataRoute.Manifest => {
   return {
+    id: "/",
     scope: "/",
     lang: "en-IN",
     start_url: "/",
