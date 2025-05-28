@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/jaykerkar0405/VESITRail.git"
   },
-  "description": "VESIT's comprehensive railway concession platform featuring automated workflows, digital applications, and instant approval tracking.",
+  "description": "Skip the queues! Apply for railway student concessions online with instant approvals and real-time tracking - Made for VESIT students.",
   "scripts": {
     "lint": "next lint",
     "build": "next build",
