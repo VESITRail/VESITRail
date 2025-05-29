@@ -10,7 +10,7 @@ model ConcessionApplication {
   isDeleted  Boolean   @default(false)
 
   stationId             String
-  studentUserId         String
+  studentId             String
   concessionClassId     String
   concessionPeriodId    String
   approvedByAdminId     String?
@@ -19,7 +19,7 @@ model ConcessionApplication {
 
   renewalApplication  ConcessionApplication? @relation("RenewalChain")
   station             Station                @relation(fields: [stationId], references: [id])
-  student             Student                @relation(fields: [studentUserId], references: [userId])
+  student             Student                @relation(fields: [studentId], references: [userId])
   concessionClass     ConcessionClass        @relation(fields: [concessionClassId], references: [id])
   concessionPeriod    ConcessionPeriod       @relation(fields: [concessionPeriodId], references: [id])
   concessionBooklet   ConcessionBooklet?     @relation(fields: [concessionBookletId], references: [id])
@@ -29,7 +29,6 @@ model ConcessionApplication {
 
 model ConcessionBooklet {
   id                String                  @id @default(uuid())
-  usedPages         Int
   totalPages        Int
   bookletNumber     Int
   serialEndNumber   String
@@ -46,8 +45,8 @@ model ConcessionBooklet {
 
 model ConcessionPeriod {
   id       String @id @default(uuid())
-  duration Int
-  code     String
+  duration Int    @unique
+  name     String @unique
 
   updatedAt DateTime @updatedAt
   isActive  Boolean  @default(true)
@@ -60,8 +59,8 @@ model ConcessionPeriod {
 
 model ConcessionClass {
   id   String @id @default(uuid())
-  code String
-  name String
+  code String @unique
+  name String @unique
 
   updatedAt DateTime @updatedAt
   isActive  Boolean  @default(true)
@@ -74,8 +73,8 @@ model ConcessionClass {
 
 model Station {
   id   String @id @default(uuid())
-  code String
-  name String
+  code String @unique
+  name String @unique
 
   updatedAt DateTime @updatedAt
   isActive  Boolean  @default(true)
