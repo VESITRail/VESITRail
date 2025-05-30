@@ -1,4 +1,7 @@
 model Student {
+  firstName          String
+  middleName         String
+  lastName           String
   address            String
   gender             Gender
   verificationDocUrl String

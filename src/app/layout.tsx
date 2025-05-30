@@ -21,7 +21,7 @@ const RootLayout = ({
 }>) => {
   return (
     <html lang="en">
-      <body className={`antialiased ${inter.variable}`}>
+      <body className={`antialiased scroll-smooth ${inter.variable}`}>
         <ThemeProvider
           enableSystem
           attribute="class"
