@@ -9,16 +9,16 @@ export const navigationItems = [
   {
     icon: BookOpen,
     label: "Guide",
-    href: "/#guide",
+    href: "#guide",
   },
   {
     icon: Users,
     label: "Developers",
-    href: "/#developers",
+    href: "#developers",
   },
   {
     icon: Mail,
     label: "Contact",
-    href: "/#contact",
+    href: "#contact",
   },
 ];
