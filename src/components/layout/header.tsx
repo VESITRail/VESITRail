@@ -33,7 +33,7 @@ const Header = () => {
                 <NavigationMenuItem key={item.href}>
                   <Link
                     href={item.href}
-                    className="px-5 py-2.5 text-base font-medium transition-colors rounded-lg hover:text-primary-foreground hover:bg-primary"
+                    className="px-5 py-2.5 text-base font-medium transition-colors hover:text-foreground hover:border-b-[1.75px] hover:border-foreground"
                   >
                     {item.label}
                   </Link>
