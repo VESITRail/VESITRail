@@ -64,10 +64,13 @@ const Header = () => {
             <Link
               key={index}
               href={item.href}
-              className="inline-flex flex-col items-center justify-center px-5 transition-colors hover:text-primary-foreground hover:bg-primary"
+              className="inline-flex flex-col items-center justify-center px-5 gap-2 transition-colors 
+                   hover:bg-primary hover:text-primary-foreground
+                   active:bg-primary active:text-primary-foreground
+                   focus:bg-primary focus:text-primary-foreground"
             >
-              <span className="w-5 h-5 mb-2">{<item.icon />}</span>
-              <span className="text-sm">{item.label}</span>
+              <span className="w-5 h-5">{<item.icon />}</span>
+              <span className="text-sm ml-1">{item.label}</span>
             </Link>
           ))}
         </div>
