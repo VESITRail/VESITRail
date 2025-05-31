@@ -10,7 +10,7 @@ const Developers = () => {
   return (
     <section
       id="developers"
-      className="flex min-h-[calc(100vh-4rem)] flex-col bg-background overflow-x-hidden px-4 md:px-8 py-12"
+      className="flex flex-col bg-background overflow-x-hidden px-4 md:px-8 py-12"
     >
       <div className="container mx-auto space-y-16">
         <div className="text-center">
@@ -23,7 +23,7 @@ const Developers = () => {
           </Lead>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
           {developers.map((developer, index) => (
             <Card
               key={index}
