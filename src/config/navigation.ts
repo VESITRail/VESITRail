@@ -1,6 +1,12 @@
 import { Home, Mail, Users, BookOpen } from "lucide-react";
 
-export const navigationItems = [
+interface NavigationItem {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+}
+
+export const navigationItems: NavigationItem[] = [
   {
     href: "/",
     icon: Home,
