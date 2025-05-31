@@ -1,4 +1,5 @@
 import Hero from "@/components/layout/hero";
+import Guide from "@/components/layout/guide";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import Contact from "@/components/layout/contact";
@@ -10,6 +11,7 @@ const Home = () => {
     <main>
       <Header />
       <Hero />
+      <Guide />
       <Developers />
       <Contact />
       <Footer />
