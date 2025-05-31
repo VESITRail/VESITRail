@@ -7,7 +7,7 @@ const Contact = () => {
   return (
     <section
       id="contact"
-      className="relative flex min-h-[50vh] flex-col justify-center px-4 md:px-8 overflow-x-hidden py-16"
+      className="relative flex-col justify-center px-4 md:px-8 overflow-x-hidden py-16"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-background pointer-events-none -z-10" />
 
