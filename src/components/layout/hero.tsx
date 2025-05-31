@@ -15,7 +15,7 @@ const Hero = () => {
   const handleGoogleAuth = () => {};
 
   return (
-    <section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center px-4 md:px-8 bg-background overflow-x-hidden pt-8 md:pt-0">
+    <section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center px-4 md:px-8 bg-background overflow-x-hidden py-12">
       <div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-background pointer-events-none -z-10" />
 
       <div className="container grid lg:grid-cols-2 gap-4 md:gap-8 items-center mx-auto max-w-7xl">
