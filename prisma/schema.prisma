@@ -8,6 +8,11 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+generator zod {
+  provider = "zod-prisma-types"
+  output   = "../src/generated/zod"
+}
+
 model User {
   id            String   @id
   name          String
