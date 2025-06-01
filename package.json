@@ -16,7 +16,8 @@
     "lint": "next lint",
     "build": "next build",
     "start": "next start",
-    "dev": "next dev --turbopack"
+    "dev": "next dev --turbopack",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
@@ -31,7 +32,8 @@
     "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.3.0"
+    "tailwind-merge": "^3.3.0",
+    "zod-prisma-types": "^3.2.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -20,6 +20,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "isolatedModules": true,
+    "strictNullChecks": true,
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
     "lib": ["dom", "esnext", "dom.iterable"]

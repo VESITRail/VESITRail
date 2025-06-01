@@ -73,4 +73,4 @@ next-env.d.ts
 # Temporary Files
 .tmp/
 .cache/
-/src/generated/prisma
+/src/generated
