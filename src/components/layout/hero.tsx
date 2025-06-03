@@ -8,11 +8,17 @@ import {
 } from "@/components/ui/typography";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Rocket, Activity, FileCheck, ClipboardCheck } from "lucide-react";
 
 const Hero = () => {
-  const handleGoogleAuth = () => {};
+  const handleGoogleAuth = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard",
+    });
+  };
 
   return (
     <section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center px-4 md:px-8 bg-background overflow-x-hidden py-12">
