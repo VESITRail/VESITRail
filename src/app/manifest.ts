@@ -8,7 +8,7 @@ const manifest = (): MetadataRoute.Manifest => {
     start_url: "/",
     name: "VESITRail",
     display: "standalone",
-    theme_color: "#3b5bfd",
+    theme_color: "#7f22fe",
     short_name: "VESITRail",
     orientation: "portrait",
     background_color: "#0a0a0a",

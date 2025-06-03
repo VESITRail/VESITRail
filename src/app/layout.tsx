@@ -10,6 +10,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "VESITRail",
+  manifest: "/manifest.webmanifest",
   description:
     "Skip the queues! Apply for railway student concessions online with instant approvals and real-time tracking - Made for VESIT students.",
 };
