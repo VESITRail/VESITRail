@@ -5,7 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { Status } from "@/components/ui/status";
 import { checkUserRole } from "@/actions/check-role";
 import { useRouter, usePathname } from "next/navigation";
-import { AlertCircle, Clock, XCircle } from "lucide-react";
+import { AlertCircle, Clock, Loader2, XCircle } from "lucide-react";
 
 const DashboardLayoutContent = ({
   children,
@@ -15,6 +15,7 @@ const DashboardLayoutContent = ({
   const router = useRouter();
   const pathname = usePathname();
   const session = authClient.useSession();
+  const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<
     | false
     | "admin-deleted"
@@ -31,9 +32,9 @@ const DashboardLayoutContent = ({
       if (session.data?.user) {
         try {
           const {
+            status,
             role = "student",
             needsOnboarding,
-            status,
           } = await checkUserRole(session.data.user.id);
 
           const isAdminPath = pathname?.startsWith("/dashboard/admin");
@@ -49,41 +50,52 @@ const DashboardLayoutContent = ({
             (role === "student" && isAdminPath)
           ) {
             setError("unauthorized");
+            setIsVerifying(false);
             return;
           }
 
           if (role === "admin") {
             if (status === "deleted") {
               setError("admin-deleted");
+              setIsVerifying(false);
               return;
             }
             if (status === "inactive") {
               setError("admin-inactive");
+              setIsVerifying(false);
               return;
             }
             if (!isAdminPath) {
               router.push("/dashboard/admin");
+              return;
             }
           } else {
             if (status === "deleted") {
               setError("student-deleted");
+              setIsVerifying(false);
               return;
             }
             if (status === "pending") {
               setError("student-pending");
+              setIsVerifying(false);
               return;
             }
             if (status === "rejected") {
               setError("student-rejected");
+              setIsVerifying(false);
               return;
             }
             if (!isStudentPath) {
               router.push("/dashboard/student");
+              return;
             }
           }
+
+          setIsVerifying(false);
         } catch (error) {
           console.error("Failed to check user role:", error);
           setError("verification-failed");
+          setIsVerifying(false);
         }
       }
     };
@@ -212,7 +224,20 @@ const DashboardLayoutContent = ({
     );
   }
 
-  return children;
+  if (!isVerifying && !error) {
+    return children;
+  }
+
+  return (
+    <Status
+      icon={Loader2}
+      iconBg="bg-muted"
+      iconColor="text-foreground"
+      iconClassName="animate-spin"
+      title="Setting Up Your Dashboard"
+      description="Please wait while we verify your account..."
+    />
+  );
 };
 
 export default DashboardLayoutContent;
