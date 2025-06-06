@@ -6,10 +6,7 @@ const PersonalInfoSchema = z.object({
     .min(1, "First name is required")
     .min(2, "First name must be at least 2 characters")
     .max(50, "First name cannot exceed 50 characters")
-    .regex(
-      /^[a-zA-Z\s'-]+$/,
-      "Only letters, spaces, hyphens, and apostrophes are allowed"
-    )
+    .regex(/^[a-zA-Z\s]+$/, "Only letters and spaces are allowed")
     .transform((val) => val.trim())
     .refine(
       (val) => val.length > 0,
@@ -21,10 +18,7 @@ const PersonalInfoSchema = z.object({
     .min(1, "Middle name is required")
     .min(2, "Middle name must be at least 2 characters")
     .max(50, "Middle name cannot exceed 50 characters")
-    .regex(
-      /^[a-zA-Z\s'-]+$/,
-      "Only letters, spaces, hyphens, and apostrophes are allowed"
-    )
+    .regex(/^[a-zA-Z\s]+$/, "Only letters and spaces are allowed")
     .transform((val) => val.trim())
     .refine(
       (val) => val.length > 0,
@@ -36,10 +30,7 @@ const PersonalInfoSchema = z.object({
     .min(1, "Last name is required")
     .min(2, "Last name must be at least 2 characters")
     .max(50, "Last name cannot exceed 50 characters")
-    .regex(
-      /^[a-zA-Z\s'-]+$/,
-      "Only letters, spaces, hyphens, and apostrophes are allowed"
-    )
+    .regex(/^[a-zA-Z\s]+$/, "Only letters and spaces are allowed")
     .transform((val) => val.trim())
     .refine(
       (val) => val.length > 0,
