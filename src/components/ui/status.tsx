@@ -15,18 +15,18 @@ interface StatusProps {
   description: string;
   iconClassName?: string;
   button?: {
-    label: string;
     href: string;
+    label: string;
     variant?: "default" | "outline" | "ghost";
   };
 }
 
 export const Status = ({
   title,
+  button,
   icon: Icon,
   description,
   iconClassName,
-  button,
   iconBg = "bg-muted/50",
   iconColor = "text-muted-foreground",
 }: StatusProps) => {
@@ -63,8 +63,8 @@ export const Status = ({
             <Button
               asChild
               size="lg"
-              variant={button.variant || "default"}
               className="mt-2"
+              variant={button.variant || "default"}
             >
               <Link href={button.href}>{button.label}</Link>
             </Button>
