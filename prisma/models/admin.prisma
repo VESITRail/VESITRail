@@ -1,6 +1,8 @@
 model Admin {
     userId    String   @id
     updatedAt DateTime @updatedAt
+    isActive  Boolean  @default(true)
+    isDeleted Boolean  @default(false)
     createdAt DateTime @default(now())
 
     approvedApplications ConcessionApplication[]
