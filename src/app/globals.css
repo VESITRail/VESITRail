@@ -119,3 +119,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hide-scrollbar-none {
+    scrollbar-width: auto;
+    -ms-overflow-style: auto;
+  }
+
+  .hide-scrollbar-none::-webkit-scrollbar {
+    display: block;
+  }
+}
