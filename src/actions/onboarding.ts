@@ -2,10 +2,9 @@
 
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
 
-export async function getYears() {
+export const getYears = async () => {
   try {
     const years = await prisma.year.findMany({
       orderBy: { createdAt: "asc" },
@@ -16,9 +15,9 @@ export async function getYears() {
   } catch (error) {
     return { data: null, error: "Failed to fetch years" };
   }
-}
+};
 
-export async function getBranches() {
+export const getBranches = async () => {
   try {
     const branches = await prisma.branch.findMany({
       orderBy: { name: "asc" },
@@ -29,9 +28,9 @@ export async function getBranches() {
   } catch (error) {
     return { data: null, error: "Failed to fetch branches" };
   }
-}
+};
 
-export async function getClasses() {
+export const getClasses = async () => {
   try {
     const classes = await prisma.class.findMany({
       where: {
@@ -44,9 +43,9 @@ export async function getClasses() {
   } catch (error) {
     return { data: null, error: "Failed to fetch classes" };
   }
-}
+};
 
-export async function getStations() {
+export const getStations = async () => {
   try {
     const stations = await prisma.station.findMany({
       orderBy: { name: "asc" },
@@ -57,9 +56,9 @@ export async function getStations() {
   } catch (error) {
     return { data: null, error: "Failed to fetch stations" };
   }
-}
+};
 
-export async function getConcessionClasses() {
+export const getConcessionClasses = async () => {
   try {
     const classes = await prisma.concessionClass.findMany({
       orderBy: { code: "asc" },
@@ -70,9 +69,9 @@ export async function getConcessionClasses() {
   } catch (error) {
     return { data: null, error: "Failed to fetch concession classes" };
   }
-}
+};
 
-export async function getConcessionPeriods() {
+export const getConcessionPeriods = async () => {
   try {
     const periods = await prisma.concessionPeriod.findMany({
       orderBy: { duration: "asc" },
@@ -83,43 +82,83 @@ export async function getConcessionPeriods() {
   } catch (error) {
     return { data: null, error: "Failed to fetch concession periods" };
   }
-}
+};
 
-export async function submitOnboarding(
-  formData: z.infer<typeof OnboardingSchema>
-) {
+export const getReviewData = async (data: {
+  yearId: string;
+  classId: string;
+  branchId: string;
+  stationId: string;
+  preferredConcessionClassId: string;
+  preferredConcessionPeriodId: string;
+}) => {
   try {
-    const validatedData = OnboardingSchema.parse(formData);
+    const [year, branch, class_, station, concessionClass, concessionPeriod] =
+      await Promise.all([
+        prisma.year.findUnique({
+          where: { id: data.yearId },
+          select: { id: true, name: true },
+        }),
+        prisma.branch.findUnique({
+          where: { id: data.branchId },
+          select: { id: true, name: true },
+        }),
+        prisma.class.findUnique({
+          where: { id: data.classId },
+          select: { id: true, code: true },
+        }),
+        prisma.station.findUnique({
+          where: { id: data.stationId },
+          select: { id: true, name: true },
+        }),
+        prisma.concessionClass.findUnique({
+          where: { id: data.preferredConcessionClassId },
+          select: { id: true, name: true },
+        }),
+        prisma.concessionPeriod.findUnique({
+          where: { id: data.preferredConcessionPeriodId },
+          select: { id: true, name: true },
+        }),
+      ]);
 
-    // Validate age
-    const birthDate = new Date(validatedData.dateOfBirth);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
+    return {
+      data: {
+        year,
+        branch,
+        station,
+        class: class_,
+        concessionClass,
+        concessionPeriod,
+      },
+    };
+  } catch (error) {
+    return { error: "Failed to fetch student details" };
+  }
+};
 
-    const actualAge =
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-        ? age - 1
-        : age;
-
-    if (actualAge > 25) {
-      return { data: null, error: "Age should not be more than 25 years" };
-    }
-
-    // TODO: Replace with actual user ID from session
-    const userId = "temp-user-id";
-
+export const submitOnboarding = async (
+  userId: string,
+  formData: z.infer<typeof OnboardingSchema>
+) => {
+  try {
     const student = await prisma.student.create({
       data: {
-        ...validatedData,
         userId,
+        gender: formData.gender,
+        classId: formData.class,
         approvalStatus: "Pending",
-        isDeleted: false,
+        address: formData.address,
+        lastName: formData.lastName,
+        stationId: formData.station,
+        firstName: formData.firstName,
+        middleName: formData.middleName,
+        dateOfBirth: formData.dateOfBirth,
+        verificationDocUrl: formData.verificationDocUrl,
+        preferredConcessionClassId: formData.preferredConcessionClass,
+        preferredConcessionPeriodId: formData.preferredConcessionPeriod,
       },
     });
 
-    revalidatePath("/student/onboarding");
     return { data: student, error: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -127,4 +166,4 @@ export async function submitOnboarding(
     }
     return { data: null, error: "Failed to submit student onboarding" };
   }
-}
+};
