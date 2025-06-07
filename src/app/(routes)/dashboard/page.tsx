@@ -1,9 +1,18 @@
+"use client";
+
+import { Loader2 } from "lucide-react";
+import { Status } from "@/components/ui/status";
+
 const Dashboard = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold mb-4">Dashboard</h1>
-      <p className="text-lg">Welcome to your dashboard!</p>
-    </div>
+    <Status
+      icon={Loader2}
+      iconBg="bg-muted"
+      iconColor="text-foreground"
+      iconClassName="animate-spin"
+      title="Setting Up Your Dashboard"
+      description="Please wait while we verify your account..."
+    />
   );
 };
 

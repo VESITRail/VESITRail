@@ -5,7 +5,14 @@ const robots = (): MetadataRoute.Robots => {
     rules: {
       allow: "/",
       userAgent: "*",
-      disallow: "/admin/",
+      disallow: [
+        "/api/",
+        "/_next/",
+        "/dashboard/",
+        "/onboarding/",
+        "/dashboard/admin",
+        "/dashboard/student",
+      ],
     },
     sitemap: `${process.env.NEXT_PUBLIC_SITE_URL}/sitemap.xml`,
   };
