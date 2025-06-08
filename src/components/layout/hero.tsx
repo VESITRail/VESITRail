@@ -13,6 +13,7 @@ import {
   Activity,
   FileCheck,
   ClipboardCheck,
+  AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -53,6 +54,20 @@ const Hero = () => {
               Apply for Railway Concessions Online with Instant Approvals
             </Lead>
           </div>
+
+          {!session.isPending && !session.data?.user && (
+            <div className="flex items-center gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5 w-full max-w-sm">
+              <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+
+              <p className="text-xs text-destructive font-medium">
+                Only{" "}
+                <span className="bg-destructive/20 px-1 rounded">
+                  @ves.ac.in
+                </span>{" "}
+                emails allowed
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col w-full max-w-sm gap-4">
             {session.isPending ? (
