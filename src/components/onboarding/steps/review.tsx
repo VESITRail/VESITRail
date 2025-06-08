@@ -425,7 +425,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 
                 toast.promise(submissionPromise, {
                   loading: "Submitting your application...",
-                  success: "Application submitted successfully!",
+                  success: "Application submitted successfully! Redirecting...",
                   error: (error) =>
                     error.message || "Failed to submit application",
                 });
