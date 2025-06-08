@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const Onboarding = () => {
   return (
-    <main>
+    <main className="h-screen overflow-y-auto">
       <Header />
 
       <div className="py-12 px-4 md:px-8">

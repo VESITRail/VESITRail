@@ -276,7 +276,7 @@ const PersonalInfo = ({
           lastName: data.lastName || "",
           firstName: data.firstName || "",
           middleName: data.middleName || "",
-          dateOfBirth: data.dateOfBirth || "2005-04-30",
+          dateOfBirth: data.dateOfBirth || "",
         });
       }
     });
