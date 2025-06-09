@@ -144,7 +144,7 @@ const Hero = () => {
                 Lightning Fast & Installable
               </Heading2>
               <Paragraph className="text-sm text-muted-foreground">
-                Enjoy a fast experience. Install as an app and access anytime.
+                Enjoy a fast experience. Install as an app and access anytime
               </Paragraph>
             </Card>
 
@@ -158,11 +158,10 @@ const Hero = () => {
                 </Badge>
               </div>
               <Heading2 className="text-base font-semibold">
-                Automated Collection
+                Auto-Filled Details
               </Heading2>
               <Paragraph className="text-sm text-muted-foreground">
-                No more manual form-filling. Your details are ready after
-                approval.
+                Class, period, and past pass info are auto-filled
               </Paragraph>
             </Card>
 
@@ -172,14 +171,14 @@ const Hero = () => {
                   <FileCheck size={18} />
                 </div>
                 <Badge variant="default" className="text-xs py-0.5 px-2">
-                  Paperless
+                  Simplified
                 </Badge>
               </div>
               <Heading2 className="text-base font-semibold">
-                100% Digital
+                No Sheet Filling
               </Heading2>
               <Paragraph className="text-sm text-muted-foreground">
-                No more paper forms or physical submissions needed
+                DOB, address, pass number, and other details are auto-filled
               </Paragraph>
             </Card>
 
