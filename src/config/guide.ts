@@ -39,9 +39,9 @@ export const guide: Guide[] = [
   },
   {
     icon: Mail,
-    title: "Wait for Approval Mail",
+    title: "Wait for Approval Notification",
     description:
-      "You will receive an email notification once your concession is approved.",
+      "You will receive a notification once your concession request is approved.",
   },
   {
     icon: CheckCircle,
