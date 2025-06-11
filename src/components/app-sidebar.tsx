@@ -16,7 +16,7 @@ import Image from "next/image";
 import NavUser from "@/components/nav-user";
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
-import { NavSecondary } from "@/components/nav-secondary";
+import NavSecondary from "@/components/nav-secondary";
 import {
   Sidebar,
   SidebarContent,
@@ -118,14 +118,14 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Support",
-      url: "#",
       icon: LifeBuoy,
+      url: "/#contact",
+      title: "Support",
     },
     {
-      title: "Feedback",
-      url: "#",
       icon: Send,
+      url: "/#contact",
+      title: "Feedback",
     },
   ],
   projects: [
