@@ -245,7 +245,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Class</p>
-              <Badge variant="secondary">{details?.class?.code}</Badge>
+              <Badge variant="outline">{details?.class?.code}</Badge>
             </div>
           </div>
         </CardContent>
