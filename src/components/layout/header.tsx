@@ -23,7 +23,7 @@ const Header = () => {
       <header className="sticky top-0 z-50 w-full border-b-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-6 md:px-16 xl:px-8">
           <Link href="/" className="flex gap-2.5 items-center">
-            <Image src={Logo} alt="Logo" className="size-8 rounded-lg" />
+            <Image src={Logo} alt="Logo" className="size-8.25 rounded-lg" />
             <Large className="font-bold">VESITRail</Large>
           </Link>
 
