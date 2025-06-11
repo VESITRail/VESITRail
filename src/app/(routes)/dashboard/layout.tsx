@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import DashboardLayoutContent from "@/components/dashboard/dashboard-layout-content";
+import DashboardLayoutContent from "@/components/layout-content/dashboard-layout-content";
 
 export const metadata: Metadata = {
   title: "Dashboard | VESITRail",
