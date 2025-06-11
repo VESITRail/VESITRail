@@ -12,6 +12,7 @@ import {
   DropdownMenuContent,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { toTitleCase } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,16 +33,6 @@ const NavUser = () => {
       .join("")
       .toUpperCase()
       .slice(0, 2);
-  };
-
-  const toTitleCase = (str?: string) => {
-    if (!str) return "Student";
-
-    return str
-      .toLowerCase()
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
   };
 
   if (isPending) {
