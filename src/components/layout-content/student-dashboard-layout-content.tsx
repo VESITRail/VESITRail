@@ -13,8 +13,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
 import { toTitleCase } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import AppSidebar from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 
@@ -24,6 +27,7 @@ const DashboardLayoutContent = ({
   children: React.ReactNode;
 }) => {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
 
   const generateBreadcrumbs = () => {
     let currentPath = "";
@@ -76,7 +80,7 @@ const DashboardLayoutContent = ({
       <AppSidebar />
 
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b-[1.5px]">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b-[1.5px]">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
 
@@ -105,6 +109,17 @@ const DashboardLayoutContent = ({
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+
+          <Button
+            size="icon"
+            className="mr-5"
+            variant="outline"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
         </header>
 
         {children}
