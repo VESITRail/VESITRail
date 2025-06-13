@@ -50,20 +50,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import React, { useState } from "react";
 import { format } from "date-fns";
+import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getConcessions } from "@/actions/concession";
-import { Separator } from "../ui/separator";
 
 type Concession = Awaited<ReturnType<typeof getConcessions>>[0];
 
 const StatusBadge = ({ status }: { status: Concession["status"] }) => {
   const variants = {
-    Pending: "bg-red-600 text-white",
+    Rejected: "bg-red-600 text-white",
+    Pending: "bg-amber-600 text-white",
     Approved: "bg-green-600 text-white",
-    Rejected: "bg-amber-600 text-white",
   };
 
   return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
