@@ -9,7 +9,7 @@ type UserRole = {
   status?: "inactive" | "deleted" | "pending" | "rejected";
 };
 
-export async function checkUserRole(userId: string): Promise<UserRole> {
+export const checkUserRole = async (userId: string): Promise<UserRole> => {
   try {
     const admin = await prisma.admin.findUnique({
       where: { userId },
@@ -52,4 +52,4 @@ export async function checkUserRole(userId: string): Promise<UserRole> {
     console.error("Error checking user role:", error);
     throw new Error("Failed to check user role");
   }
-}
+};
