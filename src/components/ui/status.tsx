@@ -14,6 +14,7 @@ interface StatusProps {
   iconColor?: string;
   description: string;
   iconClassName?: string;
+  containerClassName?: string;
   button?: {
     href: string;
     label: string;
@@ -28,10 +29,13 @@ export const Status = ({
   description,
   iconClassName,
   iconBg = "bg-muted/50",
+  containerClassName = "min-h-screen",
   iconColor = "text-muted-foreground",
 }: StatusProps) => {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+    <div
+      className={`flex items-center justify-center p-4 bg-background ${containerClassName}`}
+    >
       <Card className="w-full max-w-md sm:max-w-lg transition-all">
         <div className="p-6 flex flex-col items-center justify-center gap-6">
           <div className="relative">
