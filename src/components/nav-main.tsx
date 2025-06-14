@@ -9,14 +9,14 @@ import Link from "next/link";
 import { type LucideIcon } from "lucide-react";
 
 const NavMain = ({
-  navItems,
+  navMain,
 }: {
-  navItems: {
+  navMain: {
     label: string;
     items: { url: string; name: string; icon: LucideIcon }[];
   }[];
 }) => {
-  return navItems.map((element) => {
+  return navMain.map((element) => {
     const { label, items } = element;
 
     return (
