@@ -14,7 +14,6 @@ import {
 import Image from "next/image";
 
 import NavUser from "@/components/nav-user";
-import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import NavSecondary from "@/components/nav-secondary";
 import {
@@ -176,7 +175,6 @@ const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
