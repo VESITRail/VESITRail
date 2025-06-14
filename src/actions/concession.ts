@@ -94,3 +94,39 @@ export const getConcessions = async (): Promise<Concession[]> => {
     throw new Error("Failed to fetch concessions");
   }
 };
+
+export const getLastApplication = async (studentId: string) => {
+  try {
+    const lastApplication = await prisma.concessionApplication.findFirst({
+      where: {
+        isDeleted: false,
+        studentId: studentId,
+      },
+      select: {
+        id: true,
+        status: true,
+        approvedAt: true,
+        concessionPeriod: {
+          select: {
+            name: true,
+            duration: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return {
+      success: true,
+      data: lastApplication,
+    };
+  } catch (error) {
+    return {
+      data: null,
+      success: false,
+      error: "Failed to fetch application",
+    };
+  }
+};
