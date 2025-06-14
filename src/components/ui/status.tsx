@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
@@ -18,6 +16,7 @@ interface StatusProps {
   button?: {
     href: string;
     label: string;
+    icon: LucideIcon;
     variant?: "default" | "outline" | "ghost";
   };
 }
@@ -70,7 +69,13 @@ export const Status = ({
               className="mt-2"
               variant={button.variant || "default"}
             >
-              <Link href={button.href}>{button.label}</Link>
+              <Link href={button.href}>
+                <button.icon
+                  className={cn(iconClassName, "w-5 h-5 sm:w-10 sm:h-10")}
+                />
+
+                {button.label}
+              </Link>
             </Button>
           )}
         </div>
