@@ -105,6 +105,7 @@ export const getLastApplication = async (studentId: string) => {
       select: {
         id: true,
         status: true,
+        createdAt: true,
         approvedAt: true,
         applicationType: true,
         station: {
@@ -218,6 +219,7 @@ export const submitConcessionApplication = async (data: {
       data: application,
     };
   } catch (error) {
+    console.log(error)
     return {
       data: null,
       error: "Failed to submit application",
