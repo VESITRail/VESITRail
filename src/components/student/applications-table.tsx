@@ -590,7 +590,9 @@ const ApplicationsTable = ({
 
           <div className="flex items-center gap-2 px-3">
             <span className="text-sm font-medium text-foreground">
-              {table.getState().pagination.pageIndex + 1}
+              {table.getPageCount() === 0
+                ? table.getPageCount()
+                : table.getState().pagination.pageIndex + 1}
             </span>
             <span className="text-sm text-muted-foreground">of</span>
             <span className="text-sm font-medium text-foreground">
