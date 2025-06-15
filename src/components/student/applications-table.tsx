@@ -37,9 +37,9 @@ import {
 } from "@tanstack/react-table";
 import {
   Dialog,
-  DialogContent,
-  DialogHeader,
   DialogTitle,
+  DialogHeader,
+  DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -48,8 +48,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import React, { useState } from "react";
 import { format } from "date-fns";
+import React, { useState } from "react";
 import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -179,10 +179,9 @@ const columns: ColumnDef<Concession>[] = [
     id: "serialNo",
     header: "Sr. No.",
     cell: ({ row, table }) => {
-      const pageSize = table.getState().pagination.pageSize;
-      const currentPage = table.getState().pagination.pageIndex;
-
-      const serialNo = currentPage * pageSize + row.index + 1;
+      const sortedRows = table.getRowModel().rows;
+      const indexInSorted = sortedRows.findIndex((r) => r.id === row.id);
+      const serialNo = indexInSorted + 1;
 
       return <div className="font-medium text-foreground">{serialNo}</div>;
     },
@@ -211,7 +210,10 @@ const columns: ColumnDef<Concession>[] = [
       );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      const type = row.getValue(id) as Concession["applicationType"];
+      const searchValue = value.toLowerCase().trim();
+
+      return type.toLowerCase().startsWith(searchValue);
     },
   },
   {
@@ -230,9 +232,6 @@ const columns: ColumnDef<Concession>[] = [
     },
     size: 120,
     cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
   },
   {
     size: 200,
@@ -275,14 +274,6 @@ const columns: ColumnDef<Concession>[] = [
         <div className="font-medium text-foreground/90">
           {station.name} ({station.code})
         </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      const station = row.getValue(id) as Concession["station"];
-      const searchValue = value.toLowerCase();
-      return (
-        station.name.toLowerCase().includes(searchValue) ||
-        station.code.toLowerCase().includes(searchValue)
       );
     },
   },
@@ -415,10 +406,12 @@ const ApplicationsTable = ({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Input
           className="w-full sm:w-64 h-10"
-          placeholder="Search by station name or code..."
-          onChange={(event) =>
-            table.getColumn("station")?.setFilterValue(event.target.value)
-          }
+          placeholder='Type "New" or "Renewal" to filter'
+          onChange={(event) => {
+            table
+              .getColumn("applicationType")
+              ?.setFilterValue(event.target.value);
+          }}
         />
 
         <div className="flex gap-3 sm:ml-auto">
@@ -597,7 +590,9 @@ const ApplicationsTable = ({
 
           <div className="flex items-center gap-2 px-3">
             <span className="text-sm font-medium text-foreground">
-              {table.getState().pagination.pageIndex + 1}
+              {table.getPageCount() === 0
+                ? table.getPageCount()
+                : table.getState().pagination.pageIndex + 1}
             </span>
             <span className="text-sm text-muted-foreground">of</span>
             <span className="text-sm font-medium text-foreground">

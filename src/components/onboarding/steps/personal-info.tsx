@@ -33,14 +33,14 @@ import {
   FormControl,
 } from "@/components/ui/form";
 import type { z } from "zod";
-import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { CalendarIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { capitalizeWords, cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, ChevronDown } from "lucide-react";
 
 type PersonalInfoProps = {
   errors?: Record<string, string>;
@@ -265,6 +265,14 @@ const PersonalInfo = ({
     },
   });
 
+  const handleCapitalFirstChange = (
+    value: string,
+    onChange: (value: string) => void
+  ) => {
+    const capitalizedValue = capitalizeWords(value);
+    onChange(capitalizedValue);
+  };
+
   useEffect(() => {
     const subscription = form.watch((data) => {
       if (defaultValues) {
@@ -309,8 +317,12 @@ const PersonalInfo = ({
                   <Input
                     {...field}
                     autoComplete="off"
+                    autoCapitalize="words"
                     aria-describedby="firstName-error"
                     placeholder="Enter your first name"
+                    onChange={(e) =>
+                      handleCapitalFirstChange(e.target.value, field.onChange)
+                    }
                   />
                 </FormControl>
 
@@ -331,8 +343,12 @@ const PersonalInfo = ({
                   <Input
                     {...field}
                     autoComplete="off"
+                    autoCapitalize="words"
                     aria-describedby="middleName-error"
                     placeholder="Enter your middle name"
+                    onChange={(e) =>
+                      handleCapitalFirstChange(e.target.value, field.onChange)
+                    }
                   />
                 </FormControl>
                 <div className="h-5">
@@ -352,8 +368,12 @@ const PersonalInfo = ({
                   <Input
                     {...field}
                     autoComplete="off"
+                    autoCapitalize="words"
                     aria-describedby="lastName-error"
                     placeholder="Enter your last name"
+                    onChange={(e) =>
+                      handleCapitalFirstChange(e.target.value, field.onChange)
+                    }
                   />
                 </FormControl>
                 <div className="h-5">
@@ -461,9 +481,12 @@ const PersonalInfo = ({
                   rows={4}
                   {...field}
                   autoComplete="off"
-                  onChange={field.onChange}
+                  autoCapitalize="sentences"
                   aria-describedby="address-error"
                   placeholder="Enter your address"
+                  onChange={(e) =>
+                    handleCapitalFirstChange(e.target.value, field.onChange)
+                  }
                 />
               </FormControl>
 

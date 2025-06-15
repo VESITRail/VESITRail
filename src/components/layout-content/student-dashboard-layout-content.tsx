@@ -95,7 +95,7 @@ const DashboardLayoutContent = ({
                   >
                     {index > 0 && <BreadcrumbSeparator />}
 
-                    <BreadcrumbItem>
+                    <BreadcrumbItem className="font-medium">
                       {breadcrumb.isActive ? (
                         <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
                       ) : (

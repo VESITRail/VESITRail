@@ -22,8 +22,8 @@ const RootLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <html lang="en">
-      <body className={`antialiased scroll-smooth ${inter.variable}`}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`antialiased ${inter.variable}`}>
         <ThemeProvider
           enableSystem
           attribute="class"

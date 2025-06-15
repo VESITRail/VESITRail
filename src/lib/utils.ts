@@ -19,4 +19,40 @@ const toTitleCase = (str?: string) => {
     .join(" ");
 };
 
-export { cn, toTitleCase, formatFieldName };
+const capitalizeWords = (str: string): string => {
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const calculateConcessionValidity = (
+  approvedAt: Date,
+  durationInMonths: number
+): {
+  isValid: boolean;
+  expiryDate: Date;
+  daysRemaining: number;
+} => {
+  const currentDate = new Date();
+  const expiryDate = new Date(approvedAt);
+  expiryDate.setMonth(expiryDate.getMonth() + durationInMonths);
+
+  const timeDiff = expiryDate.getTime() - currentDate.getTime();
+  const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+  return {
+    isValid: daysRemaining > 0,
+    expiryDate,
+    daysRemaining,
+  };
+};
+
+export {
+  cn,
+  toTitleCase,
+  capitalizeWords,
+  formatFieldName,
+  calculateConcessionValidity,
+};

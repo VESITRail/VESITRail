@@ -1,11 +1,19 @@
 "use client";
 
+import {
+  Home,
+  Mail,
+  Clock,
+  Loader2,
+  XCircle,
+  AlertCircle,
+  LayoutDashboard,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Status } from "@/components/ui/status";
 import { checkUserRole } from "@/actions/check-role";
 import { useRouter, usePathname } from "next/navigation";
-import { AlertCircle, Clock, Loader2, XCircle } from "lucide-react";
 
 const DashboardLayoutContent = ({
   children,
@@ -109,11 +117,12 @@ const DashboardLayoutContent = ({
     return (
       <Status
         icon={AlertCircle}
+        iconColor="text-white"
         title="Account Deleted"
-        iconBg="bg-destructive/10"
-        iconColor="text-destructive"
+        iconBg="bg-destructive"
         description="Your admin account has been deleted. Please contact the system administrator for assistance."
         button={{
+          icon: Mail,
           label: "Contact",
           href: "/#contact",
           variant: "default",
@@ -126,11 +135,12 @@ const DashboardLayoutContent = ({
     return (
       <Status
         icon={AlertCircle}
+        iconColor="text-white"
+        iconBg="bg-destructive"
         title="Account Inactive"
-        iconBg="bg-destructive/10"
-        iconColor="text-destructive"
         description="Your admin account is currently inactive. Please contact the system administrator to reactivate your account."
         button={{
+          icon: Mail,
           label: "Contact",
           href: "/#contact",
           variant: "default",
@@ -143,11 +153,12 @@ const DashboardLayoutContent = ({
     return (
       <Status
         icon={AlertCircle}
+        iconColor="text-white"
         title="Account Deleted"
-        iconBg="bg-destructive/10"
-        iconColor="text-destructive"
+        iconBg="bg-destructive"
         description="Your student account has been deleted. Please contact the administrator for assistance."
         button={{
+          icon: Mail,
           label: "Contact",
           href: "/#contact",
           variant: "default",
@@ -160,12 +171,13 @@ const DashboardLayoutContent = ({
     return (
       <Status
         icon={Clock}
-        iconBg="bg-yellow-500/10"
-        iconColor="text-yellow-500"
+        iconBg="bg-yellow-600"
+        iconColor="text-white"
         title="Account Pending Approval"
         description="Your account is pending approval from the administrator. You will be notified once it is approved."
         button={{
           href: "/",
+          icon: Home,
           variant: "default",
           label: "Go to Home",
         }}
@@ -177,11 +189,12 @@ const DashboardLayoutContent = ({
     return (
       <Status
         icon={XCircle}
+        iconColor="text-white"
         title="Account Rejected"
-        iconBg="bg-destructive/10"
-        iconColor="text-destructive"
+        iconBg="bg-destructive"
         description="Your account registration has been rejected. Please contact the administrator for more information."
         button={{
+          icon: Mail,
           label: "Contact",
           href: "/#contact",
           variant: "default",
@@ -194,12 +207,13 @@ const DashboardLayoutContent = ({
     return (
       <Status
         icon={AlertCircle}
-        iconBg="bg-destructive/10"
+        iconColor="text-white"
+        iconBg="bg-destructive"
         title="Verification Failed"
-        iconColor="text-destructive"
         description="We couldn't verify your role. Please try again or contact support if the problem persists."
         button={{
           href: "/",
+          icon: Home,
           variant: "default",
           label: "Go to Home",
         }}
@@ -211,13 +225,14 @@ const DashboardLayoutContent = ({
     return (
       <Status
         icon={AlertCircle}
-        iconBg="bg-destructive/10"
+        iconColor="text-white"
+        iconBg="bg-destructive"
         title="Unauthorized Access"
-        iconColor="text-destructive"
         description="You do not have permission to access this area."
         button={{
           href: "/dashboard",
           variant: "default",
+          icon: LayoutDashboard,
           label: "Go to Dashboard",
         }}
       />
