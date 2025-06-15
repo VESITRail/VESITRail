@@ -2,38 +2,142 @@
 
 import {
   Mail,
+  Info,
+  Send,
   Clock,
   Loader2,
   XCircle,
+  History,
+  FileText,
   CheckCircle,
+  AlertCircle,
   AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
+import {
+  getConcessionClasses,
+  getConcessionPeriods,
+} from "@/actions/onboarding";
+import {
+  getStudentDetails,
+  getLastApplication,
+  submitConcessionApplication,
+} from "@/actions/concession";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogTitle,
+  DialogHeader,
+  DialogTrigger,
+  DialogContent,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectItem,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogTitle,
+  AlertDialogCancel,
+  AlertDialogAction,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogDescription,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 import { Status } from "@/components/ui/status";
-import { getLastApplication } from "@/actions/concession";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import { calculateConcessionValidity } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Station, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
+
+type ApplicationType = "New" | "Renewal";
+type StatusType = "Rejected" | "Pending" | "Approved";
 
 interface ConcessionApplication {
-  concessionPeriod: {
+  id: string;
+  createdAt: Date;
+  status: StatusType;
+  approvedAt: Date | null;
+  station: Partial<Station>;
+  applicationType: ApplicationType;
+  concessionClass: Partial<ConcessionClass>;
+  concessionPeriod: Partial<ConcessionPeriod>;
+}
+
+interface Student {
+  station: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  preferredConcessionClass: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  preferredConcessionPeriod: {
+    id: string;
     name: string;
     duration: number;
   };
-  id: string;
-  approvedAt: Date | null;
-  status: "Pending" | "Approved" | "Rejected";
 }
 
-const ApplyConcession = () => {
-  const { data, isPending } = authClient.useSession();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [canApply, setCanApply] = useState<boolean>(false);
+const ApplicationTypeBadge = ({ type }: { type: ApplicationType }) => {
+  return <Badge variant="secondary">{type}</Badge>;
+};
 
+const StatusBadge = ({ status }: { status: StatusType }) => {
+  const variants: Record<StatusType, string> = {
+    Rejected: "bg-red-600 text-white",
+    Pending: "bg-amber-600 text-white",
+    Approved: "bg-green-600 text-white",
+  };
+
+  return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
+};
+
+const ConcessionApplicationForm = () => {
+  const router = useRouter();
+  const { data, isPending } = authClient.useSession();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [canApply, setCanApply] = useState<boolean>(false);
+  const [showOverlay, setShowOverlay] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [loadingOptions, setLoadingOptions] = useState<boolean>(true);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
+
+  const [student, setStudent] = useState<Student | null>(null);
   const [lastApplication, setLastApplication] =
     useState<ConcessionApplication | null>(null);
+
+  const [selectedConcessionClass, setSelectedConcessionClass] =
+    useState<string>("");
+  const [selectedConcessionPeriod, setSelectedConcessionPeriod] =
+    useState<string>("");
+
+  const [concessionClasses, setConcessionClasses] = useState<ConcessionClass[]>(
+    []
+  );
+  const [concessionPeriods, setConcessionPeriods] = useState<
+    ConcessionPeriod[]
+  >([]);
 
   const [status, setStatus] = useState<{
     title: string;
@@ -49,6 +153,64 @@ const ApplyConcession = () => {
       variant?: "default" | "outline" | "ghost";
     };
   } | null>(null);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      setLoadingOptions(true);
+
+      try {
+        const [classesResult, periodsResult] = await Promise.all([
+          getConcessionClasses(),
+          getConcessionPeriods(),
+        ]);
+
+        if (classesResult.error) {
+          toast.error("Failed to load concession classes");
+        } else if (classesResult.data) {
+          setConcessionClasses(classesResult.data);
+        }
+
+        if (periodsResult.error) {
+          toast.error("Failed to load concession periods");
+        } else if (periodsResult.data) {
+          setConcessionPeriods(periodsResult.data);
+        }
+      } catch (error) {
+        toast.error("Failed to load form options");
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
+  useEffect(() => {
+    const fetchStudentDetails = async () => {
+      if (isPending || !data?.user?.id) return;
+
+      try {
+        const result = await getStudentDetails(data.user.id);
+
+        if (result.error) {
+          toast.error("Failed to load student details");
+        } else if (result.data) {
+          setStudent(result.data);
+        }
+      } catch (error) {
+        toast.error("Failed to load student details");
+      }
+    };
+
+    fetchStudentDetails();
+  }, [data?.user?.id, isPending]);
+
+  useEffect(() => {
+    if (student) {
+      setSelectedConcessionClass(student.preferredConcessionClass.id);
+      setSelectedConcessionPeriod(student.preferredConcessionPeriod.id);
+    }
+  }, [student]);
 
   useEffect(() => {
     const checkApplicationStatus = async () => {
@@ -97,7 +259,6 @@ const ApplyConcession = () => {
 
             case "Pending":
               setCanApply(false);
-
               setStatus({
                 icon: Clock,
                 iconBg: "bg-yellow-600",
@@ -106,7 +267,6 @@ const ApplyConcession = () => {
                 description:
                   "Your concession application is currently being reviewed. Please wait for approval before applying again.",
               });
-
               break;
 
             case "Approved":
@@ -118,7 +278,6 @@ const ApplyConcession = () => {
 
                 if (validity.isValid) {
                   setCanApply(false);
-
                   setStatus({
                     icon: CheckCircle,
                     iconBg: "bg-green-600",
@@ -139,7 +298,6 @@ const ApplyConcession = () => {
                 setStatus(null);
                 setCanApply(true);
               }
-
               break;
 
             default:
@@ -165,17 +323,78 @@ const ApplyConcession = () => {
     checkApplicationStatus();
   }, [data?.user?.id, isPending]);
 
-  if (isPending || loading) {
+  const selectedClassExists = concessionClasses.some(
+    (c) => c.id === selectedConcessionClass
+  );
+
+  const selectedPeriodExists = concessionPeriods.some(
+    (p) => p.id === selectedConcessionPeriod
+  );
+
+  const handleSubmit = async () => {
+    if (
+      !student ||
+      !data?.user?.id ||
+      !selectedConcessionClass ||
+      !selectedConcessionPeriod
+    ) {
+      toast.error("Please select both concession class and period");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const applicationData = {
+      studentId: data.user.id,
+      stationId: student.station.id,
+      concessionClassId: selectedConcessionClass,
+      concessionPeriodId: selectedConcessionPeriod,
+      previousApplicationId: lastApplication?.id || null,
+      applicationType: lastApplication
+        ? ("Renewal" as const)
+        : ("New" as const),
+    };
+
+    const submissionPromise = submitConcessionApplication(applicationData);
+
+    toast.promise(submissionPromise, {
+      loading: "Submitting your application...",
+      success: "Application submitted successfully! Redirecting...",
+      error: (error) => error.message || "Failed to submit application",
+    });
+
+    try {
+      const result = await submissionPromise;
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      router.push("/dashboard/student");
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false);
+      setShowConfirmDialog(false);
+    }
+  };
+
+  const applicationType = lastApplication ? "Renewal" : "New";
+  const isFormValid = selectedConcessionClass && selectedConcessionPeriod;
+
+  if (isPending || loading || loadingOptions || !student) {
     return (
-      <Status
-        icon={Loader2}
-        iconBg="bg-muted"
-        iconColor="text-foreground"
-        iconClassName="animate-spin"
-        containerClassName="min-h-[88vh]"
-        title="Loading Application Status"
-        description="Checking your previous application status. Please wait..."
-      />
+      <div className="container max-w-5xl mx-auto">
+        <Status
+          icon={Loader2}
+          iconBg="bg-muted"
+          title="Loading Information"
+          iconColor="text-foreground"
+          iconClassName="animate-spin"
+          containerClassName="min-h-[88vh]"
+          description="We're preparing your information. This will only take a moment."
+        />
+      </div>
     );
   }
 
@@ -195,32 +414,326 @@ const ApplyConcession = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6 text-foreground">
-          Apply for Concession
-        </h1>
-
-        {lastApplication?.status === "Rejected" && (
-          <Alert variant="destructive">
-            <XCircle className="h-4 w-4" />
-            <AlertTitle>Previous Application Rejected</AlertTitle>
-            <AlertDescription>
-              You can submit a new application.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="space-y-6 mt-4">
-          <div className="p-6 border border-border rounded-lg bg-card">
-            <p className="text-muted-foreground">
-              Your concession application form will be displayed here.
-            </p>
+    <div className="container max-w-5xl mx-auto py-12 px-4">
+      <div className="flex justify-between items-center">
+        <span className="flex items-center gap-3">
+          <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+            <FileText className="size-5" />
           </div>
-        </div>
+
+          <h1 className="text-2xl font-semibold">Apply for concession</h1>
+        </span>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button size="icon" variant="outline" className="size-10">
+              <Info className="size-5" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent
+            align="end"
+            side="bottom"
+            className="text-sm bg-background"
+          >
+            <p className="font-medium mb-4">Heads up!</p>
+            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+              <li>
+                These details are autofilled based on the information you
+                provided during onboarding.
+              </li>
+              <li>
+                You can review and change them before submitting your
+                application.
+              </li>
+            </ul>
+          </PopoverContent>
+        </Popover>
       </div>
+
+      <Separator className="my-6" />
+
+      {lastApplication?.status === "Rejected" && (
+        <Alert variant="destructive" className="mb-6">
+          <XCircle className="h-4 w-4" />
+          <AlertTitle>Previous Application Rejected</AlertTitle>
+          <AlertDescription>You can submit a new application.</AlertDescription>
+        </Alert>
+      )}
+
+      {!lastApplication && (
+        <Alert className="mb-6">
+          <Info className="size-4" />
+          <AlertTitle>First Time Application</AlertTitle>
+          <AlertDescription>
+            This is your first time applying for a concession. Please make sure
+            all required details are accurate to avoid delays in processing your
+            application.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Card>
+        <CardContent className="py-4">
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <Label
+                  htmlFor="application-type"
+                  className="text-sm font-medium"
+                >
+                  Application Type
+                </Label>
+
+                <div className="flex items-center text-sm justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
+                  {applicationType}
+
+                  {lastApplication && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="View previous application details"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <History className="size-4 sm:mr-1" />
+                          <span className="hidden sm:inline">View Details</span>
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                          <DialogTitle>
+                            Previous Application Details
+                          </DialogTitle>
+                        </DialogHeader>
+
+                        <Separator className="my-2" />
+
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Status
+                              </p>
+                              <StatusBadge status={lastApplication.status} />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Type
+                              </p>
+                              <ApplicationTypeBadge
+                                type={lastApplication.applicationType}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Class
+                              </p>
+                              <p className="font-medium text-foreground/90">
+                                {lastApplication.concessionClass.name} (
+                                {lastApplication.concessionClass.code})
+                              </p>
+                            </div>
+
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Period
+                              </p>
+                              <p className="font-medium text-foreground/90">
+                                {lastApplication.concessionPeriod.name}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Home Station
+                              </p>
+                              <p className="font-medium text-foreground/90">
+                                {lastApplication.station.name} (
+                                {lastApplication.station.code})
+                              </p>
+                            </div>
+
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Applied Date
+                              </p>
+                              <p className="font-medium text-foreground/90">
+                                {format(
+                                  new Date(lastApplication.createdAt),
+                                  "MMMM dd, yyyy"
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label htmlFor="home-station" className="text-sm font-medium">
+                  Home Station
+                </Label>
+
+                <div className="flex text-sm items-center justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
+                  {student.station.name} ({student.station.code})
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <Label
+                  htmlFor="concession-class"
+                  className="text-sm font-medium"
+                >
+                  Concession Class
+                </Label>
+
+                <Select
+                  onValueChange={setSelectedConcessionClass}
+                  value={
+                    selectedClassExists ? selectedConcessionClass : undefined
+                  }
+                >
+                  <SelectTrigger className="w-full !h-10">
+                    <SelectValue placeholder="Select concession class" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {concessionClasses.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id}>
+                        {cls.name} ({cls.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-4">
+                <Label
+                  htmlFor="concession-period"
+                  className="text-sm font-medium"
+                >
+                  Concession Period
+                </Label>
+
+                <Select
+                  onValueChange={setSelectedConcessionPeriod}
+                  value={
+                    selectedPeriodExists ? selectedConcessionPeriod : undefined
+                  }
+                >
+                  <SelectTrigger className="w-full !h-10">
+                    <SelectValue placeholder="Select concession period" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {concessionPeriods.map((period) => (
+                      <SelectItem key={period.id} value={period.id}>
+                        {period.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button
+                size="lg"
+                onClick={() => {
+                  setShowConfirmDialog(true);
+                }}
+                disabled={!isFormValid || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-1 size-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-1 size-4" />
+                    Submit Application
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-sm mx-auto">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
+              </div>
+              <div>
+                <AlertDialogTitle>Final Submission</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you absolutely sure you want to submit?
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-destructive" />
+                <p className="text-sm font-medium">Important Notice:</p>
+              </div>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li key="undo">• This action cannot be undone</li>
+                <li key="review">• Please review all details one final time</li>
+                <li key="edit">
+                  • You won't be able to edit your application after submission
+                </li>
+              </ul>
+            </div>
+          </div>
+          <AlertDialogFooter className="gap-4">
+            <AlertDialogCancel
+              disabled={isSubmitting}
+              className="cursor-pointer"
+            >
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="bg-destructive hover:bg-destructive/90 cursor-pointer"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Yes, Submit Now
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
-export default ApplyConcession;
+export default ConcessionApplicationForm;
