@@ -12,10 +12,15 @@ import Image from "next/image";
 import NavMain from "@/components/nav-main";
 import NavUser from "@/components/nav-user";
 import NavSecondary from "@/components/nav-secondary";
-import { Eye, Send, LifeBuoy, PlusCircle } from "lucide-react";
+import { Eye, Send, User, LifeBuoy, PlusCircle } from "lucide-react";
 
 const data = {
   navSecondary: [
+    {
+      icon: User,
+      title: "Profile",
+      url: "/dashboard/student/profile",
+    },
     {
       icon: LifeBuoy,
       url: "/#contact",
