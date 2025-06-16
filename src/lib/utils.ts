@@ -27,6 +27,17 @@ const capitalizeWords = (str: string): string => {
     .join(" ");
 };
 
+const getUserInitials = (type: "Admin" | "Student", name?: string) => {
+  if (!name) return type === "Admin" ? "AD" : "ST";
+
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
 const calculateConcessionValidity = (
   approvedAt: Date,
   durationInMonths: number
@@ -52,6 +63,7 @@ const calculateConcessionValidity = (
 export {
   cn,
   toTitleCase,
+  getUserInitials,
   capitalizeWords,
   formatFieldName,
   calculateConcessionValidity,
