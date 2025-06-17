@@ -12,11 +12,12 @@ import {
   DropdownMenuContent,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, ChevronsUpDown } from "lucide-react";
 import { getUserInitials, toTitleCase } from "@/lib/utils";
+import { LogOut, ChevronsUpDown, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const NavUser = () => {
@@ -103,8 +104,16 @@ const NavUser = () => {
 
             <DropdownMenuSeparator />
 
+            <Link href="/dashboard/student/settings">
+              <DropdownMenuItem>
+                <Settings />
+                Settings
+              </DropdownMenuItem>
+            </Link>
+
+            <DropdownMenuSeparator />
+
             <DropdownMenuItem
-              className="cursor-pointer"
               onClick={async () => {
                 await authClient.signOut({
                   fetchOptions: {
@@ -115,7 +124,7 @@ const NavUser = () => {
                 });
               }}
             >
-              <LogOut className="mr-2 size-4" />
+              <LogOut />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
