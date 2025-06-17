@@ -187,6 +187,8 @@ const ProfilePage = () => {
         </Popover>
       </div>
 
+      <Separator className="my-6" />
+
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
