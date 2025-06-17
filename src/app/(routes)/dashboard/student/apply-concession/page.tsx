@@ -118,7 +118,6 @@ const ConcessionApplicationForm = () => {
   const { data, isPending } = authClient.useSession();
   const [loading, setLoading] = useState<boolean>(true);
   const [canApply, setCanApply] = useState<boolean>(false);
-  const [showOverlay, setShowOverlay] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [loadingOptions, setLoadingOptions] = useState<boolean>(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
