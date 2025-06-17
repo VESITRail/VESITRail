@@ -66,6 +66,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { calculateConcessionValidity } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Station, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ApplicationType = "New" | "Renewal";
 type StatusType = "Rejected" | "Pending" | "Approved";
@@ -383,16 +384,61 @@ const ConcessionApplicationForm = () => {
 
   if (isPending || loading || loadingOptions || !student) {
     return (
-      <div className="container max-w-5xl mx-auto">
-        <Status
-          icon={Loader2}
-          iconBg="bg-muted"
-          title="Loading Information"
-          iconColor="text-foreground"
-          iconClassName="animate-spin"
-          containerClassName="min-h-[88vh]"
-          description="We're preparing your information. This will only take a moment."
-        />
+      <div className="container max-w-5xl mx-auto py-12 px-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10 rounded-lg" />
+            <Skeleton className="h-8 w-56" />
+          </div>
+          <Skeleton className="size-10 rounded-md" />
+        </div>
+
+        <Skeleton className="h-px w-full my-6" />
+
+        <div className="mb-6 rounded-lg border p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Skeleton className="size-4 rounded-full" />
+            <Skeleton className="h-5 w-40" />
+          </div>
+          <Skeleton className="h-4 w-full" />
+        </div>
+
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="py-4 p-6">
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-32" />
+                  <div className="flex items-center justify-between h-10 px-3 rounded-md border">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-24 rounded-md" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-28" />
+                  <div className="flex items-center justify-between h-10 px-3 rounded-md border">
+                    <Skeleton className="h-4 w-36" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Skeleton className="h-11 w-40 rounded-md" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
