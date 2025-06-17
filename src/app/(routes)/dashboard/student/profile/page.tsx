@@ -31,6 +31,7 @@ import { getUserInitials } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Status } from "@/components/ui/status";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getStudentProfile, StudentProfileResponse } from "@/actions/profile";
@@ -85,16 +86,126 @@ const ProfilePage = () => {
 
   if (isLoading || session.isPending) {
     return (
-      <div className="container max-w-5xl mx-auto">
-        <Status
-          icon={Loader2}
-          iconBg="bg-muted"
-          title="Loading Information"
-          iconColor="text-foreground"
-          iconClassName="animate-spin"
-          containerClassName="min-h-[88vh]"
-          description="We're preparing your information. This will only take a moment."
-        />
+      <div className="container max-w-5xl mx-auto space-y-6 py-12 px-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-8 rounded-lg" />
+            <Skeleton className="h-8 w-48" />
+          </div>
+          <Skeleton className="size-10 rounded-md" />
+        </div>
+
+        <Skeleton className="h-px w-full" />
+
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="p-6 pb-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+          </div>
+          <div className="p-6 pt-0 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-5 w-36" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-32" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+            </div>
+            <Skeleton className="h-px w-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-5 w-full" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="p-6 pb-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-44" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+            </div>
+          </div>
+          <div className="p-6 pt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-5 w-32" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="p-6 pb-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+            </div>
+          </div>
+          <div className="p-6 pt-0 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-28" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-6 w-24 rounded-full" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-6 w-28 rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="p-6 pb-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-44" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+            </div>
+          </div>
+          <div className="p-6 pt-0">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-3 w-48" />
+              </div>
+              <Skeleton className="h-9 w-28 rounded-md" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
