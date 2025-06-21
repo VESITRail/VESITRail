@@ -54,7 +54,7 @@ const data = {
         {
           icon: MapPin,
           name: "Change Address",
-          url: "/dashboard/student/address-change",
+          url: "/dashboard/student/change-address",
         },
       ],
     },
