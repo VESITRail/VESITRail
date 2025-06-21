@@ -3,6 +3,12 @@ enum Gender {
   Female
 }
 
+enum AddressChangeStatus {
+  Pending
+  Approved
+  Rejected
+}
+
 enum StudentApprovalStatus {
   Pending
   Approved
@@ -22,12 +28,6 @@ enum ConcessionApplicationType {
 }
 
 enum ConcessionApplicationStatus {
-  Pending
-  Approved
-  Rejected
-}
-
-enum AddressChangeStatus {
   Pending
   Approved
   Rejected
