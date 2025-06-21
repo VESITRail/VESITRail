@@ -26,3 +26,9 @@ enum ConcessionApplicationStatus {
   Approved
   Rejected
 }
+
+enum AddressChangeStatus {
+  Pending
+  Approved
+  Rejected
+}
