@@ -82,4 +82,7 @@ model Station {
 
   students     Student[]
   applications ConcessionApplication[]
+
+  newStationChange     AddressChange[] @relation("NewStation")
+  currentStationChange AddressChange[] @relation("CurrentStation")
 }
