@@ -12,7 +12,7 @@ import Image from "next/image";
 import NavMain from "@/components/nav-main";
 import NavUser from "@/components/nav-user";
 import NavSecondary from "@/components/nav-secondary";
-import { Eye, Send, User, LifeBuoy, PlusCircle } from "lucide-react";
+import { Eye, Send, User, MapPin, LifeBuoy, PlusCircle } from "lucide-react";
 
 const data = {
   navSecondary: [
@@ -45,6 +45,16 @@ const data = {
           icon: PlusCircle,
           name: "Apply Concession",
           url: "/dashboard/student/apply-concession",
+        },
+      ],
+    },
+    {
+      label: "Services",
+      items: [
+        {
+          icon: MapPin,
+          name: "Change Address",
+          url: "/dashboard/student/address-change",
         },
       ],
     },
