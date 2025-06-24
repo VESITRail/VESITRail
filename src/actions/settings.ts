@@ -1,8 +1,8 @@
 "use server";
 
-import { ConcessionClass, ConcessionPeriod } from "@/generated/zod";
 import prisma from "@/lib/prisma";
 import { ok, err, Result } from "neverthrow";
+import { ConcessionClass, ConcessionPeriod } from "@/generated/zod";
 
 export type StudentPreferences = {
   preferredConcessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
