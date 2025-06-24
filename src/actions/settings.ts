@@ -1,14 +1,27 @@
 "use server";
 
+import { ConcessionClass, ConcessionPeriod } from "@/generated/zod";
 import prisma from "@/lib/prisma";
+import { ok, err, Result } from "neverthrow";
 
-export const getStudentPreferences = async (userId: string) => {
+export type StudentPreferences = {
+  preferredConcessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
+  preferredConcessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+};
+
+export type UpdatePreferencesData = {
+  preferredConcessionClassId: string;
+  preferredConcessionPeriodId: string;
+};
+
+export const getStudentPreferences = async (
+  studentId: string
+): Promise<Result<StudentPreferences, string>> => {
   try {
     const student = await prisma.student.findUnique({
-      where: { userId },
+      where: { userId: studentId },
       select: {
-        preferredConcessionClassId: true,
-        preferredConcessionPeriodId: true,
+        status: true,
         preferredConcessionClass: {
           select: {
             id: true,
@@ -20,76 +33,74 @@ export const getStudentPreferences = async (userId: string) => {
           select: {
             id: true,
             name: true,
+            duration: true,
           },
         },
       },
     });
 
     if (!student) {
-      return {
-        data: null,
-        success: false,
-        error: "Student not found",
-      };
+      return err("Student not found");
     }
 
-    return {
-      error: null,
-      data: student,
-      success: true,
-    };
+    if (student.status !== "Approved") {
+      return err("Student is not approved");
+    }
+
+    const { preferredConcessionClass, preferredConcessionPeriod } = student;
+
+    return ok({
+      preferredConcessionClass,
+      preferredConcessionPeriod,
+    });
   } catch (error) {
-    return {
-      data: null,
-      success: false,
-      error: "Failed to fetch preferences",
-    };
+    return err("Failed to fetch preferences");
   }
 };
 
 export const updateStudentPreferences = async (
-  userId: string,
-  data: {
-    preferredConcessionClassId: string;
-    preferredConcessionPeriodId: string;
-  }
-) => {
+  studentId: string,
+  data: UpdatePreferencesData
+): Promise<Result<any, string>> => {
   try {
+    const student = await prisma.student.findUnique({
+      select: { status: true },
+      where: { userId: studentId },
+    });
+
+    if (!student) {
+      return err("Student not found");
+    }
+
+    if (student.status !== "Approved") {
+      return err("Student is not approved");
+    }
+
     const [concessionClass, concessionPeriod] = await Promise.all([
       prisma.concessionClass.findFirst({
         where: {
           isActive: true,
-          isDeleted: false,
           id: data.preferredConcessionClassId,
         },
       }),
       prisma.concessionPeriod.findFirst({
         where: {
           isActive: true,
-          isDeleted: false,
           id: data.preferredConcessionPeriodId,
         },
       }),
     ]);
 
     if (!concessionClass) {
-      return {
-        data: null,
-        success: false,
-        error: "Invalid concession class selected",
-      };
+      return err("Invalid concession class selected");
     }
 
     if (!concessionPeriod) {
-      return {
-        data: null,
-        success: false,
-        error: "Invalid concession period selected",
-      };
+      return err("Invalid concession period selected");
     }
 
     const updatedStudent = await prisma.student.update({
-      where: { userId },
+      where: { userId: studentId },
       data: {
         preferredConcessionClassId: data.preferredConcessionClassId,
         preferredConcessionPeriodId: data.preferredConcessionPeriodId,
@@ -106,21 +117,14 @@ export const updateStudentPreferences = async (
           select: {
             id: true,
             name: true,
+            duration: true,
           },
         },
       },
     });
 
-    return {
-      error: null,
-      success: true,
-      data: updatedStudent,
-    };
+    return ok(updatedStudent);
   } catch (error) {
-    return {
-      data: null,
-      success: false,
-      error: "Failed to update preferences",
-    };
+    return err("Failed to update preferences");
   }
 };
