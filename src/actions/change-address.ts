@@ -26,9 +26,9 @@ export const getStudentAddressAndStation = async (
     const student = await prisma.student.findUnique({
       where: {
         userId: studentId,
-        status: "Approved",
       },
       select: {
+        status: true,
         address: true,
         station: {
           select: {
@@ -44,7 +44,13 @@ export const getStudentAddressAndStation = async (
       return err("Student not found");
     }
 
-    return ok(student);
+    if (student.status !== "Approved") {
+      return err("Student is not approved");
+    }
+
+    const { address, station } = student;
+
+    return ok({ address, station });
   } catch (error) {
     console.error("Error fetching student address and station:", error);
     return err("Failed to fetch student address and station");
