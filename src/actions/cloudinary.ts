@@ -1,7 +1,7 @@
 "use server";
 
-import { v2 as cloudinary } from "cloudinary";
 import { ok, err, Result } from "neverthrow";
+import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,

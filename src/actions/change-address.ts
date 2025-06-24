@@ -26,6 +26,7 @@ export const getStudentAddressAndStation = async (
     const student = await prisma.student.findUnique({
       where: {
         userId: studentId,
+        status: "Approved",
       },
       select: {
         address: true,
