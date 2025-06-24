@@ -65,6 +65,19 @@ export const submitAddressChangeApplication = async (
       return err("New station cannot be the same as current station");
     }
 
+    const student = await prisma.student.findUnique({
+      select: { status: true },
+      where: { userId: data.studentId },
+    });
+
+    if (!student) {
+      return err("Student not found");
+    }
+
+    if (student.status !== "Approved") {
+      return err("Student is not approved");
+    }
+
     const application = await prisma.addressChange.create({
       data: {
         status: "Pending",
