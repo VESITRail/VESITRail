@@ -1,171 +1,153 @@
 "use server";
 
 import {
-  StationSchema,
-  ConcessionClassSchema,
-  ConcessionPeriodSchema,
-  ConcessionApplicationSchema,
+  Station,
+  ConcessionClass,
+  ConcessionPeriod,
+  ConcessionApplicationTypeType,
+  ConcessionApplicationStatusType,
 } from "@/generated/zod";
-import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { ok, err, Result } from "neverthrow";
 
-const ConcessionSchema = z.object({
-  status: ConcessionApplicationSchema.shape.status,
-  createdAt: ConcessionApplicationSchema.shape.createdAt,
-  applicationType: ConcessionApplicationSchema.shape.applicationType,
-  station: z.object({
-    code: StationSchema.shape.code,
-    name: StationSchema.shape.name,
-  }),
-  concessionClass: z.object({
-    code: ConcessionClassSchema.shape.code,
-    name: ConcessionClassSchema.shape.name,
-  }),
-  concessionPeriod: z.object({
-    name: ConcessionPeriodSchema.shape.name,
-    duration: ConcessionPeriodSchema.shape.duration,
-  }),
-  previousApplication: z
-    .object({
-      station: z.object({
-        code: StationSchema.shape.code,
-        name: StationSchema.shape.name,
-      }),
-      concessionClass: z.object({
-        code: ConcessionClassSchema.shape.code,
-        name: ConcessionClassSchema.shape.name,
-      }),
-      concessionPeriod: z.object({
-        name: ConcessionPeriodSchema.shape.name,
-        duration: ConcessionPeriodSchema.shape.duration,
-      }),
-      status: ConcessionApplicationSchema.shape.status,
-      createdAt: ConcessionApplicationSchema.shape.createdAt,
-      applicationType: ConcessionApplicationSchema.shape.applicationType,
-    })
-    .nullable(),
-});
+export type ConcessionApplication = {
+  id: string;
+  createdAt: Date;
+  reviewedAt?: Date | null;
+  status: ConcessionApplicationStatusType;
+  applicationType: ConcessionApplicationTypeType;
+  station: Pick<Station, "id" | "code" | "name">;
+  previousApplication?: ConcessionApplication | null;
+  concessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
+  concessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+};
 
-type Concession = z.infer<typeof ConcessionSchema>;
-
-export const getConcessions = async (): Promise<Concession[]> => {
+export const getConcessions = async (
+  studentId: string
+): Promise<Result<ConcessionApplication[], string>> => {
   try {
+    const student = await prisma.student.findUnique({
+      where: { userId: studentId },
+      select: { status: true },
+    });
+
+    if (!student) {
+      return err("Student not found");
+    }
+
+    if (student.status !== "Approved") {
+      return err("Student is not approved");
+    }
+
     const concessions = await prisma.concessionApplication.findMany({
-      where: {
-        isDeleted: false,
-      },
+      where: { studentId },
+      orderBy: { createdAt: "desc" },
       select: {
+        id: true,
         status: true,
         createdAt: true,
         applicationType: true,
         station: {
           select: {
+            id: true,
             code: true,
             name: true,
           },
         },
         concessionClass: {
           select: {
+            id: true,
             code: true,
             name: true,
           },
         },
         concessionPeriod: {
           select: {
+            id: true,
             name: true,
             duration: true,
           },
         },
         previousApplication: {
           select: {
+            id: true,
             status: true,
-            station: true,
             createdAt: true,
-            concessionClass: true,
             applicationType: true,
-            concessionPeriod: true,
+            station: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+            concessionClass: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+            concessionPeriod: {
+              select: {
+                id: true,
+                name: true,
+                duration: true,
+              },
+            },
           },
         },
       },
     });
 
-    return concessions.map((concession) => ConcessionSchema.parse(concession));
+    return ok(concessions);
   } catch (error) {
-    throw new Error("Failed to fetch concessions");
+    return err("Failed to fetch concessions");
   }
 };
 
-export const getLastApplication = async (studentId: string) => {
+export const getLastApplication = async (
+  studentId: string
+): Promise<Result<ConcessionApplication, string>> => {
   try {
+    const student = await prisma.student.findUnique({
+      where: { userId: studentId },
+      select: { status: true },
+    });
+
+    if (!student) {
+      return err("Student not found");
+    }
+
+    if (student.status !== "Approved") {
+      return err("Student is not approved");
+    }
+
     const lastApplication = await prisma.concessionApplication.findFirst({
-      where: {
-        studentId,
-        isDeleted: false,
-      },
+      where: { studentId },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         status: true,
         createdAt: true,
-        approvedAt: true,
+        reviewedAt: true,
         applicationType: true,
         station: {
           select: {
+            id: true,
             code: true,
             name: true,
           },
         },
         concessionClass: {
           select: {
+            id: true,
             code: true,
             name: true,
           },
         },
         concessionPeriod: {
           select: {
-            name: true,
-            duration: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    return {
-      success: true,
-      data: lastApplication,
-    };
-  } catch (error) {
-    return {
-      data: null,
-      success: false,
-      error: "Failed to fetch application",
-    };
-  }
-};
-
-export const getStudentDetails = async (userId: string) => {
-  try {
-    const student = await prisma.student.findUnique({
-      where: { userId },
-      select: {
-        station: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-          },
-        },
-        preferredConcessionClass: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-          },
-        },
-        preferredConcessionPeriod: {
-          select: {
             id: true,
             name: true,
             duration: true,
@@ -174,22 +156,13 @@ export const getStudentDetails = async (userId: string) => {
       },
     });
 
-    if (!student) {
-      return {
-        data: null,
-        error: "Student not found",
-      };
+    if (!lastApplication) {
+      return err("No applications found for this student");
     }
 
-    return {
-      error: null,
-      data: student,
-    };
+    return ok(lastApplication);
   } catch (error) {
-    return {
-      data: null,
-      error: "Failed to fetch student details",
-    };
+    return err("Failed to fetch application");
   }
 };
 
@@ -198,10 +171,23 @@ export const submitConcessionApplication = async (data: {
   stationId: string;
   concessionClassId: string;
   concessionPeriodId: string;
-  applicationType: "New" | "Renewal";
   previousApplicationId?: string | null;
-}) => {
+  applicationType: ConcessionApplicationTypeType;
+}): Promise<Result<ConcessionApplication, string>> => {
   try {
+    const student = await prisma.student.findUnique({
+      select: { status: true },
+      where: { userId: data.studentId },
+    });
+
+    if (!student) {
+      return err("Student not found");
+    }
+
+    if (student.status !== "Approved") {
+      return err("Student is not approved");
+    }
+
     const application = await prisma.concessionApplication.create({
       data: {
         status: "Pending",
@@ -212,17 +198,68 @@ export const submitConcessionApplication = async (data: {
         concessionPeriodId: data.concessionPeriodId,
         previousApplicationId: data.previousApplicationId,
       },
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        reviewedAt: true,
+        applicationType: true,
+        station: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+        concessionClass: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+        concessionPeriod: {
+          select: {
+            id: true,
+            name: true,
+            duration: true,
+          },
+        },
+        previousApplication: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            reviewedAt: true,
+            applicationType: true,
+            station: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+            concessionClass: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+            concessionPeriod: {
+              select: {
+                id: true,
+                name: true,
+                duration: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    return {
-      error: null,
-      data: application,
-    };
+    return ok(application);
   } catch (error) {
-    console.log(error)
-    return {
-      data: null,
-      error: "Failed to submit application",
-    };
+    return err("Failed to submit application");
   }
 };
