@@ -1,169 +1,135 @@
 "use server";
 
-import { z } from "zod";
+import {
+  Year,
+  Class,
+  Branch,
+  Station,
+  Student,
+  ConcessionClass,
+  ConcessionPeriod,
+} from "@/generated/zod";
 import prisma from "@/lib/prisma";
-import { OnboardingSchema } from "@/lib/validations/onboarding";
+import { ok, err, Result } from "neverthrow";
 
-export const getYears = async () => {
-  try {
-    const years = await prisma.year.findMany({
-      orderBy: { createdAt: "asc" },
-      where: { isActive: true, isDeleted: false },
-    });
+export type ReviewData = Pick<
+  Student,
+  | "classId"
+  | "stationId"
+  | "preferredConcessionClassId"
+  | "preferredConcessionPeriodId"
+>;
 
-    return { data: years, error: null };
-  } catch (error) {
-    return { data: null, error: "Failed to fetch years" };
-  }
+export type Review = {
+  station: Pick<Station, "id" | "code" | "name">;
+  class: Pick<Class, "id" | "code"> & {
+    year: Pick<Year, "id" | "code" | "name">;
+    branch: Pick<Branch, "id" | "code" | "name">;
+  };
+  concessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
+  concessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
 };
 
-export const getBranches = async () => {
+export type OnboardingData = Pick<
+  Student,
+  | "status"
+  | "gender"
+  | "classId"
+  | "address"
+  | "lastName"
+  | "firstName"
+  | "stationId"
+  | "middleName"
+  | "dateOfBirth"
+  | "verificationDocUrl"
+  | "preferredConcessionClassId"
+  | "preferredConcessionPeriodId"
+>;
+
+export const getReviewData = async (
+  data: ReviewData,
+  studentId: string
+): Promise<Result<Review, string>> => {
   try {
-    const branches = await prisma.branch.findMany({
-      orderBy: { name: "asc" },
-      where: { isActive: true, isDeleted: false },
+    const student = await prisma.student.findUnique({
+      select: { status: true },
+      where: { userId: studentId },
     });
 
-    return { data: branches, error: null };
-  } catch (error) {
-    return { data: null, error: "Failed to fetch branches" };
-  }
-};
+    if (!student) {
+      return err("Student not found");
+    }
 
-export const getClasses = async () => {
-  try {
-    const classes = await prisma.class.findMany({
-      where: {
-        isActive: true,
-        isDeleted: false,
-      },
-    });
+    if (student.status !== "Approved") {
+      return err("Student is not approved");
+    }
 
-    return { data: classes, error: null };
-  } catch (error) {
-    return { data: null, error: "Failed to fetch classes" };
-  }
-};
-
-export const getStations = async () => {
-  try {
-    const stations = await prisma.station.findMany({
-      orderBy: { name: "asc" },
-      where: { isActive: true, isDeleted: false },
-    });
-
-    return { data: stations, error: null };
-  } catch (error) {
-    return { data: null, error: "Failed to fetch stations" };
-  }
-};
-
-export const getConcessionClasses = async () => {
-  try {
-    const classes = await prisma.concessionClass.findMany({
-      orderBy: { code: "asc" },
-      where: { isActive: true, isDeleted: false },
-    });
-
-    return { data: classes, error: null };
-  } catch (error) {
-    return { data: null, error: "Failed to fetch concession classes" };
-  }
-};
-
-export const getConcessionPeriods = async () => {
-  try {
-    const periods = await prisma.concessionPeriod.findMany({
-      orderBy: { duration: "asc" },
-      where: { isActive: true, isDeleted: false },
-    });
-
-    return { data: periods, error: null };
-  } catch (error) {
-    return { data: null, error: "Failed to fetch concession periods" };
-  }
-};
-
-export const getReviewData = async (data: {
-  yearId: string;
-  classId: string;
-  branchId: string;
-  stationId: string;
-  preferredConcessionClassId: string;
-  preferredConcessionPeriodId: string;
-}) => {
-  try {
-    const [year, branch, class_, station, concessionClass, concessionPeriod] =
+    const [_class, station, concessionClass, concessionPeriod] =
       await Promise.all([
-        prisma.year.findUnique({
-          where: { id: data.yearId },
-          select: { id: true, name: true },
-        }),
-        prisma.branch.findUnique({
-          where: { id: data.branchId },
-          select: { id: true, name: true },
-        }),
         prisma.class.findUnique({
           where: { id: data.classId },
-          select: { id: true, code: true },
+          select: {
+            id: true,
+            code: true,
+            year: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+            branch: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+          },
         }),
         prisma.station.findUnique({
           where: { id: data.stationId },
-          select: { id: true, name: true },
+          select: { id: true, code: true, name: true },
         }),
         prisma.concessionClass.findUnique({
+          select: { id: true, code: true, name: true },
           where: { id: data.preferredConcessionClassId },
-          select: { id: true, name: true },
         }),
         prisma.concessionPeriod.findUnique({
           where: { id: data.preferredConcessionPeriodId },
-          select: { id: true, name: true },
+          select: { id: true, name: true, duration: true },
         }),
       ]);
 
-    return {
-      data: {
-        year,
-        branch,
-        station,
-        class: class_,
-        concessionClass,
-        concessionPeriod,
-      },
-    };
+    if (!_class || !station || !concessionClass || !concessionPeriod) {
+      return err("Some review fields are missing.");
+    }
+
+    return ok({
+      station,
+      class: _class,
+      concessionClass,
+      concessionPeriod,
+    });
   } catch (error) {
-    return { error: "Failed to fetch student details" };
+    return err("Failed to fetch review data");
   }
 };
 
 export const submitOnboarding = async (
-  userId: string,
-  formData: z.infer<typeof OnboardingSchema>
-) => {
+  studentId: string,
+  data: OnboardingData
+): Promise<Result<Student, string>> => {
   try {
     const student = await prisma.student.create({
       data: {
-        userId,
-        gender: formData.gender,
-        classId: formData.class,
-        approvalStatus: "Pending",
-        address: formData.address,
-        lastName: formData.lastName,
-        stationId: formData.station,
-        firstName: formData.firstName,
-        middleName: formData.middleName,
-        dateOfBirth: formData.dateOfBirth,
-        verificationDocUrl: formData.verificationDocUrl,
-        preferredConcessionClassId: formData.preferredConcessionClass,
-        preferredConcessionPeriodId: formData.preferredConcessionPeriod,
+        ...data,
+        userId: studentId,
       },
     });
 
-    return { data: student, error: null };
+    return ok(student);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { data: null, error: error.errors };
-    }
-    return { data: null, error: "Failed to submit student onboarding" };
+    return err("Failed to submit student onboarding");
   }
 };

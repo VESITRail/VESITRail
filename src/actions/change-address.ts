@@ -5,10 +5,6 @@ import { revalidatePath } from "next/cache";
 import { ok, err, Result } from "neverthrow";
 import { Student, Station, AddressChange } from "@/generated/zod";
 
-export type StudentAddressAndStation = Pick<Student, "address"> & {
-  station: Pick<Station, "id" | "code" | "name">;
-};
-
 export type AddressChangeData = Pick<
   AddressChange,
   | "studentId"
@@ -18,6 +14,10 @@ export type AddressChangeData = Pick<
   | "currentStationId"
   | "verificationDocUrl"
 >;
+
+export type StudentAddressAndStation = Pick<Student, "address"> & {
+  station: Pick<Station, "id" | "code" | "name">;
+};
 
 export const getStudentAddressAndStation = async (
   studentId: string
