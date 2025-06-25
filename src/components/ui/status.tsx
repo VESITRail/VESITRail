@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heading2, Paragraph } from "@/components/ui/typography";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StatusProps {
   title: string;
@@ -17,69 +16,87 @@ interface StatusProps {
     href: string;
     label: string;
     icon: LucideIcon;
-    variant?: "default" | "outline" | "ghost";
+    variant?: "default" | "outline" | "ghost" | "secondary" | "destructive";
   };
 }
 
-export const Status = ({
+const Status = ({
   title,
   button,
   icon: Icon,
   description,
   iconClassName,
-  iconBg = "bg-muted/50",
+  iconBg = "bg-primary/10",
+  iconColor = "text-foreground",
   containerClassName = "min-h-screen",
-  iconColor = "text-muted-foreground",
 }: StatusProps) => {
   return (
     <div
-      className={`flex items-center justify-center p-4 bg-background ${containerClassName}`}
+      className={cn(
+        "flex items-center justify-center p-6 bg-background",
+        containerClassName
+      )}
     >
-      <Card className="w-full max-w-md sm:max-w-lg transition-all">
-        <div className="p-6 flex flex-col items-center justify-center gap-6">
-          <div className="relative">
-            <div
-              className={cn(
-                iconBg,
-                "w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-full"
-              )}
-            >
-              <Icon
+      <Card className="w-full max-w-md shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+        <CardContent className="p-8">
+          <div className="flex flex-col items-center text-center space-y-6">
+            <div className="relative">
+              <div
                 className={cn(
-                  iconColor,
-                  iconClassName,
-                  "w-7 h-7 sm:w-8 sm:h-8"
+                  iconBg,
+                  "ring-4 ring-primary/5 shadow-lg",
+                  "relative size-18 flex items-center justify-center rounded-full transition-all duration-300"
                 )}
-              />
-            </div>
-            <div className="absolute inset-0 rounded-full border-t-2 border-primary/10 animate-pulse" />
-          </div>
-          <div className="text-center space-y-2">
-            <Heading2 className="text-xl sm:text-2xl font-semibold tracking-tight">
-              {title}
-            </Heading2>
-            <Paragraph className="text-base text-muted-foreground max-w-sm mx-auto">
-              {description}
-            </Paragraph>
-          </div>
-          {button && (
-            <Button
-              asChild
-              size="lg"
-              className="mt-2"
-              variant={button.variant || "default"}
-            >
-              <Link href={button.href}>
-                <button.icon
-                  className={cn(iconClassName, "w-5 h-5 sm:w-10 sm:h-10")}
+              >
+                <Icon
+                  className={cn(
+                    iconColor,
+                    iconClassName,
+                    "size-10 transition-all duration-300"
+                  )}
                 />
+              </div>
 
-                {button.label}
-              </Link>
-            </Button>
-          )}
-        </div>
+              <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 blur-xl -z-10" />
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                  {title}
+                </h2>
+              </div>
+
+              <p className="text-base text-muted-foreground leading-relaxed max-w-sm">
+                {description}
+              </p>
+            </div>
+
+            {button && (
+              <div className="pt-2 w-full">
+                <Button
+                  asChild
+                  size="lg"
+                  variant={button.variant || "default"}
+                  className={cn(
+                    "shadow-md hover:shadow-lg active:scale-[0.98]",
+                    "bg-primary hover:bg-primary/90 text-primary-foreground",
+                    "w-full h-12 text-base font-medium transition-all duration-200"
+                  )}
+                >
+                  <Link href={button.href} className="flex items-center gap-2">
+                    <button.icon className="size-5" />
+                    {button.label}
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
       </Card>
     </div>
   );
 };
+
+export default Status;
