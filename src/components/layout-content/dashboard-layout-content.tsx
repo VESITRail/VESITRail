@@ -43,10 +43,13 @@ const DashboardLayoutContent = ({
 
         if (role === "admin") {
           if (status === "Active") {
+            setIsVerifying(false);
             router.push("/dashboard/admin");
             return;
           }
         } else if (role === "student") {
+          setIsVerifying(false);
+
           if (status === "Approved") {
             router.push("/dashboard/student");
             return;
@@ -55,8 +58,6 @@ const DashboardLayoutContent = ({
             return;
           }
         }
-
-        setIsVerifying(false);
       } catch (error) {
         console.error("Error checking user role:", error);
         toast.error("Unexpected error while checking user role");
