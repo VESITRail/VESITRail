@@ -13,9 +13,10 @@ interface StatusProps {
   iconClassName?: string;
   containerClassName?: string;
   button?: {
-    href: string;
+    href?: string;
     label: string;
     icon: LucideIcon;
+    onClick?: () => void;
     variant?: "default" | "outline" | "ghost" | "secondary" | "destructive";
   };
 }
@@ -78,6 +79,7 @@ const Status = ({
                 <Button
                   asChild
                   size="lg"
+                  onClick={button.onClick}
                   variant={button.variant || "default"}
                   className={cn(
                     "shadow-md hover:shadow-lg active:scale-[0.98]",
@@ -85,10 +87,20 @@ const Status = ({
                     "w-full h-12 text-base font-medium transition-all duration-200"
                   )}
                 >
-                  <Link href={button.href} className="flex items-center gap-2">
-                    <button.icon className="size-5" />
-                    {button.label}
-                  </Link>
+                  {button.href ? (
+                    <Link
+                      href={button.href}
+                      className="flex items-center gap-2"
+                    >
+                      <button.icon className="size-5" />
+                      {button.label}
+                    </Link>
+                  ) : (
+                    <>
+                      <button.icon className="size-5" />
+                      {button.label}
+                    </>
+                  )}
                 </Button>
               </div>
             )}
