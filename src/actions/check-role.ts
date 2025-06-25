@@ -1,7 +1,14 @@
 "use server";
 
+import {
+  Result,
+  success,
+  failure,
+  AuthError,
+  databaseError,
+  DatabaseError,
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
-import { ok, err, Result } from "neverthrow";
 import { StudentApprovalStatusType } from "@/generated/zod";
 
 export type UserRole = {
@@ -11,7 +18,7 @@ export type UserRole = {
 
 export const checkUserRole = async (
   userId: string
-): Promise<Result<UserRole, string>> => {
+): Promise<Result<UserRole, AuthError | DatabaseError>> => {
   try {
     const admin = await prisma.admin.findUnique({
       where: { userId },
@@ -20,13 +27,13 @@ export const checkUserRole = async (
 
     if (admin) {
       if (!admin.isActive) {
-        return ok({
+        return success({
           role: "admin",
           status: "Inactive",
         });
       }
 
-      return ok({ role: "admin", status: "Active" });
+      return success({ role: "admin", status: "Active" });
     }
 
     const student = await prisma.student.findUnique({
@@ -35,17 +42,17 @@ export const checkUserRole = async (
     });
 
     if (student) {
-      return ok({
+      return success({
         role: "student",
         status: student.status,
       });
     }
 
-    return ok({
+    return success({
       role: "student",
       status: "NeedsOnboarding",
     });
   } catch (error) {
-    return err("Failed to check user role");
+    return failure(databaseError("Failed to check user role"));
   }
 };
