@@ -1,6 +1,13 @@
 "use server";
 
 import {
+  Result,
+  success,
+  failure,
+  databaseError,
+  DatabaseError,
+} from "@/lib/result";
+import {
   Year,
   Class,
   Branch,
@@ -9,7 +16,7 @@ import {
   ConcessionPeriod,
 } from "@/generated/zod";
 import prisma from "@/lib/prisma";
-import { ok, err, Result } from "neverthrow";
+import { sortByRomanKey } from "@/lib/utils";
 
 export type StudentPreferences = {
   preferredConcessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
@@ -18,7 +25,7 @@ export type StudentPreferences = {
 
 export const getStudentPreferences = async (
   studentId: string
-): Promise<Result<StudentPreferences, string>> => {
+): Promise<Result<StudentPreferences, DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
       where: { userId: studentId },
@@ -42,90 +49,94 @@ export const getStudentPreferences = async (
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(databaseError("Student not found"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(databaseError("Student is not approved"));
     }
 
     const { preferredConcessionClass, preferredConcessionPeriod } = student;
 
-    return ok({
+    return success({
       preferredConcessionClass,
       preferredConcessionPeriod,
     });
   } catch (error) {
-    return err("Failed to fetch preferences");
+    return failure(databaseError("Failed to fetch preferences"));
   }
 };
 
-export const getYears = async (): Promise<Result<Year[], string>> => {
+export const getYears = async (): Promise<Result<Year[], DatabaseError>> => {
   try {
     const years = await prisma.year.findMany({
       where: { isActive: true },
     });
 
-    return ok(years);
+    return success(years);
   } catch (error) {
-    return err("Failed to fetch years");
+    return failure(databaseError("Failed to fetch years"));
   }
 };
 
-export const getBranches = async (): Promise<Result<Branch[], string>> => {
+export const getBranches = async (): Promise<
+  Result<Branch[], DatabaseError>
+> => {
   try {
     const branches = await prisma.branch.findMany({
       where: { isActive: true },
     });
 
-    return ok(branches);
+    return success(branches);
   } catch (error) {
-    return err("Failed to fetch branches");
+    return failure(databaseError("Failed to fetch branches"));
   }
 };
 
-export const getClasses = async (): Promise<Result<Class[], string>> => {
+export const getClasses = async (): Promise<Result<Class[], DatabaseError>> => {
   try {
     const classes = await prisma.class.findMany({
       orderBy: { code: "asc" },
       where: { isActive: true },
     });
 
-    return ok(classes);
+    return success(classes);
   } catch (error) {
-    return err("Failed to fetch classes");
+    return failure(databaseError("Failed to fetch classes"));
   }
 };
 
-export const getStations = async (): Promise<Result<Station[], string>> => {
+export const getStations = async (): Promise<
+  Result<Station[], DatabaseError>
+> => {
   try {
     const stations = await prisma.station.findMany({
       orderBy: { name: "asc" },
       where: { isActive: true },
     });
 
-    return ok(stations);
+    return success(stations);
   } catch (error) {
-    return err("Failed to fetch stations");
+    return failure(databaseError("Failed to fetch stations"));
   }
 };
 
 export const getConcessionClasses = async (): Promise<
-  Result<ConcessionClass[], string>
+  Result<ConcessionClass[], DatabaseError>
 > => {
   try {
     const classes = await prisma.concessionClass.findMany({
       where: { isActive: true },
     });
 
-    return ok(classes);
+    return success(sortByRomanKey(classes, "code"));
   } catch (error) {
-    return err("Failed to fetch concession classes");
+    return failure(databaseError("Failed to fetch concession classes"));
   }
 };
 
 export const getConcessionPeriods = async (): Promise<
-  Result<ConcessionPeriod[], string>
+  Result<ConcessionPeriod[], DatabaseError>
 > => {
   try {
     const periods = await prisma.concessionPeriod.findMany({
@@ -133,8 +144,8 @@ export const getConcessionPeriods = async (): Promise<
       orderBy: { duration: "asc" },
     });
 
-    return ok(periods);
+    return success(periods);
   } catch (error) {
-    return err("Failed to fetch concession periods");
+    return failure(databaseError("Failed to fetch concession periods"));
   }
 };
