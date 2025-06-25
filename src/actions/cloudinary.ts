@@ -1,6 +1,14 @@
 "use server";
 
-import { ok, err, Result } from "neverthrow";
+import {
+  Result,
+  success,
+  failure,
+  AuthError,
+  authError,
+  databaseError,
+  DatabaseError,
+} from "@/lib/result";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -9,12 +17,14 @@ cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
 });
 
+export type DeleteCloudinaryFile = { response: any; message: string };
+
 export const deleteCloudinaryFile = async (
   publicId: string
-): Promise<Result<any, string>> => {
+): Promise<Result<DeleteCloudinaryFile, AuthError | DatabaseError>> => {
   try {
     if (!publicId) {
-      return err("Public ID is required");
+      return failure(authError("Public ID is required"));
     }
 
     const response = await cloudinary.uploader.destroy(publicId, {
@@ -23,13 +33,15 @@ export const deleteCloudinaryFile = async (
     });
 
     if (response.result === "ok") {
-      return ok({ response, message: "File deleted successfully" });
-    } else if (response.result === "not found") {
-      return err("File not found");
-    } else {
-      return err("Failed to delete file");
+      return success({ response, message: "File deleted successfully" });
     }
+
+    if (response.result === "not found") {
+      return failure(authError("File not found"));
+    }
+
+    return failure(authError("Failed to delete file"));
   } catch (error) {
-    return err("Failed to delete file");
+    return failure(databaseError("Failed to delete file"));
   }
 };
