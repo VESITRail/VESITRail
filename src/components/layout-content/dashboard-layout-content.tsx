@@ -32,64 +32,42 @@ const DashboardLayoutContent = ({
         return;
       }
 
-      try {
-        const result = await checkUserRole(session.data.user.id);
+      const result = await checkUserRole(session.data.user.id);
 
-        if (isFailure(result)) {
-          console.error("Failed to check user role:", result.error);
-          toast.error("Failed to verify account access. Please try again.");
-          setIsVerifying(false);
+      if (isFailure(result)) {
+        toast.error("Failed to verify account access. Please try again.");
+        console.error("Failed to check user role:", result.error);
+        setIsVerifying(false);
+        return;
+      }
+
+      const { role, status } = result.data;
+      setUserRole({ role, status });
+
+      if (role === "admin") {
+        if (isStudentPath || (!isAdminPath && status === "Active")) {
+          router.replace("/dashboard/admin");
+          return;
+        }
+      } else if (role === "student") {
+        if (isAdminPath || (status === "Approved" && !isStudentPath)) {
+          router.replace("/dashboard/student");
           return;
         }
 
-        const { role, status } = result.data;
-        setUserRole({ role, status });
-
-        if (role === "admin") {
-          if (isStudentPath) {
-            router.push("/dashboard/admin");
-            setIsVerifying(false);
-            return;
-          }
-
-          if (status === "Active" && !isAdminPath) {
-            setIsVerifying(false);
-            router.push("/dashboard/admin");
-            return;
-          }
-        } else if (role === "student") {
-          if (isAdminPath) {
-            router.push("/dashboard/student");
-            setIsVerifying(false);
-            return;
-          }
-
-          if (status === "Approved" && !isStudentPath) {
-            setIsVerifying(false);
-            router.push("/dashboard/student");
-            return;
-          } else if (
-            status === "NeedsOnboarding" &&
-            pathname !== "/onboarding"
-          ) {
-            setIsVerifying(false);
-            router.push("/onboarding");
-            return;
-          }
+        if (status === "NeedsOnboarding" && pathname !== "/onboarding") {
+          router.replace("/onboarding");
+          return;
         }
-
-        setIsVerifying(false);
-      } catch (error) {
-        console.error("Error checking user role:", error);
-        toast.error("Unexpected error while checking user role");
-        setIsVerifying(false);
       }
+
+      setIsVerifying(false);
     };
 
     checkAndRedirect();
-  }, [router, session.isPending, session.data?.user]);
+  }, [pathname, session.isPending, session.data?.user]);
 
-  if (isVerifying) {
+  if (session.isPending || isVerifying) {
     return (
       <Status
         icon={Loader2}
