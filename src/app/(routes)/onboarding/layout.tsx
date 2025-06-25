@@ -3,10 +3,10 @@
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { isFailure } from "@/lib/result";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Status from "@/components/ui/status";
 import { authClient } from "@/lib/auth-client";
+import { useEffect, useState, useRef } from "react";
 import { checkUserRole } from "@/actions/check-role";
 
 const OnboardingLayoutContent = ({
@@ -16,55 +16,54 @@ const OnboardingLayoutContent = ({
 }) => {
   const router = useRouter();
   const session = authClient.useSession();
-  const [isVerifying, setIsVerifying] = useState(true);
+  const hasCheckedRef = useRef<boolean>(false);
+  const [isVerifying, setIsVerifying] = useState<boolean>(true);
 
   useEffect(() => {
-    const verifyAccess = async () => {
-      if (session.data?.user) {
-        try {
-          const result = await checkUserRole(session.data.user.id);
+    const verifyOnboardingAccess = async () => {
+      if (hasCheckedRef.current || !session.data?.user) return;
 
-          if (isFailure(result)) {
-            console.error("Failed to check user role:", result.error);
-            toast.error("Failed to verify account access. Please try again.");
-            router.push("/");
-            return;
-          }
+      hasCheckedRef.current = true;
 
-          const { role, status } = result.data;
+      try {
+        const result = await checkUserRole(session.data.user.id);
 
-          if (role === "admin") {
-            router.push("/dashboard/admin");
-            return;
-          }
-
-          if (role === "student") {
-            if (status === "NeedsOnboarding") {
-              setIsVerifying(false);
-              return;
-            }
-
-            router.push("/dashboard/student");
-            return;
-          }
-
-          toast.error("Account status not recognized. Please contact support.");
+        if (isFailure(result)) {
+          console.error("Failed to check user role:", result.error);
+          toast.error("Failed to verify access. Redirecting...");
           router.push("/");
           return;
-        } catch (error) {
-          console.error("Failed to verify access:", error);
-          toast.error(
-            "An error occurred while verifying your account. Please try again."
-          );
+        }
+
+        const { role, status } = result.data;
+
+        if (role === "student" && status === "NeedsOnboarding") {
+          setIsVerifying(false);
+          return;
+        }
+
+        if (role === "admin") {
+          router.push("/dashboard/admin");
+        } else if (role === "student") {
+          router.push("/dashboard/student");
+        } else {
           router.push("/");
         }
+      } catch (error) {
+        console.error("Failed to verify onboarding access:", error);
+        toast.error("An error occurred. Redirecting...");
+        router.push("/");
       }
     };
 
     if (!session.isPending && session.data?.user) {
-      verifyAccess();
+      verifyOnboardingAccess();
     }
-  }, [router, session]);
+  }, [router, session.isPending, session.data?.user]);
+
+  useEffect(() => {
+    hasCheckedRef.current = false;
+  }, [session.data?.user?.id]);
 
   if (isVerifying) {
     return (
