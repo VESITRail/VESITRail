@@ -17,7 +17,6 @@ interface StatusProps {
     label: string;
     icon: LucideIcon;
     onClick?: () => void;
-    variant?: "default" | "outline" | "ghost" | "secondary" | "destructive";
   };
 }
 
@@ -80,7 +79,6 @@ const Status = ({
                   asChild
                   size="lg"
                   onClick={button.onClick}
-                  variant={button.variant || "default"}
                   className={cn(
                     "shadow-md hover:shadow-lg active:scale-[0.98]",
                     "bg-primary hover:bg-primary/90 text-primary-foreground",
