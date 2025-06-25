@@ -40,35 +40,33 @@ const DashboardLayoutContent = ({
         label: "Dashboard",
         href: "/dashboard/student",
       });
+    } else {
+      breadcrumbs.push({
+        isActive: false,
+        label: "Dashboard",
+        href: "/dashboard/student",
+      });
 
-      return breadcrumbs;
+      pathSegments.forEach((segment, index) => {
+        if (segment === "dashboard") return;
+
+        currentPath += `/${segment}`;
+        const fullPath = `/dashboard${currentPath}`;
+        const isLast = index === pathSegments.length - 1;
+
+        if (segment === "student" && pathSegments.length > 2) {
+          return;
+        }
+
+        if (segment !== "student") {
+          breadcrumbs.push({
+            href: fullPath,
+            isActive: isLast,
+            label: toTitleCase(segment),
+          });
+        }
+      });
     }
-
-    breadcrumbs.push({
-      isActive: false,
-      label: "Dashboard",
-      href: "/dashboard/student",
-    });
-
-    pathSegments.forEach((segment, index) => {
-      if (segment === "dashboard") return;
-
-      currentPath += `/${segment}`;
-      const fullPath = `/dashboard${currentPath}`;
-      const isLast = index === pathSegments.length - 1;
-
-      if (segment === "student" && pathSegments.length > 2) {
-        return;
-      }
-
-      if (segment !== "student") {
-        breadcrumbs.push({
-          href: fullPath,
-          isActive: isLast,
-          label: toTitleCase(segment),
-        });
-      }
-    });
 
     return breadcrumbs;
   };
@@ -116,8 +114,8 @@ const DashboardLayoutContent = ({
             variant="outline"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <Sun className="size-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute size-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
         </header>
