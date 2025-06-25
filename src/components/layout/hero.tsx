@@ -9,17 +9,17 @@ import {
 import {
   LogIn,
   Rocket,
-  Loader2,
   Activity,
   FileCheck,
-  ClipboardCheck,
   AlertCircle,
+  ClipboardCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Hero = () => {
   const session = authClient.useSession();
@@ -55,18 +55,22 @@ const Hero = () => {
             </Lead>
           </div>
 
-          {!session.isPending && !session.data?.user && (
-            <div className="flex items-center gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5 w-full max-w-sm">
-              <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+          {session.isPending ? (
+            <Skeleton className="w-full max-w-sm h-12 rounded-lg" />
+          ) : (
+            !session.data?.user && (
+              <div className="flex items-center gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5 w-full max-w-sm">
+                <AlertCircle className="size-4 text-destructive flex-shrink-0" />
 
-              <p className="text-xs text-destructive font-medium">
-                Only{" "}
-                <span className="bg-destructive/20 px-1 rounded">
-                  @ves.ac.in
-                </span>{" "}
-                emails allowed
-              </p>
-            </div>
+                <p className="text-xs text-destructive font-medium">
+                  Only{" "}
+                  <span className="bg-destructive/20 px-1.5 rounded">
+                    @ves.ac.in
+                  </span>{" "}
+                  emails allowed
+                </p>
+              </div>
+            )
           )}
 
           <div className="flex flex-col w-full max-w-sm gap-4">
@@ -74,10 +78,10 @@ const Hero = () => {
               <Button
                 disabled
                 variant="outline"
-                className="w-full h-12 text-base font-medium border border-input bg-background hover:bg-muted transition-all duration-300 flex items-center justify-center gap-2"
+                className="w-full h-12 text-base font-medium border border-input bg-background transition-all duration-300 flex items-center justify-center gap-2"
               >
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Loading...</span>
+                <Skeleton className="size-5 rounded" />
+                <Skeleton className="h-4 w-32" />
               </Button>
             ) : session.data?.user ? (
               <Link href="/dashboard">
@@ -85,7 +89,7 @@ const Hero = () => {
                   variant="outline"
                   className="w-full h-12 text-base font-medium border border-input bg-background hover:bg-muted transition-all duration-300 flex items-center justify-center gap-2"
                 >
-                  <LogIn className="h-5 w-5" />
+                  <LogIn className="size-5" />
                   <span>Continue to Dashboard</span>
                 </Button>
               </Link>
@@ -98,7 +102,7 @@ const Hero = () => {
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 24 24"
-                  className="h-5 w-5 mr-2"
+                  className="size-5 mr-2"
                 >
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -122,9 +126,12 @@ const Hero = () => {
             )}
 
             <Paragraph className="text-muted-foreground text-center text-sm lg:text-left">
-              {!session.isPending &&
+              {session.isPending ? (
+                <Skeleton className="h-4 w-full max-w-xs mx-auto lg:mx-0" />
+              ) : (
                 !session.data?.user &&
-                "New to the platform? Your account will be created automatically"}
+                "New to the platform? Your account will be created automatically"
+              )}
             </Paragraph>
           </div>
         </div>
