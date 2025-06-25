@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { isFailure } from "@/lib/result";
 import Status from "@/components/ui/status";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { usePathname, useRouter } from "next/navigation";
 import { checkUserRole, UserRole } from "@/actions/check-role";
 import { Loader2, UserX, Clock, XCircle, Mail } from "lucide-react";
 
@@ -15,9 +15,13 @@ const DashboardLayoutContent = ({
   children: React.ReactNode;
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const session = authClient.useSession();
   const [isVerifying, setIsVerifying] = useState<boolean>(true);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+
+  const isAdminPath = pathname.startsWith("/dashboard/admin");
+  const isStudentPath = pathname.startsWith("/dashboard/student");
 
   useEffect(() => {
     const checkAndRedirect = async () => {
@@ -42,22 +46,39 @@ const DashboardLayoutContent = ({
         setUserRole({ role, status });
 
         if (role === "admin") {
-          if (status === "Active") {
+          if (isStudentPath) {
+            router.push("/dashboard/admin");
+            setIsVerifying(false);
+            return;
+          }
+
+          if (status === "Active" && !isAdminPath) {
             setIsVerifying(false);
             router.push("/dashboard/admin");
             return;
           }
         } else if (role === "student") {
-          setIsVerifying(false);
+          if (isAdminPath) {
+            router.push("/dashboard/student");
+            setIsVerifying(false);
+            return;
+          }
 
-          if (status === "Approved") {
+          if (status === "Approved" && !isStudentPath) {
+            setIsVerifying(false);
             router.push("/dashboard/student");
             return;
-          } else if (status === "NeedsOnboarding") {
+          } else if (
+            status === "NeedsOnboarding" &&
+            pathname !== "/onboarding"
+          ) {
+            setIsVerifying(false);
             router.push("/onboarding");
             return;
           }
         }
+
+        setIsVerifying(false);
       } catch (error) {
         console.error("Error checking user role:", error);
         toast.error("Unexpected error while checking user role");
