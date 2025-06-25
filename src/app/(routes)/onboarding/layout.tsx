@@ -1,10 +1,12 @@
 "use client";
 
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { isFailure } from "@/lib/result";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Status from "@/components/ui/status";
 import { authClient } from "@/lib/auth-client";
-import { Status } from "@/components/ui/status";
 import { checkUserRole } from "@/actions/check-role";
 
 const OnboardingLayoutContent = ({
@@ -20,23 +22,40 @@ const OnboardingLayoutContent = ({
     const verifyAccess = async () => {
       if (session.data?.user) {
         try {
-          const { role, needsOnboarding } = await checkUserRole(
-            session.data.user.id
-          );
+          const result = await checkUserRole(session.data.user.id);
+
+          if (isFailure(result)) {
+            console.error("Failed to check user role:", result.error);
+            toast.error("Failed to verify account access. Please try again.");
+            router.push("/");
+            return;
+          }
+
+          const { role, status } = result.data;
 
           if (role === "admin") {
             router.push("/dashboard/admin");
             return;
           }
 
-          if (role === "student" && !needsOnboarding) {
+          if (role === "student") {
+            if (status === "NeedsOnboarding") {
+              setIsVerifying(false);
+              return;
+            }
+
             router.push("/dashboard/student");
             return;
           }
 
-          setIsVerifying(false);
+          toast.error("Account status not recognized. Please contact support.");
+          router.push("/");
+          return;
         } catch (error) {
           console.error("Failed to verify access:", error);
+          toast.error(
+            "An error occurred while verifying your account. Please try again."
+          );
           router.push("/");
         }
       }
@@ -45,7 +64,7 @@ const OnboardingLayoutContent = ({
     if (!session.isPending && session.data?.user) {
       verifyAccess();
     }
-  }, [session, router]);
+  }, [router, session]);
 
   if (isVerifying) {
     return (
