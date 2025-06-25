@@ -1,15 +1,15 @@
 import { twMerge } from "tailwind-merge";
 import { clsx, type ClassValue } from "clsx";
 
-const cn = (...inputs: ClassValue[]) => {
+export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
 };
 
-const formatFieldName = (field: string) => {
+export const formatFieldName = (field: string) => {
   field.replace(/([A-Z])/g, " $1").toLowerCase();
 };
 
-const toTitleCase = (str?: string) => {
+export const toTitleCase = (str?: string) => {
   if (!str) return "";
 
   return str
@@ -19,7 +19,7 @@ const toTitleCase = (str?: string) => {
     .join(" ");
 };
 
-const capitalizeWords = (str: string): string => {
+export const capitalizeWords = (str: string): string => {
   return str
     .toLowerCase()
     .split(" ")
@@ -27,7 +27,7 @@ const capitalizeWords = (str: string): string => {
     .join(" ");
 };
 
-const getUserInitials = (type: "Admin" | "Student", name?: string) => {
+export const getUserInitials = (type: "Admin" | "Student", name?: string) => {
   if (!name) return type === "Admin" ? "AD" : "ST";
 
   return name
@@ -38,7 +38,7 @@ const getUserInitials = (type: "Admin" | "Student", name?: string) => {
     .slice(0, 2);
 };
 
-const calculateConcessionValidity = (
+export const calculateConcessionValidity = (
   approvedAt: Date,
   durationInMonths: number
 ): {
@@ -60,11 +60,30 @@ const calculateConcessionValidity = (
   };
 };
 
-export {
-  cn,
-  toTitleCase,
-  getUserInitials,
-  capitalizeWords,
-  formatFieldName,
-  calculateConcessionValidity,
+export const sortByRomanKey = <T>(data: T[], key: keyof T): T[] => {
+  const romanToInt = (roman: string): number => {
+    const map: Record<string, number> = {
+      I: 1,
+      V: 5,
+      X: 10,
+      L: 50,
+      C: 100,
+      D: 500,
+      M: 1000,
+    };
+
+    let total = 0;
+
+    for (let i = 0; i < roman.length; i++) {
+      const current = map[roman[i]];
+      const next = map[roman[i + 1]];
+      total += next && current < next ? -current : current;
+    }
+
+    return total;
+  };
+
+  return data.sort(
+    (a, b) => romanToInt(String(a[key])) - romanToInt(String(b[key]))
+  );
 };
