@@ -1,22 +1,24 @@
 "use server";
 
+import {
+  Result,
+  success,
+  failure,
+  databaseError,
+  DatabaseError,
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
-import { ok, err, Result } from "neverthrow";
-import { ConcessionClass, ConcessionPeriod } from "@/generated/zod";
+import { Student } from "@/generated/zod";
+import { StudentPreferences } from "./utils";
 
-export type StudentPreferences = {
-  preferredConcessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
-  preferredConcessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
-};
-
-export type UpdatePreferencesData = {
-  preferredConcessionClassId: string;
-  preferredConcessionPeriodId: string;
-};
+export type UpdatePreferencesData = Pick<
+  Student,
+  "preferredConcessionClassId" | "preferredConcessionPeriodId"
+>;
 
 export const getStudentPreferences = async (
   studentId: string
-): Promise<Result<StudentPreferences, string>> => {
+): Promise<Result<StudentPreferences, DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
       where: { userId: studentId },
@@ -40,28 +42,28 @@ export const getStudentPreferences = async (
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(databaseError("Student not found"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(databaseError("Student is not approved"));
     }
 
     const { preferredConcessionClass, preferredConcessionPeriod } = student;
 
-    return ok({
+    return success({
       preferredConcessionClass,
       preferredConcessionPeriod,
     });
   } catch (error) {
-    return err("Failed to fetch preferences");
+    return failure(databaseError("Failed to fetch preferences"));
   }
 };
 
 export const updateStudentPreferences = async (
   studentId: string,
   data: UpdatePreferencesData
-): Promise<Result<any, string>> => {
+): Promise<Result<StudentPreferences, DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
       select: { status: true },
@@ -69,11 +71,11 @@ export const updateStudentPreferences = async (
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(databaseError("Student not found"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(databaseError("Student is not approved"));
     }
 
     const [concessionClass, concessionPeriod] = await Promise.all([
@@ -92,11 +94,11 @@ export const updateStudentPreferences = async (
     ]);
 
     if (!concessionClass) {
-      return err("Invalid concession class selected");
+      return failure(databaseError("Invalid concession class selected"));
     }
 
     if (!concessionPeriod) {
-      return err("Invalid concession period selected");
+      return failure(databaseError("Invalid concession period selected"));
     }
 
     const updatedStudent = await prisma.student.update({
@@ -123,8 +125,8 @@ export const updateStudentPreferences = async (
       },
     });
 
-    return ok(updatedStudent);
+    return success(updatedStudent);
   } catch (error) {
-    return err("Failed to update preferences");
+    return failure(databaseError("Failed to update preferences"));
   }
 };
