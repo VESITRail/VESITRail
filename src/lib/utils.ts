@@ -46,17 +46,22 @@ export const calculateConcessionValidity = (
   expiryDate: Date;
   daysRemaining: number;
 } => {
-  const currentDate = new Date();
-  const expiryDate = new Date(approvedAt);
+  const now = new Date();
+  const expiryDate = new Date(approvedAt.getTime());
   expiryDate.setMonth(expiryDate.getMonth() + durationInMonths);
 
-  const timeDiff = expiryDate.getTime() - currentDate.getTime();
-  const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  if (approvedAt.getDate() !== expiryDate.getDate()) {
+    expiryDate.setDate(0);
+  }
+
+  const msInDay = 1000 * 60 * 60 * 24;
+  const timeDiff = expiryDate.getTime() - now.getTime();
+  const daysRemaining = Math.max(Math.ceil(timeDiff / msInDay), 0);
 
   return {
-    isValid: daysRemaining > 0,
     expiryDate,
     daysRemaining,
+    isValid: daysRemaining > 0,
   };
 };
 
