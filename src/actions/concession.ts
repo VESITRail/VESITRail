@@ -4,39 +4,56 @@ import {
   Station,
   ConcessionClass,
   ConcessionPeriod,
-  ConcessionApplicationTypeType,
-  ConcessionApplicationStatusType,
+  ConcessionApplication,
 } from "@/generated/zod";
+import {
+  Result,
+  success,
+  failure,
+  AuthError,
+  authError,
+  databaseError,
+  DatabaseError,
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
-import { ok, err, Result } from "neverthrow";
 
-export type ConcessionApplication = {
-  id: string;
-  createdAt: Date;
-  reviewedAt?: Date | null;
-  status: ConcessionApplicationStatusType;
-  applicationType: ConcessionApplicationTypeType;
-  station: Pick<Station, "id" | "code" | "name">;
-  previousApplication?: ConcessionApplication | null;
-  concessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
-  concessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
-};
+export type Concession =
+  | (Pick<
+      ConcessionApplication,
+      "id" | "status" | "createdAt" | "reviewedAt" | "applicationType"
+    > & {
+      previousApplication?: Concession;
+      station: Pick<Station, "id" | "code" | "name">;
+      concessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
+      concessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+    })
+  | null;
+
+export type ConcessionApplicationData = Pick<
+  ConcessionApplication,
+  | "studentId"
+  | "stationId"
+  | "applicationType"
+  | "concessionClassId"
+  | "concessionPeriodId"
+  | "previousApplicationId"
+>;
 
 export const getConcessions = async (
   studentId: string
-): Promise<Result<ConcessionApplication[], string>> => {
+): Promise<Result<Concession[], AuthError | DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
-      where: { userId: studentId },
       select: { status: true },
+      where: { userId: studentId },
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(authError("Student not found"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(authError("Student is not approved"));
     }
 
     const concessions = await prisma.concessionApplication.findMany({
@@ -46,6 +63,7 @@ export const getConcessions = async (
         id: true,
         status: true,
         createdAt: true,
+        reviewedAt: true,
         applicationType: true,
         station: {
           select: {
@@ -73,6 +91,7 @@ export const getConcessions = async (
             id: true,
             status: true,
             createdAt: true,
+            reviewedAt: true,
             applicationType: true,
             station: {
               select: {
@@ -100,27 +119,27 @@ export const getConcessions = async (
       },
     });
 
-    return ok(concessions);
+    return success(concessions);
   } catch (error) {
-    return err("Failed to fetch concessions");
+    return failure(databaseError("Failed to fetch concessions"));
   }
 };
 
 export const getLastApplication = async (
   studentId: string
-): Promise<Result<ConcessionApplication, string>> => {
+): Promise<Result<Concession, AuthError | DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
-      where: { userId: studentId },
       select: { status: true },
+      where: { userId: studentId },
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(authError("Student not found"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(authError("Student is not approved"));
     }
 
     const lastApplication = await prisma.concessionApplication.findFirst({
@@ -157,23 +176,18 @@ export const getLastApplication = async (
     });
 
     if (!lastApplication) {
-      return err("No applications found for this student");
+      return failure(authError("No applications found for this student"));
     }
 
-    return ok(lastApplication);
+    return success(lastApplication);
   } catch (error) {
-    return err("Failed to fetch application");
+    return failure(databaseError("Failed to fetch application"));
   }
 };
 
-export const submitConcessionApplication = async (data: {
-  studentId: string;
-  stationId: string;
-  concessionClassId: string;
-  concessionPeriodId: string;
-  previousApplicationId?: string | null;
-  applicationType: ConcessionApplicationTypeType;
-}): Promise<Result<ConcessionApplication, string>> => {
+export const submitConcessionApplication = async (
+  data: ConcessionApplicationData
+): Promise<Result<Concession, AuthError | DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
       select: { status: true },
@@ -181,11 +195,11 @@ export const submitConcessionApplication = async (data: {
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(authError("Student not found"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(authError("Student is not approved"));
     }
 
     const application = await prisma.concessionApplication.create({
@@ -258,8 +272,8 @@ export const submitConcessionApplication = async (data: {
       },
     });
 
-    return ok(application);
+    return success(application);
   } catch (error) {
-    return err("Failed to submit application");
+    return failure(databaseError("Failed to submit application"));
   }
 };
