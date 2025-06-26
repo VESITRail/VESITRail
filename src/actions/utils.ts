@@ -18,6 +18,8 @@ import {
 import prisma from "@/lib/prisma";
 import { sortByRomanKey } from "@/lib/utils";
 
+export type StudentStation = Pick<Station, "id" | "code" | "name">;
+
 export type StudentPreferences = {
   preferredConcessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
   preferredConcessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
@@ -147,5 +149,37 @@ export const getConcessionPeriods = async (): Promise<
     return success(periods);
   } catch (error) {
     return failure(databaseError("Failed to fetch concession periods"));
+  }
+};
+
+export const getStudentStation = async (
+  studentId: string
+): Promise<Result<StudentStation, DatabaseError>> => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId: studentId },
+      select: {
+        status: true,
+        station: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!student) {
+      return failure(databaseError("Student not found"));
+    }
+
+    if (student.status !== "Approved") {
+      return failure(databaseError("Student is not approved"));
+    }
+
+    return success(student.station);
+  } catch (error) {
+    return failure(databaseError("Failed to fetch student's station"));
   }
 };
