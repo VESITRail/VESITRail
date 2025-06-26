@@ -175,10 +175,6 @@ export const getLastApplication = async (
       },
     });
 
-    if (!lastApplication) {
-      return failure(authError("No applications found for this student"));
-    }
-
     return success(lastApplication);
   } catch (error) {
     return failure(databaseError("Failed to fetch application"));
