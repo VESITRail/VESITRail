@@ -55,23 +55,9 @@ export type OnboardingData = Pick<
 >;
 
 export const getReviewData = async (
-  data: ReviewData,
-  studentId: string
+  data: ReviewData
 ): Promise<Result<Review, ValidationError | DatabaseError>> => {
   try {
-    const student = await prisma.student.findUnique({
-      select: { status: true },
-      where: { userId: studentId },
-    });
-
-    if (!student) {
-      return failure(validationError("Student not found", "studentId"));
-    }
-
-    if (student.status !== "Approved") {
-      return failure(validationError("Student is not approved", "status"));
-    }
-
     const [_class, station, concessionClass, concessionPeriod] =
       await Promise.all([
         prisma.class.findUnique({
