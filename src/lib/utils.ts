@@ -6,7 +6,7 @@ export const cn = (...inputs: ClassValue[]) => {
 };
 
 export const formatFieldName = (field: string) => {
-  field.replace(/([A-Z])/g, " $1").toLowerCase();
+  return field.replace(/([A-Z])/g, " $1").toLowerCase();
 };
 
 export const toTitleCase = (str?: string) => {
