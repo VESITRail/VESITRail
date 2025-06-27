@@ -1,6 +1,15 @@
 "use server";
 
 import {
+  Result,
+  success,
+  failure,
+  databaseError,
+  DatabaseError,
+  validationError,
+  ValidationError,
+} from "@/lib/result";
+import {
   Year,
   Class,
   Branch,
@@ -10,7 +19,6 @@ import {
   ConcessionPeriod,
 } from "@/generated/zod";
 import prisma from "@/lib/prisma";
-import { ok, err, Result } from "neverthrow";
 
 export type ReviewData = Pick<
   Student,
@@ -21,11 +29,11 @@ export type ReviewData = Pick<
 >;
 
 export type Review = {
-  station: Pick<Station, "id" | "code" | "name">;
   class: Pick<Class, "id" | "code"> & {
     year: Pick<Year, "id" | "code" | "name">;
     branch: Pick<Branch, "id" | "code" | "name">;
   };
+  station: Pick<Station, "id" | "code" | "name">;
   concessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
   concessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
 };
@@ -49,7 +57,7 @@ export type OnboardingData = Pick<
 export const getReviewData = async (
   data: ReviewData,
   studentId: string
-): Promise<Result<Review, string>> => {
+): Promise<Result<Review, ValidationError | DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
       select: { status: true },
@@ -57,11 +65,11 @@ export const getReviewData = async (
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(validationError("Student not found", "studentId"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(validationError("Student is not approved", "status"));
     }
 
     const [_class, station, concessionClass, concessionPeriod] =
@@ -71,20 +79,8 @@ export const getReviewData = async (
           select: {
             id: true,
             code: true,
-            year: {
-              select: {
-                id: true,
-                code: true,
-                name: true,
-              },
-            },
-            branch: {
-              select: {
-                id: true,
-                code: true,
-                name: true,
-              },
-            },
+            year: { select: { id: true, code: true, name: true } },
+            branch: { select: { id: true, code: true, name: true } },
           },
         }),
         prisma.station.findUnique({
@@ -92,8 +88,8 @@ export const getReviewData = async (
           select: { id: true, code: true, name: true },
         }),
         prisma.concessionClass.findUnique({
-          select: { id: true, code: true, name: true },
           where: { id: data.preferredConcessionClassId },
+          select: { id: true, code: true, name: true },
         }),
         prisma.concessionPeriod.findUnique({
           where: { id: data.preferredConcessionPeriodId },
@@ -102,24 +98,24 @@ export const getReviewData = async (
       ]);
 
     if (!_class || !station || !concessionClass || !concessionPeriod) {
-      return err("Some review fields are missing.");
+      return failure(validationError("Some review fields are missing"));
     }
 
-    return ok({
+    return success({
       station,
       class: _class,
       concessionClass,
       concessionPeriod,
     });
   } catch (error) {
-    return err("Failed to fetch review data");
+    return failure(databaseError("Failed to fetch review data"));
   }
 };
 
 export const submitOnboarding = async (
   studentId: string,
   data: OnboardingData
-): Promise<Result<Student, string>> => {
+): Promise<Result<Student, DatabaseError>> => {
   try {
     const student = await prisma.student.create({
       data: {
@@ -128,8 +124,8 @@ export const submitOnboarding = async (
       },
     });
 
-    return ok(student);
+    return success(student);
   } catch (error) {
-    return err("Failed to submit student onboarding");
+    return failure(databaseError("Failed to submit student onboarding"));
   }
 };
