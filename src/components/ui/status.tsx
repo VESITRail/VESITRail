@@ -4,12 +4,13 @@ import { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-interface StatusProps {
+type StatusProps = {
   title: string;
   iconBg?: string;
   icon: LucideIcon;
   iconColor?: string;
   description: string;
+  cardClassName?: string;
   iconClassName?: string;
   containerClassName?: string;
   button?: {
@@ -18,7 +19,7 @@ interface StatusProps {
     icon: LucideIcon;
     onClick?: () => void;
   };
-}
+};
 
 const Status = ({
   title,
@@ -26,6 +27,7 @@ const Status = ({
   icon: Icon,
   description,
   iconClassName,
+  cardClassName,
   iconBg = "bg-primary/10",
   iconColor = "text-foreground",
   containerClassName = "min-h-screen",
@@ -37,7 +39,9 @@ const Status = ({
         containerClassName
       )}
     >
-      <Card className="w-full max-w-md shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+      <Card
+        className={`w-full max-w-md shadow-lg border-0 bg-card/50 backdrop-blur-sm ${cardClassName}`}
+      >
         <CardContent className="p-8">
           <div className="flex flex-col items-center text-center space-y-6">
             <div className="relative">
@@ -75,31 +79,35 @@ const Status = ({
 
             {button && (
               <div className="pt-2 w-full">
-                <Button
-                  asChild
-                  size="lg"
-                  onClick={button.onClick}
-                  className={cn(
-                    "shadow-md hover:shadow-lg active:scale-[0.98]",
-                    "bg-primary hover:bg-primary/90 text-primary-foreground",
-                    "w-full h-12 text-base font-medium transition-all duration-200"
-                  )}
-                >
-                  {button.href ? (
-                    <Link
-                      href={button.href}
-                      className="flex items-center gap-2"
+                {button.href ? (
+                  <Link href={button.href} className="flex items-center gap-2">
+                    <Button
+                      size="lg"
+                      onClick={button.onClick}
+                      className={cn(
+                        "shadow-md hover:shadow-lg active:scale-[0.98]",
+                        "bg-primary hover:bg-primary/90 text-primary-foreground",
+                        "w-full h-12 text-base font-medium transition-all duration-200"
+                      )}
                     >
                       <button.icon className="size-5" />
                       {button.label}
-                    </Link>
-                  ) : (
-                    <>
-                      <button.icon className="size-5" />
-                      {button.label}
-                    </>
-                  )}
-                </Button>
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    size="lg"
+                    onClick={button.onClick}
+                    className={cn(
+                      "shadow-md hover:shadow-lg active:scale-[0.98]",
+                      "bg-primary hover:bg-primary/90 text-primary-foreground",
+                      "w-full h-12 text-base font-medium transition-all duration-200"
+                    )}
+                  >
+                    <button.icon className="size-5" />
+                    {button.label}
+                  </Button>
+                )}
               </div>
             )}
           </div>
