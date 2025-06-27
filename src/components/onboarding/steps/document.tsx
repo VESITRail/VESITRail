@@ -18,10 +18,12 @@ import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { CldUploadButton } from "next-cloudinary";
+import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileUp, Upload, Loader2, Eye } from "lucide-react";
+import { deleteCloudinaryFile } from "@/actions/cloudinary";
 import { DocumentSchema } from "@/lib/validations/onboarding";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
+import { FileUp, Upload, Loader2, Eye, X, Trash } from "lucide-react";
 
 type DocumentProps = {
   errors?: Record<string, string>;
@@ -51,15 +53,27 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 
   if (session.isPending) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-48">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="mt-4 text-lg text-foreground">Loading...</p>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-40" />
+          <div className="border-2 border-dashed rounded-lg p-8">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2 text-center">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          </div>
+          <Skeleton className="h-3 w-full" />
+        </div>
       </div>
     );
   }
 
   if (!session.data?.user) {
     router.push("/");
+    return null;
   }
 
   const form = useForm<z.infer<typeof DocumentSchema>>({
@@ -114,24 +128,31 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
       const { public_id, secure_url } = result.info;
 
       setPublicId(public_id);
+      form.clearErrors("verificationDocUrl");
       form.setValue("verificationDocUrl", secure_url);
 
       onSubmit({ verificationDocUrl: secure_url });
 
       toast.success("Document uploaded successfully!", {
         description: "Your verification document has been uploaded.",
+        duration: 4000,
       });
     } catch (error) {
+      console.error("Upload processing error:", error);
       toast.error("Upload processing failed", {
-        description: "Failed to process the uploaded document.",
+        description:
+          "Failed to process the uploaded document. Please try again.",
+        duration: 5000,
       });
     }
   };
 
   const handleUploadError = (error: any) => {
     setIsUploading(false);
+    console.error("Upload error:", error);
     toast.error("Failed to upload document", {
-      description: error.message || "Please try again with a valid PDF file.",
+      description: error?.message || "Please try again with a valid PDF file.",
+      duration: 5000,
     });
   };
 
@@ -139,63 +160,63 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
     if (!watchedUrl || !publicId) return;
 
     setIsDeleting(true);
-    const deleteToastId = toast.loading("Removing document...", {
-      description: "Please wait while we remove your document.",
+
+    const deletePromise = deleteCloudinaryFile(publicId);
+
+    toast.promise(deletePromise, {
+      loading: "Removing document...",
+      success: (result) => {
+        if (result.isSuccess) {
+          setPublicId("");
+          form.setValue("verificationDocUrl", "");
+
+          if (defaultValues) {
+            setFormData({
+              ...defaultValues,
+              verificationDocUrl: "",
+            });
+          } else {
+            setFormData({
+              year: "",
+              class: "",
+              branch: "",
+              station: "",
+              address: "",
+              lastName: "",
+              firstName: "",
+              middleName: "",
+              gender: "Male",
+              dateOfBirth: "",
+              verificationDocUrl: "",
+              preferredConcessionClass: "",
+              preferredConcessionPeriod: "",
+            });
+          }
+
+          return "Document removed successfully! You can now upload a new document.";
+        } else {
+          throw new Error(result.error.message);
+        }
+      },
+      error: (error) => {
+        console.error("Delete error:", error);
+        return "Failed to remove document. Please try again or contact support.";
+      },
+      finally: () => {
+        setIsDeleting(false);
+      },
     });
 
     try {
-      const response = await fetch("/api/delete-file", {
-        method: "POST",
-        body: JSON.stringify({ publicId }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete file");
-      }
-
-      setPublicId("");
-      form.setValue("verificationDocUrl", "");
-      if (defaultValues) {
-        setFormData({
-          ...defaultValues,
-          verificationDocUrl: "",
-        });
-      } else {
-        setFormData({
-          verificationDocUrl: "",
-          year: "",
-          class: "",
-          branch: "",
-          station: "",
-          address: "",
-          lastName: "",
-          firstName: "",
-          middleName: "",
-          gender: "Male",
-          dateOfBirth: "",
-          preferredConcessionClass: "",
-          preferredConcessionPeriod: "",
-        });
-      }
-
-      toast.dismiss(deleteToastId);
-      toast.success("Document removed successfully!", {
-        description: "You can now upload a new document.",
-      });
+      await deletePromise;
     } catch (error) {
-      toast.dismiss(deleteToastId);
-      toast.error("Failed to remove document", {
-        description: "Please try again or contact support.",
-      });
-    } finally {
       setIsDeleting(false);
     }
   };
 
   const handlePreviewFile = () => {
     if (watchedUrl) {
-      window.open(watchedUrl, "_blank");
+      window.open(watchedUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -224,7 +245,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
                       <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
                         {isUploading ? (
                           <>
-                            <Loader2 className="h-10 w-10 mb-3 animate-spin" />
+                            <Loader2 className="h-10 w-10 mb-3 animate-spin text-primary" />
                             <p className="mb-2 text-base text-foreground font-semibold">
                               Uploading...
                             </p>
@@ -248,6 +269,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
                         <CldUploadButton
                           onError={handleUploadError}
                           onSuccess={handleUploadSuccess}
+                          onUpload={() => setIsUploading(true)}
                           className="absolute inset-0 cursor-pointer opacity-0"
                           options={{
                             maxFiles: 1,
@@ -256,7 +278,9 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
                             maxFileSize: 2097152,
                             uploadPreset: "VESITRail",
                             clientAllowedFormats: ["pdf"],
-                            publicId: `${session.data?.user.id}-${defaultValues?.station}.pdf`,
+                            publicId: `${session.data?.user.id}-${
+                              defaultValues?.station || "default"
+                            }.pdf`,
                           }}
                         />
                       )}
@@ -265,8 +289,8 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
                     <div className="w-full space-y-4">
                       <div className="border-2 border-solid border-border rounded-lg bg-muted/50 p-4">
                         <div className="flex flex-wrap items-start gap-4">
-                          <div className="h-10 w-10 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FileUp className="h-5 w-5 text-accent-foreground" />
+                          <div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileUp className="size-5" />
                           </div>
 
                           <div className="min-w-0 flex-1 space-y-1">
@@ -275,23 +299,28 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
                             </p>
                             <p
                               className="text-xs text-muted-foreground break-all"
-                              title={`${session.data?.user.id}-${defaultValues?.station}.pdf`}
+                              title={`${session.data?.user.id}-${
+                                defaultValues?.station || "default"
+                              }.pdf`}
                             >
-                              {session.data?.user.id}-{defaultValues?.station}
-                              .pdf
+                              {session.data?.user.id}-
+                              {defaultValues?.station || "default"}.pdf
                             </p>
                           </div>
 
-                          <Button
-                            size="sm"
-                            type="button"
-                            variant="default"
-                            onClick={handlePreviewFile}
-                            className="flex-shrink-0 h-8 w-8 p-0"
-                          >
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Preview</span>
-                          </Button>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <Button
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                              className="size-8 p-0"
+                              title="Preview document"
+                              onClick={handlePreviewFile}
+                            >
+                              <Eye className="size-4" />
+                              <span className="sr-only">Preview</span>
+                            </Button>
+                          </div>
                         </div>
                       </div>
 
@@ -301,24 +330,30 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
                             <p className="text-sm font-medium text-foreground break-words">
                               Want to upload a different document?
                             </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Remove the current document to upload a new one
+                            </p>
                           </div>
 
                           <Button
                             size="sm"
                             type="button"
                             variant="outline"
-                            disabled={isDeleting}
                             onClick={handleRemoveFile}
-                            className="flex-shrink-0 h-8 w-8 p-0"
+                            className="flex-shrink-0 gap-2"
+                            disabled={isDeleting || isUploading}
                           >
                             {isDeleting ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Removing...
+                              </>
                             ) : (
-                              <Upload className="h-4 w-4" />
+                              <>
+                                <Trash className="h-4 w-4" />
+                                Remove
+                              </>
                             )}
-                            <span className="sr-only">
-                              {isDeleting ? "Removing..." : "Replace File"}
-                            </span>
                           </Button>
                         </div>
                       </div>
