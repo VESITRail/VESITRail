@@ -1,126 +1,66 @@
 "use server";
 
 import {
+  Result,
+  success,
+  failure,
+  AuthError,
+  authError,
+  DatabaseError,
+  databaseError,
+} from "@/lib/result";
+import {
   Year,
   Class,
   Branch,
-  Station,
   Student,
+  Station,
   ConcessionClass,
   ConcessionPeriod,
 } from "@/generated/zod";
 import prisma from "@/lib/prisma";
 
-export type StudentProfileResponse = {
-  error?: string;
-  data?: Partial<Student> & {
-    class: Partial<Class> & {
-      year: Partial<Year>;
-      branch: Partial<Branch>;
-    };
-    station: Partial<Station>;
-    preferredConcessionClass: Partial<ConcessionClass>;
-    preferredConcessionPeriod: Partial<ConcessionPeriod>;
+export type StudentProfile = Student & {
+  class: Class & {
+    year: Year;
+    branch: Branch;
   };
+  station: Station;
+  preferredConcessionClass: ConcessionClass;
+  preferredConcessionPeriod: ConcessionPeriod;
 };
 
 export const getStudentProfile = async (
-  userId: string
-): Promise<StudentProfileResponse> => {
+  studentId: string
+): Promise<Result<StudentProfile, AuthError | DatabaseError>> => {
   try {
-    if (!userId) {
-      return {
-        error: "User ID is required",
-      };
-    }
-
     const student = await prisma.student.findUnique({
       where: {
-        userId: userId,
-        isDeleted: false,
+        userId: studentId,
       },
       include: {
-        station: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
         class: {
           include: {
-            year: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            branch: {
-              select: {
-                id: true,
-                code: true,
-                name: true,
-              },
-            },
+            year: true,
+            branch: true,
           },
         },
-        preferredConcessionClass: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        preferredConcessionPeriod: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        station: true,
+        preferredConcessionClass: true,
+        preferredConcessionPeriod: true,
       },
     });
 
     if (!student) {
-      return {
-        error: "Student profile not found",
-      };
+      return failure(authError("Student profile not found"));
     }
 
-    return {
-      data: {
-        class: {
-          id: student.class.id,
-          code: student.class.code,
-          year: student.class.year,
-          branch: student.class.branch,
-        },
-        userId: student.userId,
-        address: student.address,
-        classId: student.classId,
-        station: student.station,
-        lastName: student.lastName,
-        firstName: student.firstName,
-        isDeleted: student.isDeleted,
-        createdAt: student.createdAt,
-        updatedAt: student.updatedAt,
-        stationId: student.stationId,
-        middleName: student.middleName,
-        dateOfBirth: student.dateOfBirth,
-        gender: student.gender as Student["gender"],
-        verificationDocUrl: student.verificationDocUrl,
-        preferredConcessionClass: student.preferredConcessionClass,
-        preferredConcessionPeriod: student.preferredConcessionPeriod,
-        preferredConcessionClassId: student.preferredConcessionClassId,
-        preferredConcessionPeriodId: student.preferredConcessionPeriodId,
-        approvalStatus: student.approvalStatus as Student["approvalStatus"],
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching student profile:", error);
+    if (student.status !== "Approved") {
+      return failure(authError("Student is not approved"));
+    }
 
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred while fetching the profile",
-    };
+    return success(student);
+  } catch (error) {
+    return failure(databaseError("Failed to load student profile"));
   }
 };

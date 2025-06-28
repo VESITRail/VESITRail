@@ -5,9 +5,10 @@ import {
   updateStudentPreferences,
 } from "@/actions/settings";
 import {
+  StudentPreferences,
   getConcessionClasses,
   getConcessionPeriods,
-} from "@/actions/onboarding";
+} from "@/actions/utils";
 import {
   Select,
   SelectItem,
@@ -24,13 +25,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConcessionClass, ConcessionPeriod } from "@/generated/zod";
 import { Save, Loader2, AlertTriangle, RefreshCcw } from "lucide-react";
-
-interface StudentPreferences {
-  preferredConcessionClassId: string;
-  preferredConcessionPeriodId: string;
-  preferredConcessionClass: Partial<ConcessionClass>;
-  preferredConcessionPeriod: Partial<ConcessionPeriod>;
-}
 
 const Preferences = () => {
   const { data, isPending } = authClient.useSession();
@@ -51,8 +45,8 @@ const Preferences = () => {
 
   const hasChanges =
     preferences &&
-    (selectedClassId !== preferences.preferredConcessionClassId ||
-      selectedPeriodId !== preferences.preferredConcessionPeriodId);
+    (selectedClassId !== preferences.preferredConcessionClass.id ||
+      selectedPeriodId !== preferences.preferredConcessionPeriod.id);
 
   const isFormValid = selectedClassId && selectedPeriodId;
 
@@ -70,23 +64,25 @@ const Preferences = () => {
             getConcessionPeriods(),
           ]);
 
-        if (preferencesResult.success && preferencesResult.data) {
+        if (preferencesResult.isSuccess && preferencesResult.data) {
           setPreferences(preferencesResult.data);
-          setSelectedClassId(preferencesResult.data.preferredConcessionClassId);
+          setSelectedClassId(
+            preferencesResult.data.preferredConcessionClass.id
+          );
           setSelectedPeriodId(
-            preferencesResult.data.preferredConcessionPeriodId
+            preferencesResult.data.preferredConcessionPeriod.id
           );
         } else {
           toast.error("Failed to load your preferences");
         }
 
-        if (classesResult.data) {
+        if (classesResult.isSuccess && classesResult.data) {
           setConcessionClasses(classesResult.data);
         } else {
           toast.error("Failed to load concession classes");
         }
 
-        if (periodsResult.data) {
+        if (periodsResult.isSuccess && periodsResult.data) {
           setConcessionPeriods(periodsResult.data);
         } else {
           toast.error("Failed to load concession periods");
@@ -125,19 +121,8 @@ const Preferences = () => {
     try {
       const result = await submissionPromise;
 
-      if (result.success && result.data) {
-        setPreferences((prev) =>
-          prev
-            ? {
-                ...prev,
-                preferredConcessionClassId: selectedClassId,
-                preferredConcessionPeriodId: selectedPeriodId,
-                preferredConcessionClass: result.data.preferredConcessionClass,
-                preferredConcessionPeriod:
-                  result.data.preferredConcessionPeriod,
-              }
-            : null
-        );
+      if (result.isSuccess && result.data) {
+        setPreferences(result.data);
       }
     } catch (error) {
       toast.error(
@@ -189,7 +174,7 @@ const Preferences = () => {
     );
   }
 
-  if (!preferences) {
+  if (!preferences || !concessionClasses.length || !concessionPeriods.length) {
     return (
       <div className="space-y-6">
         <div>
@@ -216,12 +201,8 @@ const Preferences = () => {
                   due to a temporary network issue.
                 </p>
               </div>
-              <Button
-                className="mt-4"
-                variant="outline"
-                onClick={() => window.location.reload()}
-              >
-                <RefreshCcw className="mr-1" />
+              <Button className="mt-4" onClick={() => window.location.reload()}>
+                <RefreshCcw className="mr-0.5" />
                 Refresh Page
               </Button>
             </div>
@@ -257,11 +238,17 @@ const Preferences = () => {
                   <SelectValue placeholder="Select concession class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {concessionClasses.map((cls) => (
-                    <SelectItem key={cls.id} value={cls.id}>
-                      {cls.name} ({cls.code})
+                  {concessionClasses.length === 0 ? (
+                    <SelectItem disabled value="">
+                      No concession classes available
                     </SelectItem>
-                  ))}
+                  ) : (
+                    concessionClasses.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id}>
+                        {cls.name} ({cls.code})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -282,11 +269,18 @@ const Preferences = () => {
                   <SelectValue placeholder="Select concession period" />
                 </SelectTrigger>
                 <SelectContent>
-                  {concessionPeriods.map((period) => (
-                    <SelectItem key={period.id} value={period.id}>
-                      {period.name}
+                  {concessionPeriods.length === 0 ? (
+                    <SelectItem disabled value="">
+                      No concession periods available
                     </SelectItem>
-                  ))}
+                  ) : (
+                    concessionPeriods.map((period) => (
+                      <SelectItem key={period.id} value={period.id}>
+                        {period.name} ({period.duration}{" "}
+                        {period.duration === 1 ? "month" : "months"})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -300,12 +294,12 @@ const Preferences = () => {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-1 size-4 animate-spin" />
+                  <Loader2 className="mr-0.5 size-4 animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save className="mr-1 size-4" />
+                  <Save className="mr-0.5 size-4" />
                   Save Changes
                 </>
               )}

@@ -58,8 +58,8 @@ const MultiStepForm = () => {
         activeStep.clientWidth / 2;
 
       container.scrollTo({
-        left: Math.max(0, scrollLeft),
         behavior: "smooth",
+        left: Math.max(0, scrollLeft),
       });
     }
   }, [currentStep]);
@@ -106,19 +106,20 @@ const MultiStepForm = () => {
         const newErrors: Record<string, string> = {};
 
         error.errors.forEach((err) => {
-          if (err.path) {
-            let message = err.message;
+          const field = err.path?.[0];
 
-            if (err.code === "invalid_type") {
-              message = `${formatFieldName(err.path.join(" "))} is required`;
-            } else if (err.code === "invalid_string") {
-              message = `Please enter a valid ${formatFieldName(
-                err.path.join(" ")
-              )}`;
-            }
+          if (!field || typeof field !== "string") return;
 
-            newErrors[err.path[0]] = message;
+          let message = err.message;
+          const formatted = formatFieldName(field);
+
+          if (err.code === "invalid_type") {
+            message = `${formatted} is required`;
+          } else if (err.code === "invalid_string") {
+            message = `Please enter a valid ${formatted}`;
           }
+
+          newErrors[field] = message;
         });
 
         setErrors(newErrors);
@@ -197,6 +198,7 @@ const MultiStepForm = () => {
         );
       default:
         router.push("/");
+        toast.error("Something went wrong. Please try again.");
         return null;
     }
   };
@@ -296,7 +298,7 @@ const MultiStepForm = () => {
                 currentStep === 1 && "invisible"
               )}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="size-4" />
               Previous
             </Button>
 
@@ -307,7 +309,7 @@ const MultiStepForm = () => {
                 className="flex items-center gap-2"
               >
                 Next
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="size-4" />
               </Button>
             )}
           </div>

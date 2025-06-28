@@ -16,15 +16,16 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import type { z } from "zod";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Branch, Class, Year } from "@/generated/zod";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
 import { AcademicInfoSchema } from "@/lib/validations/onboarding";
-import { getYears, getBranches, getClasses } from "@/actions/onboarding";
+import { getYears, getBranches, getClasses } from "@/actions/utils";
 
 type AcademicInfoProps = {
   errors?: Record<string, string>;
@@ -94,34 +95,34 @@ const AcademicInfo = ({
         const [yearsResponse, branchesResponse, classesResponse] =
           await Promise.all([getYears(), getBranches(), getClasses()]);
 
-        if (yearsResponse.data) {
-          const activeYears = yearsResponse.data.filter(
-            (year) => year.isActive && !year.isDeleted
-          );
-
-          setYears(activeYears);
+        if (yearsResponse.isSuccess) {
+          setYears(yearsResponse.data);
+        } else {
+          toast.error("Failed to load years", {
+            description: "Please refresh the page and try again.",
+          });
         }
 
-        if (branchesResponse.data) {
-          const activeBranches = branchesResponse.data.filter(
-            (branch) => branch.isActive && !branch.isDeleted
-          );
-
-          setBranches(activeBranches);
+        if (branchesResponse.isSuccess) {
+          setBranches(branchesResponse.data);
+        } else {
+          toast.error("Failed to load branches", {
+            description: "Please refresh the page and try again.",
+          });
         }
 
-        if (classesResponse.data) {
-          const activeClasses = classesResponse.data.filter(
-            (class_) => class_.isActive && !class_.isDeleted
-          );
-
-          setClasses(activeClasses);
+        if (classesResponse.isSuccess) {
+          setClasses(classesResponse.data);
+        } else {
+          toast.error("Failed to load classes", {
+            description: "Please refresh the page and try again.",
+          });
         }
       } catch (error) {
-        form.setError("year", {
-          type: "manual",
-          message: "Failed to load data. Please try again.",
+        toast.error("Failed to load academic data", {
+          description: "An unexpected error occurred. Please try again.",
         });
+        console.error("Error loading academic data:", error);
       } finally {
         setIsLoadingYears(false);
         setIsLoadingBranches(false);
@@ -139,14 +140,17 @@ const AcademicInfo = ({
 
     if (year && branch) {
       const matchingClasses = Classes.filter(
-        (class_) =>
-          class_.isActive &&
-          !class_.isDeleted &&
-          class_.yearId === year &&
-          class_.branchId === branch
+        (class_) => class_.yearId === year && class_.branchId === branch
       );
 
       setFilteredClasses(matchingClasses);
+
+      if (matchingClasses.length === 0) {
+        toast.warning("No classes found", {
+          description:
+            "No classes are available for the selected year and branch combination.",
+        });
+      }
     } else {
       setFilteredClasses([]);
       form.setValue("class", "");
@@ -166,148 +170,141 @@ const AcademicInfo = ({
     }
   }, [errors, form]);
 
+  const YearSelectSkeleton = () => (
+    <FormItem className="space-y-1 h-[78px]">
+      <FormLabel className="block">Year</FormLabel>
+      <Skeleton className="h-10 w-full rounded-md" />
+    </FormItem>
+  );
+
+  const BranchSelectSkeleton = () => (
+    <FormItem className="space-y-1 h-[78px]">
+      <FormLabel className="block">Branch</FormLabel>
+      <Skeleton className="h-10 w-full rounded-md" />
+    </FormItem>
+  );
+
+  const ClassSelectSkeleton = () => (
+    <FormItem className="space-y-1 h-[78px] mt-6 md:mt-0">
+      <FormLabel className="block">Class</FormLabel>
+      <Skeleton className="h-10 w-full rounded-md" />
+    </FormItem>
+  );
+
   return (
     <Form {...form}>
       <div className="grid grid-cols-1 md:grid-cols-2 space-y-6 gap-x-6">
-        <FormField
-          name="year"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem className="space-y-1 h-[78px]">
-              <FormLabel className="block">Year</FormLabel>
-              <Select
-                value={field.value}
-                disabled={isLoadingYears}
-                onValueChange={field.onChange}
-              >
-                <FormControl>
-                  <SelectTrigger
-                    className={cn(
-                      "w-full",
-                      isLoadingYears && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <SelectValue
-                        placeholder={!isLoadingYears && "Select year"}
-                      />
-                      {isLoadingYears && (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      )}
-                    </div>
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {years.map((year) => (
-                    <SelectItem key={year.id} value={year.id}>
-                      {year.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {isLoadingYears ? (
+          <YearSelectSkeleton />
+        ) : (
+          <FormField
+            name="year"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem className="space-y-1 h-[78px]">
+                <FormLabel className="block">Year</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select year" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year.id} value={year.id}>
+                        {year.name} ({year.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
-        <FormField
-          name="branch"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem className="space-y-1 h-[78px]">
-              <FormLabel className="block">Branch</FormLabel>
-              <Select
-                value={field.value}
-                disabled={isLoadingBranches}
-                onValueChange={field.onChange}
-              >
-                <FormControl>
-                  <SelectTrigger
-                    className={cn(
-                      "w-full",
-                      isLoadingBranches && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <SelectValue
-                        placeholder={!isLoadingBranches && "Select branch"}
-                      />
-                      {isLoadingBranches && (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      )}
-                    </div>
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {isLoadingBranches ? (
+          <BranchSelectSkeleton />
+        ) : (
+          <FormField
+            name="branch"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem className="space-y-1 h-[78px]">
+                <FormLabel className="block">Branch</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select branch" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name} ({branch.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
       </div>
 
-      <FormField
-        name="class"
-        control={form.control}
-        render={({ field }) => (
-          <FormItem className="space-y-1 h-[78px] mt-6 md:mt-0">
-            <FormLabel className="block">Class</FormLabel>
-            <Select
-              value={field.value}
-              onValueChange={field.onChange}
-              disabled={
-                !form.watch("year") ||
-                !form.watch("branch") ||
-                filteredClasses.length === 0 ||
-                isLoadingClasses
-              }
-            >
-              <FormControl>
-                <SelectTrigger
-                  className={cn(
-                    "w-full",
-                    (isLoadingClasses ||
-                      !form.watch("year") ||
-                      !form.watch("branch") ||
-                      filteredClasses.length === 0) &&
-                      "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
+      {isLoadingClasses ? (
+        <ClassSelectSkeleton />
+      ) : (
+        <FormField
+          name="class"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem className="space-y-1 h-[78px] mt-6 md:mt-0">
+              <FormLabel className="block">Class</FormLabel>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={
+                  !form.watch("year") ||
+                  !form.watch("branch") ||
+                  filteredClasses.length === 0
+                }
+              >
+                <FormControl>
+                  <SelectTrigger
+                    className={cn(
+                      "w-full",
+                      (!form.watch("year") ||
+                        !form.watch("branch") ||
+                        filteredClasses.length === 0) &&
+                        "opacity-50 cursor-not-allowed"
+                    )}
+                  >
                     <SelectValue
                       placeholder={
-                        (!isLoadingClasses && !form.watch("year")) ||
-                        !form.watch("branch")
+                        !form.watch("year") || !form.watch("branch")
                           ? "Select year and branch first"
                           : filteredClasses.length === 0
                           ? "No classes available"
                           : "Select class"
                       }
                     />
-                    {isLoadingClasses && (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    )}
-                  </div>
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {filteredClasses.map((class_) => (
-                  <SelectItem key={class_.id} value={class_.id}>
-                    {class_.code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {filteredClasses.map((class_) => (
+                    <SelectItem key={class_.id} value={class_.id}>
+                      {class_.code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </Form>
   );
 };

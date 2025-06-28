@@ -1,10 +1,12 @@
 "use client";
 
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { isFailure } from "@/lib/result";
 import { useRouter } from "next/navigation";
+import Status from "@/components/ui/status";
 import { authClient } from "@/lib/auth-client";
-import { Status } from "@/components/ui/status";
+import { useEffect, useState, useRef } from "react";
 import { checkUserRole } from "@/actions/check-role";
 
 const OnboardingLayoutContent = ({
@@ -14,38 +16,54 @@ const OnboardingLayoutContent = ({
 }) => {
   const router = useRouter();
   const session = authClient.useSession();
-  const [isVerifying, setIsVerifying] = useState(true);
+  const hasCheckedRef = useRef<boolean>(false);
+  const [isVerifying, setIsVerifying] = useState<boolean>(true);
 
   useEffect(() => {
-    const verifyAccess = async () => {
-      if (session.data?.user) {
-        try {
-          const { role, needsOnboarding } = await checkUserRole(
-            session.data.user.id
-          );
+    const verifyOnboardingAccess = async () => {
+      if (hasCheckedRef.current || !session.data?.user) return;
 
-          if (role === "admin") {
-            router.push("/dashboard/admin");
-            return;
-          }
+      hasCheckedRef.current = true;
 
-          if (role === "student" && !needsOnboarding) {
-            router.push("/dashboard/student");
-            return;
-          }
+      try {
+        const result = await checkUserRole(session.data.user.id);
 
+        if (isFailure(result)) {
+          console.error("Failed to check user role:", result.error);
+          toast.error("Failed to verify access. Redirecting...");
+          router.push("/");
+          return;
+        }
+
+        const { role, status } = result.data;
+
+        if (role === "student" && status === "NeedsOnboarding") {
           setIsVerifying(false);
-        } catch (error) {
-          console.error("Failed to verify access:", error);
+          return;
+        }
+
+        if (role === "admin") {
+          router.push("/dashboard/admin");
+        } else if (role === "student") {
+          router.push("/dashboard/student");
+        } else {
           router.push("/");
         }
+      } catch (error) {
+        console.error("Failed to verify onboarding access:", error);
+        toast.error("An error occurred. Redirecting...");
+        router.push("/");
       }
     };
 
     if (!session.isPending && session.data?.user) {
-      verifyAccess();
+      verifyOnboardingAccess();
     }
-  }, [session, router]);
+  }, [router, session.isPending, session.data?.user]);
+
+  useEffect(() => {
+    hasCheckedRef.current = false;
+  }, [session.data?.user?.id]);
 
   if (isVerifying) {
     return (

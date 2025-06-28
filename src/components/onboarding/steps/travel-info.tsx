@@ -8,7 +8,7 @@ import {
   getStations,
   getConcessionClasses,
   getConcessionPeriods,
-} from "@/actions/onboarding";
+} from "@/actions/utils";
 import {
   Select,
   SelectItem,
@@ -37,12 +37,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import type { z } from "zod";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 import { ConcessionClass, ConcessionPeriod, Station } from "@/generated/zod";
@@ -130,16 +131,34 @@ const TravelInfo = ({
           getConcessionPeriods(),
         ]);
 
-        if (stationsResponse.data) setStations(stationsResponse.data);
-        if (concessionClassesResponse.data)
+        if (stationsResponse.data) {
+          setStations(stationsResponse.data);
+        } else {
+          toast.error("Failed to load stations", {
+            description: "Please refresh the page and try again.",
+          });
+        }
+
+        if (concessionClassesResponse.data) {
           setConcessionClasses(concessionClassesResponse.data);
-        if (concessionPeriodsResponse.data)
+        } else {
+          toast.error("Failed to load concession classes", {
+            description: "Please refresh the page and try again.",
+          });
+        }
+
+        if (concessionPeriodsResponse.data) {
           setConcessionPeriods(concessionPeriodsResponse.data);
+        } else {
+          toast.error("Failed to load concession periods", {
+            description: "Please refresh the page and try again.",
+          });
+        }
       } catch (error) {
-        form.setError("station", {
-          type: "manual",
-          message: "Failed to load data. Please try again.",
+        toast.error("Failed to load travel data", {
+          description: "An unexpected error occurred. Please try again.",
         });
+        console.error("Error loading travel data:", error);
       } finally {
         setIsLoadingStations(false);
         setIsLoadingConcessionClasses(false);
@@ -161,203 +180,188 @@ const TravelInfo = ({
     }
   }, [errors, form]);
 
-  const activeStations = stations.filter(
-    (station) => station.isActive && !station.isDeleted
+  const StationSelectSkeleton = () => (
+    <FormItem className="space-y-1 h-[78px]">
+      <FormLabel>Home Station</FormLabel>
+      <Skeleton className="h-10 w-full rounded-md" />
+    </FormItem>
+  );
+
+  const ConcessionClassSelectSkeleton = () => (
+    <FormItem className="space-y-1 h-[78px]">
+      <FormLabel>Preferred Concession Class</FormLabel>
+      <Skeleton className="h-10 w-full rounded-md" />
+    </FormItem>
+  );
+
+  const ConcessionPeriodSelectSkeleton = () => (
+    <FormItem className="space-y-1 h-[78px] mb-4 lg:mb-0">
+      <FormLabel>Preferred Concession Period</FormLabel>
+      <Skeleton className="h-10 w-full rounded-md" />
+    </FormItem>
   );
 
   return (
     <Form {...form}>
       <form>
         <div className="space-y-6">
-          <FormField
-            name="station"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem className="space-y-1 h-[78px]">
-                <FormLabel>Home Station</FormLabel>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        role="combobox"
-                        variant="outline"
-                        aria-expanded={open}
-                        disabled={isLoadingStations}
-                        className={cn(
-                          "w-full justify-between h-10 px-3 py-2 text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                          isLoadingStations && "opacity-50 cursor-not-allowed"
-                        )}
-                      >
-                        <span className="truncate">
-                          {field.value
-                            ? (() => {
-                                const selectedStation = activeStations.find(
-                                  (station) => station.id === field.value
-                                );
-                                return selectedStation
-                                  ? `${selectedStation.code} - ${selectedStation.name}`
-                                  : "Select station...";
-                              })()
-                            : "Select station..."}
-                        </span>
-                        {isLoadingStations ? (
-                          <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
-                        ) : (
+          {isLoadingStations ? (
+            <StationSelectSkeleton />
+          ) : (
+            <FormField
+              name="station"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem className="space-y-1 h-[78px]">
+                  <FormLabel>Home Station</FormLabel>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          role="combobox"
+                          variant="outline"
+                          aria-expanded={open}
+                          className={cn(
+                            "w-full justify-between h-10 px-3 py-2 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? (() => {
+                                  const selectedStation = stations.find(
+                                    (station) => station.id === field.value
+                                  );
+
+                                  return selectedStation
+                                    ? `${selectedStation.name} (${selectedStation.code})`
+                                    : "Select station...";
+                                })()
+                              : "Select station..."}
+                          </span>
                           <ChevronsUpDownIcon className="h-4 w-4 shrink-0 opacity-50" />
-                        )}
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="p-0 w-full min-w-[--radix-popover-trigger-width]"
-                    align="start"
-                  >
-                    <Command>
-                      <CommandInput
-                        placeholder="Search by name or code"
-                        className="h-9"
-                      />
-                      <CommandList>
-                        <CommandEmpty>No station found.</CommandEmpty>
-                        <CommandGroup>
-                          {activeStations.map((station) => (
-                            <CommandItem
-                              key={station.id}
-                              value={`${station.code} ${station.name}`}
-                              onSelect={() => {
-                                handleFieldChange("station", station.id);
-                                setOpen(false);
-                              }}
-                              className="cursor-pointer"
-                            >
-                              <CheckIcon
-                                className={cn(
-                                  "mr-2 h-4 w-4 flex-shrink-0",
-                                  field.value === station.id
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              <span className="truncate">
-                                {`${station.code} - ${station.name}`}
-                              </span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="p-0 w-full min-w-[--radix-popover-trigger-width]"
+                      align="start"
+                    >
+                      <Command>
+                        <CommandInput
+                          placeholder="Search by name or code"
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No station found.</CommandEmpty>
+                          <CommandGroup>
+                            {stations.map((station) => (
+                              <CommandItem
+                                key={station.id}
+                                value={`${station.name} (${station.code})`}
+                                onSelect={() => {
+                                  handleFieldChange("station", station.id);
+                                  setOpen(false);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <CheckIcon
+                                  className={cn(
+                                    "mr-2 h-4 w-4 flex-shrink-0",
+                                    field.value === station.id
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <span className="truncate">
+                                  {`${station.name} (${station.code})`}
+                                </span>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-6">
-          <FormField
-            control={form.control}
-            name="preferredConcessionClass"
-            render={({ field }) => (
-              <FormItem className="space-y-1 h-[78px]">
-                <FormLabel>Preferred Concession Class</FormLabel>
-                <Select
-                  value={field.value}
-                  disabled={isLoadingConcessionClasses}
-                  onValueChange={(value) =>
-                    handleFieldChange("preferredConcessionClass", value)
-                  }
-                >
-                  <FormControl>
-                    <SelectTrigger
-                      className={cn(
-                        "w-full h-10",
-                        isLoadingConcessionClasses &&
-                          "opacity-50 cursor-not-allowed"
-                      )}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <SelectValue
-                          placeholder={
-                            isLoadingConcessionClasses
-                              ? "Loading..."
-                              : "Select concession class"
-                          }
-                        />
-                        {isLoadingConcessionClasses && (
-                          <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
-                        )}
-                      </div>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {concessionClasses
-                      .filter((cls) => cls.isActive && !cls.isDeleted)
-                      .map((concessionClass) => (
+          {isLoadingConcessionClasses ? (
+            <ConcessionClassSelectSkeleton />
+          ) : (
+            <FormField
+              control={form.control}
+              name="preferredConcessionClass"
+              render={({ field }) => (
+                <FormItem className="space-y-1 h-[78px]">
+                  <FormLabel>Preferred Concession Class</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) =>
+                      handleFieldChange("preferredConcessionClass", value)
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full h-10">
+                        <SelectValue placeholder="Select concession class" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {concessionClasses.map((concessionClass) => (
                         <SelectItem
                           key={concessionClass.id}
                           value={concessionClass.id}
                         >
-                          {concessionClass.name}
+                          {concessionClass.name} ({concessionClass.code})
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-          <FormField
-            control={form.control}
-            name="preferredConcessionPeriod"
-            render={({ field }) => (
-              <FormItem className="space-y-1 h-[78px] mb-4 lg:mb-0">
-                <FormLabel>Preferred Concession Period</FormLabel>
-                <Select
-                  value={field.value}
-                  disabled={isLoadingConcessionPeriods}
-                  onValueChange={(value) =>
-                    handleFieldChange("preferredConcessionPeriod", value)
-                  }
-                >
-                  <FormControl>
-                    <SelectTrigger
-                      className={cn(
-                        "w-full h-10",
-                        isLoadingConcessionPeriods &&
-                          "opacity-50 cursor-not-allowed"
-                      )}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <SelectValue
-                          placeholder={
-                            isLoadingConcessionPeriods
-                              ? "Loading..."
-                              : "Select concession period"
-                          }
-                        />
-                        {isLoadingConcessionPeriods && (
-                          <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
-                        )}
-                      </div>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {concessionPeriods
-                      .filter((period) => period.isActive && !period.isDeleted)
-                      .map((period) => (
+          {isLoadingConcessionPeriods ? (
+            <ConcessionPeriodSelectSkeleton />
+          ) : (
+            <FormField
+              control={form.control}
+              name="preferredConcessionPeriod"
+              render={({ field }) => (
+                <FormItem className="space-y-1 h-[78px] mb-4 lg:mb-0">
+                  <FormLabel>Preferred Concession Period</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) =>
+                      handleFieldChange("preferredConcessionPeriod", value)
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full h-10">
+                        <SelectValue placeholder="Select concession period" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {concessionPeriods.map((period) => (
                         <SelectItem key={period.id} value={period.id}>
-                          {period.name}
+                          {period.name} ({period.duration}{" "}
+                          {period.duration === 1 ? "month" : "months"})
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
       </form>
     </Form>

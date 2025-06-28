@@ -1,8 +1,8 @@
 import {
   Inbox,
   Filter,
+  XCircle,
   History,
-  AlertCircle,
   ArrowUpDown,
   ChevronDown,
   ChevronLeft,
@@ -49,17 +49,23 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
+import Status from "../ui/status";
 import React, { useState } from "react";
 import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Concession } from "@/actions/concession";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getConcessions } from "@/actions/concession";
 
-type Concession = Awaited<ReturnType<typeof getConcessions>>[0];
+type Station = NonNullable<Concession>["station"];
+type ApplicationStatus = NonNullable<Concession>["status"];
+type ApplicationType = NonNullable<Concession>["applicationType"];
+type ConcessionClass = NonNullable<Concession>["concessionClass"];
+type ConcessionPeriod = NonNullable<Concession>["concessionPeriod"];
+type PreviousApplication = NonNullable<Concession>["previousApplication"];
 
-const StatusBadge = ({ status }: { status: Concession["status"] }) => {
+const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
   const variants = {
     Rejected: "bg-red-600 text-white",
     Pending: "bg-amber-600 text-white",
@@ -69,11 +75,7 @@ const StatusBadge = ({ status }: { status: Concession["status"] }) => {
   return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
 };
 
-const ApplicationTypeBadge = ({
-  type,
-}: {
-  type: Concession["applicationType"];
-}) => {
+const ApplicationTypeBadge = ({ type }: { type: ApplicationType }) => {
   return (
     <Badge variant="secondary" className="font-medium">
       {type}
@@ -84,7 +86,7 @@ const ApplicationTypeBadge = ({
 const PreviousApplicationDialog = ({
   previousApplication,
 }: {
-  previousApplication: Concession["previousApplication"];
+  previousApplication: PreviousApplication;
 }) => {
   if (!previousApplication) return null;
 
@@ -139,7 +141,12 @@ const PreviousApplicationDialog = ({
                 Period
               </p>
               <p className="font-medium text-foreground/90">
-                {previousApplication.concessionPeriod.name}
+                {previousApplication.concessionPeriod.name} (
+                {previousApplication.concessionPeriod.duration}{" "}
+                {previousApplication.concessionPeriod.duration === 1
+                  ? "month"
+                  : "months"}
+                )
               </p>
             </div>
           </div>
@@ -191,11 +198,9 @@ const columns: ColumnDef<Concession>[] = [
     header: "Type",
     accessorKey: "applicationType",
     cell: ({ row }) => {
-      const type = row.getValue(
-        "applicationType"
-      ) as Concession["applicationType"];
+      const type = row.getValue("applicationType") as ApplicationType;
 
-      const previousApplication = row.original.previousApplication;
+      const previousApplication = row.original?.previousApplication;
 
       return (
         <div className="flex items-center justify-center gap-2">
@@ -210,7 +215,7 @@ const columns: ColumnDef<Concession>[] = [
       );
     },
     filterFn: (row, id, value) => {
-      const type = row.getValue(id) as Concession["applicationType"];
+      const type = row.getValue(id) as ApplicationType;
       const searchValue = value.toLowerCase().trim();
 
       return type.toLowerCase().startsWith(searchValue);
@@ -240,7 +245,7 @@ const columns: ColumnDef<Concession>[] = [
     cell: ({ row }) => {
       const concessionClass = row.getValue(
         "concessionClass"
-      ) as Concession["concessionClass"];
+      ) as ConcessionClass;
 
       return (
         <div className="font-medium text-foreground/90">
@@ -254,9 +259,7 @@ const columns: ColumnDef<Concession>[] = [
     header: "Period",
     accessorKey: "concessionPeriod",
     cell: ({ row }) => {
-      const period = row.getValue(
-        "concessionPeriod"
-      ) as Concession["concessionPeriod"];
+      const period = row.getValue("concessionPeriod") as ConcessionPeriod;
 
       return (
         <div className="font-medium text-foreground/90">{period.name}</div>
@@ -268,7 +271,7 @@ const columns: ColumnDef<Concession>[] = [
     accessorKey: "station",
     header: "Home Station",
     cell: ({ row }) => {
-      const station = row.getValue("station") as Concession["station"];
+      const station = row.getValue("station") as Station;
 
       return (
         <div className="font-medium text-foreground/90">
@@ -304,13 +307,13 @@ const columns: ColumnDef<Concession>[] = [
 ];
 
 interface ApplicationsTableProps {
+  isError: boolean;
   isLoading: boolean;
-  error: string | null;
   applications: Concession[];
 }
 
 const ApplicationsTable = ({
-  error,
+  isError,
   isLoading,
   applications,
 }: ApplicationsTableProps) => {
@@ -377,27 +380,16 @@ const ApplicationsTable = ({
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
-      <div className="w-full flex items-center justify-center h-[63vh]">
-        <div className="rounded-lg border bg-card shadow-sm max-w-md w-full h-1/2 flex justify-center items-center">
-          <div className="text-center space-y-4">
-            <div className="flex justify-center">
-              <div className="p-3 rounded-full bg-destructive/10">
-                <AlertCircle className="size-10 text-destructive" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold text-foreground">
-                Something went wrong
-              </h3>
-
-              <p className="text-sm text-muted-foreground">{error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Status
+        icon={XCircle}
+        iconColor="text-white"
+        iconBg="bg-destructive"
+        containerClassName="min-h-[63vh]"
+        title="Failed to Fetch Application"
+        description="We couldn't load your application data. Please check your connection or try again shortly."
+      />
     );
   }
 
@@ -442,7 +434,7 @@ const ApplicationsTable = ({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="w-28 h-10">
                 Columns
-                <ChevronDown className="ml-2 h-4 w-4" />
+                <ChevronDown className="ml-2 size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">

@@ -1,55 +1,58 @@
 "use server";
 
+import {
+  Result,
+  success,
+  failure,
+  AuthError,
+  databaseError,
+  DatabaseError,
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
-import { StudentApprovalStatus } from "@/generated/prisma";
+import { StudentApprovalStatusType } from "@/generated/zod";
 
-type UserRole = {
-  needsOnboarding: boolean;
+export type UserRole = {
   role: "admin" | "student";
-  status?: "inactive" | "deleted" | "pending" | "rejected";
+  status: "Active" | "Inactive" | "NeedsOnboarding" | StudentApprovalStatusType;
 };
 
-export const checkUserRole = async (userId: string): Promise<UserRole> => {
+export const checkUserRole = async (
+  userId: string
+): Promise<Result<UserRole, AuthError | DatabaseError>> => {
   try {
     const admin = await prisma.admin.findUnique({
       where: { userId },
+      select: { isActive: true },
     });
 
     if (admin) {
-      if (admin.isDeleted) {
-        return { role: "admin", needsOnboarding: false, status: "deleted" };
-      }
-
       if (!admin.isActive) {
-        return { role: "admin", needsOnboarding: false, status: "inactive" };
+        return success({
+          role: "admin",
+          status: "Inactive",
+        });
       }
 
-      return { role: "admin", needsOnboarding: false };
+      return success({ role: "admin", status: "Active" });
     }
 
     const student = await prisma.student.findUnique({
       where: { userId },
+      select: { status: true },
     });
 
     if (student) {
-      if (student.isDeleted) {
-        return { role: "student", needsOnboarding: false, status: "deleted" };
-      }
-
-      if (student.approvalStatus === StudentApprovalStatus.Pending) {
-        return { role: "student", needsOnboarding: false, status: "pending" };
-      }
-
-      if (student.approvalStatus === StudentApprovalStatus.Rejected) {
-        return { role: "student", needsOnboarding: false, status: "rejected" };
-      }
-
-      return { role: "student", needsOnboarding: false };
+      return success({
+        role: "student",
+        status: student.status,
+      });
     }
 
-    return { role: "student", needsOnboarding: true };
+    return success({
+      role: "student",
+      status: "NeedsOnboarding",
+    });
   } catch (error) {
-    console.error("Error checking user role:", error);
-    throw new Error("Failed to check user role");
+    return failure(databaseError("Failed to check user role"));
   }
 };

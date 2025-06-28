@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  type Review,
+  getReviewData,
+  submitOnboarding,
+} from "@/actions/onboarding";
+import {
   Card,
   CardTitle,
   CardHeader,
@@ -13,6 +18,7 @@ import {
   Edit3,
   MapPin,
   Loader2,
+  XCircle,
   FileText,
   RefreshCw,
   AlertCircle,
@@ -34,119 +40,210 @@ import type { z } from "zod";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
+import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
-import { getReviewData, submitOnboarding } from "@/actions/onboarding";
 
 type ReviewProps = {
   defaultValues: z.infer<typeof OnboardingSchema>;
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
 };
 
-type StudentDetails = {
-  year: { id: string; name: string } | null;
-  class: { id: string; code: string } | null;
-  branch: { id: string; name: string } | null;
-  station: { id: string; name: string } | null;
-  concessionClass: { id: string; name: string } | null;
-  concessionPeriod: { id: string; name: string } | null;
-};
+const ReviewSkeleton = () => (
+  <div className="max-w-5xl mx-auto space-y-6 md:p-6">
+    {[1, 2, 3, 4].map((index) => (
+      <Card key={index} className="shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10 rounded-lg" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <Skeleton className="w-16 h-8 rounded-md" />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[1, 2].map((item) => (
+              <div key={item} className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-full" />
+              </div>
+            ))}
+          </div>
+          <Separator />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-5 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+    <div className="flex justify-end pt-6">
+      <Skeleton className="w-48 h-12 rounded-lg" />
+    </div>
+  </div>
+);
+
+const ErrorComponent = ({
+  error,
+  onRetry,
+  isRetrying,
+}: {
+  error: string;
+  onRetry: () => void;
+  isRetrying: boolean;
+}) => (
+  <Status
+    icon={XCircle}
+    description={error}
+    iconBg="bg-destructive"
+    iconColor="text-white"
+    containerClassName="bg-card"
+    cardClassName="bg-background"
+    title="Unable to Load Details"
+    button={{
+      onClick: onRetry,
+      icon: isRetrying ? Loader2 : RefreshCw,
+      label: isRetrying ? "Retrying..." : "Try Again",
+    }}
+  />
+);
 
 const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
   const router = useRouter();
   const session = authClient.useSession();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRetrying, setIsRetrying] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [details, setDetails] = useState<StudentDetails | null>(null);
+  const [reviewData, setReviewData] = useState<Review | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
-  const loadData = async () => {
+  const loadReviewData = async (isRetry = false) => {
     try {
       setError(null);
-      setIsLoading(true);
+      if (isRetry) {
+        setIsRetrying(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      if (!session.data?.user?.id) {
+        toast.error("User session not found");
+        router.push("/");
+        return;
+      }
+
       const result = await getReviewData({
-        yearId: defaultValues.year,
         classId: defaultValues.class,
-        branchId: defaultValues.branch,
         stationId: defaultValues.station,
         preferredConcessionClassId: defaultValues.preferredConcessionClass,
         preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
       });
 
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
-      if (result.data) {
-        setDetails(result.data);
+      if (result.isSuccess) {
+        setReviewData(result.data);
+      } else {
+        toast.error("Failed to load review data");
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to load details";
+        error instanceof Error ? error.message : "An unexpected error occurred";
       setError(errorMessage);
-      toast.error("Loading Error", {
+
+      if (!isRetry) {
+        toast.error("Loading Error", {
+          description: errorMessage,
+        });
+      }
+    } finally {
+      setIsLoading(false);
+      setIsRetrying(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+
+    try {
+      if (!session.data?.user?.id) {
+        toast.error("User session not found");
+        router.push("/");
+        return;
+      }
+
+      const submissionPromise = submitOnboarding(session.data.user.id, {
+        status: "Pending",
+        gender: defaultValues.gender,
+        classId: defaultValues.class,
+        address: defaultValues.address,
+        lastName: defaultValues.lastName,
+        stationId: defaultValues.station,
+        firstName: defaultValues.firstName,
+        middleName: defaultValues.middleName,
+        dateOfBirth: new Date(defaultValues.dateOfBirth),
+        verificationDocUrl: defaultValues.verificationDocUrl,
+        preferredConcessionClassId: defaultValues.preferredConcessionClass,
+        preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
+      });
+
+      toast.promise(submissionPromise, {
+        error: "Failed to submit application",
+        loading: "Submitting your application...",
+        success: "Application submitted successfully! Redirecting...",
+      });
+
+      const result = await submissionPromise;
+
+      if (result.isSuccess) {
+        router.push("/dashboard/student");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Submission failed";
+      toast.error("Submission Error", {
         description: errorMessage,
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
+      setShowConfirmDialog(false);
     }
   };
 
   useEffect(() => {
-    loadData();
-  }, [defaultValues]);
+    if (session.data?.user?.id) {
+      loadReviewData();
+    }
+  }, [session.data?.user?.id, defaultValues]);
 
   if (isLoading || session.isPending) {
-    return (
-      <div className="flex flex-col items-center justify-center w-full h-48 space-y-4">
-        <Loader2 className="w-8 h-8 animate-spin" />
-
-        <div className="space-y-2 flex flex-col justify-center items-center">
-          <h3 className="text-base font-semibold">Loading your details...</h3>
-          <p className="text-sm text-muted-foreground">
-            Please wait while we fetch your information
-          </p>
-        </div>
-      </div>
-    );
+    return <ReviewSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-48 space-y-4">
-        <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
-          <AlertTriangle className="w-8 h-8 text-destructive" />
-        </div>
+      <ErrorComponent
+        error={error}
+        isRetrying={isRetrying}
+        onRetry={() => loadReviewData(true)}
+      />
+    );
+  }
 
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Something went wrong</h3>
-          <p className="text-sm text-muted-foreground">{error}</p>
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={loadData}
-          disabled={isLoading}
-          className="flex items-center gap-2"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Loading...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-4 h-4" />
-              Try Again
-            </>
-          )}
-        </Button>
-      </div>
+  if (!reviewData) {
+    return (
+      <ErrorComponent
+        isRetrying={isRetrying}
+        error="No review data available"
+        onRetry={() => loadReviewData(true)}
+      />
     );
   }
 
@@ -155,27 +252,24 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       <Card className="shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
               <User className="size-5" />
             </div>
-
             <div className="flex-1">
               <CardTitle className="text-lg">Personal Information</CardTitle>
               <CardDescription>Your personal details</CardDescription>
             </div>
-
             <Button
               size="sm"
               variant="outline"
               onClick={() => setCurrentStep(1)}
               className="flex items-center gap-2"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="size-4" />
               <span className="hidden sm:inline">Edit</span>
             </Button>
           </div>
         </CardHeader>
-
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
@@ -213,8 +307,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       <Card className="shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-              <GraduationCap className="size-5 " />
+            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+              <GraduationCap className="size-5" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-lg">Academic Information</CardTitle>
@@ -226,7 +320,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
               onClick={() => setCurrentStep(2)}
               className="flex items-center gap-2"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="size-4" />
               <span className="hidden sm:inline">Edit</span>
             </Button>
           </div>
@@ -235,17 +329,21 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Year</p>
-              <Badge variant="outline">{details?.year?.name}</Badge>
+              <Badge variant="outline">
+                {reviewData.class.year.name} ({reviewData.class.year.code})
+              </Badge>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">
                 Branch
               </p>
-              <p className="font-medium">{details?.branch?.name}</p>
+              <p className="font-medium">
+                {reviewData.class.branch.name} ({reviewData.class.branch.code})
+              </p>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Class</p>
-              <Badge variant="outline">{details?.class?.code}</Badge>
+              <Badge variant="outline">{reviewData.class.code}</Badge>
             </div>
           </div>
         </CardContent>
@@ -254,8 +352,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       <Card className="shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-              <MapPin className="size-5 " />
+            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+              <MapPin className="size-5" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-lg">Travel Information</CardTitle>
@@ -267,7 +365,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
               onClick={() => setCurrentStep(3)}
               className="flex items-center gap-2"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="size-4" />
               <span className="hidden sm:inline">Edit</span>
             </Button>
           </div>
@@ -278,20 +376,35 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
               <p className="text-sm font-medium text-muted-foreground">
                 Home Station
               </p>
-              <p className="font-medium">{details?.station?.name}</p>
+              <p className="font-medium">
+                {reviewData.station.name} ({reviewData.station.code})
+              </p>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">
                 Preferred Concession Class
               </p>
-              <Badge variant="outline">{details?.concessionClass?.name}</Badge>
+              <Badge variant="outline">
+                {reviewData.concessionClass.name} (
+                {reviewData.concessionClass.code})
+              </Badge>
             </div>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">
               Preferred Concession Period
             </p>
-            <Badge variant="outline">{details?.concessionPeriod?.name}</Badge>
+            <Badge variant="outline">
+              {reviewData.concessionPeriod.name} (
+              {reviewData.concessionPeriod?.duration != null
+                ? `${reviewData.concessionPeriod.duration} ${
+                    reviewData.concessionPeriod.duration === 1
+                      ? "month"
+                      : "months"
+                  }`
+                : "N/A"}
+              )
+            </Badge>
           </div>
         </CardContent>
       </Card>
@@ -299,8 +412,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       <Card className="shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-              <FileText className="size-5 " />
+            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+              <FileText className="size-5" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-lg">Document Verification</CardTitle>
@@ -312,7 +425,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
               onClick={() => setCurrentStep(4)}
               className="flex items-center gap-2"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="size-4" />
               <span className="hidden sm:inline">Edit</span>
             </Button>
           </div>
@@ -336,7 +449,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
                 rel="noopener noreferrer"
                 href={defaultValues.verificationDocUrl}
               >
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink className="size-4" />
                 View Document
               </a>
             </Button>
@@ -353,12 +466,12 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
               Submitting...
             </>
           ) : (
             <>
-              <Send className="mr-2 h-4 w-4" />
+              <Send className="mr-2 size-4" />
               Submit Application
             </>
           )}
@@ -383,71 +496,35 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
           <div className="py-4">
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-destructive" />
+                <AlertCircle className="size-4 text-destructive" />
                 <p className="text-sm font-medium">Important Notice:</p>
               </div>
               <ul className="text-xs text-muted-foreground space-y-1">
-                <li key="undo">• This action cannot be undone</li>
-                <li key="review">• Please review all details one final time</li>
-                <li key="edit">
+                <li>• This action cannot be undone</li>
+                <li>• Please review all details one final time</li>
+                <li>
                   • You won't be able to edit your application after submission
                 </li>
               </ul>
             </div>
           </div>
           <AlertDialogFooter className="gap-4">
-            <AlertDialogCancel
-              disabled={isSubmitting}
-              className="cursor-pointer"
-            >
+            <AlertDialogCancel disabled={isSubmitting}>
               Cancel
             </AlertDialogCancel>
-
             <AlertDialogAction
+              onClick={handleSubmit}
               disabled={isSubmitting}
               className="bg-destructive hover:bg-destructive/90 cursor-pointer"
-              onClick={async () => {
-                setIsSubmitting(true);
-
-                const submissionPromise = submitOnboarding(
-                  session.data!!.user.id,
-                  defaultValues
-                ).then((result) => {
-                  if (result.error) {
-                    throw new Error(
-                      typeof result.error === "string"
-                        ? result.error
-                        : JSON.stringify(result.error)
-                    );
-                  }
-                  return result;
-                });
-
-                toast.promise(submissionPromise, {
-                  loading: "Submitting your application...",
-                  success: "Application submitted successfully! Redirecting...",
-                  error: (error) =>
-                    error.message || "Failed to submit application",
-                });
-
-                try {
-                  await submissionPromise;
-                  router.push("/dashboard/student");
-                } catch (error) {
-                } finally {
-                  setIsSubmitting(false);
-                  setShowConfirmDialog(false);
-                }
-              }}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <Send className="mr-2 h-4 w-4" />
+                  <Send className="mr-2 size-4" />
                   Yes, Submit Now
                 </>
               )}

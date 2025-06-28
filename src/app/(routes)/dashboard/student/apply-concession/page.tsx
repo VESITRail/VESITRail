@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Mail,
   Info,
   Send,
   Clock,
@@ -15,11 +14,15 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
-  getConcessionClasses,
+  StudentStation,
+  getStudentStation,
+  StudentPreferences,
   getConcessionPeriods,
-} from "@/actions/onboarding";
+  getConcessionClasses,
+  getStudentPreferences,
+} from "@/actions/utils";
 import {
-  getStudentDetails,
+  Concession,
   getLastApplication,
   submitConcessionApplication,
 } from "@/actions/concession";
@@ -60,52 +63,33 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Status } from "@/components/ui/status";
+import Status from "@/components/ui/status";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateConcessionValidity } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Station, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
+import {
+  ConcessionClass,
+  ConcessionPeriod,
+  ConcessionApplicationStatusType,
+} from "@/generated/zod";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConcessionApplicationType } from "@/generated/prisma";
 
-type ApplicationType = "New" | "Renewal";
-type StatusType = "Rejected" | "Pending" | "Approved";
-
-interface ConcessionApplication {
-  id: string;
-  createdAt: Date;
-  status: StatusType;
-  approvedAt: Date | null;
-  station: Partial<Station>;
-  applicationType: ApplicationType;
-  concessionClass: Partial<ConcessionClass>;
-  concessionPeriod: Partial<ConcessionPeriod>;
-}
-
-interface Student {
-  station: {
-    id: string;
-    code: string;
-    name: string;
-  };
-  preferredConcessionClass: {
-    id: string;
-    code: string;
-    name: string;
-  };
-  preferredConcessionPeriod: {
-    id: string;
-    name: string;
-    duration: number;
-  };
-}
-
-const ApplicationTypeBadge = ({ type }: { type: ApplicationType }) => {
+const ApplicationTypeBadge = ({
+  type,
+}: {
+  type: ConcessionApplicationType;
+}) => {
   return <Badge variant="secondary">{type}</Badge>;
 };
 
-const StatusBadge = ({ status }: { status: StatusType }) => {
-  const variants: Record<StatusType, string> = {
+const StatusBadge = ({
+  status,
+}: {
+  status: ConcessionApplicationStatusType;
+}) => {
+  const variants: Record<ConcessionApplicationStatusType, string> = {
     Rejected: "bg-red-600 text-white",
     Pending: "bg-amber-600 text-white",
     Approved: "bg-green-600 text-white",
@@ -123,9 +107,15 @@ const ConcessionApplicationForm = () => {
   const [loadingOptions, setLoadingOptions] = useState<boolean>(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
-  const [student, setStudent] = useState<Student | null>(null);
-  const [lastApplication, setLastApplication] =
-    useState<ConcessionApplication | null>(null);
+  const [student, setStudent] = useState<
+    | (StudentPreferences & {
+        station: StudentStation;
+      })
+    | null
+  >(null);
+  const [lastApplication, setLastApplication] = useState<Concession | null>(
+    null
+  );
 
   const [selectedConcessionClass, setSelectedConcessionClass] =
     useState<string>("");
@@ -141,16 +131,17 @@ const ConcessionApplicationForm = () => {
 
   const [status, setStatus] = useState<{
     title: string;
-    iconBg: string;
+    iconBg?: string;
     icon: LucideIcon;
-    iconColor: string;
+    iconColor?: string;
     description: string;
     iconClassName?: string;
+    containerClassName?: string;
     button?: {
-      href: string;
+      href?: string;
       label: string;
       icon: LucideIcon;
-      variant?: "default" | "outline" | "ghost";
+      onClick?: () => void;
     };
   } | null>(null);
 
@@ -190,12 +181,21 @@ const ConcessionApplicationForm = () => {
       if (isPending || !data?.user?.id) return;
 
       try {
-        const result = await getStudentDetails(data.user.id);
+        const [prefResult, stationResult] = await Promise.all([
+          getStudentPreferences(data.user.id),
+          getStudentStation(data.user.id),
+        ]);
 
-        if (result.error) {
+        if (prefResult.error || stationResult.error) {
           toast.error("Failed to load student details");
-        } else if (result.data) {
-          setStudent(result.data);
+          return;
+        }
+
+        if (prefResult.data && stationResult.data) {
+          setStudent({
+            station: stationResult.data,
+            ...prefResult.data,
+          });
         }
       } catch (error) {
         toast.error("Failed to load student details");
@@ -223,24 +223,16 @@ const ConcessionApplicationForm = () => {
       try {
         const result = await getLastApplication(data.user.id);
 
-        if (!result.success) {
+        if (result.error) {
           setCanApply(false);
-
           setStatus({
             icon: XCircle,
             iconColor: "text-white",
             iconBg: "bg-destructive",
-            title: "Error Loading Application",
+            title: "Failed to Load Previous Application",
             description:
-              "Unable to fetch your application status. Please try again later or contact support if the issue persists.",
-            button: {
-              icon: Mail,
-              label: "Contact",
-              href: "/#contact",
-              variant: "default",
-            },
+              "We couldn't retrieve your previous application details. This might be due to a network issue or server error. Please try again shortly.",
           });
-
           return;
         }
 
@@ -261,7 +253,7 @@ const ConcessionApplicationForm = () => {
               setCanApply(false);
               setStatus({
                 icon: Clock,
-                iconBg: "bg-yellow-600",
+                iconBg: "bg-amber-500",
                 iconColor: "text-white",
                 title: "Application Under Review",
                 description:
@@ -270,9 +262,9 @@ const ConcessionApplicationForm = () => {
               break;
 
             case "Approved":
-              if (application.approvedAt) {
+              if (application.reviewedAt) {
                 const validity = calculateConcessionValidity(
-                  new Date(application.approvedAt),
+                  new Date(application.reviewedAt),
                   application.concessionPeriod.duration
                 );
 
@@ -366,11 +358,11 @@ const ConcessionApplicationForm = () => {
     try {
       const result = await submissionPromise;
 
-      if (result.error) {
-        throw new Error(result.error);
+      if (result.isSuccess) {
+        router.push("/dashboard/student");
+      } else {
+        toast.error(result.error.message || "Failed to submit application");
       }
-
-      router.push("/dashboard/student");
     } catch (error) {
       console.error("Submission error:", error);
     } finally {
@@ -590,7 +582,12 @@ const ConcessionApplicationForm = () => {
                                 Period
                               </p>
                               <p className="font-medium text-foreground/90">
-                                {lastApplication.concessionPeriod.name}
+                                {lastApplication.concessionPeriod.name} (
+                                {lastApplication.concessionPeriod.duration}{" "}
+                                {lastApplication.concessionPeriod.duration === 1
+                                  ? "month"
+                                  : "months"}
+                                )
                               </p>
                             </div>
                           </div>
@@ -686,7 +683,8 @@ const ConcessionApplicationForm = () => {
                   <SelectContent>
                     {concessionPeriods.map((period) => (
                       <SelectItem key={period.id} value={period.id}>
-                        {period.name}
+                        {period.name} ({period.duration}{" "}
+                        {period.duration === 1 ? "month" : "months"})
                       </SelectItem>
                     ))}
                   </SelectContent>

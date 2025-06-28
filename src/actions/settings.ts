@@ -1,14 +1,29 @@
 "use server";
 
+import {
+  Result,
+  success,
+  failure,
+  databaseError,
+  DatabaseError,
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
+import { Student } from "@/generated/zod";
+import { StudentPreferences } from "./utils";
 
-export const getStudentPreferences = async (userId: string) => {
+export type UpdatePreferencesData = Pick<
+  Student,
+  "preferredConcessionClassId" | "preferredConcessionPeriodId"
+>;
+
+export const getStudentPreferences = async (
+  studentId: string
+): Promise<Result<StudentPreferences, DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
-      where: { userId },
+      where: { userId: studentId },
       select: {
-        preferredConcessionClassId: true,
-        preferredConcessionPeriodId: true,
+        status: true,
         preferredConcessionClass: {
           select: {
             id: true,
@@ -20,76 +35,74 @@ export const getStudentPreferences = async (userId: string) => {
           select: {
             id: true,
             name: true,
+            duration: true,
           },
         },
       },
     });
 
     if (!student) {
-      return {
-        data: null,
-        success: false,
-        error: "Student not found",
-      };
+      return failure(databaseError("Student not found"));
     }
 
-    return {
-      error: null,
-      data: student,
-      success: true,
-    };
+    if (student.status !== "Approved") {
+      return failure(databaseError("Student is not approved"));
+    }
+
+    const { preferredConcessionClass, preferredConcessionPeriod } = student;
+
+    return success({
+      preferredConcessionClass,
+      preferredConcessionPeriod,
+    });
   } catch (error) {
-    return {
-      data: null,
-      success: false,
-      error: "Failed to fetch preferences",
-    };
+    return failure(databaseError("Failed to fetch preferences"));
   }
 };
 
 export const updateStudentPreferences = async (
-  userId: string,
-  data: {
-    preferredConcessionClassId: string;
-    preferredConcessionPeriodId: string;
-  }
-) => {
+  studentId: string,
+  data: UpdatePreferencesData
+): Promise<Result<StudentPreferences, DatabaseError>> => {
   try {
+    const student = await prisma.student.findUnique({
+      select: { status: true },
+      where: { userId: studentId },
+    });
+
+    if (!student) {
+      return failure(databaseError("Student not found"));
+    }
+
+    if (student.status !== "Approved") {
+      return failure(databaseError("Student is not approved"));
+    }
+
     const [concessionClass, concessionPeriod] = await Promise.all([
       prisma.concessionClass.findFirst({
         where: {
           isActive: true,
-          isDeleted: false,
           id: data.preferredConcessionClassId,
         },
       }),
       prisma.concessionPeriod.findFirst({
         where: {
           isActive: true,
-          isDeleted: false,
           id: data.preferredConcessionPeriodId,
         },
       }),
     ]);
 
     if (!concessionClass) {
-      return {
-        data: null,
-        success: false,
-        error: "Invalid concession class selected",
-      };
+      return failure(databaseError("Invalid concession class selected"));
     }
 
     if (!concessionPeriod) {
-      return {
-        data: null,
-        success: false,
-        error: "Invalid concession period selected",
-      };
+      return failure(databaseError("Invalid concession period selected"));
     }
 
     const updatedStudent = await prisma.student.update({
-      where: { userId },
+      where: { userId: studentId },
       data: {
         preferredConcessionClassId: data.preferredConcessionClassId,
         preferredConcessionPeriodId: data.preferredConcessionPeriodId,
@@ -106,21 +119,14 @@ export const updateStudentPreferences = async (
           select: {
             id: true,
             name: true,
+            duration: true,
           },
         },
       },
     });
 
-    return {
-      error: null,
-      success: true,
-      data: updatedStudent,
-    };
+    return success(updatedStudent);
   } catch (error) {
-    return {
-      data: null,
-      success: false,
-      error: "Failed to update preferences",
-    };
+    return failure(databaseError("Failed to update preferences"));
   }
 };

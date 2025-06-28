@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  type OnboardingSchema,
   PersonalInfoSchema,
+  type OnboardingSchema,
 } from "@/lib/validations/onboarding";
 import {
   Popover,
