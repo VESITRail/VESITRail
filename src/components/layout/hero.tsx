@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
@@ -31,6 +32,22 @@ const Hero = () => {
       newUserCallbackURL: "/onboarding",
     });
   };
+
+  useEffect(() => {
+    const initOneTap = async () => {
+      if (!session.isPending && !session.data?.user) {
+        try {
+          await authClient.oneTap({
+            callbackURL: "/dashboard",
+          });
+        } catch (error) {
+          console.log("One Tap initialization failed:", error);
+        }
+      }
+    };
+
+    initOneTap();
+  }, [session.isPending, session.data?.user]);
 
   return (
     <section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center px-4 md:px-8 bg-background overflow-x-hidden py-12">
