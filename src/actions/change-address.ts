@@ -1,8 +1,16 @@
 "use server";
 
+import {
+  Result,
+  failure,
+  success,
+  AppError,
+  authError,
+  databaseError,
+  validationError,
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { ok, err, Result } from "neverthrow";
 import { Student, Station, AddressChange } from "@/generated/zod";
 
 export type AddressChangeData = Pick<
@@ -21,7 +29,7 @@ export type StudentAddressAndStation = Pick<Student, "address"> & {
 
 export const getStudentAddressAndStation = async (
   studentId: string
-): Promise<Result<StudentAddressAndStation, string>> => {
+): Promise<Result<StudentAddressAndStation, AppError>> => {
   try {
     const student = await prisma.student.findUnique({
       where: {
@@ -41,28 +49,35 @@ export const getStudentAddressAndStation = async (
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(databaseError("Student not found"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(authError("Student is not approved", "FORBIDDEN"));
     }
 
     const { address, station } = student;
 
-    return ok({ address, station });
+    return success({ address, station });
   } catch (error) {
     console.error("Error fetching student address and station:", error);
-    return err("Failed to fetch student address and station");
+    return failure(
+      databaseError("Failed to fetch student address and station")
+    );
   }
 };
 
 export const submitAddressChangeApplication = async (
   data: AddressChangeData
-): Promise<Result<AddressChange, string>> => {
+): Promise<Result<AddressChange, AppError>> => {
   try {
     if (data.newStationId === data.currentStationId) {
-      return err("New station cannot be the same as current station");
+      return failure(
+        validationError(
+          "New station cannot be the same as current station",
+          "newStationId"
+        )
+      );
     }
 
     const student = await prisma.student.findUnique({
@@ -71,11 +86,11 @@ export const submitAddressChangeApplication = async (
     });
 
     if (!student) {
-      return err("Student not found");
+      return failure(databaseError("Student not found"));
     }
 
     if (student.status !== "Approved") {
-      return err("Student is not approved");
+      return failure(authError("Student is not approved", "FORBIDDEN"));
     }
 
     const application = await prisma.addressChange.create({
@@ -92,8 +107,61 @@ export const submitAddressChangeApplication = async (
 
     revalidatePath("/dashboard/student/change-address");
 
-    return ok(application);
+    return success(application);
   } catch (error) {
-    return err("Failed to submit address change application");
+    return failure(
+      databaseError("Failed to submit address change application")
+    );
+  }
+};
+
+export const getLastAddressChangeApplication = async (
+  studentId: string
+): Promise<Result<AddressChange | null, AppError>> => {
+  try {
+    const student = await prisma.student.findUnique({
+      select: { status: true },
+      where: { userId: studentId },
+    });
+
+    if (!student) {
+      return failure(databaseError("Student not found"));
+    }
+
+    if (student.status !== "Approved") {
+      return failure(authError("Student is not approved", "FORBIDDEN"));
+    }
+
+    const lastApplication = await prisma.addressChange.findFirst({
+      where: {
+        studentId: studentId,
+      },
+      include: {
+        newStation: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+        currentStation: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return success(lastApplication);
+  } catch (error) {
+    console.error("Error fetching last address change application:", error);
+    return failure(
+      databaseError("Failed to fetch last address change application")
+    );
   }
 };
