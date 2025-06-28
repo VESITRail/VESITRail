@@ -1,23 +1,19 @@
 "use client";
 
 import {
+  Eye,
   Mail,
   Info,
   Send,
+  Check,
   Clock,
+  FileUp,
+  Trash2,
+  MapPin,
   Loader2,
   XCircle,
-  History,
-  FileText,
   CheckCircle,
-  AlertCircle,
   AlertTriangle,
-  MapPin,
-  Upload,
-  Eye,
-  FileUp,
-  Check,
-  Trash2,
   ChevronsUpDown,
   type LucideIcon,
 } from "lucide-react";
@@ -28,7 +24,13 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
+import {
+  Station,
+  AddressChange,
+  AddressChangeStatusType,
+} from "@/generated/zod";
 import {
   Popover,
   PopoverContent,
@@ -43,12 +45,19 @@ import {
 } from "@/components/ui/dialog";
 import {
   Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
   CommandList,
+  CommandItem,
+  CommandInput,
+  CommandGroup,
+  CommandEmpty,
 } from "@/components/ui/command";
+import {
+  type AddressChangeData,
+  StudentAddressAndStation,
+  getStudentAddressAndStation,
+  submitAddressChangeApplication,
+  getLastAddressChangeApplication,
+} from "@/actions/change-address";
 import {
   AlertDialog,
   AlertDialogTitle,
@@ -59,76 +68,41 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
+import { z } from "zod";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Status from "@/components/ui/status";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { getStations } from "@/actions/utils";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import Status from "@/components/ui/status";
-import { Separator } from "@/components/ui/separator";
-import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CldUploadButton } from "next-cloudinary";
+import { capitalizeWords, cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  submitAddressChangeApplication,
-  getStudentAddressAndStation,
-  getLastAddressChangeApplication,
-  type AddressChangeData,
-} from "@/actions/change-address";
-import { getStations } from "@/actions/utils";
-import { deleteCloudinaryFile } from "@/actions/cloudinary"; // Assuming you have these actions
-
-type AddressChangeStatusType = "Pending" | "Approved" | "Rejected";
-
-interface AddressChange {
-  id: string;
-  newAddress: string;
-  currentAddress: string;
-  status: AddressChangeStatusType;
-  verificationDocUrl: string;
-  createdAt: Date;
-  reviewedAt: Date | null;
-  newStation: {
-    id: string;
-    code: string;
-    name: string;
-  };
-  currentStation: {
-    id: string;
-    code: string;
-    name: string;
-  };
-}
-
-interface Student {
-  address: string;
-  station: {
-    id: string;
-    code: string;
-    name: string;
-  };
-}
-
-interface Station {
-  id: string;
-  code: string;
-  name: string;
-  isActive: boolean;
-}
+import { Card, CardContent } from "@/components/ui/card";
+import { deleteCloudinaryFile } from "@/actions/cloudinary";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const AddressChangeSchema = z.object({
+  verificationDocUrl: z.string().url(),
   newStationId: z.string().min(1, "Please select a new station"),
-  newAddress: z.string().min(5, "Address must be at least 5 characters"),
-  verificationDocUrl: z.string().min(1, "Please upload verification document"),
+  newAddress: z
+    .string()
+    .min(1, "Address is required")
+    .min(10, "Address must be at least 10 characters")
+    .max(500, "Address cannot exceed 500 characters")
+    .transform((val) => val.trim())
+    .refine(
+      (val) => val.length >= 10,
+      "Address must be at least 10 characters after trimming"
+    ),
 });
 
 type AddressChangeForm = z.infer<typeof AddressChangeSchema>;
@@ -145,43 +119,49 @@ const StatusBadge = ({ status }: { status: AddressChangeStatusType }) => {
 
 const AddressChangePage = () => {
   const router = useRouter();
+  const [open, setOpen] = useState<boolean>(false);
   const { data, isPending } = authClient.useSession();
+  const [publicId, setPublicId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [canApply, setCanApply] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [loadingStations, setLoadingStations] = useState<boolean>(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [publicId, setPublicId] = useState<string>("");
-  const [open, setOpen] = useState<boolean>(false);
 
-  const [student, setStudent] = useState<Student | null>(null);
-  const [lastApplication, setLastApplication] = useState<AddressChange | null>(
-    null
-  );
   const [stations, setStations] = useState<Station[]>([]);
+  const [student, setStudent] = useState<StudentAddressAndStation | null>(null);
+  const [lastApplication, setLastApplication] = useState<
+    | (AddressChange & {
+        newStation: Station;
+        currentStation: Station;
+      })
+    | null
+  >(null);
 
   const [status, setStatus] = useState<{
     title: string;
-    iconBg: string;
+    iconBg?: string;
     icon: LucideIcon;
-    iconColor: string;
+    iconColor?: string;
     description: string;
+    cardClassName?: string;
     iconClassName?: string;
+    containerClassName?: string;
     button?: {
-      href: string;
+      href?: string;
       label: string;
       icon: LucideIcon;
-      variant?: "default" | "outline" | "ghost";
+      onClick?: () => void;
     };
   } | null>(null);
 
   const form = useForm<AddressChangeForm>({
     resolver: zodResolver(AddressChangeSchema),
     defaultValues: {
-      newStationId: "",
       newAddress: "",
+      newStationId: "",
       verificationDocUrl: "",
     },
   });
@@ -199,6 +179,7 @@ const AddressChangePage = () => {
 
   const fetchStations = async () => {
     setLoadingStations(true);
+
     try {
       const result = await getStations();
 
@@ -251,13 +232,15 @@ const AddressChangePage = () => {
             icon: Mail,
             label: "Contact",
             href: "/#contact",
-            variant: "default",
           },
         });
         return;
       }
 
-      const application = result.data;
+      const application = result.data as AddressChange & {
+        newStation: Station;
+        currentStation: Station;
+      };
       setLastApplication(application);
 
       if (!application) {
@@ -320,8 +303,14 @@ const AddressChangePage = () => {
   const handleUploadSuccess = (result: any) => {
     try {
       const { public_id, secure_url } = result.info;
+
       setPublicId(public_id);
-      form.setValue("verificationDocUrl", secure_url);
+
+      form.setValue("verificationDocUrl", secure_url, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
 
       toast.success("Document uploaded successfully!", {
         description: "Your verification document has been uploaded.",
@@ -337,6 +326,7 @@ const AddressChangePage = () => {
 
   const handleUploadError = (error: any) => {
     setIsUploading(false);
+
     toast.error("Failed to upload document", {
       description: error.message || "Please try again with a valid PDF file.",
     });
@@ -346,6 +336,7 @@ const AddressChangePage = () => {
     if (!watchedUrl || !publicId) return;
 
     setIsDeleting(true);
+
     const deleteToastId = toast.loading("Removing document...", {
       description: "Please wait while we remove your document.",
     });
@@ -355,7 +346,12 @@ const AddressChangePage = () => {
 
       if (result.isSuccess) {
         setPublicId("");
-        form.setValue("verificationDocUrl", "");
+
+        form.setValue("verificationDocUrl", "", {
+          shouldDirty: true,
+          shouldTouch: true,
+          shouldValidate: true,
+        });
 
         toast.dismiss(deleteToastId);
         toast.success("Document removed successfully!", {
@@ -374,6 +370,14 @@ const AddressChangePage = () => {
     }
   };
 
+  const handleCapitalFirstChange = (
+    value: string,
+    onChange: (value: string) => void
+  ) => {
+    const capitalizedValue = capitalizeWords(value);
+    onChange(capitalizedValue);
+  };
+
   const handlePreviewFile = () => {
     if (watchedUrl) {
       window.open(watchedUrl, "_blank");
@@ -390,26 +394,51 @@ const AddressChangePage = () => {
 
     const submissionData: AddressChangeData = {
       studentId: data.user.id,
-      newStationId: formData.newStationId,
       newAddress: formData.newAddress,
-      currentStationId: student.station.id,
       currentAddress: student.address,
+      newStationId: formData.newStationId,
+      currentStationId: student.station.id,
       verificationDocUrl: formData.verificationDocUrl,
     };
 
+    const submitPromise = submitAddressChangeApplication(submissionData);
+
+    toast.promise(submitPromise, {
+      loading: "Submitting address change request...",
+      error: "Failed to submit address change request",
+      success: "Address change request submitted successfully!",
+    });
+
     try {
-      const result = await submitAddressChangeApplication(submissionData);
+      const result = await submitPromise;
 
       if (result.isSuccess) {
-        toast.success(
-          "Address change request submitted successfully! Redirecting..."
-        );
-        router.push("/dashboard/student");
+        setCanApply(false);
+        setStatus({
+          icon: Clock,
+          iconBg: "bg-yellow-600",
+          iconColor: "text-white",
+          title: "Address Change Under Review",
+          description:
+            "Your address change request is currently being reviewed. Please wait for approval before submitting a new request.",
+        });
       } else {
-        throw new Error("Failed to submit request");
+        setStatus({
+          icon: XCircle,
+          iconColor: "text-white",
+          iconBg: "bg-destructive",
+          title: "Submission Failed",
+          description:
+            "We couldn't process your address change request at the moment. Please try again or contact support if the issue persists.",
+          button: {
+            icon: Mail,
+            href: "/#contact",
+            label: "Contact Support",
+          },
+        });
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to submit address change request");
+      console.error(error);
     } finally {
       setIsSubmitting(false);
       setShowConfirmDialog(false);
@@ -420,41 +449,53 @@ const AddressChangePage = () => {
     return (
       <div className="container max-w-5xl mx-auto py-12 px-4">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
+          <span className="flex items-center gap-3">
             <Skeleton className="size-10 rounded-lg" />
-            <Skeleton className="h-8 w-56" />
-          </div>
-          <Skeleton className="size-10 rounded-md" />
+            <Skeleton className="h-8 w-48" />
+          </span>
+          <Skeleton className="size-10 rounded-lg" />
         </div>
 
-        <Skeleton className="h-px w-full my-6" />
+        <Separator className="my-6" />
 
-        <div className="mb-6 rounded-lg border p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Skeleton className="size-4 rounded-full" />
-            <Skeleton className="h-5 w-40" />
-          </div>
-          <Skeleton className="h-4 w-full" />
-        </div>
+        <Skeleton className="h-20 w-full mb-6 rounded-lg" />
 
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          <div className="py-4 p-6">
+        <Card>
+          <CardContent className="py-4">
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Skeleton className="h-10 w-full rounded-md" />
-                <Skeleton className="h-10 w-full rounded-md" />
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Skeleton className="h-10 w-full rounded-md" />
-                <Skeleton className="h-10 w-full rounded-md" />
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
               </div>
-              <Skeleton className="h-48 w-full rounded-md" />
+
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-48 w-full rounded-lg" />
+              </div>
+
               <div className="flex justify-end pt-4">
-                <Skeleton className="h-11 w-40 rounded-md" />
+                <Skeleton className="h-10 w-32 rounded-md" />
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -476,7 +517,7 @@ const AddressChangePage = () => {
 
   return (
     <div className="container max-w-5xl mx-auto py-12 px-4">
-      <div className="flex justify-between items-center">
+      <div className="flex w-full gap-4 justify-between items-start">
         <span className="flex items-center gap-3">
           <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
             <MapPin className="size-5" />
@@ -498,7 +539,10 @@ const AddressChangePage = () => {
           >
             <p className="font-medium mb-4">Important Information</p>
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>Upload clear verification documents for address change</li>
+              <li>
+                Upload a clear document showing both front and back of your
+                Aadhar card
+              </li>
               <li>Ensure new address details are accurate</li>
               <li>Changes require admin approval</li>
             </ul>
@@ -509,28 +553,39 @@ const AddressChangePage = () => {
       <Separator className="my-6" />
 
       {lastApplication?.status === "Rejected" && (
-        <Alert variant="destructive" className="mb-6">
-          <XCircle className="h-4 w-4" />
-          <AlertTitle>Previous Request Rejected</AlertTitle>
-          <AlertDescription>
-            Your previous address change request was rejected. You can submit a
-            new request.
+        <Alert variant="destructive" className="mb-6 flex flex-col gap-1">
+          <div className="flex w-full justify-between items-start">
+            <div className="flex items-start gap-2">
+              <XCircle className="size-4 mt-0.5 text-destructive" />
+
+              <div>
+                <AlertTitle>Previous Request Rejected</AlertTitle>
+                <AlertDescription>
+                  Your previous address change request was rejected. You can
+                  submit a new request.
+                </AlertDescription>
+              </div>
+            </div>
+
             {lastApplication && (
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="text-red-600 hover:text-red-700 p-0 h-auto ml-2"
+                    variant="outline"
+                    className="h-8 text-foreground border-muted-foreground/20 hover:border-muted-foreground/40"
                   >
                     View Details
                   </Button>
                 </DialogTrigger>
+
                 <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
                     <DialogTitle>Previous Request Details</DialogTitle>
                   </DialogHeader>
+
                   <Separator className="my-2" />
+
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
@@ -539,9 +594,10 @@ const AddressChangePage = () => {
                         </p>
                         <StatusBadge status={lastApplication.status} />
                       </div>
+
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-muted-foreground">
-                          Submitted
+                          Applied Date
                         </p>
                         <p className="font-medium text-foreground/90">
                           {format(
@@ -551,6 +607,7 @@ const AddressChangePage = () => {
                         </p>
                       </div>
                     </div>
+
                     <div className="space-y-4">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground mb-1">
@@ -581,33 +638,44 @@ const AddressChangePage = () => {
                 </DialogContent>
               </Dialog>
             )}
-          </AlertDescription>
+          </div>
         </Alert>
       )}
 
       {lastApplication?.status === "Approved" && (
-        <Alert className="mb-6">
-          <CheckCircle className="h-4 w-4" />
-          <AlertTitle>Previous Request Approved</AlertTitle>
-          <AlertDescription>
-            Your previous address change was approved. You can submit a new
-            request if needed.
+        <Alert className="mb-6 flex flex-col gap-1">
+          <div className="flex w-full flex-col gap-4 md:flex-row justify-between items-start">
+            <div className="flex items-start gap-2">
+              <CheckCircle className="size-4 mt-0.5 text-green-600" />
+
+              <div>
+                <AlertTitle>Previous Request Approved</AlertTitle>
+                <AlertDescription>
+                  Your previous address change was approved. You can submit a
+                  new request if needed.
+                </AlertDescription>
+              </div>
+            </div>
+
             {lastApplication && (
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="text-green-600 hover:text-green-700 p-0 h-auto ml-2"
+                    variant="outline"
+                    className="h-8 text-foreground border-muted-foreground/20 hover:border-muted-foreground/40"
                   >
                     View Details
                   </Button>
                 </DialogTrigger>
+
                 <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
                     <DialogTitle>Previous Request Details</DialogTitle>
                   </DialogHeader>
+
                   <Separator className="my-2" />
+
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
@@ -616,20 +684,20 @@ const AddressChangePage = () => {
                         </p>
                         <StatusBadge status={lastApplication.status} />
                       </div>
+
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-muted-foreground">
-                          Approved
+                          Applied Date
                         </p>
                         <p className="font-medium text-foreground/90">
-                          {lastApplication.reviewedAt
-                            ? format(
-                                new Date(lastApplication.reviewedAt),
-                                "MMMM dd, yyyy"
-                              )
-                            : "N/A"}
+                          {format(
+                            new Date(lastApplication.createdAt),
+                            "MMMM dd, yyyy"
+                          )}
                         </p>
                       </div>
                     </div>
+
                     <div className="space-y-4">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground mb-1">
@@ -660,12 +728,17 @@ const AddressChangePage = () => {
                 </DialogContent>
               </Dialog>
             )}
-          </AlertDescription>
+          </div>
         </Alert>
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form
+          className="space-y-8"
+          onSubmit={form.handleSubmit((data) => {
+            setShowConfirmDialog(true);
+          })}
+        >
           <Card>
             <CardContent className="py-4">
               <div className="space-y-8">
@@ -691,13 +764,14 @@ const AddressChangePage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <FormField
-                    control={form.control}
                     name="newStationId"
+                    control={form.control}
                     render={({ field }) => (
                       <FormItem className="space-y-4">
                         <FormLabel className="text-sm font-medium">
                           New Station
                         </FormLabel>
+
                         <Popover open={open} onOpenChange={setOpen}>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -722,27 +796,27 @@ const AddressChangePage = () => {
                                               station.id === field.value
                                           );
                                         return selectedStation
-                                          ? `${selectedStation.code} - ${selectedStation.name}`
+                                          ? `${selectedStation.name} (${selectedStation.code})`
                                           : "Select station...";
                                       })()
                                     : "Select station..."}
                                 </span>
                                 {loadingStations ? (
-                                  <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+                                  <Loader2 className="size-4 animate-spin flex-shrink-0" />
                                 ) : (
-                                  <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                                  <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
                                 )}
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent
-                            className="p-0 w-full min-w-[--radix-popover-trigger-width]"
                             align="start"
+                            className="p-0 w-full min-w-[--radix-popover-trigger-width]"
                           >
                             <Command>
                               <CommandInput
-                                placeholder="Search by name or code"
                                 className="h-9"
+                                placeholder="Search by name or code"
                               />
                               <CommandList>
                                 <CommandEmpty>No station found.</CommandEmpty>
@@ -750,26 +824,32 @@ const AddressChangePage = () => {
                                   {availableStations.map((station) => (
                                     <CommandItem
                                       key={station.id}
-                                      value={`${station.code} ${station.name}`}
+                                      value={`${station.name} (${station.code})`}
                                       onSelect={() => {
                                         form.setValue(
                                           "newStationId",
-                                          station.id
+                                          station.id,
+                                          {
+                                            shouldDirty: true,
+                                            shouldTouch: true,
+                                            shouldValidate: true,
+                                          }
                                         );
+
                                         setOpen(false);
                                       }}
                                       className="cursor-pointer"
                                     >
                                       <Check
                                         className={cn(
-                                          "mr-2 h-4 w-4 flex-shrink-0",
+                                          "mr-2 size-4 flex-shrink-0",
                                           field.value === station.id
                                             ? "opacity-100"
                                             : "opacity-0"
                                         )}
                                       />
                                       <span className="truncate">
-                                        {`${station.code} - ${station.name}`}
+                                        {`${station.name} (${station.code})`}
                                       </span>
                                     </CommandItem>
                                   ))}
@@ -793,9 +873,16 @@ const AddressChangePage = () => {
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter your new address"
-                            className="h-10"
                             {...field}
+                            className="h-10"
+                            autoComplete="off"
+                            placeholder="Enter your new address"
+                            onChange={(e) =>
+                              handleCapitalFirstChange(
+                                e.target.value,
+                                field.onChange
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -937,12 +1024,12 @@ const AddressChangePage = () => {
                                   >
                                     {isDeleting ? (
                                       <>
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <Loader2 className="size-4 animate-spin" />
                                         Removing...
                                       </>
                                     ) : (
                                       <>
-                                        <Trash2 className="h-4 w-4" />
+                                        <Trash2 className="size-4" />
                                         Remove
                                       </>
                                     )}
@@ -953,6 +1040,14 @@ const AddressChangePage = () => {
                           )}
                         </div>
                       </FormControl>
+
+                      {!watchedUrl && (
+                        <FormDescription className="text-xs text-center mt-2">
+                          Upload a valid Aadhaar Card. Make sure both the front
+                          and back sides are included.
+                        </FormDescription>
+                      )}
+
                       <FormMessage />
                     </FormItem>
                   )}
@@ -960,23 +1055,18 @@ const AddressChangePage = () => {
 
                 <div className="flex justify-end pt-4">
                   <Button
-                    type="button"
-                    onClick={() => setShowConfirmDialog(true)}
-                    disabled={
-                      isSubmitting ||
-                      !form.formState.isValid ||
-                      !form.getValues("verificationDocUrl")
-                    }
+                    type="submit"
                     className="min-w-32"
+                    disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="size-4 mr-2 animate-spin" />
                         Submitting...
                       </>
                     ) : (
                       <>
-                        <Send className="h-4 w-4 mr-2" />
+                        <Send className="size-4 mr-2" />
                         Submit Request
                       </>
                     )}
@@ -999,10 +1089,10 @@ const AddressChangePage = () => {
                   Once submitted, you cannot modify this request.
                 </p>
 
-                <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-left">
                   <div className="grid grid-cols-1 gap-3">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">
+                      <p className="text-sm font-medium text-foreground">
                         Current Station
                       </p>
                       <p className="font-medium">
@@ -1010,7 +1100,7 @@ const AddressChangePage = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">
+                      <p className="text-sm font-medium text-foreground">
                         New Station
                       </p>
                       <p className="font-medium">
@@ -1026,7 +1116,7 @@ const AddressChangePage = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">
+                      <p className="text-sm font-medium text-foreground">
                         New Address
                       </p>
                       <p className="font-medium">
@@ -1037,11 +1127,11 @@ const AddressChangePage = () => {
                 </div>
 
                 <div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10">
-                  <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-destructive">
+                  <AlertTriangle className="size-4 text-destructive mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-destructive text-left">
                     <p className="font-medium mb-1">Important Notes:</p>
                     <ul className="list-disc list-inside space-y-1 text-xs">
-                      <li>This request will be reviewed by administrators</li>
+                      <li>This request will be reviewed by admins</li>
                       <li>You will be notified once a decision is made</li>
                       <li>
                         Ensure all information is accurate before submitting
@@ -1057,18 +1147,21 @@ const AddressChangePage = () => {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => form.handleSubmit(onSubmit)()}
               disabled={isSubmitting}
               className="min-w-32 cursor-pointer"
+              onClick={() => {
+                const formData = form.getValues();
+                onSubmit(formData);
+              }}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="size-4 mr-2 animate-spin" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <Send className="h-4 w-4 mr-2" />
+                  <Send className="size-4 mr-2" />
                   Submit Request
                 </>
               )}
