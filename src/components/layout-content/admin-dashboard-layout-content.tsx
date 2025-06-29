@@ -19,9 +19,9 @@ import { toTitleCase } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import StudentAppSidebar from "@/components/app-sidebar/student/app-sidebar";
+import AdminAppSidebar from "@/components/app-sidebar/admin/app-sidebar";
 
-const StudentDashboardLayoutContent = ({
+const AdminDashboardLayoutContent = ({
   children,
 }: {
   children: React.ReactNode;
@@ -34,17 +34,17 @@ const StudentDashboardLayoutContent = ({
     const breadcrumbs = [];
     const pathSegments = pathname.split("/").filter(Boolean);
 
-    if (pathname === "/dashboard/student") {
+    if (pathname === "/dashboard/admin") {
       breadcrumbs.push({
         isActive: true,
         label: "Dashboard",
-        href: "/dashboard/student",
+        href: "/dashboard/admin",
       });
     } else {
       breadcrumbs.push({
         isActive: false,
         label: "Dashboard",
-        href: "/dashboard/student",
+        href: "/dashboard/admin",
       });
 
       pathSegments.forEach((segment, index) => {
@@ -54,11 +54,11 @@ const StudentDashboardLayoutContent = ({
         const fullPath = `/dashboard${currentPath}`;
         const isLast = index === pathSegments.length - 1;
 
-        if (segment === "student" && pathSegments.length > 2) {
+        if (segment === "admin" && pathSegments.length > 2) {
           return;
         }
 
-        if (segment !== "student") {
+        if (segment !== "admin") {
           breadcrumbs.push({
             href: fullPath,
             isActive: isLast,
@@ -75,7 +75,7 @@ const StudentDashboardLayoutContent = ({
 
   return (
     <SidebarProvider>
-      <StudentAppSidebar />
+      <AdminAppSidebar />
 
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b-[1.5px]">
@@ -126,4 +126,4 @@ const StudentDashboardLayoutContent = ({
   );
 };
 
-export default StudentDashboardLayoutContent;
+export default AdminDashboardLayoutContent;

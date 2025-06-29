@@ -10,8 +10,8 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import NavMain from "@/components/nav-main";
-import NavUser from "@/components/nav-user";
 import NavSecondary from "@/components/nav-secondary";
+import NavUser from "@/components/app-sidebar/student/nav-user";
 import { Eye, Send, User, MapPin, LifeBuoy, PlusCircle } from "lucide-react";
 
 const data = {
@@ -61,7 +61,9 @@ const data = {
   ],
 };
 
-const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+const StudentAppSidebar = ({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) => {
   return (
     <Sidebar {...props} variant="inset">
       <SidebarHeader>
@@ -101,4 +103,4 @@ const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
   );
 };
 
-export default AppSidebar;
+export default StudentAppSidebar;

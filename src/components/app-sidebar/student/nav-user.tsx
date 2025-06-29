@@ -1,3 +1,5 @@
+"use client";
+
 import {
   useSidebar,
   SidebarMenu,
@@ -13,6 +15,8 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,12 +24,13 @@ import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { LogOut, ChevronsUpDown, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const NavUser = () => {
+const StudentNavUser = () => {
   const router = useRouter();
   const { isMobile } = useSidebar();
   const { data, isPending } = authClient.useSession();
+  const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
 
-  if (isPending) {
+  if (isPending || isSigningOut) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -82,10 +87,10 @@ const NavUser = () => {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+                <Avatar className="size-8 rounded-lg">
                   <AvatarImage
-                    alt={toTitleCase(data?.user.name) || "Student"}
                     src={data?.user.image || undefined}
+                    alt={toTitleCase(data?.user.name) || "Student"}
                   />
                   <AvatarFallback className="rounded-lg">
                     {getUserInitials("Student", data?.user.name)}
@@ -115,13 +120,29 @@ const NavUser = () => {
 
             <DropdownMenuItem
               onClick={async () => {
-                await authClient.signOut({
-                  fetchOptions: {
-                    onSuccess: () => {
-                      router.push("/");
+                setIsSigningOut(true);
+                toast.loading("Signing out...");
+
+                try {
+                  await authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        toast.dismiss();
+                        toast.success("Successfully signed out!");
+                        router.push("/");
+                      },
+                      onError: () => {
+                        toast.dismiss();
+                        toast.error("Failed to sign out. Please try again.");
+                        setIsSigningOut(false);
+                      },
                     },
-                  },
-                });
+                  });
+                } catch (error) {
+                  toast.dismiss();
+                  toast.error("An unexpected error occurred during sign out.");
+                  setIsSigningOut(false);
+                }
               }}
             >
               <LogOut />
@@ -134,4 +155,4 @@ const NavUser = () => {
   );
 };
 
-export default NavUser;
+export default StudentNavUser;
