@@ -18,10 +18,10 @@ import { Moon, Sun } from "lucide-react";
 import { toTitleCase } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import AppSidebar from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
+import StudentAppSidebar from "@/components/app-sidebar/student/app-sidebar";
 
-const DashboardLayoutContent = ({
+const StudentDashboardLayoutContent = ({
   children,
 }: {
   children: React.ReactNode;
@@ -75,7 +75,7 @@ const DashboardLayoutContent = ({
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <StudentAppSidebar />
 
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b-[1.5px]">
@@ -126,4 +126,4 @@ const DashboardLayoutContent = ({
   );
 };
 
-export default DashboardLayoutContent;
+export default StudentDashboardLayoutContent;
