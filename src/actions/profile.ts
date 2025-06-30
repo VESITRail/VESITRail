@@ -11,7 +11,9 @@ import {
 } from "@/lib/result";
 import {
   Year,
+  User,
   Class,
+  Admin,
   Branch,
   Student,
   Station,
@@ -19,6 +21,13 @@ import {
   ConcessionPeriod,
 } from "@/generated/zod";
 import prisma from "@/lib/prisma";
+
+export type AdminProfile = Admin & {
+  user: User;
+  studentsCount: number;
+  applicationsCount: number;
+  addressChangesCount: number;
+};
 
 export type StudentProfile = Student & {
   class: Class & {
@@ -62,5 +71,58 @@ export const getStudentProfile = async (
     return success(student);
   } catch (error) {
     return failure(databaseError("Failed to load student profile"));
+  }
+};
+
+export const getAdminProfile = async (
+  adminId: string
+): Promise<Result<AdminProfile, AuthError | DatabaseError>> => {
+  try {
+    const admin = await prisma.admin.findUnique({
+      where: {
+        userId: adminId,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!admin) {
+      return failure(authError("Admin profile not found"));
+    }
+
+    if (!admin.isActive) {
+      return failure(authError("Admin account is not active"));
+    }
+
+    const [studentsCount, applicationsCount, addressChangesCount] =
+      await Promise.all([
+        prisma.student.count({
+          where: {
+            reviewedById: adminId,
+          },
+        }),
+        prisma.concessionApplication.count({
+          where: {
+            reviewedById: adminId,
+          },
+        }),
+        prisma.addressChange.count({
+          where: {
+            reviewedById: adminId,
+          },
+        }),
+      ]);
+
+    const adminProfile: AdminProfile = {
+      ...admin,
+      studentsCount,
+      applicationsCount,
+      addressChangesCount,
+    };
+
+    return success(adminProfile);
+  } catch (error) {
+    return failure(databaseError("Failed to load admin profile"));
   }
 };
