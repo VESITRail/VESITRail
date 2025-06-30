@@ -35,7 +35,7 @@ import { Separator } from "@/components/ui/separator";
 import { getStudentProfile, StudentProfile } from "@/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const ProfilePage = () => {
+const StudentProfilePage = () => {
   const session = authClient.useSession();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [profileData, setProfileData] = useState<StudentProfile | null>(null);
@@ -91,7 +91,7 @@ const ProfilePage = () => {
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
           <div className="p-6 pb-4">
             <div className="flex items-center gap-3">
-              <Skeleton className="w-10 h-10 rounded-lg" />
+              <Skeleton className="size-10 rounded-lg" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-4 w-32" />
@@ -124,7 +124,7 @@ const ProfilePage = () => {
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
           <div className="p-6 pb-4">
             <div className="flex items-center gap-3">
-              <Skeleton className="w-10 h-10 rounded-lg" />
+              <Skeleton className="size-10 rounded-lg" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-5 w-44" />
                 <Skeleton className="h-4 w-36" />
@@ -152,7 +152,7 @@ const ProfilePage = () => {
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
           <div className="p-6 pb-4">
             <div className="flex items-center gap-3">
-              <Skeleton className="w-10 h-10 rounded-lg" />
+              <Skeleton className="size-10 rounded-lg" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-4 w-36" />
@@ -180,7 +180,7 @@ const ProfilePage = () => {
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
           <div className="p-6 pb-4">
             <div className="flex items-center gap-3">
-              <Skeleton className="w-10 h-10 rounded-lg" />
+              <Skeleton className="size-10 rounded-lg" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-5 w-44" />
                 <Skeleton className="h-4 w-36" />
@@ -272,7 +272,7 @@ const ProfilePage = () => {
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
               <User className="size-5" />
             </div>
 
@@ -326,7 +326,7 @@ const ProfilePage = () => {
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
               <GraduationCap className="size-5" />
             </div>
             <div className="flex-1">
@@ -366,7 +366,7 @@ const ProfilePage = () => {
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
               <MapPin className="size-5" />
             </div>
             <div className="flex-1">
@@ -418,7 +418,7 @@ const ProfilePage = () => {
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
               <FileText className="size-5" />
             </div>
             <div className="flex-1">
@@ -467,4 +467,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default StudentProfilePage;
