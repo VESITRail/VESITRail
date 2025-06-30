@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, User } from "lucide-react";
 import NavMain from "@/components/nav-main";
+import { Eye, User, BookOpen } from "lucide-react";
 import NavSecondary from "@/components/nav-secondary";
 import NavUser from "@/components/app-sidebar/admin/nav-user";
 
@@ -30,6 +30,11 @@ const data = {
           icon: Eye,
           url: "/dashboard/admin",
           name: "View Concessions",
+        },
+        {
+          icon: BookOpen,
+          name: "Manage Booklets",
+          url: "/dashboard/admin/booklets",
         },
       ],
     },

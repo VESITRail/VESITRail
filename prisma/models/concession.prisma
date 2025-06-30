@@ -41,7 +41,6 @@ model ConcessionBooklet {
   status ConcessionBookletStatus
 
   updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
   applications ConcessionApplication[]
