@@ -1,15 +1,19 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
 
+const PUBLIC_ROUTES = ["/", "/auth-error"];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname != "/") {
-    const sessionCookie = getSessionCookie(request);
+  if (PUBLIC_ROUTES.includes(pathname)) {
+    return NextResponse.next();
+  }
 
-    if (!sessionCookie) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+  const sessionCookie = getSessionCookie(request);
+
+  if (!sessionCookie) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
