@@ -29,6 +29,7 @@ const Hero = () => {
     await authClient.signIn.social({
       provider: "google",
       callbackURL: "/dashboard",
+      errorCallbackURL: "/auth-error",
       newUserCallbackURL: "/onboarding",
     });
   };
