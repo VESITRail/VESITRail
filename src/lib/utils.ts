@@ -1,5 +1,6 @@
 import { twMerge } from "tailwind-merge";
 import { clsx, type ClassValue } from "clsx";
+import { AuthErrorCode, authErrorMessages } from "@/types/error";
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
@@ -91,4 +92,8 @@ export const sortByRomanKey = <T>(data: T[], key: keyof T): T[] => {
   return data.sort(
     (a, b) => romanToInt(String(a[key])) - romanToInt(String(b[key]))
   );
+};
+
+export const isValidErrorCode = (code: string): code is AuthErrorCode => {
+  return code in authErrorMessages;
 };
