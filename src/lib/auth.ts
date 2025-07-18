@@ -27,7 +27,7 @@ export const auth = betterAuth({
           if (!user.email || !emailDomainCheck.test(user.email)) {
             throw new APIError("BAD_REQUEST", {
               code: "INVALID_EMAIL_DOMAIN",
-              message: "Only emails with @ves.ac.in domain are allowed",
+              message: "INVALID_EMAIL_DOMAIN",
             });
           }
 
