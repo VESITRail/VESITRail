@@ -65,7 +65,7 @@ const ReviewSkeleton = () => (
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-4 w-32" />
             </div>
-            <Skeleton className="w-16 h-8 rounded-md" />
+            <Skeleton className="w-10 h-8 rounded-md" />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -213,8 +213,6 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
         router.push("/dashboard/student");
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Submission failed";
       toast.error("Submission Failed", {
         description: "Unable to submit your request. Please try again.",
       });
@@ -457,7 +455,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
                 href={defaultValues.verificationDocUrl}
               >
                 <ExternalLink className="size-4" />
-                View Document
+                <span className="hidden md:inline">View Document</span>
               </a>
             </Button>
           </div>
