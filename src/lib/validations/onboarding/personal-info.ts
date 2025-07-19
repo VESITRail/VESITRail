@@ -71,8 +71,8 @@ const PersonalInfoSchema = z.object({
           ? age - 1
           : age;
 
-      return actualAge >= 16;
-    }, "You must be at least 16 years old")
+      return actualAge >= 17;
+    }, "You must be at least 17 years old")
     .refine((val) => {
       const today = new Date();
       const birthDate = new Date(val);
