@@ -21,9 +21,9 @@ import { CldUploadButton } from "next-cloudinary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { deleteCloudinaryFile } from "@/actions/cloudinary";
+import { FileUp, Loader2, Eye, Trash2 } from "lucide-react";
 import { DocumentSchema } from "@/lib/validations/onboarding";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
-import { FileUp, Upload, Loader2, Eye, X, Trash } from "lucide-react";
 
 type DocumentProps = {
   errors?: Record<string, string>;
@@ -345,13 +345,15 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
                           >
                             {isDeleting ? (
                               <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Removing...
+                                <Loader2 className="size-4 animate-spin" />
+                                <span className="hidden md:inline">
+                                  Removing...
+                                </span>
                               </>
                             ) : (
                               <>
-                                <Trash className="h-4 w-4" />
-                                Remove
+                                <Trash2 className="size-4" />
+                                <span className="hidden md:inline">Remove</span>
                               </>
                             )}
                           </Button>

@@ -1035,12 +1035,16 @@ const AddressChangePage = () => {
                                     {isDeleting ? (
                                       <>
                                         <Loader2 className="size-4 animate-spin" />
-                                        Removing...
+                                        <span className="hidden md:inline">
+                                          Removing...
+                                        </span>
                                       </>
                                     ) : (
                                       <>
                                         <Trash2 className="size-4" />
-                                        Remove
+                                        <span className="hidden md:inline">
+                                          Remove
+                                        </span>
                                       </>
                                     )}
                                   </Button>

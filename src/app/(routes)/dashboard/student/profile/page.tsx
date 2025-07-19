@@ -453,7 +453,7 @@ const StudentProfilePage = () => {
                   href={profileData.verificationDocUrl}
                 >
                   <ExternalLink className="size-4" />
-                  View Document
+                  <span className="hidden md:inline">View Document</span>
                 </a>
               ) : (
                 <span>
