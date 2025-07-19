@@ -121,26 +121,37 @@ const StudentNavUser = () => {
             <DropdownMenuItem
               onClick={async () => {
                 setIsSigningOut(true);
-                toast.loading("Signing out...");
+                toast.loading("Signing Out", {
+                  description: "Please wait while we log you out securely.",
+                });
 
                 try {
                   await authClient.signOut({
                     fetchOptions: {
                       onSuccess: () => {
                         toast.dismiss();
-                        toast.success("Successfully signed out!");
+                        toast.success("Signed Out Successfully", {
+                          description:
+                            "You've been logged out securely. See you next time!",
+                        });
                         router.push("/");
                       },
                       onError: () => {
                         toast.dismiss();
-                        toast.error("Failed to sign out. Please try again.");
+                        toast.error("Sign Out Failed", {
+                          description:
+                            "Unable to log you out right now. Please try again.",
+                        });
                         setIsSigningOut(false);
                       },
                     },
                   });
                 } catch (error) {
                   toast.dismiss();
-                  toast.error("An unexpected error occurred during sign out.");
+                  toast.error("Sign Out Error", {
+                    description:
+                      "Something unexpected happened while logging out. Please try again.",
+                  });
                   setIsSigningOut(false);
                 }
               }}

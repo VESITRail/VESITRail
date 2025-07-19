@@ -156,18 +156,26 @@ const ConcessionApplicationForm = () => {
         ]);
 
         if (classesResult.error) {
-          toast.error("Failed to load concession classes");
+          toast.error("Classes Not Loading", {
+            description:
+              "Unable to load your concession classes. Please try again.",
+          });
         } else if (classesResult.data) {
           setConcessionClasses(classesResult.data);
         }
 
         if (periodsResult.error) {
-          toast.error("Failed to load concession periods");
+          toast.error("Periods Not Loading", {
+            description:
+              "Unable to load your concession periods. Please try again.",
+          });
         } else if (periodsResult.data) {
           setConcessionPeriods(periodsResult.data);
         }
       } catch (error) {
-        toast.error("Failed to load form options");
+        toast.error("Options Not Loading", {
+          description: "Unable to load form options. Please try again.",
+        });
       } finally {
         setLoadingOptions(false);
       }
@@ -187,7 +195,9 @@ const ConcessionApplicationForm = () => {
         ]);
 
         if (prefResult.error || stationResult.error) {
-          toast.error("Failed to load student details");
+          toast.error("Details Not Loading", {
+            description: "Unable to load student details. Please try again.",
+          });
           return;
         }
 
@@ -198,7 +208,9 @@ const ConcessionApplicationForm = () => {
           });
         }
       } catch (error) {
-        toast.error("Failed to load student details");
+        toast.error("Details Not Loading", {
+          description: "Unable to load your student details. Please try again.",
+        });
       }
     };
 
@@ -330,7 +342,10 @@ const ConcessionApplicationForm = () => {
       !selectedConcessionClass ||
       !selectedConcessionPeriod
     ) {
-      toast.error("Please select both concession class and period");
+      toast.error("Selection Required", {
+        description:
+          "Please select both a concession class and period to continue.",
+      });
       return;
     }
 
@@ -361,7 +376,9 @@ const ConcessionApplicationForm = () => {
       if (result.isSuccess) {
         router.push("/dashboard/student");
       } else {
-        toast.error(result.error.message || "Failed to submit application");
+        toast.error("Submission Failed", {
+          description: "Unable to submit your application. Please try again.",
+        });
       }
     } catch (error) {
       console.error("Submission error:", error);

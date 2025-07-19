@@ -30,7 +30,9 @@ const OnboardingLayoutContent = ({
 
         if (isFailure(result)) {
           console.error("Failed to check user role:", result.error);
-          toast.error("Failed to verify access. Redirecting...");
+          toast.error("Access Denied", {
+            description: "Unable to verify your access. Redirecting you now.",
+          });
           router.push("/");
           return;
         }
@@ -51,7 +53,9 @@ const OnboardingLayoutContent = ({
         }
       } catch (error) {
         console.error("Failed to verify onboarding access:", error);
-        toast.error("An error occurred. Redirecting...");
+        toast.error("Something Went Wrong", {
+          description: "An unexpected error occurred. Redirecting you now.",
+        });
         router.push("/");
       }
     };

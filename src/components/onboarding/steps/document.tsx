@@ -134,15 +134,15 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
       onSubmit({ verificationDocUrl: secure_url });
 
       toast.success("Document uploaded successfully!", {
-        description: "Your verification document has been uploaded.",
         duration: 4000,
+        description: "Your verification document has been uploaded.",
       });
     } catch (error) {
       console.error("Upload processing error:", error);
       toast.error("Upload processing failed", {
+        duration: 5000,
         description:
           "Failed to process the uploaded document. Please try again.",
-        duration: 5000,
       });
     }
   };
@@ -151,8 +151,8 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
     setIsUploading(false);
     console.error("Upload error:", error);
     toast.error("Failed to upload document", {
-      description: error?.message || "Please try again with a valid PDF file.",
       duration: 5000,
+      description: "Please try again with a valid PDF file.",
     });
   };
 

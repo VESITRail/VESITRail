@@ -136,7 +136,9 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       }
 
       if (!session.data?.user?.id) {
-        toast.error("User session not found");
+        toast.error("Session Expired", {
+          description: "Your session has expired. Please sign in again.",
+        });
         router.push("/");
         return;
       }
@@ -151,7 +153,10 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       if (result.isSuccess) {
         setReviewData(result.data);
       } else {
-        toast.error("Failed to load review data");
+        toast.error("Review Data Not Loading", {
+          description:
+            "Unable to load your review information. Please try again.",
+        });
       }
     } catch (error) {
       const errorMessage =
@@ -159,8 +164,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       setError(errorMessage);
 
       if (!isRetry) {
-        toast.error("Loading Error", {
-          description: errorMessage,
+        toast.error("Loading Failed", {
+          description: "Unable to load the requested data. Please try again.",
         });
       }
     } finally {
@@ -174,7 +179,9 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 
     try {
       if (!session.data?.user?.id) {
-        toast.error("User session not found");
+        toast.error("Session Expired", {
+          description: "Your session has expired. Please sign in again.",
+        });
         router.push("/");
         return;
       }
@@ -208,8 +215,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Submission failed";
-      toast.error("Submission Error", {
-        description: errorMessage,
+      toast.error("Submission Failed", {
+        description: "Unable to submit your request. Please try again.",
       });
     } finally {
       setIsSubmitting(false);

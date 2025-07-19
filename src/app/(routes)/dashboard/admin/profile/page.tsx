@@ -50,10 +50,14 @@ const AdminProfilePage = () => {
         if (result.isSuccess) {
           setProfileData(result.data);
         } else {
-          toast.error("Failed to load admin profile");
+          toast.error("Profile Load Failed", {
+            description: "Unable to load your profile. Please try again.",
+          });
         }
       } catch (error) {
-        toast.error("Failed to load admin profile");
+        toast.error("Loading Error", {
+          description: "Something went wrong while loading your profile.",
+        });
       } finally {
         setIsLoading(false);
       }

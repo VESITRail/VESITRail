@@ -141,7 +141,9 @@ const MultiStepForm = () => {
             break;
         }
 
-        toast.error(`Please complete all required fields in ${stepName}`);
+        toast.error("Required Fields Missing", {
+          description: `Please complete all required fields in ${stepName}.`,
+        });
       }
 
       return false;
@@ -198,7 +200,9 @@ const MultiStepForm = () => {
         );
       default:
         router.push("/");
-        toast.error("Something went wrong. Please try again.");
+        toast.error("Something Went Wrong", {
+          description: "An unexpected issue occurred. Please try again.",
+        });
         return null;
     }
   };
