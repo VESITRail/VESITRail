@@ -186,10 +186,14 @@ const AddressChangePage = () => {
       if (result.isSuccess) {
         setStations(result.data.filter((station: Station) => station.isActive));
       } else {
-        toast.error("Failed to load stations");
+        toast.error("Stations Not Loading", {
+          description: "Unable to load station data. Please try again.",
+        });
       }
     } catch (error) {
-      toast.error("Failed to load stations");
+      toast.error("Stations Not Loading", {
+        description: "Unable to load station data. Please try again.",
+      });
     } finally {
       setLoadingStations(false);
     }
@@ -204,10 +208,14 @@ const AddressChangePage = () => {
       if (result.isSuccess) {
         setStudent(result.data);
       } else {
-        toast.error("Failed to load student details");
+        toast.error("Details Not Loading", {
+          description: "Unable to load your student details. Please try again.",
+        });
       }
     } catch (error) {
-      toast.error("Failed to load student details");
+      toast.error("Details Not Loading", {
+        description: "Unable to load your student details. Please try again.",
+      });
     }
   };
 
@@ -328,7 +336,7 @@ const AddressChangePage = () => {
     setIsUploading(false);
 
     toast.error("Failed to upload document", {
-      description: error.message || "Please try again with a valid PDF file.",
+      description: "Please try again with a valid PDF file.",
     });
   };
 
@@ -363,7 +371,7 @@ const AddressChangePage = () => {
     } catch (error: any) {
       toast.dismiss(deleteToastId);
       toast.error("Failed to remove document", {
-        description: error.message || "Please try again or contact support.",
+        description: "Please try again or contact support.",
       });
     } finally {
       setIsDeleting(false);
@@ -386,7 +394,9 @@ const AddressChangePage = () => {
 
   const onSubmit = async (formData: AddressChangeForm) => {
     if (!student || !data?.user?.id) {
-      toast.error("Missing required information");
+      toast.error("Information Required", {
+        description: "Please fill in all required fields to continue.",
+      });
       return;
     }
 

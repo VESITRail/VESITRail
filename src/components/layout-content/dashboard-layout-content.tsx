@@ -35,7 +35,10 @@ const DashboardLayoutContent = ({
       const result = await checkUserRole(session.data.user.id);
 
       if (isFailure(result)) {
-        toast.error("Failed to verify account access. Please try again.");
+        toast.error("Access Verification Failed", {
+          description:
+            "Unable to verify your account access. Please try again.",
+        });
         console.error("Failed to check user role:", result.error);
         setIsVerifying(false);
         return;

@@ -73,22 +73,32 @@ const Preferences = () => {
             preferencesResult.data.preferredConcessionPeriod.id
           );
         } else {
-          toast.error("Failed to load your preferences");
+          toast.error("Preferences Not Loading", {
+            description: "Unable to load your preferences. Please try again.",
+          });
         }
 
         if (classesResult.isSuccess && classesResult.data) {
           setConcessionClasses(classesResult.data);
         } else {
-          toast.error("Failed to load concession classes");
+          toast.error("Classes Not Loading", {
+            description:
+              "Unable to load your concession classes. Please try again.",
+          });
         }
 
         if (periodsResult.isSuccess && periodsResult.data) {
           setConcessionPeriods(periodsResult.data);
         } else {
-          toast.error("Failed to load concession periods");
+          toast.error("Periods Not Loading", {
+            description:
+              "Unable to load your concession periods. Please try again.",
+          });
         }
       } catch (error) {
-        toast.error("Failed to load settings data");
+        toast.error("Settings Not Loading", {
+          description: "Unable to load your settings data. Please try again.",
+        });
       } finally {
         setLoading(false);
       }
@@ -125,10 +135,9 @@ const Preferences = () => {
         setPreferences(result.data);
       }
     } catch (error) {
-      toast.error(
-        "Update error: " +
-          (error instanceof Error ? error.message : String(error))
-      );
+      toast.error("Update Failed", {
+        description: "Unable to update your information. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }

@@ -448,8 +448,8 @@ const PersonalInfo = ({
 
                     <PopoverContent className="w-auto p-0" align="start">
                       <CustomCalendar
-                        toYear={2025}
-                        fromYear={2000}
+                        toYear={new Date().getFullYear() - 17}
+                        fromYear={new Date().getFullYear() - 25}
                         selected={
                           field.value ? new Date(field.value) : undefined
                         }

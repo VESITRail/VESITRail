@@ -38,7 +38,9 @@ const Student = () => {
         }
       } catch (err) {
         setIsError(true);
-        toast.error("Failed to fetch application");
+        toast.error("Application Not Found", {
+          description: "Unable to load your application. Please try again.",
+        });
       } finally {
         setIsLoading(false);
       }

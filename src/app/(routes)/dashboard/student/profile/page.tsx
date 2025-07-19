@@ -62,7 +62,9 @@ const StudentProfilePage = () => {
           );
         }
       } catch (error) {
-        toast.error("Failed to load student profile");
+        toast.error("Profile Not Loading", {
+          description: "Unable to load your student profile. Please try again.",
+        });
       } finally {
         setIsLoading(false);
       }
