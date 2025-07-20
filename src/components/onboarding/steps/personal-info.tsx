@@ -252,6 +252,7 @@ const PersonalInfo = ({
   defaultValues,
 }: PersonalInfoProps) => {
   const [open, setOpen] = useState(false);
+  type FormFieldName = Parameters<typeof form.setError>[0];
   const form = useForm<z.infer<typeof PersonalInfoSchema>>({
     mode: "onChange",
     resolver: zodResolver(PersonalInfoSchema),
@@ -295,7 +296,7 @@ const PersonalInfo = ({
   useEffect(() => {
     if (errors) {
       Object.entries(errors).forEach(([key, value]) => {
-        form.setError(key as any, {
+        form.setError(key as FormFieldName, {
           type: "manual",
           message: value,
         });

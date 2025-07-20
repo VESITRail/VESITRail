@@ -1,5 +1,7 @@
-export { default as Review } from "./review";
-export { default as Document } from "./document";
-export { default as TravelInfo } from "./travel-info";
-export { default as AcademicInfo } from "./academic-info";
-export { default as PersonalInfo } from "./personal-info";
+import Review from "./review";
+import Document from "./document";
+import TravelInfo from "./travel-info";
+import AcademicInfo from "./academic-info";
+import PersonalInfo from "./personal-info";
+
+export { Review, Document, TravelInfo, AcademicInfo, PersonalInfo };

@@ -6,18 +6,12 @@ export type Result<TData, TError = string> =
       readonly isSuccess: false;
     };
 
-/**
- * Success result constructor
- */
 export const success = <TData>(data: TData): Result<TData, never> =>
   ({
     data,
     isSuccess: true,
   } as const);
 
-/**
- * Error result constructor
- */
 export const failure = <TError = string>(
   error: TError
 ): Result<never, TError> =>
@@ -26,26 +20,16 @@ export const failure = <TError = string>(
     isSuccess: false,
   } as const);
 
-/**
- * Type guard to check if result is successful
- */
 export const isSuccess = <TData, TError>(
   result: Result<TData, TError>
 ): result is { readonly isSuccess: true; readonly data: TData } =>
   result.isSuccess;
 
-/**
- * Type guard to check if result is a failure
- */
 export const isFailure = <TData, TError>(
   result: Result<TData, TError>
 ): result is { readonly isSuccess: false; readonly error: TError } =>
   !result.isSuccess;
 
-/**
- * Extract data from successful result or throw error
- * Use with caution - prefer explicit success/failure checks
- */
 export const unwrap = <TData, TError>(result: Result<TData, TError>): TData => {
   if (isSuccess(result)) {
     return result.data;
@@ -53,9 +37,6 @@ export const unwrap = <TData, TError>(result: Result<TData, TError>): TData => {
   throw new Error(`Failed to unwrap result: ${String(result.error)}`);
 };
 
-/**
- * Extract data from successful result or return default value
- */
 export const unwrapOr = <TData, TError, TDefault>(
   result: Result<TData, TError>,
   defaultValue: TDefault
@@ -63,9 +44,6 @@ export const unwrapOr = <TData, TError, TDefault>(
   return isSuccess(result) ? result.data : defaultValue;
 };
 
-/**
- * Transform successful result data while preserving error
- */
 export const map = <TData, TError, TMapped>(
   result: Result<TData, TError>,
   mapper: (data: TData) => TMapped
@@ -75,9 +53,6 @@ export const map = <TData, TError, TMapped>(
     : failure(result.error);
 };
 
-/**
- * Transform error while preserving successful data
- */
 export const mapError = <TData, TError, TMappedError>(
   result: Result<TData, TError>,
   mapper: (error: TError) => TMappedError
@@ -87,9 +62,6 @@ export const mapError = <TData, TError, TMappedError>(
     : success(result.data);
 };
 
-/**
- * Chain operations that return Results (flatMap)
- */
 export const chain = <TData, TError, TMapped>(
   result: Result<TData, TError>,
   mapper: (data: TData) => Result<TMapped, TError>
@@ -97,9 +69,6 @@ export const chain = <TData, TError, TMapped>(
   return isSuccess(result) ? mapper(result.data) : failure(result.error);
 };
 
-/**
- * Execute side effects based on result state
- */
 export const match = <TData, TError, TReturn>(
   result: Result<TData, TError>,
   handlers: {
@@ -112,9 +81,6 @@ export const match = <TData, TError, TReturn>(
     : handlers.onFailure(result.error);
 };
 
-/**
- * Async version of map for promise-based transformations
- */
 export const mapAsync = async <TData, TError, TMapped>(
   result: Result<TData, TError>,
   mapper: (data: TData) => Promise<TMapped>
@@ -132,9 +98,6 @@ export const mapAsync = async <TData, TError, TMapped>(
   return failure(result.error);
 };
 
-/**
- * Async version of chain for promise-based operations
- */
 export const chainAsync = async <TData, TError, TMapped>(
   result: Result<TData, TError>,
   mapper: (data: TData) => Promise<Result<TMapped, TError>>
@@ -142,34 +105,42 @@ export const chainAsync = async <TData, TError, TMapped>(
   return isSuccess(result) ? await mapper(result.data) : failure(result.error);
 };
 
-/**
- * Combine multiple results into a single result
- * Returns success only if all results are successful
- */
-export const combine = <TResults extends readonly Result<any, any>[]>(
+export const combine = <TResults extends readonly Result<unknown, unknown>[]>(
   results: TResults
 ): Result<
   {
-    [K in keyof TResults]: TResults[K] extends Result<infer U, any> ? U : never;
+    [K in keyof TResults]: TResults[K] extends Result<infer U, unknown>
+      ? U
+      : never;
   },
-  TResults[number] extends Result<any, infer E> ? E : never
+  TResults[number] extends Result<unknown, infer E> ? E : never
 > => {
-  const data: any[] = [];
+  const data: unknown[] = [];
 
   for (const result of results) {
     if (isFailure(result)) {
-      return failure(result.error);
+      return failure(result.error) as Result<
+        {
+          [K in keyof TResults]: TResults[K] extends Result<infer U, unknown>
+            ? U
+            : never;
+        },
+        TResults[number] extends Result<unknown, infer E> ? E : never
+      >;
     }
     data.push(result.data);
   }
 
-  return success(data as any);
+  return success(
+    data as {
+      [K in keyof TResults]: TResults[K] extends Result<infer U, unknown>
+        ? U
+        : never;
+    }
+  );
 };
 
-/**
- * Wrap a function that might throw into a Result
- */
-export const attempt = <TData, TArgs extends readonly any[]>(
+export const attempt = <TData, TArgs extends readonly unknown[]>(
   fn: (...args: TArgs) => TData,
   ...args: TArgs
 ): Result<TData, string> => {
@@ -180,10 +151,7 @@ export const attempt = <TData, TArgs extends readonly any[]>(
   }
 };
 
-/**
- * Async version of attempt
- */
-export const attemptAsync = async <TData, TArgs extends readonly any[]>(
+export const attemptAsync = async <TData, TArgs extends readonly unknown[]>(
   fn: (...args: TArgs) => Promise<TData>,
   ...args: TArgs
 ): Promise<Result<TData, string>> => {
@@ -195,11 +163,9 @@ export const attemptAsync = async <TData, TArgs extends readonly any[]>(
   }
 };
 
-// Utility types for extracting types from Results
-export type ResultData<T> = T extends Result<infer U, any> ? U : never;
-export type ResultError<T> = T extends Result<any, infer E> ? E : never;
+export type ResultData<T> = T extends Result<infer U, unknown> ? U : never;
+export type ResultError<T> = T extends Result<unknown, infer E> ? E : never;
 
-// Common error types for better type safety
 export type DatabaseError = {
   readonly message: string;
   readonly code?: string;
@@ -230,7 +196,6 @@ export type AppError =
   | DatabaseError
   | ValidationError;
 
-// Error constructors
 export const databaseError = (
   message: string,
   code?: string

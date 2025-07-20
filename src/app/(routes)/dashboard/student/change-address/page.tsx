@@ -31,6 +31,11 @@ import {
   AddressChange,
   AddressChangeStatusType,
 } from "@/generated/zod";
+import type {
+  CloudinaryUploadWidgetInfo,
+  CloudinaryUploadWidgetError,
+  CloudinaryUploadWidgetResults,
+} from "next-cloudinary";
 import {
   Popover,
   PopoverContent,
@@ -72,8 +77,6 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Status from "@/components/ui/status";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +90,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCallback, useEffect, useState } from "react";
 import { deleteCloudinaryFile } from "@/actions/cloudinary";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -118,7 +122,6 @@ const StatusBadge = ({ status }: { status: AddressChangeStatusType }) => {
 };
 
 const AddressChangePage = () => {
-  const router = useRouter();
   const [open, setOpen] = useState<boolean>(false);
   const { data, isPending } = authClient.useSession();
   const [publicId, setPublicId] = useState<string>("");
@@ -191,6 +194,7 @@ const AddressChangePage = () => {
         });
       }
     } catch (error) {
+      console.error("Error while loading station data:", error);
       toast.error("Stations Not Loading", {
         description: "Unable to load station data. Please try again.",
       });
@@ -199,7 +203,7 @@ const AddressChangePage = () => {
     }
   };
 
-  const fetchStudentDetails = async () => {
+  const fetchStudentDetails = useCallback(async () => {
     if (isPending || !data?.user?.id) return;
 
     try {
@@ -213,13 +217,14 @@ const AddressChangePage = () => {
         });
       }
     } catch (error) {
+      console.error("Error while loading student details:", error);
       toast.error("Details Not Loading", {
         description: "Unable to load your student details. Please try again.",
       });
     }
-  };
+  }, [data?.user?.id, isPending]);
 
-  const checkLastAddressChange = async () => {
+  const checkLastAddressChange = useCallback(async () => {
     if (isPending || !data?.user?.id) return;
 
     setLoading(true);
@@ -284,6 +289,8 @@ const AddressChangePage = () => {
         }
       }
     } catch (error) {
+      console.error("Error while checking application status:", error);
+
       setCanApply(false);
       setStatus({
         icon: XCircle,
@@ -296,21 +303,22 @@ const AddressChangePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [data?.user?.id, isPending]);
 
   useEffect(() => {
     fetchStations();
     fetchStudentDetails();
     checkLastAddressChange();
-  }, [data?.user?.id, isPending]);
+  }, [data?.user?.id, isPending, fetchStudentDetails, checkLastAddressChange]);
 
   const availableStations = stations.filter(
     (station) => station.id !== student?.station.id
   );
 
-  const handleUploadSuccess = (result: any) => {
+  const handleUploadSuccess = (result: CloudinaryUploadWidgetResults) => {
     try {
-      const { public_id, secure_url } = result.info;
+      const { public_id, secure_url } =
+        result.info as CloudinaryUploadWidgetInfo;
 
       setPublicId(public_id);
 
@@ -324,6 +332,7 @@ const AddressChangePage = () => {
         description: "Your verification document has been uploaded.",
       });
     } catch (error) {
+      console.error("Error while processing uploaded document:", error);
       toast.error("Upload processing failed", {
         description: "Failed to process the uploaded document.",
       });
@@ -332,15 +341,21 @@ const AddressChangePage = () => {
     }
   };
 
-  const handleUploadError = (error: any) => {
+  const handleUploadError = (error: CloudinaryUploadWidgetError | null) => {
     setIsUploading(false);
 
-    toast.error("Failed to upload document", {
+    if (error) {
+      console.error("Cloudinary upload error:", error);
+    } else {
+      console.error("Unknown error during Cloudinary upload");
+    }
+
+    toast.error("Failed to Upload Document", {
       description: "Please try again with a valid PDF file.",
     });
   };
 
-  const handleRemoveFile = async () => {
+  const handleRemoveFile = async (): Promise<void> => {
     if (!watchedUrl || !publicId) return;
 
     setIsDeleting(true);
@@ -368,8 +383,15 @@ const AddressChangePage = () => {
       } else {
         throw new Error("Failed to delete file");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast.dismiss(deleteToastId);
+
+      if (error instanceof Error) {
+        console.error("Error while deleting Cloudinary file:", error.message);
+      } else {
+        console.error("Unknown error while deleting Cloudinary file:", error);
+      }
+
       toast.error("Failed to remove document", {
         description: "Please try again or contact support.",
       });
@@ -447,8 +469,12 @@ const AddressChangePage = () => {
           },
         });
       }
-    } catch (error: any) {
-      console.error(error);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Unexpected error:", error.message);
+      } else {
+        console.error("Unknown error:", error);
+      }
     } finally {
       setIsSubmitting(false);
       setShowConfirmDialog(false);
@@ -745,7 +771,7 @@ const AddressChangePage = () => {
       <Form {...form}>
         <form
           className="space-y-8"
-          onSubmit={form.handleSubmit((data) => {
+          onSubmit={form.handleSubmit(() => {
             setShowConfirmDialog(true);
           })}
         >

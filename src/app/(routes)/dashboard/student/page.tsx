@@ -38,6 +38,13 @@ const Student = () => {
         }
       } catch (err) {
         setIsError(true);
+
+        if (err instanceof Error) {
+          console.error("Error loading application:", err.message);
+        } else {
+          console.error("Unexpected error loading application:", err);
+        }
+
         toast.error("Application Not Found", {
           description: "Unable to load your application. Please try again.",
         });

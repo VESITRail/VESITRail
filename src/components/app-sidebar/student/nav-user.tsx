@@ -148,6 +148,13 @@ const StudentNavUser = () => {
                   });
                 } catch (error) {
                   toast.dismiss();
+
+                  if (error instanceof Error) {
+                    console.error("Sign Out Error:", error.message);
+                  } else {
+                    console.error("Unknown Sign Out Error:", error);
+                  }
+
                   toast.error("Sign Out Error", {
                     description:
                       "Something unexpected happened while logging out. Please try again.",

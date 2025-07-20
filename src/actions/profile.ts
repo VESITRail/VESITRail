@@ -70,6 +70,7 @@ export const getStudentProfile = async (
 
     return success(student);
   } catch (error) {
+    console.error("Error while loading student profile:", error);
     return failure(databaseError("Failed to load student profile"));
   }
 };
@@ -123,6 +124,7 @@ export const getAdminProfile = async (
 
     return success(adminProfile);
   } catch (error) {
+    console.error("Error while loading admin profile:", error);
     return failure(databaseError("Failed to load admin profile"));
   }
 };

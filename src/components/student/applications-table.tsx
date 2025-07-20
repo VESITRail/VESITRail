@@ -536,7 +536,8 @@ const ApplicationsTable = ({
                         </h3>
 
                         <p className="text-sm text-muted-foreground max-w-md">
-                          You haven't submitted any concession applications yet.
+                          You haven&apos;t submitted any concession applications
+                          yet.
                         </p>
                       </div>
                     </div>

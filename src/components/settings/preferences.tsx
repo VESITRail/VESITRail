@@ -96,6 +96,12 @@ const Preferences = () => {
           });
         }
       } catch (error) {
+        if (error instanceof Error) {
+          console.error("Settings Load Error:", error.message);
+        } else {
+          console.error("Unknown Settings Load Error:", error);
+        }
+
         toast.error("Settings Not Loading", {
           description: "Unable to load your settings data. Please try again.",
         });
@@ -135,6 +141,12 @@ const Preferences = () => {
         setPreferences(result.data);
       }
     } catch (error) {
+      if (error instanceof Error) {
+        console.error("Update Failed:", error.message);
+      } else {
+        console.error("Unknown Update Error:", error);
+      }
+
       toast.error("Update Failed", {
         description: "Unable to update your information. Please try again.",
       });
@@ -206,8 +218,8 @@ const Preferences = () => {
                   Unable to Load Preferences
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-md">
-                  We couldn't load your preferences at the moment. This might be
-                  due to a temporary network issue.
+                  We couldn&apos;t load your preferences at the moment. This
+                  might be due to a temporary network issue.
                 </p>
               </div>
               <Button className="mt-4" onClick={() => window.location.reload()}>

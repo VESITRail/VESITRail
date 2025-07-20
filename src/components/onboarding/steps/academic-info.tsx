@@ -132,10 +132,10 @@ const AcademicInfo = ({
     loadInitialData();
   }, [form]);
 
-  useEffect(() => {
-    const year = form.watch("year");
-    const branch = form.watch("branch");
+  const year = form.watch("year");
+  const branch = form.watch("branch");
 
+  useEffect(() => {
     setIsLoadingClasses(true);
 
     if (year && branch) {
@@ -157,7 +157,7 @@ const AcademicInfo = ({
     }
 
     setIsLoadingClasses(false);
-  }, [form.watch("year"), form.watch("branch"), Classes, form]);
+  }, [year, branch, Classes, form]);
 
   useEffect(() => {
     if (errors) {

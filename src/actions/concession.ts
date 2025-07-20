@@ -121,6 +121,7 @@ export const getConcessions = async (
 
     return success(concessions);
   } catch (error) {
+    console.error("Error while fetching concessions:", error);
     return failure(databaseError("Failed to fetch concessions"));
   }
 };
@@ -177,6 +178,7 @@ export const getLastApplication = async (
 
     return success(lastApplication);
   } catch (error) {
+    console.error("Error while fetching application:", error);
     return failure(databaseError("Failed to fetch application"));
   }
 };
@@ -270,6 +272,7 @@ export const submitConcessionApplication = async (
 
     return success(application);
   } catch (error) {
+    console.error("Error while submitting application:", error);
     return failure(databaseError("Failed to submit application"));
   }
 };

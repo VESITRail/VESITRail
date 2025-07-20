@@ -25,13 +25,13 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import Status from "@/components/ui/status";
-import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { getUserInitials } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { useCallback, useEffect, useState } from "react";
 import { getStudentProfile, StudentProfile } from "@/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -40,7 +40,7 @@ const StudentProfilePage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [profileData, setProfileData] = useState<StudentProfile | null>(null);
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (session.data?.user) {
       try {
         setIsLoading(true);
@@ -62,6 +62,12 @@ const StudentProfilePage = () => {
           );
         }
       } catch (error) {
+        if (error instanceof Error) {
+          console.error("Error loading student profile:", error.message);
+        } else {
+          console.error("Unknown error loading student profile:", error);
+        }
+
         toast.error("Profile Not Loading", {
           description: "Unable to load your student profile. Please try again.",
         });
@@ -69,13 +75,11 @@ const StudentProfilePage = () => {
         setIsLoading(false);
       }
     }
-  };
+  }, [session.data?.user]);
 
   useEffect(() => {
-    if (session.data?.user) {
-      loadProfile();
-    }
-  }, [session.data?.user?.id]);
+    loadProfile();
+  }, [loadProfile]);
 
   if (isLoading || session.isPending) {
     return (

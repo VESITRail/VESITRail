@@ -56,6 +56,7 @@ export const getStudentPreferences = async (
       preferredConcessionPeriod,
     });
   } catch (error) {
+    console.error("Error while fetching preferences:", error);
     return failure(databaseError("Failed to fetch preferences"));
   }
 };
@@ -127,6 +128,7 @@ export const updateStudentPreferences = async (
 
     return success(updatedStudent);
   } catch (error) {
+    console.error("Error while updating preferences:", error);
     return failure(databaseError("Failed to update preferences"));
   }
 };
