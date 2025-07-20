@@ -23,6 +23,7 @@
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
-    "lib": ["dom", "esnext", "dom.iterable"]
+    "lib": ["dom", "esnext", "dom.iterable"],
+    "typeRoots": ["./lib/types", "./node_modules/@types"]
   }
 }
