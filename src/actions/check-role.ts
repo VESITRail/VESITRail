@@ -53,6 +53,7 @@ export const checkUserRole = async (
       status: "NeedsOnboarding",
     });
   } catch (error) {
+    console.error("Error while checking user role:", error);
     return failure(databaseError("Failed to check user role"));
   }
 };

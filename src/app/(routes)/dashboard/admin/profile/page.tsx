@@ -24,13 +24,13 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
 import Status from "@/components/ui/status";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { useCallback, useEffect, useState } from "react";
 import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { getAdminProfile, AdminProfile } from "@/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,7 +40,7 @@ const AdminProfilePage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [profileData, setProfileData] = useState<AdminProfile | null>(null);
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (session.data?.user) {
       try {
         setIsLoading(true);
@@ -55,6 +55,7 @@ const AdminProfilePage = () => {
           });
         }
       } catch (error) {
+        console.error("Error while loading user profile:", error);
         toast.error("Loading Error", {
           description: "Something went wrong while loading your profile.",
         });
@@ -62,13 +63,11 @@ const AdminProfilePage = () => {
         setIsLoading(false);
       }
     }
-  };
+  }, [session.data?.user]);
 
   useEffect(() => {
-    if (session.data?.user) {
-      loadProfile();
-    }
-  }, [session.data?.user?.id]);
+    loadProfile();
+  }, [loadProfile]);
 
   if (isLoading || session.isPending) {
     return (

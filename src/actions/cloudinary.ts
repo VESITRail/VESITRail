@@ -17,7 +17,16 @@ cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
 });
 
-export type DeleteCloudinaryFile = { response: any; message: string };
+export type CloudinaryDeleteResponse = {
+  partial: boolean;
+  [key: string]: unknown;
+  result: "ok" | "not found" | string;
+};
+
+export type DeleteCloudinaryFile = {
+  message: string;
+  response: CloudinaryDeleteResponse;
+};
 
 export const deleteCloudinaryFile = async (
   publicId: string
@@ -27,10 +36,10 @@ export const deleteCloudinaryFile = async (
       return failure(authError("Public ID is required"));
     }
 
-    const response = await cloudinary.uploader.destroy(publicId, {
+    const response = (await cloudinary.uploader.destroy(publicId, {
       invalidate: true,
       resource_type: "raw",
-    });
+    })) as CloudinaryDeleteResponse;
 
     if (response.result === "ok") {
       return success({ response, message: "File deleted successfully" });
@@ -42,6 +51,7 @@ export const deleteCloudinaryFile = async (
 
     return failure(authError("Failed to delete file"));
   } catch (error) {
+    console.error("Error while deleting file:", error);
     return failure(databaseError("Failed to delete file"));
   }
 };

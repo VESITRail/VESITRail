@@ -20,10 +20,10 @@ const DashboardLayoutContent = ({
   const [isVerifying, setIsVerifying] = useState<boolean>(true);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
 
-  const isAdminPath = pathname.startsWith("/dashboard/admin");
-  const isStudentPath = pathname.startsWith("/dashboard/student");
-
   useEffect(() => {
+    const isAdminPath = pathname.startsWith("/dashboard/admin");
+    const isStudentPath = pathname.startsWith("/dashboard/student");
+
     const checkAndRedirect = async () => {
       if (session.isPending) return;
 
@@ -68,7 +68,7 @@ const DashboardLayoutContent = ({
     };
 
     checkAndRedirect();
-  }, [pathname, session.isPending, session.data?.user]);
+  }, [pathname, session.isPending, session.data?.user, router]);
 
   if (session.isPending || isVerifying) {
     return (

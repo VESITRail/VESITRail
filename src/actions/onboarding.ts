@@ -94,6 +94,7 @@ export const getReviewData = async (
       concessionPeriod,
     });
   } catch (error) {
+    console.error("Error while fetching review data:", error);
     return failure(databaseError("Failed to fetch review data"));
   }
 };
@@ -112,6 +113,7 @@ export const submitOnboarding = async (
 
     return success(student);
   } catch (error) {
+    console.error("Error while submitting student onboarding:", error);
     return failure(databaseError("Failed to submit student onboarding"));
   }
 };

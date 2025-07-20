@@ -173,6 +173,7 @@ const ConcessionApplicationForm = () => {
           setConcessionPeriods(periodsResult.data);
         }
       } catch (error) {
+        console.error("Error while loading form options:", error);
         toast.error("Options Not Loading", {
           description: "Unable to load form options. Please try again.",
         });
@@ -208,6 +209,7 @@ const ConcessionApplicationForm = () => {
           });
         }
       } catch (error) {
+        console.error("Error while loading student details:", error);
         toast.error("Details Not Loading", {
           description: "Unable to load your student details. Please try again.",
         });
@@ -310,6 +312,8 @@ const ConcessionApplicationForm = () => {
           }
         }
       } catch (error) {
+        console.error("Error while checking application status:", error);
+
         setCanApply(false);
         setStatus({
           icon: XCircle,
@@ -759,7 +763,8 @@ const ConcessionApplicationForm = () => {
                 <li key="undo">• This action cannot be undone</li>
                 <li key="review">• Please review all details one final time</li>
                 <li key="edit">
-                  • You won't be able to edit your application after submission
+                  • You won&apos;t be able to edit your application after
+                  submission.
                 </li>
               </ul>
             </div>

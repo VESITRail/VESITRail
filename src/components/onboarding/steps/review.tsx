@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  type Review,
   getReviewData,
   submitOnboarding,
+  type Review as ReviewType,
 } from "@/actions/onboarding";
 import {
   Card,
@@ -39,7 +39,6 @@ import {
 import type { z } from "zod";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
 import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +46,7 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { useCallback, useEffect, useState } from "react";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
 
 type ReviewProps = {
@@ -123,56 +123,68 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRetrying, setIsRetrying] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [reviewData, setReviewData] = useState<Review | null>(null);
+  const [reviewData, setReviewData] = useState<ReviewType | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
-  const loadReviewData = async (isRetry = false) => {
-    try {
-      setError(null);
-      if (isRetry) {
-        setIsRetrying(true);
-      } else {
-        setIsLoading(true);
-      }
+  const loadReviewData = useCallback(
+    async (isRetry = false) => {
+      try {
+        setError(null);
+        if (isRetry) {
+          setIsRetrying(true);
+        } else {
+          setIsLoading(true);
+        }
 
-      if (!session.data?.user?.id) {
-        toast.error("Session Expired", {
-          description: "Your session has expired. Please sign in again.",
+        if (!session.data?.user?.id) {
+          toast.error("Session Expired", {
+            description: "Your session has expired. Please sign in again.",
+          });
+          router.push("/");
+          return;
+        }
+
+        const result = await getReviewData({
+          classId: defaultValues.class,
+          stationId: defaultValues.station,
+          preferredConcessionClassId: defaultValues.preferredConcessionClass,
+          preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
         });
-        router.push("/");
-        return;
-      }
 
-      const result = await getReviewData({
-        classId: defaultValues.class,
-        stationId: defaultValues.station,
-        preferredConcessionClassId: defaultValues.preferredConcessionClass,
-        preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
-      });
+        if (result.isSuccess) {
+          setReviewData(result.data);
+        } else {
+          toast.error("Review Data Not Loading", {
+            description:
+              "Unable to load your review information. Please try again.",
+          });
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred";
+        setError(errorMessage);
 
-      if (result.isSuccess) {
-        setReviewData(result.data);
-      } else {
-        toast.error("Review Data Not Loading", {
-          description:
-            "Unable to load your review information. Please try again.",
-        });
+        if (!isRetry) {
+          toast.error("Loading Failed", {
+            description: "Unable to load the requested data. Please try again.",
+          });
+        }
+      } finally {
+        setIsLoading(false);
+        setIsRetrying(false);
       }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unexpected error occurred";
-      setError(errorMessage);
-
-      if (!isRetry) {
-        toast.error("Loading Failed", {
-          description: "Unable to load the requested data. Please try again.",
-        });
-      }
-    } finally {
-      setIsLoading(false);
-      setIsRetrying(false);
-    }
-  };
+    },
+    [
+      router,
+      defaultValues.class,
+      defaultValues.station,
+      session.data?.user?.id,
+      defaultValues.preferredConcessionClass,
+      defaultValues.preferredConcessionPeriod,
+    ]
+  );
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -213,6 +225,12 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
         router.push("/dashboard/student");
       }
     } catch (error) {
+      if (error instanceof Error) {
+        console.error("Submission Failed:", error.message);
+      } else {
+        console.error("Unknown Submission Error:", error);
+      }
+
       toast.error("Submission Failed", {
         description: "Unable to submit your request. Please try again.",
       });
@@ -226,7 +244,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
     if (session.data?.user?.id) {
       loadReviewData();
     }
-  }, [session.data?.user?.id, defaultValues]);
+  }, [session.data?.user?.id, loadReviewData]);
 
   if (isLoading || session.isPending) {
     return <ReviewSkeleton />;
@@ -508,7 +526,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
                 <li>• This action cannot be undone</li>
                 <li>• Please review all details one final time</li>
                 <li>
-                  • You won't be able to edit your application after submission
+                  • You won&apos;t be able to edit your application after
+                  submission
                 </li>
               </ul>
             </div>

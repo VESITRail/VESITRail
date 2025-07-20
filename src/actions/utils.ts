@@ -65,6 +65,7 @@ export const getStudentPreferences = async (
       preferredConcessionPeriod,
     });
   } catch (error) {
+    console.error("Error while fetching preferences:", error);
     return failure(databaseError("Failed to fetch preferences"));
   }
 };
@@ -77,6 +78,7 @@ export const getYears = async (): Promise<Result<Year[], DatabaseError>> => {
 
     return success(years);
   } catch (error) {
+    console.error("Error while fetching years:", error);
     return failure(databaseError("Failed to fetch years"));
   }
 };
@@ -91,6 +93,7 @@ export const getBranches = async (): Promise<
 
     return success(branches);
   } catch (error) {
+    console.error("Error while fetching branches:", error);
     return failure(databaseError("Failed to fetch branches"));
   }
 };
@@ -104,6 +107,7 @@ export const getClasses = async (): Promise<Result<Class[], DatabaseError>> => {
 
     return success(classes);
   } catch (error) {
+    console.error("Error while fetching classes:", error);
     return failure(databaseError("Failed to fetch classes"));
   }
 };
@@ -119,6 +123,7 @@ export const getStations = async (): Promise<
 
     return success(stations);
   } catch (error) {
+    console.error("Error while fetching stations:", error);
     return failure(databaseError("Failed to fetch stations"));
   }
 };
@@ -133,6 +138,7 @@ export const getConcessionClasses = async (): Promise<
 
     return success(sortByRomanKey(classes, "code"));
   } catch (error) {
+    console.error("Error while fetching concession classes:", error);
     return failure(databaseError("Failed to fetch concession classes"));
   }
 };
@@ -148,6 +154,7 @@ export const getConcessionPeriods = async (): Promise<
 
     return success(periods);
   } catch (error) {
+    console.error("Error while fetching concession periods:", error);
     return failure(databaseError("Failed to fetch concession periods"));
   }
 };
@@ -180,6 +187,7 @@ export const getStudentStation = async (
 
     return success(student.station);
   } catch (error) {
+    console.error("Error while fetching student's station:", error);
     return failure(databaseError("Failed to fetch student's station"));
   }
 };

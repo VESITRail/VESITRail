@@ -109,6 +109,7 @@ export const submitAddressChangeApplication = async (
 
     return success(application);
   } catch (error) {
+    console.error("Error while submitting address change application:", error);
     return failure(
       databaseError("Failed to submit address change application")
     );

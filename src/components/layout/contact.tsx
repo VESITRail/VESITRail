@@ -18,8 +18,8 @@ const Contact = () => {
           </Heading1>
 
           <Lead className="text-muted-foreground text-lg leading-normal max-w-2xl mx-auto">
-            Have questions about the railway concession process? We're here to
-            help!
+            Have questions about the railway concession process? We&apos;re here
+            to help!
           </Lead>
         </div>
 
