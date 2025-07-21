@@ -57,7 +57,7 @@ const Student = () => {
   }, [data?.user?.id]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="py-8 px-6 lg:px-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-2">
           <Heading3 className="text-2xl font-semibold">

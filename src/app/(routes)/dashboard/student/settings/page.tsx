@@ -4,7 +4,7 @@ import Preferences from "@/components/settings/preferences";
 
 const Settings = () => {
   return (
-    <div className="container max-w-5xl mx-auto py-12 px-4">
+    <div className="container max-w-5xl mx-auto py-8 px-4">
       <div className="flex justify-between items-center">
         <span className="flex items-center gap-3">
           <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">

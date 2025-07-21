@@ -64,12 +64,12 @@ const Hero = () => {
               VESIT Students Only
             </Badge>
 
-            <Heading1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent">
-              Skip the Queues!
+            <Heading1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
+              Apply with Ease!
             </Heading1>
 
             <Lead className="text-muted-foreground text-lg leading-normal">
-              Apply for Railway Concessions Online with Instant Approvals
+              Streamlined Railway Concessions with Real-time Tracking
             </Lead>
           </div>
 
@@ -156,7 +156,7 @@ const Hero = () => {
 
         <div className="flex flex-col gap-4 md:gap-6 px-2 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="group p-5 space-y-2 hover:shadow-lg transition-all duration-300 bg-card border border-border hover:border-primary/60">
+            <Card className="group space-y-2 p-5 hover:shadow-lg transition-all duration-300 bg-card border border-border hover:border-primary/60">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-muted text-foreground flex items-center justify-center">
                   <Rocket size={18} />
@@ -165,7 +165,7 @@ const Hero = () => {
                   PWA & Fast
                 </Badge>
               </div>
-              <Heading2 className="text-base font-semibold">
+              <Heading2 className="text-base font-semibold -mb-9 lg:mb-0">
                 Lightning Fast & Installable
               </Heading2>
               <Paragraph className="text-sm text-muted-foreground">
@@ -182,7 +182,7 @@ const Hero = () => {
                   Automated
                 </Badge>
               </div>
-              <Heading2 className="text-base font-semibold">
+              <Heading2 className="text-base font-semibold -mb-9 lg:mb-0">
                 Auto-Filled Details
               </Heading2>
               <Paragraph className="text-sm text-muted-foreground">
@@ -199,7 +199,7 @@ const Hero = () => {
                   Simplified
                 </Badge>
               </div>
-              <Heading2 className="text-base font-semibold">
+              <Heading2 className="text-base font-semibold -mb-9 lg:mb-0">
                 No Sheet Filling
               </Heading2>
               <Paragraph className="text-sm text-muted-foreground">
@@ -216,7 +216,7 @@ const Hero = () => {
                   Smart Tracking
                 </Badge>
               </div>
-              <Heading2 className="text-base font-semibold">
+              <Heading2 className="text-base font-semibold -mb-9 lg:mb-0">
                 Real-time Updates
               </Heading2>
               <Paragraph className="text-sm text-muted-foreground">

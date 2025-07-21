@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/jaykerkar0405/VESITRail.git"
   },
-  "description": "Skip the queues! Apply for railway student concessions online with instant approvals and real-time tracking - Made for VESIT students.",
+  "description": "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
   "prisma": {
     "schema": "./prisma"
   },
@@ -48,6 +48,7 @@
     "next": "15.3.2",
     "next-cloudinary": "^6.16.0",
     "next-themes": "^0.4.6",
+    "nextjs-toploader": "^3.8.16",
     "react": "^19.0.0",
     "react-day-picker": "^8.10.1",
     "react-dom": "^19.0.0",

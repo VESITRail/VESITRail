@@ -13,7 +13,7 @@ const manifest = (): MetadataRoute.Manifest => {
     orientation: "portrait",
     background_color: "#0a0a0a",
     description:
-      "Skip the queues! Apply for railway student concessions online with instant approvals and real-time tracking - Made for VESIT students.",
+      "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
     icons: [
       {
         src: "/icons/windows/SmallTile.scale-100.png",
