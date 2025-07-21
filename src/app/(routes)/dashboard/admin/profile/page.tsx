@@ -311,7 +311,9 @@ const AdminProfilePage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Name</p>
-              <p className="font-medium">{profileData.user.name}</p>
+              <p className="font-medium">
+                {toTitleCase(profileData.user.name) || "Admin"}
+              </p>
             </div>
 
             <div className="space-y-1">

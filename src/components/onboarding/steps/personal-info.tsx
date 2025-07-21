@@ -39,7 +39,6 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { capitalizeWords, cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 type PersonalInfoProps = {
@@ -59,7 +58,9 @@ const CustomCalendar = ({
   fromYear?: number;
   onSelect?: (date: Date | undefined) => void;
 }) => {
-  const [currentDate, setCurrentDate] = useState(selected || new Date());
+  const [currentDate, setCurrentDate] = useState(
+    selected || new Date(`01-01-${toYear}`)
+  );
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
 
@@ -304,6 +305,45 @@ const PersonalInfo = ({
     }
   }, [errors, form]);
 
+  const parseAddress = (address: string) => {
+    if (!address || typeof address !== "string") {
+      return {
+        city: "",
+        area: "",
+        pincode: "",
+        building: "",
+      };
+    }
+
+    const parts = address.split(",").map((part) => part.trim());
+
+    return {
+      building: parts[0] || "",
+      area: parts[1] || "",
+      city: parts[2] || "",
+      pincode: parts[3] || "",
+    };
+  };
+
+  const [hasUserInteracted, setHasUserInteracted] = useState<boolean>(false);
+  const [addressComponents, setAddressComponents] = useState(() =>
+    parseAddress(form.getValues("address") || "")
+  );
+
+  const combineAddress = (components: Record<string, string>) => {
+    const allFieldsFilled = Object.values(components).every(
+      (val) =>
+        val &&
+        typeof val === "string" &&
+        val.trim().length > 0 &&
+        (components.pincode ? components.pincode.length === 6 : true)
+    );
+
+    return allFieldsFilled
+      ? `${components.building}, ${components.area}, ${components.city}, ${components.pincode}`
+      : "";
+  };
+
   return (
     <Form {...form}>
       <div className="space-y-6">
@@ -313,7 +353,10 @@ const PersonalInfo = ({
             control={form.control}
             render={({ field }) => (
               <FormItem className="space-y-1 h-[78px]">
-                <FormLabel className="block">First Name</FormLabel>
+                <FormLabel className="block">
+                  First Name <span className="text-destructive">*</span>
+                </FormLabel>
+
                 <FormControl>
                   <Input
                     {...field}
@@ -339,7 +382,10 @@ const PersonalInfo = ({
             control={form.control}
             render={({ field }) => (
               <FormItem className="space-y-1 h-[78px]">
-                <FormLabel className="block">Middle Name</FormLabel>
+                <FormLabel className="block">
+                  Middle Name <span className="text-destructive">*</span>
+                </FormLabel>
+
                 <FormControl>
                   <Input
                     {...field}
@@ -364,7 +410,10 @@ const PersonalInfo = ({
             control={form.control}
             render={({ field }) => (
               <FormItem className="space-y-1 h-[78px]">
-                <FormLabel className="block">Last Name</FormLabel>
+                <FormLabel className="block">
+                  Last Name <span className="text-destructive">*</span>
+                </FormLabel>
+
                 <FormControl>
                   <Input
                     {...field}
@@ -384,14 +433,16 @@ const PersonalInfo = ({
             )}
           />
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           <FormField
             name="gender"
             control={form.control}
             render={({ field }) => (
               <FormItem className="space-y-1 h-[78px]">
-                <FormLabel className="block">Gender</FormLabel>
+                <FormLabel className="block">
+                  Gender <span className="text-destructive">*</span>
+                </FormLabel>
+
                 <Select
                   defaultValue={field.value}
                   onValueChange={field.onChange}
@@ -426,7 +477,9 @@ const PersonalInfo = ({
             control={form.control}
             render={({ field }) => (
               <FormItem className="space-y-1 h-[78px]">
-                <FormLabel className="block">Date Of Birth</FormLabel>
+                <FormLabel className="block">
+                  Date Of Birth <span className="text-destructive">*</span>
+                </FormLabel>
 
                 <FormControl>
                   <Popover open={open} onOpenChange={setOpen}>
@@ -474,28 +527,154 @@ const PersonalInfo = ({
         <FormField
           name="address"
           control={form.control}
-          render={({ field }) => (
-            <FormItem className="space-y-1">
-              <FormLabel className="block">Address</FormLabel>
-              <FormControl>
-                <Textarea
-                  rows={4}
-                  {...field}
-                  autoComplete="off"
-                  autoCapitalize="sentences"
-                  aria-describedby="address-error"
-                  placeholder="Enter your address"
-                  onChange={(e) =>
-                    handleCapitalFirstChange(e.target.value, field.onChange)
-                  }
-                />
-              </FormControl>
+          render={({ field }) => {
+            const updateAddressComponentWithField = (
+              key: string,
+              value: string
+            ) => {
+              if (!hasUserInteracted) {
+                setHasUserInteracted(true);
+              }
 
-              <div className="h-5">
-                <FormMessage id="address-error" className="text-sm" />
-              </div>
-            </FormItem>
-          )}
+              const capitalizedValue =
+                key === "pincode" ? value : capitalizeWords(value);
+
+              const newComponents = {
+                ...addressComponents,
+                [key]: capitalizedValue,
+              };
+
+              setAddressComponents(newComponents);
+
+              const combinedAddress = combineAddress(newComponents);
+              field.onChange(combinedAddress || "");
+            };
+
+            const hasAnyContent = Object.values(addressComponents).some(
+              (val) => val && val.trim().length > 0
+            );
+
+            const shouldShowValidation = hasUserInteracted && hasAnyContent;
+
+            return (
+              <FormItem className="space-y-1">
+                <FormLabel className="block">Address</FormLabel>
+                <FormControl>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          House / Building{" "}
+                          <span className="text-destructive">*</span>
+                        </label>
+
+                        <Input
+                          autoComplete="off"
+                          autoCapitalize="words"
+                          value={addressComponents.building}
+                          placeholder="House No., Flat No., Building name"
+                          onChange={(e) =>
+                            updateAddressComponentWithField(
+                              "building",
+                              e.target.value
+                            )
+                          }
+                          className={`${
+                            !addressComponents.building.trim() &&
+                            shouldShowValidation
+                              ? "border-destructive"
+                              : ""
+                          }`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Area / Locality{" "}
+                          <span className="text-destructive">*</span>
+                        </label>
+
+                        <Input
+                          autoComplete="off"
+                          autoCapitalize="words"
+                          value={addressComponents.area}
+                          placeholder="Enter your area / locality"
+                          onChange={(e) =>
+                            updateAddressComponentWithField(
+                              "area",
+                              e.target.value
+                            )
+                          }
+                          className={`${
+                            !addressComponents.area.trim() &&
+                            shouldShowValidation
+                              ? "border-destructive"
+                              : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          City <span className="text-destructive">*</span>
+                        </label>
+
+                        <Input
+                          autoComplete="off"
+                          autoCapitalize="words"
+                          placeholder="Enter your city"
+                          value={addressComponents.city}
+                          onChange={(e) =>
+                            updateAddressComponentWithField(
+                              "city",
+                              e.target.value
+                            )
+                          }
+                          className={`${
+                            !addressComponents.city.trim() &&
+                            shouldShowValidation
+                              ? "border-destructive"
+                              : ""
+                          }`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Pincode <span className="text-destructive">*</span>
+                        </label>
+
+                        <Input
+                          type="text"
+                          maxLength={6}
+                          autoComplete="off"
+                          placeholder="Enter your pincode"
+                          value={addressComponents.pincode}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            updateAddressComponentWithField("pincode", value);
+                          }}
+                          className={`${
+                            (!addressComponents.pincode.trim() ||
+                              addressComponents.pincode.length !== 6) &&
+                            shouldShowValidation
+                              ? "border-destructive"
+                              : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </FormControl>
+
+                <div className="h-5">
+                  <FormMessage id="address-error" className="text-sm" />
+                </div>
+              </FormItem>
+            );
+          }}
         />
       </div>
     </Form>
