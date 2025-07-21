@@ -182,21 +182,27 @@ const TravelInfo = ({
 
   const StationSelectSkeleton = () => (
     <FormItem className="space-y-1 h-[78px]">
-      <FormLabel>Home Station</FormLabel>
+      <FormLabel>
+        Home Station <span className="text-destructive">*</span>
+      </FormLabel>
       <Skeleton className="h-10 w-full rounded-md" />
     </FormItem>
   );
 
   const ConcessionClassSelectSkeleton = () => (
     <FormItem className="space-y-1 h-[78px]">
-      <FormLabel>Preferred Concession Class</FormLabel>
+      <FormLabel>
+        Preferred Concession Class <span className="text-destructive">*</span>
+      </FormLabel>
       <Skeleton className="h-10 w-full rounded-md" />
     </FormItem>
   );
 
   const ConcessionPeriodSelectSkeleton = () => (
     <FormItem className="space-y-1 h-[78px] mb-4 lg:mb-0">
-      <FormLabel>Preferred Concession Period</FormLabel>
+      <FormLabel>
+        Preferred Concession Period <span className="text-destructive">*</span>
+      </FormLabel>
       <Skeleton className="h-10 w-full rounded-md" />
     </FormItem>
   );
@@ -213,7 +219,10 @@ const TravelInfo = ({
               control={form.control}
               render={({ field }) => (
                 <FormItem className="space-y-1 h-[78px]">
-                  <FormLabel>Home Station</FormLabel>
+                  <FormLabel>
+                    Home Station <span className="text-destructive">*</span>
+                  </FormLabel>
+
                   <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -299,7 +308,11 @@ const TravelInfo = ({
               name="preferredConcessionClass"
               render={({ field }) => (
                 <FormItem className="space-y-1 h-[78px]">
-                  <FormLabel>Preferred Concession Class</FormLabel>
+                  <FormLabel>
+                    Preferred Concession Class{" "}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
+
                   <Select
                     value={field.value}
                     onValueChange={(value) =>
@@ -336,7 +349,11 @@ const TravelInfo = ({
               name="preferredConcessionPeriod"
               render={({ field }) => (
                 <FormItem className="space-y-1 h-[78px] mb-4 lg:mb-0">
-                  <FormLabel>Preferred Concession Period</FormLabel>
+                  <FormLabel>
+                    Preferred Concession Period{" "}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
+
                   <Select
                     value={field.value}
                     onValueChange={(value) =>
