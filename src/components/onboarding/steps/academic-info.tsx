@@ -19,7 +19,7 @@ import type { z } from "zod";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Branch, Class, Year } from "@/generated/zod";
@@ -133,30 +133,36 @@ const AcademicInfo = ({
   }, [form]);
 
   const year = form.watch("year");
+  const isFirstRun = useRef(true);
   const branch = form.watch("branch");
 
   useEffect(() => {
-    setIsLoadingClasses(true);
+    const timeoutId = setTimeout(() => {
+      setIsLoadingClasses(true);
 
-    if (year && branch) {
-      const matchingClasses = Classes.filter(
-        (class_) => class_.yearId === year && class_.branchId === branch
-      );
+      if (year && branch) {
+        const matchingClasses = Classes.filter(
+          (class_) => class_.yearId === year && class_.branchId === branch
+        );
 
-      setFilteredClasses(matchingClasses);
+        setFilteredClasses(matchingClasses);
 
-      if (matchingClasses.length === 0) {
-        toast.warning("No classes found", {
-          description:
-            "No classes are available for the selected year and branch combination.",
-        });
+        if (matchingClasses.length === 0 && !isFirstRun.current) {
+          toast.warning("No classes found", {
+            description:
+              "No classes are available for the selected year and branch combination.",
+          });
+        }
+      } else {
+        setFilteredClasses([]);
+        form.setValue("class", "");
       }
-    } else {
-      setFilteredClasses([]);
-      form.setValue("class", "");
-    }
 
-    setIsLoadingClasses(false);
+      isFirstRun.current = false;
+      setIsLoadingClasses(false);
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
   }, [year, branch, Classes, form]);
 
   useEffect(() => {
@@ -172,21 +178,27 @@ const AcademicInfo = ({
 
   const YearSelectSkeleton = () => (
     <FormItem className="space-y-1 h-[78px]">
-      <FormLabel className="block">Year</FormLabel>
+      <FormLabel className="block">
+        Year <span className="text-destructive">*</span>
+      </FormLabel>
       <Skeleton className="h-10 w-full rounded-md" />
     </FormItem>
   );
 
   const BranchSelectSkeleton = () => (
     <FormItem className="space-y-1 h-[78px]">
-      <FormLabel className="block">Branch</FormLabel>
+      <FormLabel className="block">
+        Branch <span className="text-destructive">*</span>
+      </FormLabel>
       <Skeleton className="h-10 w-full rounded-md" />
     </FormItem>
   );
 
   const ClassSelectSkeleton = () => (
     <FormItem className="space-y-1 h-[78px] mt-6 md:mt-0">
-      <FormLabel className="block">Class</FormLabel>
+      <FormLabel className="block">
+        Class <span className="text-destructive">*</span>
+      </FormLabel>
       <Skeleton className="h-10 w-full rounded-md" />
     </FormItem>
   );
@@ -202,7 +214,10 @@ const AcademicInfo = ({
             control={form.control}
             render={({ field }) => (
               <FormItem className="space-y-1 h-[78px]">
-                <FormLabel className="block">Year</FormLabel>
+                <FormLabel className="block">
+                  Year <span className="text-destructive">*</span>
+                </FormLabel>
+
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full">
@@ -231,7 +246,10 @@ const AcademicInfo = ({
             control={form.control}
             render={({ field }) => (
               <FormItem className="space-y-1 h-[78px]">
-                <FormLabel className="block">Branch</FormLabel>
+                <FormLabel className="block">
+                  Branch <span className="text-destructive">*</span>
+                </FormLabel>
+
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="w-full">
@@ -261,7 +279,10 @@ const AcademicInfo = ({
           control={form.control}
           render={({ field }) => (
             <FormItem className="space-y-1 h-[78px] mt-6 md:mt-0">
-              <FormLabel className="block">Class</FormLabel>
+              <FormLabel className="block">
+                Class <span className="text-destructive">*</span>
+              </FormLabel>
+
               <Select
                 value={field.value}
                 onValueChange={field.onChange}
