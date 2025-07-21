@@ -241,8 +241,10 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base space-y-1 mb-2">
-                Verification Document
+                Verification Document{" "}
+                <span className="text-destructive">*</span>
               </FormLabel>
+
               <FormControl>
                 <div className="flex flex-col items-center justify-center w-full">
                   {!watchedUrl ? (
