@@ -39,7 +39,6 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { capitalizeWords, cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 type PersonalInfoProps = {
@@ -306,6 +305,45 @@ const PersonalInfo = ({
     }
   }, [errors, form]);
 
+  const parseAddress = (address: string) => {
+    if (!address || typeof address !== "string") {
+      return {
+        city: "",
+        area: "",
+        pincode: "",
+        building: "",
+      };
+    }
+
+    const parts = address.split(",").map((part) => part.trim());
+
+    return {
+      building: parts[0] || "",
+      area: parts[1] || "",
+      city: parts[2] || "",
+      pincode: parts[3] || "",
+    };
+  };
+
+  const [hasUserInteracted, setHasUserInteracted] = useState<boolean>(false);
+  const [addressComponents, setAddressComponents] = useState(() =>
+    parseAddress(form.getValues("address") || "")
+  );
+
+  const combineAddress = (components: Record<string, string>) => {
+    const allFieldsFilled = Object.values(components).every(
+      (val) =>
+        val &&
+        typeof val === "string" &&
+        val.trim().length > 0 &&
+        (components.pincode ? components.pincode.length === 6 : true)
+    );
+
+    return allFieldsFilled
+      ? `${components.building}, ${components.area}, ${components.city}, ${components.pincode}`
+      : "";
+  };
+
   return (
     <Form {...form}>
       <div className="space-y-6">
@@ -490,44 +528,14 @@ const PersonalInfo = ({
           name="address"
           control={form.control}
           render={({ field }) => {
-            const parseAddress = (address: string) => {
-              if (!address || typeof address !== "string") {
-                return {
-                  city: "",
-                  area: "",
-                  pincode: "",
-                  building: "",
-                };
+            const updateAddressComponentWithField = (
+              key: string,
+              value: string
+            ) => {
+              if (!hasUserInteracted) {
+                setHasUserInteracted(true);
               }
 
-              const parts = address.split(",").map((part) => part.trim());
-              return {
-                building: parts[0] || "",
-                area: parts[1] || "",
-                city: parts[2] || "",
-                pincode: parts[3] || "",
-              };
-            };
-
-            const [addressComponents, setAddressComponents] = useState(() =>
-              parseAddress(field.value || "")
-            );
-
-            const combineAddress = (components: Record<string, string>) => {
-              const allFieldsFilled = Object.values(components).every(
-                (val) =>
-                  val &&
-                  typeof val === "string" &&
-                  val.trim().length > 0 &&
-                  (components.pincode ? components.pincode.length === 6 : true)
-              );
-
-              return allFieldsFilled
-                ? `${components.building}, ${components.area}, ${components.city}, ${components.pincode}`
-                : "";
-            };
-
-            const updateAddressComponent = (key: string, value: string) => {
               const capitalizedValue =
                 key === "pincode" ? value : capitalizeWords(value);
 
@@ -539,16 +547,14 @@ const PersonalInfo = ({
               setAddressComponents(newComponents);
 
               const combinedAddress = combineAddress(newComponents);
-              if (combinedAddress) {
-                field.onChange(combinedAddress);
-              } else {
-                field.onChange("");
-              }
+              field.onChange(combinedAddress || "");
             };
 
             const hasAnyContent = Object.values(addressComponents).some(
               (val) => val && val.trim().length > 0
             );
+
+            const shouldShowValidation = hasUserInteracted && hasAnyContent;
 
             return (
               <FormItem className="space-y-1">
@@ -568,10 +574,14 @@ const PersonalInfo = ({
                           value={addressComponents.building}
                           placeholder="House No., Flat No., Building name"
                           onChange={(e) =>
-                            updateAddressComponent("building", e.target.value)
+                            updateAddressComponentWithField(
+                              "building",
+                              e.target.value
+                            )
                           }
                           className={`${
-                            !addressComponents.building.trim() && hasAnyContent
+                            !addressComponents.building.trim() &&
+                            shouldShowValidation
                               ? "border-destructive"
                               : ""
                           }`}
@@ -590,10 +600,14 @@ const PersonalInfo = ({
                           value={addressComponents.area}
                           placeholder="Enter your area / locality"
                           onChange={(e) =>
-                            updateAddressComponent("area", e.target.value)
+                            updateAddressComponentWithField(
+                              "area",
+                              e.target.value
+                            )
                           }
                           className={`${
-                            !addressComponents.area.trim() && hasAnyContent
+                            !addressComponents.area.trim() &&
+                            shouldShowValidation
                               ? "border-destructive"
                               : ""
                           }`}
@@ -613,10 +627,14 @@ const PersonalInfo = ({
                           placeholder="Enter your city"
                           value={addressComponents.city}
                           onChange={(e) =>
-                            updateAddressComponent("city", e.target.value)
+                            updateAddressComponentWithField(
+                              "city",
+                              e.target.value
+                            )
                           }
                           className={`${
-                            !addressComponents.city.trim() && hasAnyContent
+                            !addressComponents.city.trim() &&
+                            shouldShowValidation
                               ? "border-destructive"
                               : ""
                           }`}
@@ -636,12 +654,12 @@ const PersonalInfo = ({
                           value={addressComponents.pincode}
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, "");
-                            updateAddressComponent("pincode", value);
+                            updateAddressComponentWithField("pincode", value);
                           }}
                           className={`${
                             (!addressComponents.pincode.trim() ||
                               addressComponents.pincode.length !== 6) &&
-                            hasAnyContent
+                            shouldShowValidation
                               ? "border-destructive"
                               : ""
                           }`}
