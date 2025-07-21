@@ -10,7 +10,7 @@ const Guide = () => {
     >
       <div className="container mx-auto space-y-16">
         <div className="text-center">
-          <Heading1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent">
+          <Heading1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
             How to Get Your Railway Concession
           </Heading1>
 
