@@ -483,7 +483,7 @@ const AddressChangePage = () => {
 
   if (isPending || loading || loadingStations || !student) {
     return (
-      <div className="container max-w-5xl mx-auto py-12 px-4">
+      <div className="container max-w-5xl mx-auto py-8 px-4">
         <div className="flex justify-between items-center">
           <span className="flex items-center gap-3">
             <Skeleton className="size-10 rounded-lg" />
@@ -552,7 +552,7 @@ const AddressChangePage = () => {
   }
 
   return (
-    <div className="container max-w-5xl mx-auto py-12 px-4">
+    <div className="container max-w-5xl mx-auto py-8 px-4">
       <div className="flex w-full gap-4 justify-between items-start">
         <span className="flex items-center gap-3">
           <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">

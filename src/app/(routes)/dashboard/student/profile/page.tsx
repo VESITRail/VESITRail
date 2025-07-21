@@ -83,7 +83,7 @@ const StudentProfilePage = () => {
 
   if (isLoading || session.isPending) {
     return (
-      <div className="container max-w-5xl mx-auto space-y-6 py-12 px-4">
+      <div className="container max-w-5xl mx-auto space-y-6 py-8 px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Skeleton className="size-8 rounded-lg" />
@@ -221,7 +221,7 @@ const StudentProfilePage = () => {
   }
 
   return (
-    <div className="container max-w-5xl mx-auto space-y-6 py-12 px-4">
+    <div className="container max-w-5xl mx-auto space-y-6 py-8 px-4">
       <div className="flex justify-between items-center">
         <span className="flex items-center gap-3">
           <Avatar className="size-8 rounded-lg">

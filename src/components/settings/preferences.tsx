@@ -244,7 +244,7 @@ const Preferences = () => {
       </div>
 
       <Card>
-        <CardContent className="py-4.5">
+        <CardContent className="py-2.5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <Label htmlFor="concession-class" className="text-sm font-medium">
