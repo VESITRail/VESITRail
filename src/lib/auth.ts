@@ -1,3 +1,4 @@
+import { toTitleCase } from "./utils";
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { oneTap } from "better-auth/plugins";
@@ -31,7 +32,12 @@ export const auth = betterAuth({
             });
           }
 
-          return { data: { ...user } };
+          return {
+            data: {
+              ...user,
+              name: user.name ? toTitleCase(user.name.trim()) : user.name,
+            },
+          };
         },
       },
     },
