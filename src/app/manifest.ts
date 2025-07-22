@@ -14,6 +14,32 @@ const manifest = (): MetadataRoute.Manifest => {
     background_color: "#0a0a0a",
     description:
       "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
+    shortcuts: [
+      {
+        short_name: "View",
+        name: "View Concessions",
+        url: "/dashboard/student",
+        description:
+          "Check your current and past concession applications and their status",
+      },
+      {
+        short_name: "Apply",
+        name: "Apply Concession",
+        url: "/dashboard/student/apply-concession",
+        description: "Apply for a new railway concession",
+      },
+      {
+        name: "Change Address",
+        url: "/dashboard/student/change-address",
+        description: "Update your address for concession applications",
+      },
+      {
+        name: "Settings",
+        short_name: "Settings",
+        url: "/dashboard/student/settings",
+        description: "App settings and preferences",
+      },
+    ],
     icons: [
       {
         src: "/icons/windows/SmallTile.scale-100.png",

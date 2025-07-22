@@ -30,19 +30,19 @@ const Guide = () => {
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-border group-hover:bg-primary transition-colors duration-300 rounded-l-lg" />
 
                   <div className="relative shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background/50 text-muted-foreground ring-2 ring-border transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:ring-primary">
-                      <step.icon className="h-5 w-5" />
+                    <div className="flex size-12 items-center justify-center rounded-full bg-background/50 text-muted-foreground ring-2 ring-border transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:ring-primary">
+                      <step.icon className="size-5" />
                     </div>
 
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                       {index + 1}
                     </span>
                   </div>
 
                   <div className="flex-1 pt-1">
-                    <h3 className="text-lg font-semibold tracking-tight mb-2">
+                    <h2 className="text-lg font-semibold tracking-tight mb-2">
                       {step.title}
-                    </h3>
+                    </h2>
 
                     <p className="text-sm text-muted-foreground">
                       {step.description}
@@ -52,7 +52,7 @@ const Guide = () => {
 
                 {!isLastItem && (
                   <div className="md:hidden flex justify-center py-4">
-                    <ArrowDownIcon className="h-6 w-6 text-muted-foreground" />
+                    <ArrowDownIcon className="size-6 text-muted-foreground" />
                   </div>
                 )}
               </div>
