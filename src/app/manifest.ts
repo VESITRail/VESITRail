@@ -21,51 +21,23 @@ const manifest = (): MetadataRoute.Manifest => {
         url: "/dashboard/student",
         description:
           "Check your current and past concession applications and their status",
-        icons: [
-          {
-            sizes: "96x96",
-            type: "image/png",
-            src: "/icons/shortcuts/view-concessions-96x96.png",
-          },
-        ],
       },
       {
         short_name: "Apply",
         name: "Apply Concession",
         url: "/dashboard/student/apply-concession",
         description: "Apply for a new railway concession",
-        icons: [
-          {
-            sizes: "96x96",
-            type: "image/png",
-            src: "/icons/shortcuts/apply-concession-96x96.png",
-          },
-        ],
       },
       {
         name: "Change Address",
         url: "/dashboard/student/change-address",
         description: "Update your address for concession applications",
-        icons: [
-          {
-            sizes: "96x96",
-            type: "image/png",
-            src: "/icons/shortcuts/change-address-96x96.png",
-          },
-        ],
       },
       {
         name: "Settings",
         short_name: "Settings",
         url: "/dashboard/student/settings",
         description: "App settings and preferences",
-        icons: [
-          {
-            sizes: "96x96",
-            type: "image/png",
-            src: "/icons/shortcuts/settings-96x96.png",
-          },
-        ],
       },
     ],
     icons: [
