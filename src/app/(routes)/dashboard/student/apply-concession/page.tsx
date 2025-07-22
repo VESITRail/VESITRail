@@ -46,6 +46,11 @@ import {
   SelectContent,
 } from "@/components/ui/select";
 import {
+  ConcessionClass,
+  ConcessionPeriod,
+  ConcessionApplicationStatusType,
+} from "@/generated/zod";
+import {
   AlertDialog,
   AlertDialogTitle,
   AlertDialogCancel,
@@ -58,23 +63,18 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
+import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import Status from "@/components/ui/status";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateConcessionValidity } from "@/lib/utils";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  ConcessionClass,
-  ConcessionPeriod,
-  ConcessionApplicationStatusType,
-} from "@/generated/zod";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionApplicationType } from "@/generated/prisma";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ApplicationTypeBadge = ({
   type,
