@@ -46,6 +46,11 @@ import {
   SelectContent,
 } from "@/components/ui/select";
 import {
+  ConcessionClass,
+  ConcessionPeriod,
+  ConcessionApplicationStatusType,
+} from "@/generated/zod";
+import {
   AlertDialog,
   AlertDialogTitle,
   AlertDialogCancel,
@@ -58,23 +63,18 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
+import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import Status from "@/components/ui/status";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateConcessionValidity } from "@/lib/utils";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  ConcessionClass,
-  ConcessionPeriod,
-  ConcessionApplicationStatusType,
-} from "@/generated/zod";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionApplicationType } from "@/generated/prisma";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ApplicationTypeBadge = ({
   type,
@@ -129,6 +129,9 @@ const ConcessionApplicationForm = () => {
     ConcessionPeriod[]
   >([]);
 
+  const [selectedApplicationType, setSelectedApplicationType] =
+    useState<ConcessionApplicationType>("New");
+
   const [status, setStatus] = useState<{
     title: string;
     iconBg?: string;
@@ -144,6 +147,12 @@ const ConcessionApplicationForm = () => {
       onClick?: () => void;
     };
   } | null>(null);
+
+  useEffect(() => {
+    if (lastApplication) {
+      setSelectedApplicationType("Renewal");
+    }
+  }, [lastApplication]);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -301,8 +310,20 @@ const ConcessionApplicationForm = () => {
                   setCanApply(true);
                 }
               } else {
-                setStatus(null);
-                setCanApply(true);
+                console.error(
+                  "Approved application missing reviewedAt:",
+                  application.id
+                );
+
+                setCanApply(false);
+                setStatus({
+                  icon: AlertTriangle,
+                  iconBg: "bg-amber-600",
+                  iconColor: "text-white",
+                  title: "Data Verification Required",
+                  description:
+                    "Your approved application needs verification. Please contact support before applying for a new concession.",
+                });
               }
               break;
 
@@ -358,12 +379,13 @@ const ConcessionApplicationForm = () => {
     const applicationData = {
       studentId: data.user.id,
       stationId: student.station.id,
+      applicationType: selectedApplicationType,
       concessionClassId: selectedConcessionClass,
       concessionPeriodId: selectedConcessionPeriod,
-      previousApplicationId: lastApplication?.id || null,
-      applicationType: lastApplication
-        ? ("Renewal" as const)
-        : ("New" as const),
+      previousApplicationId:
+        selectedApplicationType === "Renewal"
+          ? lastApplication?.id || null
+          : null,
     };
 
     const submissionPromise = submitConcessionApplication(applicationData);
@@ -392,7 +414,6 @@ const ConcessionApplicationForm = () => {
     }
   };
 
-  const applicationType = lastApplication ? "Renewal" : "New";
   const isFormValid = selectedConcessionClass && selectedConcessionPeriod;
 
   if (isPending || loading || loadingOptions || !student) {
@@ -543,104 +564,123 @@ const ConcessionApplicationForm = () => {
                   Application Type
                 </Label>
 
-                <div className="flex items-center text-sm justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
-                  {applicationType}
+                {!lastApplication ? (
+                  <div className="flex items-center text-sm justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
+                    New
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Select
+                      value={selectedApplicationType}
+                      onValueChange={(value: ConcessionApplicationType) =>
+                        setSelectedApplicationType(value)
+                      }
+                    >
+                      <SelectTrigger className="w-full !h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Renewal">Renewal</SelectItem>
+                        <SelectItem value="New">New</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  {lastApplication && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          title="View previous application details"
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <History className="size-4 sm:mr-1" />
-                          <span className="hidden sm:inline">View Details</span>
-                        </Button>
-                      </DialogTrigger>
+                    {selectedApplicationType === "Renewal" && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="View previous application details"
+                            className="absolute right-8 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors h-8 px-2"
+                          >
+                            <History className="size-4" />
+                          </Button>
+                        </DialogTrigger>
 
-                      <DialogContent className="sm:max-w-lg">
-                        <DialogHeader>
-                          <DialogTitle>
-                            Previous Application Details
-                          </DialogTitle>
-                        </DialogHeader>
+                        <DialogContent className="sm:max-w-lg">
+                          <DialogHeader>
+                            <DialogTitle>
+                              Previous Application Details
+                            </DialogTitle>
+                          </DialogHeader>
 
-                        <Separator className="my-2" />
+                          <Separator className="my-2" />
 
-                        <div className="space-y-6">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Status
-                              </p>
-                              <StatusBadge status={lastApplication.status} />
+                          <div className="space-y-6">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Status
+                                </p>
+                                <StatusBadge status={lastApplication.status} />
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Type
+                                </p>
+                                <ApplicationTypeBadge
+                                  type={lastApplication.applicationType}
+                                />
+                              </div>
                             </div>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Type
-                              </p>
-                              <ApplicationTypeBadge
-                                type={lastApplication.applicationType}
-                              />
+
+                            <div className="grid grid-cols-2 gap-6">
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Class
+                                </p>
+                                <p className="font-medium text-foreground/90">
+                                  {lastApplication.concessionClass.name} (
+                                  {lastApplication.concessionClass.code})
+                                </p>
+                              </div>
+
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Period
+                                </p>
+                                <p className="font-medium text-foreground/90">
+                                  {lastApplication.concessionPeriod.name} (
+                                  {lastApplication.concessionPeriod.duration}{" "}
+                                  {lastApplication.concessionPeriod.duration ===
+                                  1
+                                    ? "month"
+                                    : "months"}
+                                  )
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-6">
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Home Station
+                                </p>
+                                <p className="font-medium text-foreground/90">
+                                  {lastApplication.station.name} (
+                                  {lastApplication.station.code})
+                                </p>
+                              </div>
+
+                              <div className="space-y-1">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Applied Date
+                                </p>
+                                <p className="font-medium text-foreground/90">
+                                  {format(
+                                    new Date(lastApplication.createdAt),
+                                    "MMMM dd, yyyy"
+                                  )}
+                                </p>
+                              </div>
                             </div>
                           </div>
-
-                          <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Class
-                              </p>
-                              <p className="font-medium text-foreground/90">
-                                {lastApplication.concessionClass.name} (
-                                {lastApplication.concessionClass.code})
-                              </p>
-                            </div>
-
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Period
-                              </p>
-                              <p className="font-medium text-foreground/90">
-                                {lastApplication.concessionPeriod.name} (
-                                {lastApplication.concessionPeriod.duration}{" "}
-                                {lastApplication.concessionPeriod.duration === 1
-                                  ? "month"
-                                  : "months"}
-                                )
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Home Station
-                              </p>
-                              <p className="font-medium text-foreground/90">
-                                {lastApplication.station.name} (
-                                {lastApplication.station.code})
-                              </p>
-                            </div>
-
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">
-                                Applied Date
-                              </p>
-                              <p className="font-medium text-foreground/90">
-                                {format(
-                                  new Date(lastApplication.createdAt),
-                                  "MMMM dd, yyyy"
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">

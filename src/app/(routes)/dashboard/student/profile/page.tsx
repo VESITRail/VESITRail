@@ -26,12 +26,12 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import Status from "@/components/ui/status";
 import { Badge } from "@/components/ui/badge";
-import { getUserInitials } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useCallback, useEffect, useState } from "react";
+import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { getStudentProfile, StudentProfile } from "@/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -296,13 +296,15 @@ const StudentProfilePage = () => {
                 Full Name
               </p>
               <p className="font-medium">
-                {[
-                  profileData.firstName,
-                  profileData.middleName,
-                  profileData.lastName,
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+                {toTitleCase(
+                  [
+                    profileData.firstName,
+                    profileData.middleName,
+                    profileData.lastName,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
+                )}
               </p>
             </div>
             <div className="space-y-1">
