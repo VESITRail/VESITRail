@@ -16,6 +16,7 @@ const manifest = (): MetadataRoute.Manifest => {
       "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
     shortcuts: [
       {
+        short_name: "View",
         name: "View Concessions",
         url: "/dashboard/student",
         description:
@@ -29,6 +30,7 @@ const manifest = (): MetadataRoute.Manifest => {
         ],
       },
       {
+        short_name: "Apply",
         name: "Apply Concession",
         url: "/dashboard/student/apply-concession",
         description: "Apply for a new railway concession",
@@ -54,6 +56,7 @@ const manifest = (): MetadataRoute.Manifest => {
       },
       {
         name: "Settings",
+        short_name: "Settings",
         url: "/dashboard/student/settings",
         description: "App settings and preferences",
         icons: [
