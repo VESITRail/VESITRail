@@ -26,14 +26,9 @@ import {
 import {
   ColumnDef,
   flexRender,
-  SortingState,
   useReactTable,
   VisibilityState,
   getCoreRowModel,
-  getSortedRowModel,
-  ColumnFiltersState,
-  getFilteredRowModel,
-  getPaginationRowModel,
 } from "@tanstack/react-table";
 import {
   Dialog,
@@ -48,16 +43,20 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  ConcessionApplicationTypeType,
+  ConcessionApplicationStatusType,
+} from "@/generated/zod";
 import { format } from "date-fns";
 import Status from "../ui/status";
-import React, { useState } from "react";
 import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Concession } from "@/actions/concession";
 import { Skeleton } from "@/components/ui/skeleton";
+import React, { useCallback, useState, useMemo } from "react";
 
+type SortOrder = "asc" | "desc";
 type Station = NonNullable<Concession>["station"];
 type ApplicationStatus = NonNullable<Concession>["status"];
 type ApplicationType = NonNullable<Concession>["applicationType"];
@@ -180,15 +179,21 @@ const PreviousApplicationDialog = ({
   );
 };
 
-const columns: ColumnDef<Concession>[] = [
+const createColumns = (
+  onSortChange: (column: string) => void,
+  currentPage: number,
+  sortConfig: { key: string; direction: SortOrder } | null
+): ColumnDef<Concession>[] => [
   {
     size: 80,
     id: "serialNo",
     header: "Sr. No.",
     cell: ({ row, table }) => {
+      const pageSize = 10;
       const sortedRows = table.getRowModel().rows;
       const indexInSorted = sortedRows.findIndex((r) => r.id === row.id);
-      const serialNo = indexInSorted + 1;
+
+      const serialNo = (currentPage - 1) * pageSize + indexInSorted + 1;
 
       return <div className="font-medium text-foreground">{serialNo}</div>;
     },
@@ -222,21 +227,25 @@ const columns: ColumnDef<Concession>[] = [
     },
   },
   {
+    size: 120,
     accessorKey: "status",
-    header: ({ column }) => {
+    cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
+    header: () => {
+      const isSorted = sortConfig?.key === "status";
+
       return (
         <Button
           variant="ghost"
           className="h-auto py-2 font-semibold"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() => onSortChange("status")}
         >
           Status
-          <ArrowUpDown className="ml-2 size-4" />
+          <ArrowUpDown
+            className={`ml-2 size-4 ${isSorted ? "text-primary" : ""}`}
+          />
         </Button>
       );
     },
-    size: 120,
-    cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
   },
   {
     size: 200,
@@ -281,20 +290,24 @@ const columns: ColumnDef<Concession>[] = [
     },
   },
   {
+    size: 150,
     accessorKey: "createdAt",
-    header: ({ column }) => {
+    header: () => {
+      const isSorted = sortConfig?.key === "createdAt";
+
       return (
         <Button
           variant="ghost"
           className="h-auto py-2 font-semibold"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() => onSortChange("createdAt")}
         >
           Applied Date
-          <ArrowUpDown className="ml-2 size-4" />
+          <ArrowUpDown
+            className={`ml-2 size-4 ${isSorted ? "text-primary" : ""}`}
+          />
         </Button>
       );
     },
-    size: 150,
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return (
@@ -306,53 +319,256 @@ const columns: ColumnDef<Concession>[] = [
   },
 ];
 
-interface ApplicationsTableProps {
+type ApplicationsTableProps = {
   isError: boolean;
   isLoading: boolean;
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
   applications: Concession[];
-}
+  onPageChange: (page: number) => void;
+  onFilterChange: (filters: {
+    status?: ConcessionApplicationStatusType | "all";
+    applicationType?: ConcessionApplicationTypeType | "all";
+  }) => void;
+};
 
 const ApplicationsTable = ({
   isError,
   isLoading,
+  totalCount,
+  totalPages,
+  currentPage,
+  hasNextPage,
   applications,
+  onPageChange,
+  onFilterChange,
+  hasPreviousPage,
 }: ApplicationsTableProps) => {
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "createdAt", desc: true },
-  ]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: SortOrder;
+  } | null>(null);
+
+  const sortedApplications = useMemo(() => {
+    if (!sortConfig) {
+      return applications;
+    }
+
+    return [...applications].sort((a, b) => {
+      if (!a || !b) return 0;
+
+      let aValue: string | Date;
+      let bValue: string | Date;
+
+      switch (sortConfig.key) {
+        case "status":
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case "createdAt":
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [applications, sortConfig]);
+
+  const handleSort = useCallback((column: string) => {
+    setSortConfig((current) => {
+      if (current?.key === column) {
+        return {
+          key: column,
+          direction: current.direction === "asc" ? "desc" : "asc",
+        };
+      }
+      return {
+        key: column,
+        direction: "asc",
+      };
+    });
+  }, []);
+
+  const columns = createColumns(handleSort, currentPage, sortConfig);
+
+  const handleStatusFilter = useCallback(
+    (value: string): void => {
+      onFilterChange({
+        status: value as ConcessionApplicationStatusType | "all",
+      });
+    },
+    [onFilterChange]
+  );
+
+  const handleTypeFilter = useCallback(
+    (value: string): void => {
+      onFilterChange({
+        applicationType: value as ConcessionApplicationTypeType | "all",
+      });
+    },
+    [onFilterChange]
+  );
 
   const table = useReactTable<Concession>({
     state: {
-      sorting,
-      columnFilters,
       columnVisibility,
     },
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
     columns,
-    data: applications,
-    onSortingChange: setSorting,
+    manualSorting: true,
+    manualFiltering: true,
+    pageCount: totalPages,
+    manualPagination: true,
+    data: sortedApplications,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    getPaginationRowModel: getPaginationRowModel(),
   });
+
+  const renderPagination = () => (
+    <div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
+      <div className="text-sm text-muted-foreground order-2 sm:order-1">
+        {totalCount > 0 ? (
+          <>
+            Showing {(currentPage - 1) * 10 + 1} to{" "}
+            {Math.min(currentPage * 10, totalCount)} of {totalCount}{" "}
+            application(s)
+          </>
+        ) : (
+          "Showing 0 of 0 applications"
+        )}
+      </div>
+
+      <div className="flex items-center justify-center gap-3 order-1 sm:order-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="size-8 p-0"
+          disabled={!hasPreviousPage}
+          onClick={() => onPageChange(currentPage - 1)}
+        >
+          <ChevronLeft className="size-4" />
+        </Button>
+
+        <div className="flex items-center gap-2 px-3">
+          <span className="text-sm font-medium text-foreground">
+            {totalPages === 0 ? 0 : currentPage}
+          </span>
+          <span className="text-sm text-muted-foreground">of</span>
+          <span className="text-sm font-medium text-foreground">
+            {totalPages}
+          </span>
+        </div>
+
+        <Button
+          size="sm"
+          variant="outline"
+          className="size-8 p-0"
+          disabled={!hasNextPage}
+          onClick={() => onPageChange(currentPage + 1)}
+        >
+          <ChevronRight className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderFilters = () => (
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="flex gap-3">
+        <Select onValueChange={handleTypeFilter}>
+          <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+            <Filter className="mr-2 size-4 text-foreground" />
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="New">New</SelectItem>
+            <SelectItem value="Renewal">Renewal</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select onValueChange={handleStatusFilter}>
+          <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+            <Filter className="mr-2 size-4 text-foreground" />
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="Pending">Pending</SelectItem>
+            <SelectItem value="Approved">Approved</SelectItem>
+            <SelectItem value="Rejected">Rejected</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex gap-3 sm:ml-auto">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="w-28 h-10">
+              Columns
+              <ChevronDown className="ml-2 size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value: boolean) =>
+                      column.toggleVisibility(value)
+                    }
+                  >
+                    {column.id === "applicationType"
+                      ? "Type"
+                      : column.id === "concessionClass"
+                      ? "Class"
+                      : column.id === "concessionPeriod"
+                      ? "Period"
+                      : column.id === "station"
+                      ? "Home Station"
+                      : column.id === "createdAt"
+                      ? "Applied Date"
+                      : column.id === "serialNo"
+                      ? "Sr. No."
+                      : column.id}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
 
   if (isLoading) {
     return (
       <div className="w-full space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Skeleton className="h-10 w-full sm:w-64" />
-
-          <div className="flex gap-2 sm:ml-auto">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex gap-3">
             <Skeleton className="h-10 w-36" />
+            <Skeleton className="h-10 w-36" />
+          </div>
+
+          <div className="flex gap-3 sm:ml-auto">
             <Skeleton className="h-10 w-28" />
           </div>
         </div>
@@ -367,13 +583,13 @@ const ApplicationsTable = ({
           </div>
         </div>
 
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-40" />
+        <div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
+          <Skeleton className="h-5 w-40 order-2 sm:order-1" />
 
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-10" />
-            <Skeleton className="h-8 w-20" />
-            <Skeleton className="h-8 w-10" />
+          <div className="flex items-center gap-3 order-1 sm:order-2">
+            <Skeleton className="h-8 w-8" />
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-8 w-8" />
           </div>
         </div>
       </div>
@@ -395,82 +611,7 @@ const ApplicationsTable = ({
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Input
-          className="w-full sm:w-64 h-10"
-          placeholder='Type "New" or "Renewal" to filter'
-          onChange={(event) => {
-            table
-              .getColumn("applicationType")
-              ?.setFilterValue(event.target.value);
-          }}
-        />
-
-        <div className="flex gap-3 sm:ml-auto">
-          <Select
-            value={
-              (table.getColumn("status")?.getFilterValue() as string) ?? ""
-            }
-            onValueChange={(value) =>
-              table
-                .getColumn("status")
-                ?.setFilterValue(value === "all" ? "" : value)
-            }
-          >
-            <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
-              <Filter className="mr-2 size-4 text-foreground" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Approved">Approved</SelectItem>
-              <SelectItem value="Rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-28 h-10">
-                Columns
-                <ChevronDown className="ml-2 size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id === "applicationType"
-                        ? "Type"
-                        : column.id === "concessionClass"
-                        ? "Class"
-                        : column.id === "concessionPeriod"
-                        ? "Period"
-                        : column.id === "station"
-                        ? "Home Station"
-                        : column.id === "createdAt"
-                        ? "Applied Date"
-                        : column.id === "serialNo"
-                        ? "Sr. No."
-                        : column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      {renderFilters()}
 
       <div className="rounded-lg border bg-card">
         <Table>
@@ -549,61 +690,7 @@ const ApplicationsTable = ({
         </Table>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
-        <div className="text-sm text-muted-foreground order-2 sm:order-1">
-          {table.getFilteredRowModel().rows.length > 0 ? (
-            <>
-              Showing{" "}
-              {table.getState().pagination.pageIndex *
-                table.getState().pagination.pageSize +
-                1}{" "}
-              to{" "}
-              {Math.min(
-                (table.getState().pagination.pageIndex + 1) *
-                  table.getState().pagination.pageSize,
-                table.getFilteredRowModel().rows.length
-              )}{" "}
-              of {table.getFilteredRowModel().rows.length} application(s)
-            </>
-          ) : (
-            "Showing 0 of 0 applications"
-          )}
-        </div>
-
-        <div className="flex items-center justify-center gap-3 order-1 sm:order-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="size-8 p-0"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-
-          <div className="flex items-center gap-2 px-3">
-            <span className="text-sm font-medium text-foreground">
-              {table.getPageCount() === 0
-                ? table.getPageCount()
-                : table.getState().pagination.pageIndex + 1}
-            </span>
-            <span className="text-sm text-muted-foreground">of</span>
-            <span className="text-sm font-medium text-foreground">
-              {table.getPageCount()}
-            </span>
-          </div>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="size-8 p-0"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+      {renderPagination()}
     </div>
   );
 };
