@@ -5,6 +5,8 @@ import {
   ConcessionClass,
   ConcessionPeriod,
   ConcessionApplication,
+  ConcessionApplicationTypeType,
+  ConcessionApplicationStatusType,
 } from "@/generated/zod";
 import {
   Result,
@@ -16,6 +18,7 @@ import {
   DatabaseError,
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma";
 
 export type Concession =
   | (Pick<
@@ -39,9 +42,26 @@ export type ConcessionApplicationData = Pick<
   | "previousApplicationId"
 >;
 
+export type PaginationParams = {
+  page: number;
+  pageSize: number;
+  statusFilter?: ConcessionApplicationStatusType | "all";
+  typeFilter?: ConcessionApplicationTypeType | "all";
+};
+
+export type PaginatedResult<T> = {
+  data: T[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+};
+
 export const getConcessions = async (
-  studentId: string
-): Promise<Result<Concession[], AuthError | DatabaseError>> => {
+  studentId: string,
+  params: PaginationParams
+): Promise<Result<PaginatedResult<Concession>, AuthError | DatabaseError>> => {
   try {
     const student = await prisma.student.findUnique({
       select: { status: true },
@@ -56,8 +76,29 @@ export const getConcessions = async (
       return failure(authError("Student is not approved"));
     }
 
+    const whereClause: Prisma.ConcessionApplicationWhereInput = { studentId };
+
+    if (params.statusFilter && params.statusFilter !== "all") {
+      whereClause.status = params.statusFilter;
+    }
+
+    if (params.typeFilter && params.typeFilter !== "all") {
+      whereClause.applicationType = params.typeFilter;
+    }
+
+    const totalCount = await prisma.concessionApplication.count({
+      where: whereClause,
+    });
+
+    const totalPages = Math.ceil(totalCount / params.pageSize);
+    const skip = (params.page - 1) * params.pageSize;
+    const hasNextPage = params.page < totalPages;
+    const hasPreviousPage = params.page > 1;
+
     const concessions = await prisma.concessionApplication.findMany({
-      where: { studentId },
+      skip,
+      where: whereClause,
+      take: params.pageSize,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -119,7 +160,16 @@ export const getConcessions = async (
       },
     });
 
-    return success(concessions);
+    const result: PaginatedResult<Concession> = {
+      totalCount,
+      totalPages,
+      hasNextPage,
+      hasPreviousPage,
+      data: concessions,
+      currentPage: params.page,
+    };
+
+    return success(result);
   } catch (error) {
     console.error("Error while fetching concessions:", error);
     return failure(databaseError("Failed to fetch concessions"));
