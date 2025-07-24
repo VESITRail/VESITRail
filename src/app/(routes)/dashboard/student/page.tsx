@@ -1,26 +1,62 @@
 "use client";
 
+import {
+  getConcessions,
+  type Concession,
+  type PaginatedResult,
+  type PaginationParams,
+} from "@/actions/concession";
+import {
+  ConcessionApplicationTypeType,
+  ConcessionApplicationStatusType,
+} from "@/generated/zod";
 import Link from "next/link";
 import { toast } from "sonner";
 import { PlusCircle } from "lucide-react";
 import { toTitleCase } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { useEffect, useState, useCallback } from "react";
 import { Small, Heading3 } from "@/components/ui/typography";
-import { getConcessions, type Concession } from "@/actions/concession";
 import ApplicationsTable from "@/components/student/applications-table";
+
+type FilterParams = {
+  status?: ConcessionApplicationStatusType | "all";
+  applicationType?: ConcessionApplicationTypeType | "all";
+};
 
 const Student = () => {
   const { data, isPending } = authClient.useSession();
   const [isError, setIsError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [concessions, setConcessions] = useState<Concession[]>([]);
 
-  useEffect(() => {
-    const fetchConcessions = async () => {
+  const [paginationData, setPaginationData] = useState<
+    PaginatedResult<Concession>
+  >({
+    data: [],
+    totalCount: 0,
+    totalPages: 0,
+    currentPage: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+
+  const [pageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [statusFilter, setStatusFilter] = useState<
+    ConcessionApplicationStatusType | "all" | ""
+  >("");
+  const [typeFilter, setTypeFilter] = useState<
+    ConcessionApplicationTypeType | "all" | ""
+  >("");
+
+  const fetchConcessions = useCallback(
+    async (
+      page: number = currentPage,
+      filters: FilterParams = {}
+    ): Promise<void> => {
       if (!data?.user?.id) {
         setIsLoading(false);
         return;
@@ -28,33 +64,71 @@ const Student = () => {
 
       try {
         setIsLoading(true);
+        setIsError(false);
 
-        const result = await getConcessions(data.user.id);
+        const params: PaginationParams = {
+          page,
+          pageSize,
+          statusFilter: (filters.status === "all"
+            ? undefined
+            : filters.status ||
+              statusFilter) as ConcessionApplicationStatusType,
+          typeFilter: (filters.applicationType === "all"
+            ? undefined
+            : filters.applicationType ||
+              typeFilter) as ConcessionApplicationTypeType,
+        };
+
+        const result = await getConcessions(data.user.id, params);
 
         if (result.isSuccess) {
-          setConcessions(result.data);
+          setPaginationData(result.data);
         } else {
           setIsError(true);
+          console.error("Failed to fetch concessions:", result.error);
         }
-      } catch (err) {
+      } catch (error) {
         setIsError(true);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        console.error("Error loading applications:", errorMessage);
 
-        if (err instanceof Error) {
-          console.error("Error loading application:", err.message);
-        } else {
-          console.error("Unexpected error loading application:", err);
-        }
-
-        toast.error("Application Not Found", {
-          description: "Unable to load your application. Please try again.",
+        toast.error("Failed to Load Applications", {
+          description: "Unable to load your applications. Please try again.",
         });
       } finally {
         setIsLoading(false);
       }
-    };
+    },
+    [pageSize, currentPage, typeFilter, statusFilter, data?.user?.id]
+  );
 
-    fetchConcessions();
-  }, [data?.user?.id]);
+  useEffect(() => {
+    void fetchConcessions();
+  }, [fetchConcessions]);
+
+  const handlePageChange = useCallback((newPage: number): void => {
+    setCurrentPage(newPage);
+  }, []);
+
+  const handleFilterChange = useCallback(
+    (filters: FilterParams): void => {
+      setCurrentPage(1);
+
+      if (filters.status !== undefined) {
+        setStatusFilter(filters.status === "all" ? "" : filters.status);
+      }
+
+      if (filters.applicationType !== undefined) {
+        setTypeFilter(
+          filters.applicationType === "all" ? "" : filters.applicationType
+        );
+      }
+
+      void fetchConcessions(1, filters);
+    },
+    [fetchConcessions]
+  );
 
   return (
     <div className="py-8 px-6 lg:px-8 space-y-6">
@@ -65,7 +139,7 @@ const Student = () => {
             {isPending ? (
               <Skeleton className="inline-block align-middle h-[1.75rem] w-[8rem]" />
             ) : (
-              toTitleCase(data?.user?.name || "Student")
+              toTitleCase(data?.user?.name ?? "Student")
             )}
           </Heading3>
 
@@ -89,7 +163,14 @@ const Student = () => {
         <ApplicationsTable
           isError={isError}
           isLoading={isLoading}
-          applications={concessions}
+          onPageChange={handlePageChange}
+          applications={paginationData.data}
+          onFilterChange={handleFilterChange}
+          totalCount={paginationData.totalCount}
+          totalPages={paginationData.totalPages}
+          currentPage={paginationData.currentPage}
+          hasNextPage={paginationData.hasNextPage}
+          hasPreviousPage={paginationData.hasPreviousPage}
         />
       </div>
     </div>
