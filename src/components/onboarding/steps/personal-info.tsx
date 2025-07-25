@@ -340,7 +340,7 @@ const PersonalInfo = ({
     );
 
     return allFieldsFilled
-      ? `${components.building}, ${components.area}, ${components.city}, ${components.pincode}`
+      ? `${components.building.trim()}, ${components.area.trim()}, ${components.city.trim()}, ${components.pincode.trim()}`
       : "";
   };
 
