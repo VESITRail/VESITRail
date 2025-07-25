@@ -198,8 +198,8 @@ const StudentProfilePage = () => {
           <div className="p-6 pt-0">
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="space-y-2">
-                <Skeleton className="h-4 w-36" />
-                <Skeleton className="h-3 w-48" />
+                <Skeleton className="h-4 w-30" />
+                <Skeleton className="h-3 w-40" />
               </div>
               <Skeleton className="h-9 w-28 rounded-md" />
             </div>

@@ -782,8 +782,8 @@ const ConcessionApplicationForm = () => {
         <AlertDialogContent className="max-w-sm mx-auto">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-destructive" />
+              <div className="size-12 bg-destructive/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="size-6 text-destructive" />
               </div>
               <div>
                 <AlertDialogTitle>Final Submission</AlertDialogTitle>
