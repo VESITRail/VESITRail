@@ -97,16 +97,35 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 const AddressChangeSchema = z.object({
   verificationDocUrl: z.string().url(),
   newStationId: z.string().min(1, "Please select a new station"),
-  newAddress: z
+  building: z
     .string()
-    .min(1, "Address is required")
-    .min(10, "Address must be at least 10 characters")
-    .max(500, "Address cannot exceed 500 characters")
+    .min(1, "House / Building is required")
+    .max(100, "House / Building cannot exceed 100 characters")
     .transform((val) => val.trim())
     .refine(
-      (val) => val.length >= 10,
-      "Address must be at least 10 characters after trimming"
+      (val) => val.length > 0,
+      "House / Building cannot be empty after trimming"
     ),
+  area: z
+    .string()
+    .min(1, "Area / Locality is required")
+    .max(100, "Area / Locality cannot exceed 100 characters")
+    .transform((val) => val.trim())
+    .refine(
+      (val) => val.length > 0,
+      "Area / Locality cannot be empty after trimming"
+    ),
+  city: z
+    .string()
+    .min(1, "City is required")
+    .max(50, "City cannot exceed 50 characters")
+    .transform((val) => val.trim())
+    .refine((val) => val.length > 0, "City cannot be empty after trimming"),
+  pincode: z
+    .string()
+    .min(6, "Pincode must be 6 digits")
+    .max(6, "Pincode must be 6 digits")
+    .regex(/^\d{6}$/, "Pincode must contain only numbers"),
 });
 
 type AddressChangeForm = z.infer<typeof AddressChangeSchema>;
@@ -163,7 +182,10 @@ const AddressChangePage = () => {
   const form = useForm<AddressChangeForm>({
     resolver: zodResolver(AddressChangeSchema),
     defaultValues: {
-      newAddress: "",
+      city: "",
+      area: "",
+      pincode: "",
+      building: "",
       newStationId: "",
       verificationDocUrl: "",
     },
@@ -311,6 +333,13 @@ const AddressChangePage = () => {
     checkLastAddressChange();
   }, [data?.user?.id, isPending, fetchStudentDetails, checkLastAddressChange]);
 
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "auto";
+      document.documentElement.style.overflow = "auto";
+    };
+  }, []);
+
   const availableStations = stations.filter(
     (station) => station.id !== student?.station.id
   );
@@ -331,6 +360,9 @@ const AddressChangePage = () => {
       toast.success("Document uploaded successfully!", {
         description: "Your verification document has been uploaded.",
       });
+
+      document.body.style.overflow = "auto";
+      document.documentElement.style.overflow = "auto";
     } catch (error) {
       console.error("Error while processing uploaded document:", error);
       toast.error("Upload processing failed", {
@@ -343,6 +375,9 @@ const AddressChangePage = () => {
 
   const handleUploadError = (error: CloudinaryUploadWidgetError | null) => {
     setIsUploading(false);
+
+    document.body.style.overflow = "auto";
+    document.documentElement.style.overflow = "auto";
 
     if (error) {
       console.error("Cloudinary upload error:", error);
@@ -424,9 +459,11 @@ const AddressChangePage = () => {
 
     setIsSubmitting(true);
 
+    const newAddress = `${formData.building.trim()}, ${formData.area.trim()}, ${formData.city.trim()}, ${formData.pincode.trim()}`;
+
     const submissionData: AddressChangeData = {
+      newAddress: newAddress,
       studentId: data.user.id,
-      newAddress: formData.newAddress,
       currentAddress: student.address,
       newStationId: formData.newStationId,
       currentStationId: student.station.id,
@@ -498,30 +535,49 @@ const AddressChangePage = () => {
 
         <Card>
           <CardContent className="py-4">
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
+            <div className="space-y-5 md:space-y-7">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
+                <div className="space-y-2">
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-10 w-full rounded-md" />
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-2">
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-10 w-full rounded-md" />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
+                <div className="space-y-2">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-10 w-full rounded-md" />
                 </div>
-                <div className="space-y-4">
-                  <Skeleton className="h-4 w-24" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-10 w-full rounded-md" />
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+                <div className="space-y-2"></div>
+              </div>
+
+              <div className="space-y-2">
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-48 w-full rounded-lg" />
               </div>
@@ -770,16 +826,16 @@ const AddressChangePage = () => {
 
       <Form {...form}>
         <form
-          className="space-y-8"
+          className="space-y-5 md:space-y-7"
           onSubmit={form.handleSubmit(() => {
             setShowConfirmDialog(true);
           })}
         >
           <Card>
             <CardContent className="py-4">
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
+              <div className="space-y-5 md:space-y-7">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
+                  <div className="space-y-2">
                     <Label className="text-sm font-medium">
                       Current Station
                     </Label>
@@ -788,7 +844,7 @@ const AddressChangePage = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     <Label className="text-sm font-medium">
                       Current Address
                     </Label>
@@ -798,14 +854,15 @@ const AddressChangePage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
                   <FormField
                     name="newStationId"
                     control={form.control}
                     render={({ field }) => (
-                      <FormItem className="space-y-4">
+                      <FormItem className="space-y-2">
                         <FormLabel className="text-sm font-medium">
-                          New Station
+                          New Station{" "}
+                          <span className="text-destructive">*</span>
                         </FormLabel>
 
                         <Popover open={open} onOpenChange={setOpen}>
@@ -901,18 +958,19 @@ const AddressChangePage = () => {
 
                   <FormField
                     control={form.control}
-                    name="newAddress"
+                    name="building"
                     render={({ field }) => (
-                      <FormItem className="space-y-4">
+                      <FormItem className="space-y-2">
                         <FormLabel className="text-sm font-medium">
-                          New Address
+                          House / Building{" "}
+                          <span className="text-destructive">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             className="h-10"
                             autoComplete="off"
-                            placeholder="Enter your new address"
+                            placeholder="House No., Flat No., Building name"
                             onChange={(e) =>
                               handleCapitalFirstChange(
                                 e.target.value,
@@ -927,69 +985,170 @@ const AddressChangePage = () => {
                   />
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
+                  <FormField
+                    control={form.control}
+                    name="area"
+                    render={({ field }) => (
+                      <FormItem className="space-y-2">
+                        <FormLabel className="text-sm font-medium">
+                          Area / Locality{" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            className="h-10"
+                            autoComplete="off"
+                            placeholder="Enter your area / locality"
+                            onChange={(e) =>
+                              handleCapitalFirstChange(
+                                e.target.value,
+                                field.onChange
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem className="space-y-2">
+                        <FormLabel className="text-sm font-medium">
+                          City <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            className="h-10"
+                            autoComplete="off"
+                            placeholder="Enter your city"
+                            onChange={(e) =>
+                              handleCapitalFirstChange(
+                                e.target.value,
+                                field.onChange
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
+                  <FormField
+                    control={form.control}
+                    name="pincode"
+                    render={({ field }) => (
+                      <FormItem className="space-y-2">
+                        <FormLabel className="text-sm font-medium">
+                          Pincode <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="text"
+                            maxLength={6}
+                            className="h-10"
+                            autoComplete="off"
+                            placeholder="Enter your pincode"
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, "");
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-2"></div>
+                </div>
+
                 <FormField
                   control={form.control}
                   name="verificationDocUrl"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel className="text-base space-y-1 mb-2">
-                        Verification Document
-                      </FormLabel>
-                      <FormControl>
-                        <div className="flex flex-col items-center justify-center w-full">
-                          {!watchedUrl ? (
-                            <div
-                              className={cn(
-                                "border-2 border-dashed rounded-lg",
-                                "flex flex-col items-center justify-center w-full h-48",
-                                "bg-muted/50 transition-colors duration-200 relative",
-                                !form.getValues("newStationId")
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : "hover:bg-muted/80",
-                                isUploading && "pointer-events-none opacity-50"
-                              )}
-                            >
-                              <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
-                                {isUploading ? (
-                                  <>
-                                    <Loader2 className="h-10 w-10 mb-3 animate-spin text-primary" />
-                                    <p className="mb-2 text-base text-foreground font-semibold">
-                                      Uploading...
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                      Please wait while we upload your document
-                                    </p>
-                                  </>
-                                ) : !form.getValues("newStationId") ? (
-                                  <>
-                                    <FileUp className="h-10 w-10 mb-3 text-muted-foreground" />
-                                    <p className="mb-2 text-sm text-foreground font-semibold">
-                                      Select new station first
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      Please select a new station before
-                                      uploading document
-                                    </p>
-                                  </>
-                                ) : (
-                                  <>
-                                    <FileUp className="h-10 w-10 mb-3 text-muted-foreground" />
-                                    <p className="mb-2 text-sm text-foreground font-semibold">
-                                      Click to upload PDF
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      PDF (MAX. 2MB)
-                                    </p>
-                                  </>
+                  render={() => {
+                    const formValues = form.watch();
+                    const isNewStationSelected = !!formValues.newStationId;
+                    const isAddressComplete =
+                      !!formValues.building?.trim() &&
+                      !!formValues.area?.trim() &&
+                      !!formValues.city?.trim() &&
+                      formValues.pincode?.length === 6;
+
+                    const canUpload = isNewStationSelected && isAddressComplete;
+
+                    return (
+                      <FormItem>
+                        <FormLabel className="text-base space-y-1 mb-2">
+                          Verification Document{" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="flex flex-col items-center justify-center w-full">
+                            {!watchedUrl ? (
+                              <div
+                                className={cn(
+                                  "border-2 border-dashed rounded-lg",
+                                  "flex flex-col items-center justify-center w-full h-48",
+                                  "bg-muted/50 transition-colors duration-200 relative",
+                                  !canUpload
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "hover:bg-muted/80",
+                                  isUploading &&
+                                    "pointer-events-none opacity-50"
                                 )}
-                              </div>
-                              {!isUploading &&
-                                form.getValues("newStationId") && (
+                              >
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
+                                  {isUploading ? (
+                                    <>
+                                      <Loader2 className="h-10 w-10 mb-3 animate-spin text-primary" />
+                                      <p className="mb-2 text-base text-foreground font-semibold">
+                                        Uploading...
+                                      </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        Please wait while we upload your
+                                        document
+                                      </p>
+                                    </>
+                                  ) : !canUpload ? (
+                                    <>
+                                      <FileUp className="h-10 w-10 mb-3 text-muted-foreground" />
+                                      <p className="mb-2 text-sm text-foreground font-semibold">
+                                        Complete address details first
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Please select a new station and fill all
+                                        address fields
+                                      </p>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FileUp className="h-10 w-10 mb-3 text-muted-foreground" />
+                                      <p className="mb-2 text-sm text-foreground font-semibold">
+                                        Click to upload PDF
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        PDF (MAX. 2MB)
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
+                                {!isUploading && canUpload && (
                                   <CldUploadButton
                                     onError={handleUploadError}
                                     onSuccess={handleUploadSuccess}
                                     onUpload={() => setIsUploading(true)}
-                                    className="absolute inset-0 cursor-pointer opacity-0"
+                                    className="absolute inset-0 cursor-pointer opacity-0 z-10"
                                     options={{
                                       maxFiles: 1,
                                       resourceType: "raw",
@@ -997,100 +1156,99 @@ const AddressChangePage = () => {
                                       maxFileSize: 2097152,
                                       uploadPreset: "VESITRail",
                                       clientAllowedFormats: ["pdf"],
-                                      publicId: `${
-                                        data?.user.id
-                                      }-${form.getValues("newStationId")}.pdf`,
+                                      publicId: `${data?.user.id}-${formValues.newStationId}.pdf`,
                                     }}
                                   />
                                 )}
-                            </div>
-                          ) : (
-                            <div className="w-full space-y-4">
-                              <div className="border-2 border-solid border-border rounded-lg bg-muted/50 p-4">
-                                <div className="flex flex-wrap items-start gap-4">
-                                  <div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <FileUp className="size-5" />
-                                  </div>
+                              </div>
+                            ) : (
+                              <div className="w-full space-y-4">
+                                <div className="border-2 border-solid border-border rounded-lg bg-muted/50 p-4">
+                                  <div className="flex flex-wrap items-start gap-4">
+                                    <div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                      <FileUp className="size-5" />
+                                    </div>
 
-                                  <div className="min-w-0 flex-1 space-y-1">
-                                    <p className="text-sm font-medium text-foreground break-words">
-                                      Address Change Verification Document
-                                    </p>
-                                    <p className="text-xs text-muted-foreground break-all">
-                                      {data?.user.id}-
-                                      {form.getValues("newStationId")}.pdf
-                                    </p>
-                                  </div>
+                                    <div className="min-w-0 flex-1 space-y-1">
+                                      <p className="text-sm font-medium text-foreground break-words">
+                                        Address Change Verification Document
+                                      </p>
+                                      <p className="text-xs text-muted-foreground break-all">
+                                        {data?.user.id}-
+                                        {formValues.newStationId}.pdf
+                                      </p>
+                                    </div>
 
-                                  <div className="flex gap-2 flex-shrink-0">
+                                    <div className="flex gap-2 flex-shrink-0">
+                                      <Button
+                                        size="sm"
+                                        type="button"
+                                        variant="outline"
+                                        className="size-8 p-0"
+                                        title="Preview document"
+                                        onClick={handlePreviewFile}
+                                      >
+                                        <Eye className="size-4" />
+                                        <span className="sr-only">Preview</span>
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="w-full border-2 border-dashed border-border rounded-lg bg-accent/10 p-4">
+                                  <div className="flex flex-wrap items-center gap-4">
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-sm font-medium text-foreground break-words">
+                                        Want to upload a different document?
+                                      </p>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        Remove the current document to upload a
+                                        new one
+                                      </p>
+                                    </div>
+
                                     <Button
                                       size="sm"
                                       type="button"
                                       variant="outline"
-                                      className="size-8 p-0"
-                                      title="Preview document"
-                                      onClick={handlePreviewFile}
+                                      onClick={handleRemoveFile}
+                                      className="flex-shrink-0 gap-2"
+                                      disabled={isDeleting || isUploading}
                                     >
-                                      <Eye className="size-4" />
-                                      <span className="sr-only">Preview</span>
+                                      {isDeleting ? (
+                                        <>
+                                          <Loader2 className="size-4 animate-spin" />
+                                          <span className="hidden md:inline">
+                                            Removing...
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Trash2 className="size-4" />
+                                          <span className="hidden md:inline">
+                                            Remove
+                                          </span>
+                                        </>
+                                      )}
                                     </Button>
                                   </div>
                                 </div>
                               </div>
+                            )}
+                          </div>
+                        </FormControl>
 
-                              <div className="w-full border-2 border-dashed border-border rounded-lg bg-accent/10 p-4">
-                                <div className="flex flex-wrap items-center gap-4">
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-foreground break-words">
-                                      Want to upload a different document?
-                                    </p>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Remove the current document to upload a
-                                      new one
-                                    </p>
-                                  </div>
+                        {!watchedUrl && (
+                          <FormDescription className="text-xs text-center mt-2">
+                            Upload a valid Aadhaar Card. Make sure both the
+                            front and back sides are included.
+                          </FormDescription>
+                        )}
 
-                                  <Button
-                                    size="sm"
-                                    type="button"
-                                    variant="outline"
-                                    onClick={handleRemoveFile}
-                                    className="flex-shrink-0 gap-2"
-                                    disabled={isDeleting || isUploading}
-                                  >
-                                    {isDeleting ? (
-                                      <>
-                                        <Loader2 className="size-4 animate-spin" />
-                                        <span className="hidden md:inline">
-                                          Removing...
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Trash2 className="size-4" />
-                                        <span className="hidden md:inline">
-                                          Remove
-                                        </span>
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </FormControl>
-
-                      {!watchedUrl && (
-                        <FormDescription className="text-xs text-center mt-2">
-                          Upload a valid Aadhaar Card. Make sure both the front
-                          and back sides are included.
-                        </FormDescription>
-                      )}
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <div className="flex justify-end pt-4">
@@ -1160,7 +1318,10 @@ const AddressChangePage = () => {
                         New Address
                       </p>
                       <p className="font-medium">
-                        {form.getValues("newAddress")}
+                        {(() => {
+                          const formValues = form.getValues();
+                          return `${formValues.building}, ${formValues.area}, ${formValues.city}, ${formValues.pincode}`;
+                        })()}
                       </p>
                     </div>
                   </div>
