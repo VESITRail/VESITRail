@@ -438,7 +438,7 @@ const ConcessionApplicationForm = () => {
         </div>
 
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          <div className="py-4 p-6">
+          <div className="p-6">
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
@@ -553,15 +553,15 @@ const ConcessionApplicationForm = () => {
       )}
 
       <Card>
-        <CardContent className="py-4">
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
+        <CardContent className="py-2.5">
+          <div className="space-y-6 md:space-y-7">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
+              <div className="space-y-3.5">
                 <Label
                   htmlFor="application-type"
                   className="text-sm font-medium"
                 >
-                  Application Type
+                  Application Type <span className="text-destructive">*</span>
                 </Label>
 
                 {!lastApplication ? (
@@ -683,9 +683,9 @@ const ConcessionApplicationForm = () => {
                 )}
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <Label htmlFor="home-station" className="text-sm font-medium">
-                  Home Station
+                  Home Station <span className="text-destructive">*</span>
                 </Label>
 
                 <div className="flex text-sm items-center justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
@@ -694,13 +694,13 @@ const ConcessionApplicationForm = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
+              <div className="space-y-3.5">
                 <Label
                   htmlFor="concession-class"
                   className="text-sm font-medium"
                 >
-                  Concession Class
+                  Concession Class <span className="text-destructive">*</span>
                 </Label>
 
                 <Select
@@ -723,7 +723,7 @@ const ConcessionApplicationForm = () => {
                 </Select>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <Label
                   htmlFor="concession-period"
                   className="text-sm font-medium"

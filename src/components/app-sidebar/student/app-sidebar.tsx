@@ -28,8 +28,8 @@ const data = {
     },
     {
       icon: Send,
-      url: "/#contact",
       title: "Feedback",
+      url: "https://forms.gle/YhMtdbaHX19YieBQ9",
     },
   ],
   navMain: [

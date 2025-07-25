@@ -2,6 +2,7 @@
 
 import {
   User,
+  Edit,
   Info,
   MapPin,
   XCircle,
@@ -34,6 +35,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { getStudentProfile, StudentProfile } from "@/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 
 const StudentProfilePage = () => {
   const session = authClient.useSession();
@@ -386,18 +388,40 @@ const StudentProfilePage = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                Home Station
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Home Station
+                </p>
+                <Link href="/dashboard/student/change-address">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="size-5 p-0 hover:bg-muted"
+                  >
+                    <Edit className="size-3" />
+                  </Button>
+                </Link>
+              </div>
               <p className="font-medium">
                 {profileData.station?.name || "N/A"} (
                 {profileData.station?.code || "N/A"})
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                Preferred Concession Class
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Preferred Concession Class
+                </p>
+                <Link href="/dashboard/student/settings#concession-preferences">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="size-5 p-0 hover:bg-muted"
+                  >
+                    <Edit className="size-3" />
+                  </Button>
+                </Link>
+              </div>
               <Badge variant="outline">
                 {profileData.preferredConcessionClass?.name || "N/A"} (
                 {profileData.preferredConcessionClass?.code || "N/A"})
@@ -405,9 +429,20 @@ const StudentProfilePage = () => {
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">
-              Preferred Concession Period
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-muted-foreground">
+                Preferred Concession Period
+              </p>
+              <Link href="/dashboard/student/settings#concession-preferences">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="size-5 p-0 hover:bg-muted"
+                >
+                  <Edit className="size-3" />
+                </Button>
+              </Link>
+            </div>
             <Badge variant="outline">
               {profileData.preferredConcessionPeriod?.name || "N/A"} (
               {profileData.preferredConcessionPeriod?.duration != null

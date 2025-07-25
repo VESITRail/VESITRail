@@ -181,8 +181,7 @@ const PreviousApplicationDialog = ({
 
 const createColumns = (
   onSortChange: (column: string) => void,
-  currentPage: number,
-  sortConfig: { key: string; direction: SortOrder } | null
+  currentPage: number
 ): ColumnDef<Concession>[] => [
   {
     size: 80,
@@ -231,8 +230,6 @@ const createColumns = (
     accessorKey: "status",
     cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
     header: () => {
-      const isSorted = sortConfig?.key === "status";
-
       return (
         <Button
           variant="ghost"
@@ -240,9 +237,7 @@ const createColumns = (
           onClick={() => onSortChange("status")}
         >
           Status
-          <ArrowUpDown
-            className={`ml-2 size-4 ${isSorted ? "text-primary" : ""}`}
-          />
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
@@ -293,8 +288,6 @@ const createColumns = (
     size: 150,
     accessorKey: "createdAt",
     header: () => {
-      const isSorted = sortConfig?.key === "createdAt";
-
       return (
         <Button
           variant="ghost"
@@ -302,9 +295,7 @@ const createColumns = (
           onClick={() => onSortChange("createdAt")}
         >
           Applied Date
-          <ArrowUpDown
-            className={`ml-2 size-4 ${isSorted ? "text-primary" : ""}`}
-          />
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
@@ -402,7 +393,7 @@ const ApplicationsTable = ({
     });
   }, []);
 
-  const columns = createColumns(handleSort, currentPage, sortConfig);
+  const columns = createColumns(handleSort, currentPage);
 
   const handleStatusFilter = useCallback(
     (value: string): void => {
@@ -626,7 +617,7 @@ const ApplicationsTable = ({
                     <TableHead
                       key={header.id}
                       style={{ width: header.getSize() }}
-                      className="font-semibold h-12 text-center"
+                      className="font-semibold h-12 text-center px-4"
                     >
                       {header.isPlaceholder
                         ? null
@@ -651,7 +642,7 @@ const ApplicationsTable = ({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="py-4 text-center"
+                      className="py-4 text-center px-4"
                       style={{ width: cell.column.getSize() }}
                     >
                       {flexRender(

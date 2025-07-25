@@ -165,7 +165,7 @@ const Preferences = () => {
 
   if (isPending || loading) {
     return (
-      <div className="space-y-6">
+      <div id="concession-preferences" className="space-y-6">
         <div>
           <h2 className="text-lg font-semibold mb-2">Concession Preferences</h2>
           <p className="text-sm text-muted-foreground">
@@ -175,7 +175,7 @@ const Preferences = () => {
         </div>
 
         <Card>
-          <CardContent className="py-4">
+          <CardContent className="py-2.5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <Skeleton className="h-4 w-40" />
@@ -197,7 +197,7 @@ const Preferences = () => {
 
   if (!preferences || !concessionClasses.length || !concessionPeriods.length) {
     return (
-      <div className="space-y-6">
+      <div id="concession-preferences" className="space-y-6">
         <div>
           <h2 className="text-lg font-semibold mb-2">Concession Preferences</h2>
           <p className="text-sm text-muted-foreground">
@@ -234,7 +234,7 @@ const Preferences = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div id="concession-preferences" className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold mb-2">Concession Preferences</h2>
         <p className="text-sm text-muted-foreground">
