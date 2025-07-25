@@ -240,9 +240,7 @@ const createColumns = (
           onClick={() => onSortChange("status")}
         >
           Status
-          <ArrowUpDown
-            className={`ml-2 size-4 ${isSorted ? "text-primary" : ""}`}
-          />
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
@@ -302,9 +300,7 @@ const createColumns = (
           onClick={() => onSortChange("createdAt")}
         >
           Applied Date
-          <ArrowUpDown
-            className={`ml-2 size-4 ${isSorted ? "text-primary" : ""}`}
-          />
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
@@ -626,7 +622,7 @@ const ApplicationsTable = ({
                     <TableHead
                       key={header.id}
                       style={{ width: header.getSize() }}
-                      className="font-semibold h-12 text-center"
+                      className="font-semibold h-12 text-center px-4"
                     >
                       {header.isPlaceholder
                         ? null
@@ -651,7 +647,7 @@ const ApplicationsTable = ({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="py-4 text-center"
+                      className="py-4 text-center px-4"
                       style={{ width: cell.column.getSize() }}
                     >
                       {flexRender(
