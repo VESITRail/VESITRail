@@ -181,8 +181,7 @@ const PreviousApplicationDialog = ({
 
 const createColumns = (
   onSortChange: (column: string) => void,
-  currentPage: number,
-  sortConfig: { key: string; direction: SortOrder } | null
+  currentPage: number
 ): ColumnDef<Concession>[] => [
   {
     size: 80,
@@ -231,8 +230,6 @@ const createColumns = (
     accessorKey: "status",
     cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
     header: () => {
-      const isSorted = sortConfig?.key === "status";
-
       return (
         <Button
           variant="ghost"
@@ -291,8 +288,6 @@ const createColumns = (
     size: 150,
     accessorKey: "createdAt",
     header: () => {
-      const isSorted = sortConfig?.key === "createdAt";
-
       return (
         <Button
           variant="ghost"
@@ -398,7 +393,7 @@ const ApplicationsTable = ({
     });
   }, []);
 
-  const columns = createColumns(handleSort, currentPage, sortConfig);
+  const columns = createColumns(handleSort, currentPage);
 
   const handleStatusFilter = useCallback(
     (value: string): void => {
