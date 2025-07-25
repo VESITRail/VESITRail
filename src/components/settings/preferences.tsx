@@ -175,7 +175,7 @@ const Preferences = () => {
         </div>
 
         <Card>
-          <CardContent className="py-4">
+          <CardContent className="py-2.5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <Skeleton className="h-4 w-40" />
