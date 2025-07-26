@@ -39,7 +39,10 @@ const OnboardingLayoutContent = ({
 
         const { role, status } = result.data;
 
-        if (role === "student" && status === "NeedsOnboarding") {
+        if (
+          role === "student" &&
+          (status === "NeedsOnboarding" || status === "Rejected")
+        ) {
           setIsVerifying(false);
           return;
         }
