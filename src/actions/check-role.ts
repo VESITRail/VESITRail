@@ -12,6 +12,8 @@ import prisma from "@/lib/prisma";
 import { StudentApprovalStatusType } from "@/generated/zod";
 
 export type UserRole = {
+  rejectionReason?: string;
+  submissionCount?: number;
   role: "admin" | "student";
   status: "Active" | "Inactive" | "NeedsOnboarding" | StudentApprovalStatusType;
 };
@@ -38,13 +40,19 @@ export const checkUserRole = async (
 
     const student = await prisma.student.findUnique({
       where: { userId },
-      select: { status: true },
+      select: {
+        status: true,
+        rejectionReason: true,
+        submissionCount: true,
+      },
     });
 
     if (student) {
       return success({
         role: "student",
         status: student.status,
+        submissionCount: student.submissionCount,
+        rejectionReason: student.rejectionReason || undefined,
       });
     }
 
