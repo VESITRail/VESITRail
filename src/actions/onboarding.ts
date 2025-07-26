@@ -49,10 +49,17 @@ export type OnboardingData = Pick<
   | "stationId"
   | "middleName"
   | "dateOfBirth"
+  | "rejectionReason"
+  | "submissionCount"
   | "verificationDocUrl"
   | "preferredConcessionClassId"
   | "preferredConcessionPeriodId"
->;
+> & {
+  class: Pick<Class, "id"> & {
+    year: Pick<Year, "id" | "code" | "name">;
+    branch: Pick<Branch, "id" | "code" | "name">;
+  };
+};
 
 export const getReviewData = async (
   data: ReviewData
@@ -99,15 +106,87 @@ export const getReviewData = async (
   }
 };
 
+export const getExistingStudentData = async (
+  userId: string
+): Promise<Result<OnboardingData | null, DatabaseError>> => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId },
+      select: {
+        status: true,
+        gender: true,
+        classId: true,
+        address: true,
+        lastName: true,
+        firstName: true,
+        stationId: true,
+        middleName: true,
+        dateOfBirth: true,
+        rejectionReason: true,
+        submissionCount: true,
+        verificationDocUrl: true,
+        preferredConcessionClassId: true,
+        preferredConcessionPeriodId: true,
+        class: {
+          select: {
+            id: true,
+            year: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+            branch: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return success(student);
+  } catch (error) {
+    console.error("Error while fetching existing student data:", error);
+    return failure(databaseError("Failed to fetch existing student data"));
+  }
+};
+
 export const submitOnboarding = async (
   studentId: string,
   data: OnboardingData
 ): Promise<Result<Student, DatabaseError>> => {
   try {
-    const student = await prisma.student.create({
-      data: {
-        ...data,
+    const existingStudent = await prisma.student.findUnique({
+      where: { userId: studentId },
+      select: { submissionCount: true },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { class: classData, ...dbData } = data;
+
+    const student = await prisma.student.upsert({
+      where: { userId: studentId },
+      create: {
+        ...dbData,
         userId: studentId,
+        status: "Pending",
+        submissionCount: 1,
+        rejectionReason: null,
+      },
+      update: {
+        ...dbData,
+        reviewedAt: null,
+        status: "Pending",
+        reviewedById: null,
+        rejectionReason: null,
+        submissionCount: existingStudent
+          ? existingStudent.submissionCount + 1
+          : 1,
       },
     });
 

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
 import { checkUserRole, UserRole } from "@/actions/check-role";
-import { Loader2, UserX, Clock, XCircle, Mail } from "lucide-react";
+import { Loader2, UserX, Clock, XCircle, Mail, RefreshCw } from "lucide-react";
 
 const DashboardLayoutContent = ({
   children,
@@ -44,8 +44,8 @@ const DashboardLayoutContent = ({
         return;
       }
 
-      const { role, status } = result.data;
-      setUserRole({ role, status });
+      const { role, status, rejectionReason, submissionCount } = result.data;
+      setUserRole({ role, status, rejectionReason, submissionCount });
 
       if (role === "admin") {
         if (isStudentPath || (!isAdminPath && status === "Active")) {
@@ -114,17 +114,36 @@ const DashboardLayoutContent = ({
     }
 
     if (userRole.status === "Rejected") {
+      const rejectionMessage = userRole.rejectionReason
+        ? `Rejection Reason: ${userRole.rejectionReason}.`
+        : "Your student account application has been rejected.";
+
+      const submissionText =
+        userRole.submissionCount && userRole.submissionCount > 1
+          ? ` This is your ${userRole.submissionCount}${
+              userRole.submissionCount === 2
+                ? "nd"
+                : userRole.submissionCount === 3
+                ? "rd"
+                : "th"
+            } submission.`
+          : "";
+
+      const description = userRole.rejectionReason
+        ? `${rejectionMessage}${submissionText} Please review the feedback and update your application accordingly.`
+        : `${rejectionMessage}${submissionText} You can update your information and resubmit your application.`;
+
       return (
         <Status
           icon={XCircle}
           iconColor="text-white"
           iconBg="bg-destructive"
-          title="Account Application Rejected"
-          description="Unfortunately, your student account application has been rejected. Please contact support for more information or to reapply."
+          description={description}
+          title="Application Rejected"
           button={{
-            icon: Mail,
-            href: "/#contact",
-            label: "Contact Support",
+            icon: RefreshCw,
+            href: "/onboarding",
+            label: "Update & Resubmit",
           }}
         />
       );

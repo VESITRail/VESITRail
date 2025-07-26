@@ -21,7 +21,6 @@ import {
   XCircle,
   FileText,
   RefreshCw,
-  AlertCircle,
   ExternalLink,
   GraduationCap,
   AlertTriangle,
@@ -55,7 +54,7 @@ type ReviewProps = {
 };
 
 const ReviewSkeleton = () => (
-  <div className="max-w-5xl mx-auto space-y-6 md:p-6">
+  <div className="max-w-5xl mx-auto space-y-6">
     {[1, 2, 3, 4].map((index) => (
       <Card key={index} className="shadow-sm">
         <CardHeader className="pb-4">
@@ -198,8 +197,20 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
         return;
       }
 
+      if (!reviewData) {
+        toast.error("Review Data Missing", {
+          description:
+            "Review data is not available. Please try refreshing the page.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const submissionPromise = submitOnboarding(session.data.user.id, {
         status: "Pending",
+        submissionCount: 1,
+        rejectionReason: null,
+        class: reviewData.class,
         gender: defaultValues.gender,
         classId: defaultValues.class,
         address: defaultValues.address,
@@ -271,7 +282,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 md:p-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <Card className="shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
@@ -516,22 +527,21 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
               </div>
             </div>
           </AlertDialogHeader>
-          <div className="py-4">
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="size-4 text-destructive" />
-                <p className="text-sm font-medium">Important Notice:</p>
-              </div>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• This action cannot be undone</li>
-                <li>• Please review all details one final time</li>
-                <li>
-                  • You won&apos;t be able to edit your application after
-                  submission
+
+          <div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10">
+            <div className="text-sm text-destructive text-left">
+              <p className="font-medium mb-1">Important Notes:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li key="undo">This action cannot be undone</li>
+                <li key="review">Please review all details one final time</li>
+                <li key="edit">
+                  You won&apos;t be able to edit your application after
+                  submission.
                 </li>
               </ul>
             </div>
           </div>
+
           <AlertDialogFooter className="gap-4">
             <AlertDialogCancel disabled={isSubmitting}>
               Cancel
