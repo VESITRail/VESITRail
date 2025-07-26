@@ -1,4 +1,12 @@
 import {
+  User,
+  Users,
+  MapPin,
+  BookOpen,
+  FileText,
+  MessageSquare,
+} from "lucide-react";
+import {
   Sidebar,
   SidebarMenu,
   SidebarHeader,
@@ -10,7 +18,6 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import NavMain from "@/components/nav-main";
-import { Eye, User, BookOpen } from "lucide-react";
 import NavSecondary from "@/components/nav-secondary";
 import NavUser from "@/components/app-sidebar/admin/nav-user";
 
@@ -21,19 +28,39 @@ const data = {
       title: "Profile",
       url: "/dashboard/admin/profile",
     },
+    {
+      icon: MessageSquare,
+      title: "Feedback Responses",
+      url: "https://docs.google.com/spreadsheets/d/1260EnvlbUiM1U6h63-u8MMFAfbmekcp7pabsW_QJOLc/edit",
+    },
   ],
   navMain: [
     {
-      label: "Concession",
+      label: "Applications",
       items: [
         {
-          icon: Eye,
+          icon: FileText,
           url: "/dashboard/admin",
-          name: "View Concessions",
+          name: "Concession Requests",
+        },
+        {
+          icon: MapPin,
+          name: "Address Change Requests",
+          url: "/dashboard/admin/address-change-requests",
+        },
+      ],
+    },
+    {
+      label: "Management",
+      items: [
+        {
+          icon: Users,
+          name: "Students",
+          url: "/dashboard/admin/students",
         },
         {
           icon: BookOpen,
-          name: "Manage Booklets",
+          name: "Booklets",
           url: "/dashboard/admin/booklets",
         },
       ],
