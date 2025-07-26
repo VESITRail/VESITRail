@@ -513,7 +513,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       </div>
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-sm mx-auto">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
               <div className="size-12 bg-destructive/10 rounded-full flex items-center justify-center">

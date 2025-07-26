@@ -466,7 +466,7 @@ const MultiStepForm = () => {
 
                   {rejectionInfo.submissionCount &&
                     rejectionInfo.submissionCount > 1 && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-xs font-medium rounded-full">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
                         <RefreshCw className="size-3" />
                         Attempt #{rejectionInfo.submissionCount}
                       </span>
@@ -488,7 +488,6 @@ const MultiStepForm = () => {
                       </div>
 
                       <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <span className="text-xs">💡</span>
                         <span>
                           Please review the feedback above and update your
                           application accordingly.
