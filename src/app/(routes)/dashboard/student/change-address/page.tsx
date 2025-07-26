@@ -1339,7 +1339,6 @@ const AddressChangePage = () => {
             </div>
 
             <div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10">
-              <AlertTriangle className="size-4 text-destructive mt-0.5 flex-shrink-0" />
               <div className="text-sm text-destructive text-left">
                 <p className="font-medium mb-1">Important Notes:</p>
                 <ul className="list-disc list-inside space-y-1 text-xs">
