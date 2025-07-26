@@ -1282,7 +1282,7 @@ const AddressChangePage = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="size-10 sm:size-12 bg-destructive/10 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="hidden size-10 sm:size-12 bg-destructive/10 rounded-full md:flex items-center justify-center flex-shrink-0">
                 <AlertTriangle className="size-4 sm:size-5 text-destructive" />
               </div>
               <div className="flex-1 min-w-0">
@@ -1350,7 +1350,7 @@ const AddressChangePage = () => {
               </div>
             </div>
           </div>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="gap-4">
             <AlertDialogCancel disabled={isSubmitting}>
               Cancel
             </AlertDialogCancel>

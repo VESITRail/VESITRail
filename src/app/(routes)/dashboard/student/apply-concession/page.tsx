@@ -533,7 +533,7 @@ const ConcessionApplicationForm = () => {
 
       {lastApplication?.status === "Rejected" && (
         <Alert variant="destructive" className="mb-6">
-          <XCircle className="h-4 w-4" />
+          <XCircle className="size-4" />
           <AlertTitle>Previous Application Rejected</AlertTitle>
           <AlertDescription>You can submit a new application.</AlertDescription>
         </Alert>
@@ -808,22 +808,19 @@ const ConcessionApplicationForm = () => {
           </div>
 
           <AlertDialogFooter className="gap-4">
-            <AlertDialogCancel
-              disabled={isSubmitting}
-              className="cursor-pointer"
-            >
+            <AlertDialogCancel disabled={isSubmitting}>
               Cancel
             </AlertDialogCancel>
 
             <AlertDialogAction onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <Send className="mr-2 h-4 w-4" />
+                  <Send className="mr-2 size-4" />
                   Yes, Submit Now
                 </>
               )}
