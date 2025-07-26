@@ -95,7 +95,9 @@ const AdminDashboardLayoutContent = ({
 
                     <BreadcrumbItem className="font-medium">
                       {breadcrumb.isActive ? (
-                        <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
+                        <BreadcrumbPage className="font-medium">
+                          {breadcrumb.label}
+                        </BreadcrumbPage>
                       ) : (
                         <BreadcrumbLink href={breadcrumb.href}>
                           {breadcrumb.label}
