@@ -646,9 +646,9 @@ const AddressChangePage = () => {
 
       {lastApplication?.status === "Rejected" && (
         <Alert variant="destructive" className="mb-6 flex flex-col gap-1">
-          <div className="flex w-full justify-between items-start">
+          <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between md:items-start">
             <div className="flex items-start gap-2">
-              <XCircle className="size-4 mt-0.5 text-destructive" />
+              <XCircle className="size-5 md:size-4 md:mt-0.5 text-destructive" />
 
               <div>
                 <AlertTitle>Previous Request Rejected</AlertTitle>
@@ -665,8 +665,9 @@ const AddressChangePage = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 text-foreground border-muted-foreground/20 hover:border-muted-foreground/40"
+                    className="h-8 text-foreground border-muted-foreground/20 hover:border-muted-foreground/40 w-fit"
                   >
+                    <Eye className="size-4 mr-2" />
                     View Details
                   </Button>
                 </DialogTrigger>
@@ -736,9 +737,9 @@ const AddressChangePage = () => {
 
       {lastApplication?.status === "Approved" && (
         <Alert className="mb-6 flex flex-col gap-1">
-          <div className="flex w-full flex-col gap-4 md:flex-row justify-between items-start">
+          <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between md:items-start">
             <div className="flex items-start gap-2">
-              <CheckCircle className="size-4 mt-0.5 text-green-600" />
+              <CheckCircle className="size-5 md:size-4 mt-0.5 text-green-600" />
 
               <div>
                 <AlertTitle>Previous Request Approved</AlertTitle>
@@ -755,8 +756,9 @@ const AddressChangePage = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 text-foreground border-muted-foreground/20 hover:border-muted-foreground/40"
+                    className="h-8 text-foreground border-muted-foreground/20 hover:border-muted-foreground/40 w-fit"
                   >
+                    <Eye className="size-4 mr-2" />
                     View Details
                   </Button>
                 </DialogTrigger>
@@ -1279,77 +1281,81 @@ const AddressChangePage = () => {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Address Change Request</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-4">
-                <p>
+            <div className="flex items-center gap-3">
+              <div className="size-10 sm:size-12 bg-destructive/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="size-4 sm:size-5 text-destructive" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <AlertDialogTitle className="text-left">
+                  Confirm Address Change Request
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-left mt-1">
                   Please review your address change details before submitting.
                   Once submitted, you cannot modify this request.
-                </p>
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
 
-                <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-left">
-                  <div className="grid grid-cols-1 gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Current Station
-                      </p>
-                      <p className="font-medium">
-                        {student?.station.name} ({student?.station.code})
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        New Station
-                      </p>
-                      <p className="font-medium">
-                        {(() => {
-                          const selectedStation = stations.find(
-                            (station) =>
-                              station.id === form.getValues("newStationId")
-                          );
-                          return selectedStation
-                            ? `${selectedStation.name} (${selectedStation.code})`
-                            : "N/A";
-                        })()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        New Address
-                      </p>
-                      <p className="font-medium">
-                        {(() => {
-                          const formValues = form.getValues();
-                          return `${formValues.building}, ${formValues.area}, ${formValues.city}, ${formValues.pincode}`;
-                        })()}
-                      </p>
-                    </div>
-                  </div>
+          <div className="space-y-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-left">
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Current Station
+                  </p>
+                  <p className="font-medium">
+                    {student?.station.name} ({student?.station.code})
+                  </p>
                 </div>
-
-                <div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10">
-                  <AlertTriangle className="size-4 text-destructive mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-destructive text-left">
-                    <p className="font-medium mb-1">Important Notes:</p>
-                    <ul className="list-disc list-inside space-y-1 text-xs">
-                      <li>This request will be reviewed by admins</li>
-                      <li>You will be notified once a decision is made</li>
-                      <li>
-                        Ensure all information is accurate before submitting
-                      </li>
-                    </ul>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    New Station
+                  </p>
+                  <p className="font-medium">
+                    {(() => {
+                      const selectedStation = stations.find(
+                        (station) =>
+                          station.id === form.getValues("newStationId")
+                      );
+                      return selectedStation
+                        ? `${selectedStation.name} (${selectedStation.code})`
+                        : "N/A";
+                    })()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    New Address
+                  </p>
+                  <p className="font-medium">
+                    {(() => {
+                      const formValues = form.getValues();
+                      return `${formValues.building}, ${formValues.area}, ${formValues.city}, ${formValues.pincode}`;
+                    })()}
+                  </p>
                 </div>
               </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </div>
+
+            <div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10">
+              <AlertTriangle className="size-4 text-destructive mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-destructive text-left">
+                <p className="font-medium mb-1">Important Notes:</p>
+                <ul className="list-disc list-inside space-y-1 text-xs">
+                  <li>This request will be reviewed by admins</li>
+                  <li>You will be notified once a decision is made</li>
+                  <li>Ensure all information is accurate before submitting</li>
+                </ul>
+              </div>
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={isSubmitting}
-              className="min-w-32 cursor-pointer"
               onClick={() => {
                 const formData = form.getValues();
                 onSubmit(formData);
