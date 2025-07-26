@@ -505,8 +505,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
         <AlertDialogContent className="max-w-sm mx-auto">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-destructive" />
+              <div className="size-12 bg-destructive/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="size-6 text-destructive" />
               </div>
               <div>
                 <AlertDialogTitle>Final Submission</AlertDialogTitle>
@@ -536,11 +536,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
             <AlertDialogCancel disabled={isSubmitting}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="bg-destructive hover:bg-destructive/90 cursor-pointer"
-            >
+            <AlertDialogAction onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
