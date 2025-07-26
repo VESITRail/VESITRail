@@ -3,7 +3,6 @@ import {
   Check,
   UserX,
   Inbox,
-  Users,
   Filter,
   Search,
   XCircle,
@@ -65,13 +64,14 @@ import Status from "../ui/status";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import { toTitleCase } from "@/lib/utils";
 import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { StudentApprovalStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 type SortOrder = "asc" | "desc";
@@ -273,9 +273,16 @@ const StudentDetailsDialog = ({
             <div className="space-y-6">
               <div className="flex mt-4 items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                    <Users className="size-5" />
-                  </div>
+                  <Avatar className="size-8 rounded-lg">
+                    <AvatarImage
+                      alt={studentDetails.user.image || "Student"}
+                      src={studentDetails.user.image || undefined}
+                    />
+                    <AvatarFallback className="rounded-lg">
+                      {getUserInitials("Student", studentDetails.user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+
                   <div>
                     <h3 className="font-semibold text-lg">
                       {toTitleCase(
