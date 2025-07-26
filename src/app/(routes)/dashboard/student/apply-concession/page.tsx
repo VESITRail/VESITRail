@@ -9,7 +9,6 @@ import {
   History,
   FileText,
   CheckCircle,
-  AlertCircle,
   AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
@@ -779,11 +778,11 @@ const ConcessionApplicationForm = () => {
       </Card>
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-sm mx-auto">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="size-12 bg-destructive/10 rounded-full flex items-center justify-center">
-                <AlertTriangle className="size-6 text-destructive" />
+              <div className="size-10 bg-destructive/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="size-4 text-destructive" />
               </div>
               <div>
                 <AlertDialogTitle>Final Submission</AlertDialogTitle>
@@ -793,22 +792,21 @@ const ConcessionApplicationForm = () => {
               </div>
             </div>
           </AlertDialogHeader>
-          <div className="py-4">
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-destructive" />
-                <p className="text-sm font-medium">Important Notice:</p>
-              </div>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                <li key="undo">• This action cannot be undone</li>
-                <li key="review">• Please review all details one final time</li>
+
+          <div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10">
+            <div className="text-sm text-destructive text-left">
+              <p className="font-medium mb-1">Important Notes:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li key="undo">This action cannot be undone</li>
+                <li key="review">Please review all details one final time</li>
                 <li key="edit">
-                  • You won&apos;t be able to edit your application after
+                  You won&apos;t be able to edit your application after
                   submission.
                 </li>
               </ul>
             </div>
           </div>
+
           <AlertDialogFooter className="gap-4">
             <AlertDialogCancel
               disabled={isSubmitting}
@@ -817,11 +815,7 @@ const ConcessionApplicationForm = () => {
               Cancel
             </AlertDialogCancel>
 
-            <AlertDialogAction
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="bg-destructive hover:bg-destructive/90 cursor-pointer"
-            >
+            <AlertDialogAction onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
