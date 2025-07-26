@@ -80,6 +80,7 @@ export type StudentDetails = Pick<
     id: string;
     name: string;
     email: string;
+    image?: string | null;
   };
   class: {
     id: string;
@@ -320,6 +321,7 @@ export const getStudentDetails = async (
             id: true,
             name: true,
             email: true,
+            image: true,
           },
         },
         class: {
