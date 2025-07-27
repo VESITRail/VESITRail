@@ -769,6 +769,7 @@ const StudentsTable = ({
   onStudentUpdate,
   hasPreviousPage,
 }: StudentsTableProps) => {
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
   const [sortConfig, setSortConfig] = useState<{
@@ -824,6 +825,7 @@ const StudentsTable = ({
 
   const handleStatusFilter = useCallback(
     (value: string) => {
+      setSelectedStatus(value);
       onFilterChange({
         status: value as StudentApprovalStatusType | "all",
       });
@@ -938,7 +940,7 @@ const StudentsTable = ({
           </Button>
         </div>
 
-        <Select onValueChange={handleStatusFilter}>
+        <Select value={selectedStatus} onValueChange={handleStatusFilter}>
           <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
             <Filter className="mr-2 size-4 text-foreground" />
             <SelectValue placeholder="Status" />

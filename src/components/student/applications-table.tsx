@@ -338,6 +338,8 @@ const ApplicationsTable = ({
   onFilterChange,
   hasPreviousPage,
 }: ApplicationsTableProps) => {
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -397,6 +399,7 @@ const ApplicationsTable = ({
 
   const handleStatusFilter = useCallback(
     (value: string): void => {
+      setSelectedStatus(value);
       onFilterChange({
         status: value as ConcessionApplicationStatusType | "all",
       });
@@ -406,6 +409,7 @@ const ApplicationsTable = ({
 
   const handleTypeFilter = useCallback(
     (value: string): void => {
+      setSelectedType(value);
       onFilterChange({
         applicationType: value as ConcessionApplicationTypeType | "all",
       });
@@ -478,7 +482,7 @@ const ApplicationsTable = ({
   const renderFilters = () => (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       <div className="flex gap-3">
-        <Select onValueChange={handleTypeFilter}>
+        <Select value={selectedType} onValueChange={handleTypeFilter}>
           <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
             <Filter className="mr-2 size-4 text-foreground" />
             <SelectValue placeholder="Type" />
@@ -491,7 +495,7 @@ const ApplicationsTable = ({
           </SelectContent>
         </Select>
 
-        <Select onValueChange={handleStatusFilter}>
+        <Select value={selectedStatus} onValueChange={handleStatusFilter}>
           <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
             <Filter className="mr-2 size-4 text-foreground" />
             <SelectValue placeholder="Status" />

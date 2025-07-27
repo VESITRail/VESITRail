@@ -665,6 +665,7 @@ const AddressChangeRequestsTable = ({
     direction: SortOrder;
   } | null>(null);
 
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
 
@@ -684,6 +685,16 @@ const AddressChangeRequestsTable = ({
   const handleSearchSubmit = useCallback(() => {
     onSearchChange(localSearchQuery);
   }, [localSearchQuery, onSearchChange]);
+
+  const handleStatusFilter = useCallback(
+    (value: string) => {
+      setSelectedStatus(value);
+      onFilterChange({
+        status: value as AddressChangeStatusType | "all",
+      });
+    },
+    [onFilterChange]
+  );
 
   const handleSearchKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
@@ -895,7 +906,7 @@ const AddressChangeRequestsTable = ({
               <TableCell className="text-center">
                 <Skeleton className="h-4 w-8 mx-auto" />
               </TableCell>
-              <TableCell>
+              <TableCell className="flex items-center justify-center my-1">
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-3 w-28" />
@@ -993,71 +1004,79 @@ const AddressChangeRequestsTable = ({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="flex gap-3 flex-1">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              value={localSearchQuery}
-              className="pl-10 pr-20 h-10"
-              placeholder="Search requests..."
-              onKeyPress={handleSearchKeyPress}
-              onChange={(e) => setLocalSearchQuery(e.target.value)}
-            />
-            <Button
-              size="sm"
-              onClick={handleSearchSubmit}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2"
-            >
-              <Search className="size-3" />
-            </Button>
+            {isLoading ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <>
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
+                <Input
+                  value={localSearchQuery}
+                  className="pl-10 pr-20 h-10"
+                  placeholder="Search requests..."
+                  onKeyPress={handleSearchKeyPress}
+                  onChange={(e) => setLocalSearchQuery(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleSearchSubmit}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2"
+                >
+                  <Search className="size-3" />
+                </Button>
+              </>
+            )}
           </div>
 
-          <Select
-            onValueChange={(value) =>
-              onFilterChange({
-                status: value as AddressChangeStatusType | "all",
-              })
-            }
-          >
-            <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
-              <Filter className="mr-2 size-4 text-foreground" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Approved">Approved</SelectItem>
-              <SelectItem value="Rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
+          {isLoading ? (
+            <Skeleton className="h-10 w-36" />
+          ) : (
+            <Select value={selectedStatus} onValueChange={handleStatusFilter}>
+              <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+                <Filter className="mr-2 size-4 text-foreground" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="flex gap-3 sm:ml-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-28 h-10">
-                Columns
-                <ChevronDown className="ml-2 size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.columnDef.meta?.displayName || column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isLoading ? (
+            <Skeleton className="h-10 w-28" />
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="w-28 h-10">
+                  Columns
+                  <ChevronDown className="ml-2 size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.columnDef.meta?.displayName || column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
