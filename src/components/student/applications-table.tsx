@@ -434,7 +434,9 @@ const ApplicationsTable = ({
   const renderPagination = () => (
     <div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
       <div className="text-sm text-muted-foreground order-2 sm:order-1">
-        {totalCount > 0 ? (
+        {isLoading ? (
+          <Skeleton className="h-5 w-52" />
+        ) : totalCount > 0 ? (
           <>
             Showing {(currentPage - 1) * 10 + 1} to{" "}
             {Math.min(currentPage * 10, totalCount)} of {totalCount}{" "}
@@ -446,35 +448,45 @@ const ApplicationsTable = ({
       </div>
 
       <div className="flex items-center justify-center gap-3 order-1 sm:order-2">
-        <Button
-          size="sm"
-          variant="outline"
-          className="size-8 p-0"
-          disabled={!hasPreviousPage}
-          onClick={() => onPageChange(currentPage - 1)}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
+        {isLoading ? (
+          <>
+            <Skeleton className="size-8" />
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="size-8" />
+          </>
+        ) : (
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              className="size-8 p-0"
+              disabled={!hasPreviousPage}
+              onClick={() => onPageChange(currentPage - 1)}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
 
-        <div className="flex items-center gap-2 px-3">
-          <span className="text-sm font-medium text-foreground">
-            {totalPages === 0 ? 0 : currentPage}
-          </span>
-          <span className="text-sm text-muted-foreground">of</span>
-          <span className="text-sm font-medium text-foreground">
-            {totalPages}
-          </span>
-        </div>
+            <div className="flex items-center gap-2 px-3">
+              <span className="text-sm font-medium text-foreground">
+                {totalPages === 0 ? 0 : currentPage}
+              </span>
+              <span className="text-sm text-muted-foreground">of</span>
+              <span className="text-sm font-medium text-foreground">
+                {totalPages}
+              </span>
+            </div>
 
-        <Button
-          size="sm"
-          variant="outline"
-          className="size-8 p-0"
-          disabled={!hasNextPage}
-          onClick={() => onPageChange(currentPage + 1)}
-        >
-          <ChevronRight className="size-4" />
-        </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="size-8 p-0"
+              disabled={!hasNextPage}
+              onClick={() => onPageChange(currentPage + 1)}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -482,111 +494,161 @@ const ApplicationsTable = ({
   const renderFilters = () => (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       <div className="flex gap-3">
-        <Select value={selectedType} onValueChange={handleTypeFilter}>
-          <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
-            <Filter className="mr-2 size-4 text-foreground" />
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
+        {isLoading ? (
+          <>
+            <Skeleton className="h-10 w-36" />
+            <Skeleton className="h-10 w-36" />
+          </>
+        ) : (
+          <>
+            <Select value={selectedType} onValueChange={handleTypeFilter}>
+              <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+                <Filter className="mr-2 size-4 text-foreground" />
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
 
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="New">New</SelectItem>
-            <SelectItem value="Renewal">Renewal</SelectItem>
-          </SelectContent>
-        </Select>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="New">New</SelectItem>
+                <SelectItem value="Renewal">Renewal</SelectItem>
+              </SelectContent>
+            </Select>
 
-        <Select value={selectedStatus} onValueChange={handleStatusFilter}>
-          <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
-            <Filter className="mr-2 size-4 text-foreground" />
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
+            <Select value={selectedStatus} onValueChange={handleStatusFilter}>
+              <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+                <Filter className="mr-2 size-4 text-foreground" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
 
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="Approved">Approved</SelectItem>
-            <SelectItem value="Rejected">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
+        )}
       </div>
 
       <div className="flex gap-3 sm:ml-auto">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="w-28 h-10">
-              Columns
-              <ChevronDown className="ml-2 size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value: boolean) =>
-                      column.toggleVisibility(value)
-                    }
-                  >
-                    {column.id === "applicationType"
-                      ? "Type"
-                      : column.id === "concessionClass"
-                      ? "Class"
-                      : column.id === "concessionPeriod"
-                      ? "Period"
-                      : column.id === "station"
-                      ? "Home Station"
-                      : column.id === "createdAt"
-                      ? "Applied Date"
-                      : column.id === "serialNo"
-                      ? "Sr. No."
-                      : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isLoading ? (
+          <Skeleton className="h-10 w-28" />
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="w-28 h-10">
+                Columns
+                <ChevronDown className="ml-2 size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value: boolean) =>
+                        column.toggleVisibility(value)
+                      }
+                    >
+                      {column.id === "applicationType"
+                        ? "Type"
+                        : column.id === "concessionClass"
+                        ? "Class"
+                        : column.id === "concessionPeriod"
+                        ? "Period"
+                        : column.id === "station"
+                        ? "Home Station"
+                        : column.id === "createdAt"
+                        ? "Applied Date"
+                        : column.id === "serialNo"
+                        ? "Sr. No."
+                        : column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   );
 
   if (isLoading) {
     return (
-      <div className="w-full space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex gap-3">
-            <Skeleton className="h-10 w-36" />
-            <Skeleton className="h-10 w-36" />
-          </div>
-
-          <div className="flex gap-3 sm:ml-auto">
-            <Skeleton className="h-10 w-28" />
-          </div>
-        </div>
+      <div className="w-full space-y-6">
+        {renderFilters()}
 
         <div className="rounded-lg border bg-card">
-          <div className="p-4">
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-border/50">
+                <TableHead className="font-semibold h-12 text-center px-4 w-[80px]">
+                  <Skeleton className="h-4 w-12 mx-auto" />
+                </TableHead>
+                <TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
+                  <Skeleton className="h-4 w-12 mx-auto" />
+                </TableHead>
+                <TableHead className="font-semibold h-12 text-center px-4 w-[120px]">
+                  <Skeleton className="h-4 w-14 mx-auto" />
+                </TableHead>
+                <TableHead className="font-semibold h-12 text-center px-4 w-[200px]">
+                  <Skeleton className="h-4 w-12 mx-auto" />
+                </TableHead>
+                <TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
+                  <Skeleton className="h-4 w-16 mx-auto" />
+                </TableHead>
+                <TableHead className="font-semibold h-12 text-center px-4 w-[180px]">
+                  <Skeleton className="h-4 w-20 mx-auto" />
+                </TableHead>
+                <TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
+                  <Skeleton className="h-4 w-20 mx-auto" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {Array.from({ length: 10 }).map((_, index) => (
+                <TableRow
+                  key={index}
+                  className="hover:bg-muted/50 border-border/50"
+                >
+                  <TableCell className="p-4 text-center">
+                    <Skeleton className="h-4 w-6 mx-auto" />
+                  </TableCell>
+                  <TableCell className="p-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <Skeleton className="h-6 w-16 rounded-md" />
+                      <Skeleton className="h-6 w-6 rounded" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="p-4 text-center">
+                    <Skeleton className="h-6 w-16 rounded-full mx-auto" />
+                  </TableCell>
+                  <TableCell className="p-4 text-center">
+                    <Skeleton className="h-4 w-28 mx-auto" />
+                  </TableCell>
+                  <TableCell className="p-4 text-center">
+                    <Skeleton className="h-4 w-20 mx-auto" />
+                  </TableCell>
+                  <TableCell className="p-4 text-center">
+                    <Skeleton className="h-4 w-32 mx-auto" />
+                  </TableCell>
+                  <TableCell className="p-4 text-center">
+                    <Skeleton className="h-4 w-24 mx-auto" />
+                  </TableCell>
+                </TableRow>
               ))}
-            </div>
-          </div>
+            </TableBody>
+          </Table>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
-          <Skeleton className="h-5 w-40 order-2 sm:order-1" />
-
-          <div className="flex items-center gap-3 order-1 sm:order-2">
-            <Skeleton className="h-8 w-8" />
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-8 w-8" />
-          </div>
-        </div>
+        {renderPagination()}
       </div>
     );
   }
@@ -644,11 +706,7 @@ const ApplicationsTable = ({
                   className="hover:bg-muted/50 border-border/50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="py-4 text-center px-4"
-                      style={{ width: cell.column.getSize() }}
-                    >
+                    <TableCell key={cell.id} className="p-4 text-center">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
