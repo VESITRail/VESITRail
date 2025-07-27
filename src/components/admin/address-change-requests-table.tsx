@@ -356,8 +356,8 @@ const AddressChangeRequestDetailsDialog = ({
               </div>
             </div>
           ) : requestDetails ? (
-            <div className="space-y-6">
-              <div className="flex mt-4 items-center justify-between">
+            <div className="space-y-0">
+              <div className="flex mt-4 items-center justify-between pb-6">
                 <div className="flex items-center gap-3">
                   <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
                     <MapPin className="size-5" />
@@ -379,41 +379,43 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Separator />
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-                      Student Information
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <User className="size-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">
-                            {toTitleCase(
-                              `${requestDetails.student.firstName} ${requestDetails.student.middleName} ${requestDetails.student.lastName}`
-                            )}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {requestDetails.student.user.email}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <FileText className="size-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">
-                            {requestDetails.student.class.code}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {requestDetails.student.class.year.name} -{" "}
-                            {requestDetails.student.class.branch.name}
-                          </p>
-                        </div>
-                      </div>
+              <div className="py-6">
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+                  Student Information
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <User className="size-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {toTitleCase(
+                          `${requestDetails.student.firstName} ${requestDetails.student.middleName} ${requestDetails.student.lastName}`
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {requestDetails.student.user.email}
+                      </p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <FileText className="size-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {requestDetails.student.class.code}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {requestDetails.student.class.year.name} -{" "}
+                        {requestDetails.student.class.branch.name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
+              <Separator />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
+                <div className="space-y-6">
                   <div>
                     <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
                       Current Details
@@ -479,44 +481,48 @@ const AddressChangeRequestDetailsDialog = ({
                       </div>
                     </div>
                   </div>
-
-                  <div>
-                    <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-                      Request Timeline
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="size-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">Submitted</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(
-                              new Date(requestDetails.createdAt),
-                              "MMM dd, yyyy 'at' h:mm a"
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      {requestDetails.reviewedAt && (
-                        <div className="flex items-center gap-3">
-                          <Calendar className="size-4 text-muted-foreground" />
-                          <div>
-                            <p className="text-sm font-medium">Reviewed</p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(
-                                new Date(requestDetails.reviewedAt),
-                                "MMM dd, yyyy 'at' h:mm a"
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              <div>
+              <Separator />
+
+              <div className="py-6">
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+                  Request Timeline
+                </h4>
+                <div className="space-y-3 flex flex-col md:flex-row gap-3 md:gap-6 items-start">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="size-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Submitted</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(
+                          new Date(requestDetails.createdAt),
+                          "MMM dd, yyyy 'at' h:mm a"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  {requestDetails.reviewedAt && (
+                    <div className="flex items-center gap-3">
+                      <Calendar className="size-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Reviewed</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(
+                            new Date(requestDetails.reviewedAt),
+                            "MMM dd, yyyy 'at' h:mm a"
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="py-6">
                 <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
                   Verification Document
                 </h4>
@@ -539,36 +545,42 @@ const AddressChangeRequestDetailsDialog = ({
               </div>
 
               {requestDetails.status === "Pending" && (
-                <div className="flex gap-4 pt-4 border-t">
-                  <Button
-                    className="flex-1"
-                    variant="destructive"
-                    disabled={isApproving || isRejecting}
-                    onClick={() => setShowRejectDialog(true)}
-                  >
-                    <XCircle className="size-4 mr-2" />
-                    Reject Request
-                  </Button>
-                  <Button
-                    onClick={() => setShowApproveDialog(true)}
-                    className="flex-1"
-                    disabled={isApproving || isRejecting}
-                  >
-                    <Check className="size-4 mr-2" />
-                    Approve Request
-                  </Button>
-                </div>
+                <>
+                  <Separator />
+                  <div className="flex gap-4 pt-6">
+                    <Button
+                      className="flex-1"
+                      variant="destructive"
+                      disabled={isApproving || isRejecting}
+                      onClick={() => setShowRejectDialog(true)}
+                    >
+                      <XCircle className="size-4 mr-2" />
+                      Reject Request
+                    </Button>
+                    <Button
+                      onClick={() => setShowApproveDialog(true)}
+                      className="flex-1"
+                      disabled={isApproving || isRejecting}
+                    >
+                      <Check className="size-4 mr-2" />
+                      Approve Request
+                    </Button>
+                  </div>
+                </>
               )}
 
               {requestDetails.reviewedBy && (
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground">
-                    Reviewed by{" "}
-                    <span className="font-medium text-foreground">
-                      {toTitleCase(requestDetails.reviewedBy.user.name)}
-                    </span>
-                  </p>
-                </div>
+                <>
+                  <Separator />
+                  <div className="pt-6">
+                    <p className="text-sm text-muted-foreground">
+                      Reviewed by{" "}
+                      <span className="font-medium text-foreground">
+                        {toTitleCase(requestDetails.reviewedBy.user.name)}
+                      </span>
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           ) : (
@@ -987,11 +999,11 @@ const AddressChangeRequestsTable = ({
     return table.getRowModel().rows.map((row) => (
       <TableRow
         key={row.id}
-        className="hover:bg-muted/50"
+        className="hover:bg-muted/50 border-border/50"
         data-state={row.getIsSelected() && "selected"}
       >
         {row.getVisibleCells().map((cell) => (
-          <TableCell key={cell.id}>
+          <TableCell key={cell.id} className="p-4 text-center">
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         ))}
@@ -1080,7 +1092,7 @@ const AddressChangeRequestsTable = ({
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
