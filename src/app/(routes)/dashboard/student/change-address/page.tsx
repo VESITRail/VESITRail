@@ -1301,7 +1301,7 @@ const AddressChangePage = () => {
             <div className="bg-muted/50 rounded-lg p-4 space-y-3 text-left">
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Current Station
                   </p>
                   <p className="font-medium">
@@ -1309,7 +1309,7 @@ const AddressChangePage = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-muted-foreground">
                     New Station
                   </p>
                   <p className="font-medium">
@@ -1325,7 +1325,7 @@ const AddressChangePage = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-muted-foreground">
                     New Address
                   </p>
                   <p className="font-medium">
