@@ -14,6 +14,7 @@ import {
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma";
+import { deleteCloudinaryFile } from "./cloudinary";
 import { AddressChange, AddressChangeStatusType } from "@/generated/zod";
 
 export type AddressChangeRequestItem = Pick<
@@ -310,11 +311,41 @@ export const reviewAddressChangeRequest = async (
       });
 
       if (status === "Approved") {
+        const oldVerificationDocUrl =
+          addressChangeRequest.student.verificationDocUrl;
+
+        if (oldVerificationDocUrl) {
+          const urlParts = oldVerificationDocUrl.split("/");
+          const uploadIndex = urlParts.findIndex((part) => part === "upload");
+
+          if (uploadIndex !== -1) {
+            let pathAfterUpload = urlParts.slice(uploadIndex + 1).join("/");
+
+            if (pathAfterUpload.startsWith("v")) {
+              const versionMatch = pathAfterUpload.match(/^v\d+\/(.*)/);
+              if (versionMatch) {
+                pathAfterUpload = versionMatch[1];
+              }
+            }
+
+            const publicId = pathAfterUpload;
+            const deleteResult = await deleteCloudinaryFile(publicId);
+
+            if (!deleteResult.isSuccess) {
+              console.error(
+                "Failed to delete old verification document:",
+                deleteResult.error
+              );
+            }
+          }
+        }
+
         await tx.student.update({
           where: { userId: addressChangeRequest.studentId },
           data: {
             address: addressChangeRequest.newAddress,
             stationId: addressChangeRequest.newStationId,
+            verificationDocUrl: addressChangeRequest.verificationDocUrl,
           },
         });
       }
