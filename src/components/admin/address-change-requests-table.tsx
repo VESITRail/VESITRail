@@ -242,8 +242,9 @@ const AddressChangeRequestDetailsDialog = ({
 
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           {isLoading ? (
-            <div className="space-y-6">
-              <div className="flex mt-4 items-center justify-between">
+            <div className="space-y-0">
+              {/* Header Section */}
+              <div className="flex mt-4 items-center justify-between pb-6">
                 <div className="flex items-center gap-3">
                   <Skeleton className="size-10 rounded-lg" />
                   <div className="space-y-2">
@@ -256,28 +257,32 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div>
-                    <Skeleton className="h-4 w-32 mb-4" />
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="size-4" />
-                        <div className="space-y-1">
-                          <Skeleton className="h-4 w-40" />
-                          <Skeleton className="h-3 w-48" />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="size-4" />
-                        <div className="space-y-1">
-                          <Skeleton className="h-4 w-16" />
-                          <Skeleton className="h-3 w-32" />
-                        </div>
-                      </div>
+              {/* Student Information Section */}
+              <div className="py-6">
+                <Skeleton className="h-4 w-32 mb-4" />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="size-4" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-3 w-48" />
                     </div>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="size-4" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
+              <Skeleton className="h-px w-full" />
+
+              {/* Current vs New Details Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
+                <div className="space-y-6">
                   <div>
                     <Skeleton className="h-4 w-28 mb-4" />
                     <div className="space-y-3">
@@ -325,23 +330,36 @@ const AddressChangeRequestDetailsDialog = ({
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
 
-                  <div>
-                    <Skeleton className="h-4 w-28 mb-4" />
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="size-4" />
-                        <div className="space-y-1">
-                          <Skeleton className="h-4 w-16" />
-                          <Skeleton className="h-3 w-32" />
-                        </div>
-                      </div>
+              <Skeleton className="h-px w-full" />
+
+              {/* Request Timeline Section */}
+              <div className="py-6">
+                <Skeleton className="h-4 w-28 mb-4" />
+                <div className="space-y-3 flex flex-col md:flex-row gap-3 md:gap-6 items-start">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="size-4" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="size-4" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-3 w-32" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div>
+              <Skeleton className="h-px w-full" />
+
+              {/* Verification Document Section */}
+              <div className="py-6">
                 <Skeleton className="h-4 w-36 mb-4" />
                 <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
                   <Skeleton className="size-4" />
@@ -350,7 +368,10 @@ const AddressChangeRequestDetailsDialog = ({
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4 border-t">
+              <Skeleton className="h-px w-full" />
+
+              {/* Action Buttons Section */}
+              <div className="flex gap-4 pt-6">
                 <Skeleton className="h-10 flex-1" />
                 <Skeleton className="h-10 flex-1" />
               </div>
