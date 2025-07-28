@@ -596,10 +596,7 @@ const StudentDetailsDialog = ({
                   Rejecting...
                 </>
               ) : (
-                <>
-                  <UserX className="size-4 mr-2" />
-                  Reject Student
-                </>
+                <>Reject Student</>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
