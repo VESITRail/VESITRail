@@ -1,25 +1,26 @@
 import {
   Eye,
+  User,
+  Home,
   Check,
   Filter,
   Search,
+  Train,
+  MapPin,
   XCircle,
   FileText,
+  Calendar,
+  RefreshCw,
   ArrowUpDown,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  MapPin,
-  User,
-  Calendar,
-  Home,
-  Train,
 } from "lucide-react";
 import {
-  getAddressChangeRequestDetails,
-  reviewAddressChangeRequest,
   AddressChangeRequestItem,
+  reviewAddressChangeRequest,
+  getAddressChangeRequestDetails,
 } from "@/actions/address-change-requests";
 import {
   Table,
@@ -62,11 +63,13 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { toTitleCase } from "@/lib/utils";
 import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { AddressChangeStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -103,8 +106,10 @@ const AddressChangeRequestDetailsDialog = ({
   const [requestDetails, setRequestDetails] =
     useState<AddressChangeRequestItem | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
+  const [rejectionReason, setRejectionReason] = useState<string>("");
   const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
   const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
 
@@ -112,12 +117,15 @@ const AddressChangeRequestDetailsDialog = ({
     if (!request.id) return;
 
     setIsLoading(true);
+    setHasError(false);
     try {
       const result = await getAddressChangeRequestDetails(request.id);
 
       if (result.isSuccess) {
         setRequestDetails(result.data);
+        setHasError(false);
       } else {
+        setHasError(true);
         console.error("Failed to load request details:", result.error);
         toast.error("Failed to Load Details", {
           description: "Unable to load request details. Please try again.",
@@ -125,6 +133,7 @@ const AddressChangeRequestDetailsDialog = ({
       }
     } catch (error) {
       console.error("Error loading request details:", error);
+      setHasError(true);
       toast.error("Error Loading Details", {
         description: "An unexpected error occurred. Please try again.",
       });
@@ -179,13 +188,19 @@ const AddressChangeRequestDetailsDialog = ({
   const handleReject = async () => {
     if (!requestDetails) return;
 
+    if (!rejectionReason.trim()) {
+      toast.error("Please provide a reason for rejecting this request.");
+      return;
+    }
+
     setIsRejecting(true);
 
     const rejectPromise = async () => {
       const result = await reviewAddressChangeRequest(
         requestDetails.id,
         adminId,
-        "Rejected"
+        "Rejected",
+        rejectionReason.trim()
       );
 
       if (result.isSuccess) {
@@ -193,11 +208,13 @@ const AddressChangeRequestDetailsDialog = ({
           ...requestDetails,
           status: "Rejected" as AddressChangeStatusType,
           reviewedAt: new Date(),
+          rejectionReason: rejectionReason.trim(),
         };
 
         setRequestDetails(updatedRequest);
         onRequestUpdate?.(updatedRequest);
         setShowRejectDialog(false);
+        setRejectionReason("");
         setIsOpen(false);
         return updatedRequest;
       } else {
@@ -224,6 +241,7 @@ const AddressChangeRequestDetailsDialog = ({
       loadRequestDetails();
     } else {
       setRequestDetails(null);
+      setHasError(false);
     }
   }, [isOpen, loadRequestDetails]);
 
@@ -243,7 +261,6 @@ const AddressChangeRequestDetailsDialog = ({
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           {isLoading ? (
             <div className="space-y-0">
-              {/* Header Section */}
               <div className="flex mt-4 items-center justify-between pb-6">
                 <div className="flex items-center gap-3">
                   <Skeleton className="size-10 rounded-lg" />
@@ -257,7 +274,6 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
-              {/* Student Information Section */}
               <div className="py-6">
                 <Skeleton className="h-4 w-32 mb-4" />
                 <div className="space-y-3">
@@ -280,7 +296,6 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
-              {/* Current vs New Details Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
                 <div className="space-y-6">
                   <div>
@@ -335,7 +350,6 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
-              {/* Request Timeline Section */}
               <div className="py-6">
                 <Skeleton className="h-4 w-28 mb-4" />
                 <div className="space-y-3 flex flex-col md:flex-row gap-3 md:gap-6 items-start">
@@ -358,7 +372,6 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
-              {/* Verification Document Section */}
               <div className="py-6">
                 <Skeleton className="h-4 w-36 mb-4" />
                 <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
@@ -370,10 +383,41 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
-              {/* Action Buttons Section */}
               <div className="flex gap-4 pt-6">
                 <Skeleton className="h-10 flex-1" />
                 <Skeleton className="h-10 flex-1" />
+              </div>
+            </div>
+          ) : hasError ? (
+            <div className="flex flex-col items-center justify-center space-y-6 py-12">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="p-4 rounded-full bg-destructive/10">
+                  <XCircle className="size-8 text-destructive" />
+                </div>
+
+                <div className="space-y-2 text-center">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Failed to Load Request Details
+                  </h3>
+
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    We couldn&apos;t load the request information. This might be
+                    due to a connection issue or the data might be temporarily
+                    unavailable.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => {
+                    setHasError(false);
+                    loadRequestDetails();
+                    setRequestDetails(null);
+                  }}
+                  className="mt-4"
+                >
+                  <RefreshCw className="size-4 mr-2" />
+                  Try Again
+                </Button>
               </div>
             </div>
           ) : requestDetails ? (
@@ -430,6 +474,19 @@ const AddressChangeRequestDetailsDialog = ({
                       </p>
                     </div>
                   </div>
+                  {requestDetails.submissionCount > 1 && (
+                    <div className="flex items-center gap-3">
+                      <RefreshCw className="size-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          Submission #{requestDetails.submissionCount}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          This is a resubmission after rejection
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -565,6 +622,22 @@ const AddressChangeRequestDetailsDialog = ({
                 </div>
               </div>
 
+              {requestDetails.rejectionReason && (
+                <>
+                  <Separator />
+                  <div className="py-6">
+                    <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+                      Rejection Reason
+                    </h4>
+                    <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <p className="text-sm text-destructive">
+                        {requestDetails.rejectionReason}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {requestDetails.status === "Pending" && (
                 <>
                   <Separator />
@@ -604,13 +677,7 @@ const AddressChangeRequestDetailsDialog = ({
                 </>
               )}
             </div>
-          ) : (
-            <div className="p-8 text-center">
-              <p className="text-muted-foreground">
-                Failed to load request details.
-              </p>
-            </div>
-          )}
+          ) : null}
         </DialogContent>
       </Dialog>
 
@@ -638,15 +705,28 @@ const AddressChangeRequestDetailsDialog = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Reject Address Change Request</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to reject this address change request? This
-              action cannot be undone.
+              Please provide a detailed reason for rejecting this address change
+              request. This will help the student understand what needs to be
+              corrected.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="rejection-reason">Rejection Reason</Label>
+            <Textarea
+              id="rejection-reason"
+              value={rejectionReason}
+              className="min-h-[100px]"
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Please explain why this address change request is being rejected..."
+            />
+          </div>
+
           <AlertDialogFooter className="gap-4">
             <AlertDialogCancel disabled={isRejecting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleReject}
-              disabled={isRejecting}
+              disabled={isRejecting || !rejectionReason.trim()}
               className="bg-destructive hover:bg-destructive/90"
             >
               {isRejecting ? "Rejecting..." : "Reject Request"}

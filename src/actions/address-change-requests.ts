@@ -25,6 +25,8 @@ export type AddressChangeRequestItem = Pick<
   | "reviewedAt"
   | "newAddress"
   | "currentAddress"
+  | "rejectionReason"
+  | "submissionCount"
   | "verificationDocUrl"
 > & {
   student: {
@@ -263,11 +265,24 @@ export const getAddressChangeRequests = async (
 export const reviewAddressChangeRequest = async (
   requestId: string,
   adminId: string,
-  status: "Approved" | "Rejected"
+  status: "Approved" | "Rejected",
+  rejectionReason?: string
 ): Promise<
   Result<AddressChange, DatabaseError | ValidationError | AuthError>
 > => {
   try {
+    if (
+      status === "Rejected" &&
+      (!rejectionReason || !rejectionReason.trim())
+    ) {
+      return failure(
+        validationError(
+          "Rejection reason is required when rejecting",
+          "rejectionReason"
+        )
+      );
+    }
+
     const admin = await prisma.admin.findUnique({
       where: { userId: adminId },
       select: { isActive: true },
@@ -307,6 +322,8 @@ export const reviewAddressChangeRequest = async (
           status,
           reviewedById: adminId,
           reviewedAt: new Date(),
+          rejectionReason:
+            status === "Rejected" ? rejectionReason?.trim() : null,
         },
       });
 

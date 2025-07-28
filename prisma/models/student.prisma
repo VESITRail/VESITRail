@@ -88,6 +88,9 @@ model AddressChange {
   currentAddress   String
   currentStationId String
 
+  rejectionReason String?
+  submissionCount Int     @default(1)
+
   reviewedById       String?
   verificationDocUrl String
   status             AddressChangeStatus @default(Pending)

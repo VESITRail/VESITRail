@@ -13,6 +13,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "VESITRail",
   manifest: "/manifest.webmanifest",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://vesitrail.ves.ac.in"
+  ),
   description:
     "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
 };

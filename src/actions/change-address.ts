@@ -93,12 +93,37 @@ export const submitAddressChangeApplication = async (
       return failure(authError("Student is not approved", "FORBIDDEN"));
     }
 
-    const application = await prisma.addressChange.create({
-      data: {
+    const existingApplication = await prisma.addressChange.findFirst({
+      where: {
+        studentId: data.studentId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const application = await prisma.addressChange.upsert({
+      where: {
+        id: existingApplication?.id || "",
+      },
+      create: {
         status: "Pending",
+        submissionCount: 1,
         studentId: data.studentId,
         newAddress: data.newAddress,
         newStationId: data.newStationId,
+        currentAddress: data.currentAddress,
+        currentStationId: data.currentStationId,
+        verificationDocUrl: data.verificationDocUrl,
+      },
+      update: {
+        status: "Pending",
+        reviewedAt: null,
+        reviewedById: null,
+        rejectionReason: null,
+        newAddress: data.newAddress,
+        newStationId: data.newStationId,
+        submissionCount: { increment: 1 },
         currentAddress: data.currentAddress,
         currentStationId: data.currentStationId,
         verificationDocUrl: data.verificationDocUrl,

@@ -42,19 +42,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [publicId, setPublicId] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
-
-  useEffect(() => {
-    if (defaultValues?.verificationDocUrl) {
-      const id = defaultValues.verificationDocUrl
-        .split("/")
-        .pop()
-        ?.split(".")[0];
-
-      if (id) {
-        setPublicId(`VESITRail/${id}.pdf`);
-      }
-    }
-  }, [defaultValues?.verificationDocUrl]);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const form = useForm<z.infer<typeof DocumentSchema>>({
     resolver: zodResolver(DocumentSchema),
@@ -62,6 +50,55 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
       verificationDocUrl: defaultValues?.verificationDocUrl || "",
     },
   });
+
+  useEffect(() => {
+    if (defaultValues?.verificationDocUrl) {
+      const documentUrl = defaultValues.verificationDocUrl;
+      const id = documentUrl.split("/").pop()?.split(".")[0];
+
+      if (id) {
+        const publicIdFromUrl = `VESITRail/${id}.pdf`;
+
+        setIsVerifying(true);
+
+        const verifyToastId = toast.loading("Verifying document...", {
+          description: "Please wait while we check your uploaded document.",
+        });
+
+        fetch(documentUrl, { method: "HEAD" })
+          .then((response) => {
+            toast.dismiss(verifyToastId);
+            if (response.ok) {
+              setPublicId(publicIdFromUrl);
+              toast.success("Document verified successfully!", {
+                description: "Your previously uploaded document is ready.",
+              });
+            } else {
+              console.warn("Document URL not accessible, clearing from form");
+              setPublicId("");
+              form.setValue("verificationDocUrl", "");
+              toast.warning("Previous document not found", {
+                description:
+                  "Your previous document is no longer available. Please upload a new one.",
+              });
+            }
+          })
+          .catch((error) => {
+            toast.dismiss(verifyToastId);
+            console.warn("Document verification failed:", error);
+            setPublicId("");
+            form.setValue("verificationDocUrl", "");
+            toast.warning("Document verification failed", {
+              description:
+                "Unable to verify your previous document. Please upload a new one.",
+            });
+          })
+          .finally(() => {
+            setIsVerifying(false);
+          });
+      }
+    }
+  }, [defaultValues?.verificationDocUrl, form]);
 
   const watchedUrl = form.watch("verificationDocUrl");
 
@@ -115,13 +152,11 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
       onSubmit({ verificationDocUrl: secure_url });
 
       toast.success("Document uploaded successfully!", {
-        duration: 4000,
         description: "Your verification document has been uploaded.",
       });
     } catch (error) {
       console.error("Upload processing error:", error);
       toast.error("Upload processing failed", {
-        duration: 5000,
         description:
           "Failed to process the uploaded document. Please try again.",
       });
@@ -132,7 +167,6 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
     setIsUploading(false);
     console.error("Upload error:", error);
     toast.error("Failed to upload document", {
-      duration: 5000,
       description: "Please try again with a valid PDF file.",
     });
   };
@@ -142,12 +176,51 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 
     setIsDeleting(true);
 
-    const deletePromise = deleteCloudinaryFile(publicId);
+    const deleteToastId = toast.loading("Removing document...", {
+      description: "Please wait while we remove your document.",
+    });
 
-    toast.promise(deletePromise, {
-      loading: "Removing document...",
-      success: (result) => {
-        if (result.isSuccess) {
+    try {
+      const result = await deleteCloudinaryFile(publicId);
+
+      if (result.isSuccess) {
+        setPublicId("");
+        form.setValue("verificationDocUrl", "");
+
+        if (defaultValues) {
+          setFormData({
+            ...defaultValues,
+            verificationDocUrl: "",
+          });
+        } else {
+          setFormData({
+            year: "",
+            class: "",
+            branch: "",
+            station: "",
+            address: "",
+            lastName: "",
+            firstName: "",
+            middleName: "",
+            gender: "Male",
+            dateOfBirth: "",
+            verificationDocUrl: "",
+            preferredConcessionClass: "",
+            preferredConcessionPeriod: "",
+          });
+        }
+
+        toast.dismiss(deleteToastId);
+        toast.success("Document removed successfully!", {
+          description: "You can now upload a new document.",
+        });
+      } else {
+        const errorMessage = result.error?.message || "Unknown error";
+
+        if (
+          errorMessage.includes("not found") ||
+          errorMessage.includes("does not exist")
+        ) {
           setPublicId("");
           form.setValue("verificationDocUrl", "");
 
@@ -174,29 +247,153 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
             });
           }
 
-          return "Document removed successfully! You can now upload a new document.";
+          toast.dismiss(deleteToastId);
+          toast.success("Document cleared successfully!", {
+            description:
+              "The file was already removed from storage. You can now upload a new document.",
+          });
         } else {
-          throw new Error(result.error.message);
+          console.error("Cloudinary deletion failed:", errorMessage);
+          setPublicId("");
+          form.setValue("verificationDocUrl", "");
+
+          if (defaultValues) {
+            setFormData({
+              ...defaultValues,
+              verificationDocUrl: "",
+            });
+          } else {
+            setFormData({
+              year: "",
+              class: "",
+              branch: "",
+              station: "",
+              address: "",
+              lastName: "",
+              firstName: "",
+              middleName: "",
+              gender: "Male",
+              dateOfBirth: "",
+              verificationDocUrl: "",
+              preferredConcessionClass: "",
+              preferredConcessionPeriod: "",
+            });
+          }
+
+          toast.dismiss(deleteToastId);
+          toast.warning("Document cleared from form", {
+            description:
+              "There was an issue removing the file from storage, but it has been cleared from your form. You can now upload a new document.",
+          });
         }
-      },
-      error: (error) => {
-        console.error("Delete error:", error);
-        return "Failed to remove document. Please try again or contact support.";
-      },
-      finally: () => {
-        setIsDeleting(false);
-      },
-    });
-
-    try {
-      await deletePromise;
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Delete Error:", error.message);
-      } else {
-        console.error("Unknown Delete Error:", error);
       }
+    } catch (error) {
+      toast.dismiss(deleteToastId);
 
+      if (error instanceof Error) {
+        console.error("Error while deleting Cloudinary file:", error.message);
+
+        if (
+          error.message.includes("not found") ||
+          error.message.includes("does not exist")
+        ) {
+          setPublicId("");
+          form.setValue("verificationDocUrl", "");
+
+          if (defaultValues) {
+            setFormData({
+              ...defaultValues,
+              verificationDocUrl: "",
+            });
+          } else {
+            setFormData({
+              year: "",
+              class: "",
+              branch: "",
+              station: "",
+              address: "",
+              lastName: "",
+              firstName: "",
+              middleName: "",
+              gender: "Male",
+              dateOfBirth: "",
+              verificationDocUrl: "",
+              preferredConcessionClass: "",
+              preferredConcessionPeriod: "",
+            });
+          }
+
+          toast.success("Document cleared successfully!", {
+            description:
+              "The file was already removed from storage. You can now upload a new document.",
+          });
+        } else {
+          setPublicId("");
+          form.setValue("verificationDocUrl", "");
+
+          if (defaultValues) {
+            setFormData({
+              ...defaultValues,
+              verificationDocUrl: "",
+            });
+          } else {
+            setFormData({
+              year: "",
+              class: "",
+              branch: "",
+              station: "",
+              address: "",
+              lastName: "",
+              firstName: "",
+              middleName: "",
+              gender: "Male",
+              dateOfBirth: "",
+              verificationDocUrl: "",
+              preferredConcessionClass: "",
+              preferredConcessionPeriod: "",
+            });
+          }
+
+          toast.warning("Document cleared from form", {
+            description:
+              "There was an issue removing the file, but it has been cleared from your form. You can now upload a new document.",
+          });
+        }
+      } else {
+        console.error("Unknown error while deleting Cloudinary file:", error);
+
+        setPublicId("");
+        form.setValue("verificationDocUrl", "");
+
+        if (defaultValues) {
+          setFormData({
+            ...defaultValues,
+            verificationDocUrl: "",
+          });
+        } else {
+          setFormData({
+            year: "",
+            class: "",
+            branch: "",
+            station: "",
+            address: "",
+            lastName: "",
+            firstName: "",
+            middleName: "",
+            gender: "Male",
+            dateOfBirth: "",
+            verificationDocUrl: "",
+            preferredConcessionClass: "",
+            preferredConcessionPeriod: "",
+          });
+        }
+
+        toast.warning("Document cleared from form", {
+          description:
+            "An unexpected error occurred, but the document has been cleared from your form. You can now upload a new document.",
+        });
+      }
+    } finally {
       setIsDeleting(false);
     }
   };
@@ -212,7 +409,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
     return null;
   }
 
-  if (session.isPending) {
+  if (session.isPending || isVerifying) {
     return (
       <div className="space-y-4">
         <div className="space-y-2">

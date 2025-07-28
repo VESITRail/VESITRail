@@ -161,11 +161,6 @@ export const submitOnboarding = async (
   data: OnboardingData
 ): Promise<Result<Student, DatabaseError>> => {
   try {
-    const existingStudent = await prisma.student.findUnique({
-      where: { userId: studentId },
-      select: { submissionCount: true },
-    });
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { class: classData, ...dbData } = data;
 
@@ -184,9 +179,7 @@ export const submitOnboarding = async (
         status: "Pending",
         reviewedById: null,
         rejectionReason: null,
-        submissionCount: existingStudent
-          ? existingStudent.submissionCount + 1
-          : 1,
+        submissionCount: { increment: 1 },
       },
     });
 
