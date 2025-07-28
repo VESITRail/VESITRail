@@ -7,6 +7,7 @@ import {
   Search,
   XCircle,
   FileText,
+  RefreshCw,
   ArrowUpDown,
   ChevronDown,
   ChevronLeft,
@@ -99,6 +100,7 @@ const StudentDetailsDialog = ({
   const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(
     null
   );
+  const [hasError, setHasError] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -108,16 +110,20 @@ const StudentDetailsDialog = ({
     if (!isOpen || studentDetails) return;
 
     setIsLoading(true);
+    setHasError(false);
     try {
       const result = await getStudentDetails(student.userId);
 
       if (result.isSuccess) {
         setStudentDetails(result.data);
+        setHasError(false);
       } else {
+        setHasError(true);
         toast.error("Failed to load student details");
       }
     } catch (error) {
       console.error("Error loading student details:", error);
+      setHasError(true);
       toast.error("Failed to load student details");
     } finally {
       setIsLoading(false);
@@ -203,6 +209,7 @@ const StudentDetailsDialog = ({
       loadStudentDetails();
     } else {
       setStudentDetails(null);
+      setHasError(false);
     }
   }, [isOpen, loadStudentDetails]);
 
@@ -267,6 +274,38 @@ const StudentDetailsDialog = ({
               <div className="flex gap-4 pt-4 border-t">
                 <Skeleton className="h-10 flex-1" />
                 <Skeleton className="h-10 flex-1" />
+              </div>
+            </div>
+          ) : hasError ? (
+            <div className="flex flex-col items-center justify-center space-y-6 py-12">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="p-4 rounded-full bg-destructive">
+                  <XCircle className="size-8 text-white" />
+                </div>
+
+                <div className="space-y-2 text-center">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Failed to Load Student Details
+                  </h3>
+
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    We couldn't load the student information. This might be due
+                    to a connection issue or the data might be temporarily
+                    unavailable.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => {
+                    setHasError(false);
+                    loadStudentDetails();
+                    setStudentDetails(null);
+                  }}
+                  className="mt-4"
+                >
+                  <RefreshCw className="size-4" />
+                  Try Again
+                </Button>
               </div>
             </div>
           ) : studentDetails ? (
