@@ -289,8 +289,8 @@ const StudentDetailsDialog = ({
                   </h3>
 
                   <p className="text-sm text-muted-foreground max-w-md">
-                    We couldn't load the student information. This might be due
-                    to a connection issue or the data might be temporarily
+                    We couldn&apos;t load the student information. This might be
+                    due to a connection issue or the data might be temporarily
                     unavailable.
                   </p>
                 </div>
