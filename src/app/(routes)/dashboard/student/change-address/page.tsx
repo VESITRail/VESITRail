@@ -12,6 +12,7 @@ import {
   MapPin,
   Loader2,
   XCircle,
+  RefreshCw,
   CheckCircle,
   AlertTriangle,
   ChevronsUpDown,
@@ -149,6 +150,7 @@ const AddressChangePage = () => {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [loadingStations, setLoadingStations] = useState<boolean>(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
@@ -334,6 +336,87 @@ const AddressChangePage = () => {
   }, [data?.user?.id, isPending, fetchStudentDetails, checkLastAddressChange]);
 
   useEffect(() => {
+    if (lastApplication?.status === "Rejected") {
+      const addressParts = lastApplication.newAddress.split(", ");
+      if (addressParts.length >= 4) {
+        const [building, area, city, pincode] = addressParts;
+
+        form.setValue("building", building.trim());
+        form.setValue("area", area.trim());
+        form.setValue("city", city.trim());
+        form.setValue("pincode", pincode.trim());
+        form.setValue("newStationId", lastApplication.newStationId);
+
+        const verifyAndSetDocument = async () => {
+          if (lastApplication.verificationDocUrl) {
+            setIsVerifying(true);
+
+            const verifyToastId = toast.loading("Verifying document...", {
+              description: "Please wait while we check your uploaded document.",
+            });
+
+            try {
+              const response = await fetch(lastApplication.verificationDocUrl, {
+                method: "HEAD",
+              });
+
+              toast.dismiss(verifyToastId);
+
+              if (response.ok) {
+                form.setValue(
+                  "verificationDocUrl",
+                  lastApplication.verificationDocUrl
+                );
+
+                const id = lastApplication.verificationDocUrl
+                  .split("/")
+                  .pop()
+                  ?.split(".")[0];
+                if (id) {
+                  setPublicId(`VESITRail/${id}.pdf`);
+                }
+
+                toast.success("Document verified successfully!", {
+                  description: "Your previously uploaded document is ready.",
+                });
+              } else {
+                console.warn(
+                  "Verification document URL is no longer valid, clearing from form"
+                );
+                form.setValue("verificationDocUrl", "");
+                setPublicId("");
+
+                toast.warning("Previous document not found", {
+                  description:
+                    "Your previous document is no longer available. Please upload a new one.",
+                });
+              }
+            } catch (error) {
+              toast.dismiss(verifyToastId);
+              console.warn(
+                "Could not verify document URL, clearing from form:",
+                error
+              );
+              form.setValue("verificationDocUrl", "");
+              setPublicId("");
+
+              toast.warning("Document verification failed", {
+                description:
+                  "Unable to verify your previous document. Please upload a new one.",
+                duration: 5000,
+              });
+            } finally {
+              setIsVerifying(false);
+            }
+          }
+        };
+
+        verifyAndSetDocument();
+      }
+    }
+  }, [lastApplication, form]);
+
+  useEffect(() => {
     return () => {
       document.body.style.overflow = "auto";
       document.documentElement.style.overflow = "auto";
@@ -403,8 +486,8 @@ const AddressChangePage = () => {
       const result = await deleteCloudinaryFile(publicId);
 
       if (result.isSuccess) {
+        // Successfully deleted from Cloudinary
         setPublicId("");
-
         form.setValue("verificationDocUrl", "", {
           shouldDirty: true,
           shouldTouch: true,
@@ -416,20 +499,89 @@ const AddressChangePage = () => {
           description: "You can now upload a new document.",
         });
       } else {
-        throw new Error("Failed to delete file");
+        const errorMessage = result.error?.message || "Unknown error";
+
+        if (
+          errorMessage.includes("not found") ||
+          errorMessage.includes("does not exist")
+        ) {
+          setPublicId("");
+          form.setValue("verificationDocUrl", "", {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+
+          toast.dismiss(deleteToastId);
+          toast.success("Document cleared successfully!", {
+            description:
+              "The file was already removed from storage. You can now upload a new document.",
+          });
+        } else {
+          console.error("Cloudinary deletion failed:", errorMessage);
+          setPublicId("");
+          form.setValue("verificationDocUrl", "", {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+
+          toast.dismiss(deleteToastId);
+          toast.warning("Document cleared from form", {
+            description:
+              "There was an issue removing the file from storage, but it has been cleared from your form. You can now upload a new document.",
+          });
+        }
       }
     } catch (error) {
       toast.dismiss(deleteToastId);
 
       if (error instanceof Error) {
         console.error("Error while deleting Cloudinary file:", error.message);
+
+        if (
+          error.message.includes("not found") ||
+          error.message.includes("does not exist")
+        ) {
+          setPublicId("");
+          form.setValue("verificationDocUrl", "", {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+
+          toast.success("Document cleared successfully!", {
+            description:
+              "The file was already removed from storage. You can now upload a new document.",
+          });
+        } else {
+          setPublicId("");
+          form.setValue("verificationDocUrl", "", {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+
+          toast.warning("Document cleared from form", {
+            description:
+              "There was an issue removing the file, but it has been cleared from your form. You can now upload a new document.",
+          });
+        }
       } else {
         console.error("Unknown error while deleting Cloudinary file:", error);
-      }
 
-      toast.error("Failed to remove document", {
-        description: "Please try again or contact support.",
-      });
+        setPublicId("");
+        form.setValue("verificationDocUrl", "", {
+          shouldDirty: true,
+          shouldTouch: true,
+          shouldValidate: true,
+        });
+
+        toast.warning("Document cleared from form", {
+          description:
+            "An unexpected error occurred, but the document has been cleared from your form. You can now upload a new document.",
+        });
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -471,11 +623,18 @@ const AddressChangePage = () => {
     };
 
     const submitPromise = submitAddressChangeApplication(submissionData);
+    const isResubmission = lastApplication?.status === "Rejected";
 
     toast.promise(submitPromise, {
-      loading: "Submitting address change request...",
-      error: "Failed to submit address change request",
-      success: "Address change request submitted successfully!",
+      loading: isResubmission
+        ? "Resubmitting address change request..."
+        : "Submitting address change request...",
+      error: isResubmission
+        ? "Failed to resubmit address change request"
+        : "Failed to submit address change request",
+      success: isResubmission
+        ? "Address change request resubmitted successfully!"
+        : "Address change request submitted successfully!",
     });
 
     try {
@@ -518,12 +677,13 @@ const AddressChangePage = () => {
     }
   };
 
-  if (isPending || loading || loadingStations || !student) {
+  if (isPending || loading || loadingStations || isVerifying || !student) {
     return (
       <div className="container max-w-5xl mx-auto py-8 px-4">
-        <div className="flex justify-between items-center">
+        <div className="flex w-full gap-4 justify-between items-start">
           <span className="flex items-center gap-3">
-            <Skeleton className="size-10 rounded-lg" />
+            <Skeleton className="size-10" />
+
             <Skeleton className="h-8 w-48" />
           </span>
           <Skeleton className="size-10 rounded-lg" />
@@ -531,19 +691,21 @@ const AddressChangePage = () => {
 
         <Separator className="my-6" />
 
-        <Skeleton className="h-20 w-full mb-6 rounded-lg" />
+        <div className="py-4">
+          <Skeleton className="h-32 w-full rounded-lg" />
+        </div>
 
         <Card>
           <CardContent className="py-4">
             <div className="space-y-5 md:space-y-7">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-7">
                 <div className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-10 w-full rounded-md" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-10 w-full rounded-md bg-input/30" />
                 </div>
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-10 w-full rounded-md" />
+                  <Skeleton className="h-10 w-full rounded-md bg-input/30" />
                 </div>
               </div>
 
@@ -564,7 +726,7 @@ const AddressChangePage = () => {
                   <Skeleton className="h-10 w-full rounded-md" />
                 </div>
                 <div className="space-y-2">
-                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-16" />
                   <Skeleton className="h-10 w-full rounded-md" />
                 </div>
               </div>
@@ -578,12 +740,19 @@ const AddressChangePage = () => {
               </div>
 
               <div className="space-y-2">
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-48 w-full rounded-lg" />
+                <Skeleton className="h-5 w-44" />
+                <div className="border-2 border-dashed border-border rounded-lg bg-muted/50 p-8">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <Skeleton className="size-10 rounded-lg" />
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+                <Skeleton className="h-3 w-80 mx-auto" />
               </div>
 
               <div className="flex justify-end pt-4">
-                <Skeleton className="h-10 w-32 rounded-md" />
+                <Skeleton className="h-10 w-36 rounded-md" />
               </div>
             </div>
           </CardContent>
@@ -645,94 +814,63 @@ const AddressChangePage = () => {
       <Separator className="my-6" />
 
       {lastApplication?.status === "Rejected" && (
-        <Alert variant="destructive" className="mb-6 flex flex-col gap-1">
-          <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between md:items-start">
-            <div className="flex items-start gap-2">
-              <XCircle className="size-5 md:size-4 md:mt-0.5 text-destructive" />
+        <div className="py-4">
+          <div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="size-9 hidden bg-destructive/10 rounded-full md:flex items-center justify-center">
+                  <AlertTriangle className="size-4.5 text-destructive" />
+                </div>
+              </div>
 
-              <div>
-                <AlertTitle>Previous Request Rejected</AlertTitle>
-                <AlertDescription>
-                  Your previous address change request was rejected. You can
-                  submit a new request.
-                </AlertDescription>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h3 className="text-base font-semibold">Request Rejected</h3>
+
+                  {lastApplication.submissionCount &&
+                    lastApplication.submissionCount > 1 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                        <RefreshCw className="size-3" />
+                        Attempt #{lastApplication.submissionCount}
+                      </span>
+                    )}
+                </div>
+
+                <div className="space-y-3">
+                  {lastApplication.rejectionReason ? (
+                    <div className="space-y-2 mt-3">
+                      <div className="p-4 bg-muted/50 rounded-md border-l-4 border-muted-foreground/20">
+                        <div className="flex items-start gap-2">
+                          <span className="text-sm font-medium text-foreground">
+                            Reason:
+                          </span>
+                          <span className="text-sm text-foreground">
+                            {lastApplication.rejectionReason}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <span>
+                          Please review the feedback above and update your
+                          application accordingly.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Your previous address change request was rejected.
+                        Please review and correct your details before
+                        resubmitting.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-
-            {lastApplication && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 text-foreground border-muted-foreground/20 hover:border-muted-foreground/40 w-fit"
-                  >
-                    <Eye className="size-4 mr-2" />
-                    View Details
-                  </Button>
-                </DialogTrigger>
-
-                <DialogContent className="sm:max-w-lg">
-                  <DialogHeader>
-                    <DialogTitle>Previous Request Details</DialogTitle>
-                  </DialogHeader>
-
-                  <Separator className="my-2" />
-
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Status
-                        </p>
-                        <StatusBadge status={lastApplication.status} />
-                      </div>
-
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          Applied Date
-                        </p>
-                        <p className="font-medium text-foreground/90">
-                          {format(
-                            new Date(lastApplication.createdAt),
-                            "MMMM dd, yyyy"
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">
-                          From
-                        </p>
-                        <p className="font-medium text-foreground/90">
-                          {lastApplication.currentStation.name} (
-                          {lastApplication.currentStation.code})
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {lastApplication.currentAddress}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">
-                          To
-                        </p>
-                        <p className="font-medium text-foreground/90">
-                          {lastApplication.newStation.name} (
-                          {lastApplication.newStation.code})
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {lastApplication.newAddress}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
           </div>
-        </Alert>
+        </div>
       )}
 
       {lastApplication?.status === "Approved" && (
@@ -1262,12 +1400,16 @@ const AddressChangePage = () => {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="size-4 mr-2 animate-spin" />
-                        Submitting...
+                        {lastApplication?.status === "Rejected"
+                          ? "Resubmitting..."
+                          : "Submitting..."}
                       </>
                     ) : (
                       <>
                         <Send className="size-4 mr-2" />
-                        Submit Request
+                        {lastApplication?.status === "Rejected"
+                          ? "Resubmit Request"
+                          : "Submit Request"}
                       </>
                     )}
                   </Button>
@@ -1287,11 +1429,20 @@ const AddressChangePage = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <AlertDialogTitle className="text-left">
-                  Confirm Address Change Request
+                  {lastApplication?.status === "Rejected"
+                    ? "Confirm Address Change Resubmission"
+                    : "Confirm Address Change Request"}
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-left mt-1">
-                  Please review your address change details before submitting.
-                  Once submitted, you cannot modify this request.
+                  Please review your address change details before{" "}
+                  {lastApplication?.status === "Rejected"
+                    ? "resubmitting"
+                    : "submitting"}
+                  . Once{" "}
+                  {lastApplication?.status === "Rejected"
+                    ? "resubmitted"
+                    : "submitted"}
+                  , you cannot modify this request.
                 </AlertDialogDescription>
               </div>
             </div>
@@ -1363,12 +1514,16 @@ const AddressChangePage = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  Submitting...
+                  {lastApplication?.status === "Rejected"
+                    ? "Resubmitting..."
+                    : "Submitting..."}
                 </>
               ) : (
                 <>
                   <Send className="size-4 mr-2" />
-                  Submit Request
+                  {lastApplication?.status === "Rejected"
+                    ? "Resubmit Request"
+                    : "Submit Request"}
                 </>
               )}
             </AlertDialogAction>
