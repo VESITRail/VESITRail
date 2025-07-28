@@ -403,7 +403,6 @@ const AddressChangePage = () => {
               toast.warning("Document verification failed", {
                 description:
                   "Unable to verify your previous document. Please upload a new one.",
-                duration: 5000,
               });
             } finally {
               setIsVerifying(false);
