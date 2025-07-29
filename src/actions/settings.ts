@@ -132,3 +132,48 @@ export const updateStudentPreferences = async (
     return failure(databaseError("Failed to update preferences"));
   }
 };
+
+export async function updateNotificationPreference(
+  userId: string,
+  enabled: boolean
+): Promise<Result<{ success: boolean }, DatabaseError>> {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId },
+    });
+
+    if (!student) {
+      return failure(databaseError("Student profile not found"));
+    }
+
+    await prisma.student.update({
+      where: { userId },
+      data: { notificationsEnabled: enabled },
+    });
+
+    return success({ success: true });
+  } catch (error) {
+    console.error("Error updating notification preference:", error);
+    return failure(databaseError("Failed to update notification preference"));
+  }
+}
+
+export async function getNotificationPreference(
+  userId: string
+): Promise<Result<{ enabled: boolean }, DatabaseError>> {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { userId },
+      select: { notificationsEnabled: true },
+    });
+
+    if (!student) {
+      return failure(databaseError("Student profile not found"));
+    }
+
+    return success({ enabled: student.notificationsEnabled });
+  } catch (error) {
+    console.error("Error getting notification preference:", error);
+    return failure(databaseError("Failed to get notification preference"));
+  }
+}

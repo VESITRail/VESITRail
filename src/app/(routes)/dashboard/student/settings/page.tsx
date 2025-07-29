@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { Settings as SettingsIcon } from "lucide-react";
 import Preferences from "@/components/settings/preferences";
+import NotificationPreferences from "@/components/settings/notification-preferences";
 
 const Settings = () => {
   return (
@@ -16,6 +17,8 @@ const Settings = () => {
       </div>
 
       <Separator className="my-6" />
+
+      <NotificationPreferences />
 
       <Preferences />
     </div>
