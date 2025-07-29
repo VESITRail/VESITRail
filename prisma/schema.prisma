@@ -71,3 +71,19 @@ model Verification {
   createdAt  DateTime?
   updatedAt  DateTime?
 }
+
+model FcmToken {
+  id        String @id @default(cuid())
+  studentId String
+
+  deviceId String?
+  platform FcmPlatform
+  token    String      @unique
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+
+  @@unique([studentId, deviceId])
+}
