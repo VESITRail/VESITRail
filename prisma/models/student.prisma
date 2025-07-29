@@ -24,6 +24,7 @@ model Student {
   preferredConcessionClassId  String
   preferredConcessionPeriodId String
 
+  fcmTokens      FcmToken[]
   addressChanges AddressChange[]
   applications   ConcessionApplication[]
 
