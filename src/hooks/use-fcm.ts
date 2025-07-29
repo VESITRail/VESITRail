@@ -1,10 +1,10 @@
 "use client";
 
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
 import { saveFcmToken } from "@/actions/fcm";
 import { messaging } from "@/config/firebase";
 import { FcmPlatformType } from "@/generated/zod";
+import { useCallback, useEffect, useState } from "react";
 import { getToken, onMessage, type Messaging } from "firebase/messaging";
 
 type FcmState = {
@@ -40,36 +40,41 @@ export const useFcm = (studentId?: string) => {
     permission: "default",
   });
 
-  const saveTokenToDb = async (token: string): Promise<void> => {
-    if (!studentId) return;
+  const saveTokenToDb = useCallback(
+    async (token: string): Promise<void> => {
+      if (!studentId) return;
 
-    try {
-      const result = await saveFcmToken({
-        token,
-        studentId,
-        platform: getPlatform(),
-        deviceId: generateDeviceId(),
-      });
-
-      if (result.isSuccess) {
-        toast.success("Notifications Enabled", {
-          description:
-            "You'll now receive push notifications for important updates",
+      try {
+        const result = await saveFcmToken({
+          token,
+          studentId,
+          platform: getPlatform(),
+          deviceId: generateDeviceId(),
         });
-      } else {
+
+        if (result.isSuccess) {
+          toast.success("Notifications Enabled", {
+            description:
+              "You'll now receive push notifications for important updates",
+          });
+        } else {
+          toast.error("Notification Setup Failed", {
+            description:
+              "Could not enable notifications. Please try again later",
+          });
+        }
+      } catch (error) {
+        console.error("Notification Setup Failed:", error);
         toast.error("Notification Setup Failed", {
-          description: "Could not enable notifications. Please try again later",
+          description:
+            "An unexpected error occurred while setting up notifications",
         });
       }
-    } catch (error) {
-      toast.error("Notification Setup Failed", {
-        description:
-          "An unexpected error occurred while setting up notifications",
-      });
-    }
-  };
+    },
+    [studentId]
+  );
 
-  const requestPermission = async (): Promise<boolean> => {
+  const requestPermission = useCallback(async (): Promise<boolean> => {
     try {
       if (typeof window === "undefined") {
         setState((prev) => ({
@@ -104,7 +109,6 @@ export const useFcm = (studentId?: string) => {
       setState((prev) => ({ ...prev, permission }));
 
       if (permission === "granted") {
-        await generateToken();
         return true;
       } else if (permission === "denied") {
         setState((prev) => ({
@@ -134,9 +138,32 @@ export const useFcm = (studentId?: string) => {
       }));
       return false;
     }
-  };
+  }, []);
 
-  const generateToken = async (): Promise<void> => {
+  const setupInAppNotifications = useCallback(
+    async (messagingInstance: Messaging) => {
+      try {
+        onMessage(messagingInstance, (payload) => {
+          const { title, body } = payload.notification || {};
+
+          if (title && body) {
+            toast.info(title, {
+              description: body,
+            });
+          } else if (title) {
+            toast.info(title);
+          } else {
+            toast.info("New notification received");
+          }
+        });
+      } catch (error) {
+        console.error("Error setting up in-app notifications:", error);
+      }
+    },
+    []
+  );
+
+  const generateToken = useCallback(async (): Promise<void> => {
     try {
       const messagingInstance = await messaging();
 
@@ -195,29 +222,9 @@ export const useFcm = (studentId?: string) => {
             : "Failed to generate FCM token",
       }));
     }
-  };
+  }, [saveTokenToDb, setupInAppNotifications]);
 
-  const setupInAppNotifications = async (messagingInstance: Messaging) => {
-    try {
-      onMessage(messagingInstance, (payload) => {
-        const { title, body } = payload.notification || {};
-
-        if (title && body) {
-          toast.info(title, {
-            description: body,
-          });
-        } else if (title) {
-          toast.info(title);
-        } else {
-          toast.info("New notification received");
-        }
-      });
-    } catch (error) {
-      console.error("Error setting up in-app notifications:", error);
-    }
-  };
-
-  const initializeFcm = async (): Promise<void> => {
+  const initializeFcm = useCallback(async (): Promise<void> => {
     try {
       const currentPermission = Notification.permission;
       setState((prev) => ({ ...prev, permission: currentPermission }));
@@ -225,7 +232,10 @@ export const useFcm = (studentId?: string) => {
       if (currentPermission === "granted") {
         await generateToken();
       } else if (currentPermission === "default") {
-        await requestPermission();
+        const permissionGranted = await requestPermission();
+        if (permissionGranted) {
+          await generateToken();
+        }
       } else {
         setState((prev) => ({
           ...prev,
@@ -241,13 +251,13 @@ export const useFcm = (studentId?: string) => {
           error instanceof Error ? error.message : "Failed to initialize FCM",
       }));
     }
-  };
+  }, [generateToken, requestPermission]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       initializeFcm();
     }
-  }, []);
+  }, [initializeFcm]);
 
   return {
     ...state,

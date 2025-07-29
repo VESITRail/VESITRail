@@ -6,9 +6,8 @@ import { authClient } from "@/lib/auth-client";
 const NotificationPermissionHandler = () => {
   const { data, isPending } = authClient.useSession();
 
-  if (!isPending && data?.user?.id) {
-    useFcm(data.user.id);
-  }
+  const studentId = !isPending && data?.user?.id ? data.user.id : undefined;
+  useFcm(studentId);
 
   return null;
 };
