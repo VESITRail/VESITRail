@@ -20,6 +20,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import StudentAppSidebar from "@/components/app-sidebar/student/app-sidebar";
+import NotificationPermissionHandler from "@/components/student/notification-permission-handler";
 
 const StudentDashboardLayoutContent = ({
   children,
@@ -76,6 +77,7 @@ const StudentDashboardLayoutContent = ({
   return (
     <SidebarProvider>
       <StudentAppSidebar />
+      <NotificationPermissionHandler />
 
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b-[1.5px]">
