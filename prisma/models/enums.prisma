@@ -3,6 +3,12 @@ enum Gender {
   Female
 }
 
+enum FcmPlatform {
+  Web
+  iOS
+  Android
+}
+
 enum AddressChangeStatus {
   Pending
   Approved

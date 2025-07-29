@@ -1,13 +1,13 @@
 model Admin {
-    userId String @id
+  userId String @id
 
-    updatedAt DateTime @updatedAt
-    isActive  Boolean  @default(true)
-    createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-    students       Student[]
-    addressChanges AddressChange[]
-    applications   ConcessionApplication[]
+  students       Student[]
+  addressChanges AddressChange[]
+  applications   ConcessionApplication[]
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
