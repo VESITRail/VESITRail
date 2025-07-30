@@ -275,7 +275,7 @@ const AdminProfilePage = () => {
 
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
                 <User className="size-5" />
@@ -291,6 +291,7 @@ const AdminProfilePage = () => {
               variant={
                 profileData.user.emailVerified ? "default" : "destructive"
               }
+              className="self-start sm:self-center"
             >
               {profileData.user.emailVerified ? (
                 <>

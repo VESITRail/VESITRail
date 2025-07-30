@@ -102,33 +102,40 @@ export const submitAddressChangeApplication = async (
       },
     });
 
-    const application = await prisma.addressChange.upsert({
-      where: {
-        id: existingApplication?.id || "",
-      },
-      create: {
-        status: "Pending",
-        submissionCount: 1,
-        studentId: data.studentId,
-        newAddress: data.newAddress,
-        newStationId: data.newStationId,
-        currentAddress: data.currentAddress,
-        currentStationId: data.currentStationId,
-        verificationDocUrl: data.verificationDocUrl,
-      },
-      update: {
-        status: "Pending",
-        reviewedAt: null,
-        reviewedById: null,
-        rejectionReason: null,
-        newAddress: data.newAddress,
-        newStationId: data.newStationId,
-        submissionCount: { increment: 1 },
-        currentAddress: data.currentAddress,
-        currentStationId: data.currentStationId,
-        verificationDocUrl: data.verificationDocUrl,
-      },
-    });
+    let application: AddressChange;
+
+    if (!existingApplication || existingApplication.status === "Approved") {
+      application = await prisma.addressChange.create({
+        data: {
+          status: "Pending",
+          submissionCount: 1,
+          studentId: data.studentId,
+          newAddress: data.newAddress,
+          newStationId: data.newStationId,
+          currentAddress: data.currentAddress,
+          currentStationId: data.currentStationId,
+          verificationDocUrl: data.verificationDocUrl,
+        },
+      });
+    } else {
+      application = await prisma.addressChange.update({
+        where: {
+          id: existingApplication.id,
+        },
+        data: {
+          status: "Pending",
+          reviewedAt: null,
+          reviewedById: null,
+          rejectionReason: null,
+          newAddress: data.newAddress,
+          newStationId: data.newStationId,
+          submissionCount: { increment: 1 },
+          currentAddress: data.currentAddress,
+          currentStationId: data.currentStationId,
+          verificationDocUrl: data.verificationDocUrl,
+        },
+      });
+    }
 
     revalidatePath("/dashboard/student/change-address");
 

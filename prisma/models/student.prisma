@@ -5,12 +5,13 @@ model Student {
   middleName String
   lastName   String
 
-  address              String
-  gender               Gender
-  verificationDocUrl   String
-  dateOfBirth          DateTime
-  notificationsEnabled Boolean               @default(true)
-  status               StudentApprovalStatus @default(Pending)
+  address                   String
+  gender                    Gender
+  verificationDocUrl        String
+  dateOfBirth               DateTime
+  pushNotificationsEnabled  Boolean               @default(true)
+  emailNotificationsEnabled Boolean               @default(true)
+  status                    StudentApprovalStatus @default(Pending)
 
   rejectionReason String?
   submissionCount Int     @default(1)

@@ -613,10 +613,20 @@ const StudentDetailsDialog = ({
             <Label htmlFor="rejection-reason">Rejection Reason</Label>
             <Textarea
               id="rejection-reason"
+              autoCapitalize="words"
               value={rejectionReason}
-              className="min-h-[100px]"
-              onChange={(e) => setRejectionReason(e.target.value)}
+              className="min-h-[100px] capitalize"
               placeholder="Please explain why this application is being rejected..."
+              onChange={(e) => {
+                const capitalizedValue = e.target.value
+                  .split(" ")
+                  .map(
+                    (word) =>
+                      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                  )
+                  .join(" ");
+                setRejectionReason(capitalizedValue);
+              }}
             />
           </div>
 
