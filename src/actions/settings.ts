@@ -146,7 +146,11 @@ export async function updateNotificationPreferences(
       return failure(databaseError("Student profile not found"));
     }
 
-    const updateData: any = {};
+    const updateData: {
+      pushNotificationsEnabled?: boolean;
+      emailNotificationsEnabled?: boolean;
+    } = {};
+
     if (preferences.pushEnabled !== undefined) {
       updateData.pushNotificationsEnabled = preferences.pushEnabled;
     }
