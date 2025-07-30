@@ -34,10 +34,10 @@ const manifest = (): MetadataRoute.Manifest => {
         description: "Update your address for concession applications",
       },
       {
-        short_name: "Settings",
-        name: "Manage Settings",
+        short_name: "Account",
+        name: "Account Settings",
         url: "/dashboard/student/settings",
-        description: "App settings and preferences",
+        description: "Manage your account and app preferences",
       },
     ],
     icons: [
