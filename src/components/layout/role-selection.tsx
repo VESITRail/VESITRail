@@ -150,8 +150,8 @@ const RoleSelection = ({ roles, userName }: RoleSelectionProps) => {
                       </div>
                       <div className="flex-1 pt-0.5">
                         <p className="text-sm text-foreground">
-                          Your student account is under review. You'll be
-                          notified once it's approved.
+                          Your student account is under review. You&apos;ll be
+                          notified once it&apos;s approved.
                         </p>
                       </div>
                     </div>
