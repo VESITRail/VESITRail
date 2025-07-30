@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Status from "@/components/ui/status";
 import { authClient } from "@/lib/auth-client";
 import { useEffect, useState, useRef } from "react";
-import { checkUserRole } from "@/actions/check-role";
+import { checkAllUserRoles } from "@/actions/check-role";
 
 const OnboardingLayoutContent = ({
   children,
@@ -26,10 +26,10 @@ const OnboardingLayoutContent = ({
       hasCheckedRef.current = true;
 
       try {
-        const result = await checkUserRole(session.data.user.id);
+        const result = await checkAllUserRoles(session.data.user.id);
 
         if (isFailure(result)) {
-          console.error("Failed to check user role:", result.error);
+          console.error("Failed to check user roles:", result.error);
           toast.error("Access Denied", {
             description: "Unable to verify your access. Redirecting you now.",
           });
@@ -37,20 +37,22 @@ const OnboardingLayoutContent = ({
           return;
         }
 
-        const { role, status } = result.data;
+        const roles = result.data;
 
-        if (
-          role === "student" &&
-          (status === "NeedsOnboarding" || status === "Rejected")
-        ) {
+        const needsOnboarding =
+          roles.student &&
+          (roles.student.status === "NeedsOnboarding" ||
+            roles.student.status === "Rejected");
+
+        if (needsOnboarding) {
           setIsVerifying(false);
           return;
         }
 
-        if (role === "admin") {
-          router.push("/dashboard/admin");
-        } else if (role === "student") {
+        if (roles.student?.status === "Approved") {
           router.push("/dashboard/student");
+        } else if (roles.admin?.status === "Active") {
+          router.push("/dashboard/admin");
         } else {
           router.push("/");
         }
