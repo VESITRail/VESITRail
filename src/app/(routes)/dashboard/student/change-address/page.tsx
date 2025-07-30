@@ -688,9 +688,9 @@ const AddressChangePage = () => {
           <Skeleton className="size-10 rounded-lg" />
         </div>
 
-        <Separator className="my-6" />
+        <Separator className="mt-6" />
 
-        <div className="py-4">
+        <div className="py-6">
           <Skeleton className="h-32 w-full rounded-lg" />
         </div>
 
@@ -810,10 +810,10 @@ const AddressChangePage = () => {
         </Popover>
       </div>
 
-      <Separator className="my-6" />
+      <Separator className="mt-6" />
 
       {lastApplication?.status === "Rejected" && (
-        <div className="py-4">
+        <div className="py-6">
           <div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
@@ -873,7 +873,7 @@ const AddressChangePage = () => {
       )}
 
       {lastApplication?.status === "Approved" && (
-        <Alert className="mb-6 flex flex-col gap-1">
+        <Alert className="my-6 flex flex-col gap-1">
           <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between md:items-start">
             <div className="flex items-start gap-2">
               <CheckCircle className="size-5 md:size-4 mt-0.5 text-green-600" />
