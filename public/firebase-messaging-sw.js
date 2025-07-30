@@ -15,23 +15,48 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function (payload) {
-    const notificationTitle = payload.notification?.title || 'VESITRail Notification';
-    const notificationOptions = {
-        icon: '/icons/ios/256.png',
-        body: payload.notification?.body || 'You have a new notification',
-        data: {
-            url: payload.data?.url || '/dashboard/student'
-        }
-    };
+    if (!payload.notification && payload.data) {
+        const notificationTitle = payload.data.title || 'VESITRail Notification';
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+        const notificationOptions = {
+            icon: '/icons/ios/256.png',
+            tag: 'vesitrail-notification',
+            body: payload.data.body || 'You have a new notification',
+            data: {
+                url: payload.data.url || '/dashboard/student',
+                messageId: payload.messageId || Date.now().toString()
+            },
+            actions: [
+                {
+                    action: 'open',
+                    title: 'Open App'
+                }
+            ]
+        };
+
+        return self.registration.showNotification(notificationTitle, notificationOptions);
+    }
 });
 
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
-    const url = event.notification.data?.url || '/dashboard/student';
 
-    event.waitUntil(
-        clients.openWindow(url)
-    );
+    if (event.action === 'open' || !event.action) {
+        const url = event.notification.data?.url || '/dashboard/student';
+
+        event.waitUntil(
+            clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+                for (let i = 0; i < clientList.length; i++) {
+                    const client = clientList[i];
+                    if (client.url.includes(url.split('?')[0]) && 'focus' in client) {
+                        return client.focus();
+                    }
+                }
+
+                if (clients.openWindow) {
+                    return clients.openWindow(url);
+                }
+            })
+        );
+    }
 });
