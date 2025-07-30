@@ -1,12 +1,18 @@
 "use client";
 
+import {
+  UserRole,
+  UserRoles,
+  checkUserRole,
+  checkAllUserRoles,
+} from "@/actions/check-role";
 import { toast } from "sonner";
 import { isFailure } from "@/lib/result";
 import Status from "@/components/ui/status";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
-import { checkUserRole, UserRole } from "@/actions/check-role";
+import RoleSelection from "@/components/layout/role-selection";
 import { Loader2, UserX, Clock, XCircle, Mail, RefreshCw } from "lucide-react";
 
 const DashboardLayoutContent = ({
@@ -19,10 +25,13 @@ const DashboardLayoutContent = ({
   const session = authClient.useSession();
   const [isVerifying, setIsVerifying] = useState<boolean>(true);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [allUserRoles, setAllUserRoles] = useState<UserRoles | null>(null);
+  const [showRoleSelection, setShowRoleSelection] = useState<boolean>(false);
 
   useEffect(() => {
     const isAdminPath = pathname.startsWith("/dashboard/admin");
     const isStudentPath = pathname.startsWith("/dashboard/student");
+    const isOnboardingPath = pathname === "/onboarding";
 
     const checkAndRedirect = async () => {
       if (session.isPending) return;
@@ -30,6 +39,36 @@ const DashboardLayoutContent = ({
       if (!session.data?.user) {
         setIsVerifying(false);
         return;
+      }
+
+      const allRolesResult = await checkAllUserRoles(session.data.user.id);
+
+      if (isFailure(allRolesResult)) {
+        toast.error("Access Verification Failed", {
+          description:
+            "Unable to verify your account access. Please try again.",
+        });
+        console.error("Failed to check user roles:", allRolesResult.error);
+        setIsVerifying(false);
+        return;
+      }
+
+      const roles = allRolesResult.data;
+      setAllUserRoles(roles);
+
+      const hasMultipleRoles = Boolean(roles.admin && roles.student);
+
+      if (
+        hasMultipleRoles &&
+        !isAdminPath &&
+        !isStudentPath &&
+        !isOnboardingPath
+      ) {
+        setShowRoleSelection(true);
+        setIsVerifying(false);
+        return;
+      } else {
+        setShowRoleSelection(false);
       }
 
       const result = await checkUserRole(session.data.user.id);
@@ -45,20 +84,77 @@ const DashboardLayoutContent = ({
       }
 
       const { role, status, rejectionReason, submissionCount } = result.data;
-      setUserRole({ role, status, rejectionReason, submissionCount });
 
-      if (role === "admin") {
-        if (isStudentPath || (!isAdminPath && status === "Active")) {
+      let effectiveRole = role;
+      let effectiveStatus = status;
+      let effectiveRejectionReason = rejectionReason;
+      let effectiveSubmissionCount = submissionCount;
+
+      if (hasMultipleRoles) {
+        if (isAdminPath && roles.admin) {
+          effectiveRole = "admin";
+          effectiveStatus = roles.admin.status;
+          effectiveRejectionReason = undefined;
+          effectiveSubmissionCount = undefined;
+        } else if ((isStudentPath || isOnboardingPath) && roles.student) {
+          effectiveRole = "student";
+          effectiveStatus = roles.student.status;
+          effectiveRejectionReason = roles.student.rejectionReason;
+          effectiveSubmissionCount = roles.student.submissionCount;
+        }
+      }
+
+      setUserRole({
+        role: effectiveRole,
+        status: effectiveStatus,
+        rejectionReason: effectiveRejectionReason,
+        submissionCount: effectiveSubmissionCount,
+      });
+
+      if (isAdminPath) {
+        if (!roles.admin || roles.admin.status !== "Active") {
+          if (roles.student?.status === "Approved") {
+            router.replace("/dashboard/student");
+            return;
+          } else if (roles.student?.status === "NeedsOnboarding") {
+            router.replace("/onboarding");
+            return;
+          }
+        }
+      } else if (isStudentPath) {
+        if (
+          !roles.student ||
+          !["Approved", "NeedsOnboarding"].includes(roles.student.status)
+        ) {
+          if (roles.admin?.status === "Active") {
+            router.replace("/dashboard/admin");
+            return;
+          }
+        } else if (roles.student.status === "NeedsOnboarding") {
+          router.replace("/onboarding");
+          return;
+        }
+      } else if (isOnboardingPath) {
+        if (
+          !roles.student ||
+          !["NeedsOnboarding", "Rejected"].includes(roles.student.status)
+        ) {
+          if (roles.student?.status === "Approved") {
+            router.replace("/dashboard/student");
+            return;
+          } else if (roles.admin?.status === "Active") {
+            router.replace("/dashboard/admin");
+            return;
+          }
+        }
+      } else {
+        if (roles.admin?.status === "Active") {
           router.replace("/dashboard/admin");
           return;
-        }
-      } else if (role === "student") {
-        if (isAdminPath || (status === "Approved" && !isStudentPath)) {
+        } else if (roles.student?.status === "Approved") {
           router.replace("/dashboard/student");
           return;
-        }
-
-        if (status === "NeedsOnboarding" && pathname !== "/onboarding") {
+        } else if (roles.student?.status === "NeedsOnboarding") {
           router.replace("/onboarding");
           return;
         }
@@ -79,6 +175,15 @@ const DashboardLayoutContent = ({
         iconClassName="animate-spin"
         title="Setting Up Your Dashboard"
         description="Please wait while we verify your account..."
+      />
+    );
+  }
+
+  if (showRoleSelection && allUserRoles) {
+    return (
+      <RoleSelection
+        roles={allUserRoles}
+        userName={session.data?.user?.name || undefined}
       />
     );
   }
