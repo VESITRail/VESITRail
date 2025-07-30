@@ -45,19 +45,16 @@ export const useFcm = (studentId?: string) => {
       if (!studentId) return;
 
       try {
+        const deviceId = generateDeviceId();
+
         const result = await saveFcmToken({
           token,
+          deviceId,
           studentId,
           platform: getPlatform(),
-          deviceId: generateDeviceId(),
         });
 
-        if (result.isSuccess) {
-          toast.success("Notifications Enabled", {
-            description:
-              "You'll now receive push notifications for important updates",
-          });
-        } else {
+        if (!result.isSuccess) {
           toast.error("Notification Setup Failed", {
             description:
               "Could not enable notifications. Please try again later",
@@ -109,8 +106,16 @@ export const useFcm = (studentId?: string) => {
       setState((prev) => ({ ...prev, permission }));
 
       if (permission === "granted") {
+        toast.success("Notifications Enabled", {
+          description:
+            "You'll now receive push notifications for important updates",
+        });
         return true;
       } else if (permission === "denied") {
+        toast.error("Notifications Blocked", {
+          description:
+            "You can enable notifications later from your browser settings",
+        });
         setState((prev) => ({
           ...prev,
           loading: false,
