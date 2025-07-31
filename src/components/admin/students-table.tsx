@@ -977,8 +977,8 @@ const StudentsTable = ({
   );
 
   const renderFilters = () => (
-    <div className="flex flex-col gap-4">
-      <div className="flex-1">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex-1 md:max-w-sm">
         {isLoading ? (
           <Skeleton className="h-10 w-full" />
         ) : (
@@ -1002,7 +1002,7 @@ const StudentsTable = ({
         )}
       </div>
 
-      <div className="flex gap-3 md:justify-end">
+      <div className="flex gap-3">
         {isLoading ? (
           <>
             <Skeleton className="h-10 w-36" />
