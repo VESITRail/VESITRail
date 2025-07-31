@@ -77,7 +77,13 @@ const CreateBookletDialog = ({
 
   const handleInputChange = useCallback(
     (field: keyof CreateBookletInput, value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
+      let processedValue = value;
+
+      if (field === "serialStartNumber") {
+        processedValue = value.toUpperCase();
+      }
+
+      setFormData((prev) => ({ ...prev, [field]: processedValue }));
       if (errors[field as keyof typeof errors]) {
         setErrors((prev) => ({ ...prev, [field]: undefined }));
       }
