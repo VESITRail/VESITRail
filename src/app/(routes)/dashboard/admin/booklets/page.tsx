@@ -128,6 +128,15 @@ const Booklets = () => {
     }));
   }, []);
 
+  const handleBookletUpdate = useCallback((updatedBooklet: BookletItem) => {
+    setPaginationData((prev) => ({
+      ...prev,
+      data: prev.data.map((booklet) =>
+        booklet.id === updatedBooklet.id ? updatedBooklet : booklet
+      ),
+    }));
+  }, []);
+
   useEffect(() => {
     loadBooklets();
   }, [loadBooklets]);
@@ -183,6 +192,7 @@ const Booklets = () => {
           onFilterChange={handleFilterChange}
           onSearchChange={handleSearchChange}
           onBookletDelete={handleBookletDelete}
+          onBookletUpdate={handleBookletUpdate}
           totalCount={paginationData.totalCount}
           totalPages={paginationData.totalPages}
           currentPage={paginationData.currentPage}

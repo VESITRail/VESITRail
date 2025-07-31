@@ -10,6 +10,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
+  Edit,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -55,6 +56,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import UpdateBookletDialog from "./update-booklet-dialog";
 import { ConcessionBookletStatusType } from "@/generated/zod";
 import { BookletItem, deleteBooklet } from "@/actions/booklets";
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -92,6 +94,7 @@ type BookletsTableProps = {
   onPageChange: (page: number) => void;
   onSearchChange: (query: string) => void;
   onBookletDelete?: (deletedBookletId: string) => void;
+  onBookletUpdate?: (updatedBooklet: BookletItem) => void;
   onFilterChange: (filters: {
     status?: ConcessionBookletStatusType | "all";
   }) => void;
@@ -110,6 +113,7 @@ const BookletsTable = ({
   onFilterChange,
   onSearchChange,
   onBookletDelete,
+  onBookletUpdate,
   hasPreviousPage,
 }: BookletsTableProps) => {
   const [sortConfig, setSortConfig] = useState<{
@@ -119,9 +123,13 @@ const BookletsTable = ({
 
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState<boolean>(false);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
   const [bookletToDelete, setBookletToDelete] = useState<BookletItem | null>(
+    null
+  );
+  const [bookletToUpdate, setBookletToUpdate] = useState<BookletItem | null>(
     null
   );
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -165,6 +173,23 @@ const BookletsTable = ({
     setBookletToDelete(booklet);
     setShowDeleteDialog(true);
   }, []);
+
+  const handleUpdateClick = useCallback((booklet: BookletItem) => {
+    setBookletToUpdate(booklet);
+    setShowUpdateDialog(true);
+  }, []);
+
+  const handleUpdateClose = useCallback(() => {
+    setShowUpdateDialog(false);
+    setBookletToUpdate(null);
+  }, []);
+
+  const handleBookletUpdated = useCallback(
+    (updatedBooklet: BookletItem) => {
+      onBookletUpdate?.(updatedBooklet);
+    },
+    [onBookletUpdate]
+  );
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!bookletToDelete) return;
@@ -356,7 +381,15 @@ const BookletsTable = ({
         meta: { displayName: "Actions" },
         header: () => <div className="text-center">Actions</div>,
         cell: ({ row }) => (
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleUpdateClick(row.original)}
+              className="size-8 p-0 text-muted-foreground hover:text-foreground"
+            >
+              <Edit className="size-4" />
+            </Button>
             <Button
               size="sm"
               variant="ghost"
@@ -369,7 +402,7 @@ const BookletsTable = ({
         ),
       },
     ],
-    [handleSort, handleDeleteClick, currentPage]
+    [handleSort, handleDeleteClick, handleUpdateClick, currentPage]
   );
 
   const table = useReactTable({
@@ -660,6 +693,13 @@ const BookletsTable = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UpdateBookletDialog
+        isOpen={showUpdateDialog}
+        booklet={bookletToUpdate}
+        onClose={handleUpdateClose}
+        onBookletUpdated={handleBookletUpdated}
+      />
     </div>
   );
 };
