@@ -39,6 +39,26 @@ export const getUserInitials = (type: "Admin" | "Student", name?: string) => {
     .slice(0, 2);
 };
 
+export const calculateSerialEndNumber = (
+  serialStartNumber: string,
+  totalPages: number
+): string => {
+  const startNumber = serialStartNumber.toUpperCase();
+  const match = startNumber.match(/^([A-Z]+)(\d+)$/);
+
+  if (!match) {
+    throw new Error(
+      "Invalid serial number format. Expected format: Letters followed by numbers (e.g., A0807550)"
+    );
+  }
+
+  const prefix = match[1];
+  const startNum = parseInt(match[2], 10);
+  const endNum = startNum + totalPages - 1;
+
+  return `${prefix}${endNum.toString().padStart(match[2].length, "0")}`;
+};
+
 export const calculateConcessionValidity = (
   approvedAt: Date,
   durationInMonths: number

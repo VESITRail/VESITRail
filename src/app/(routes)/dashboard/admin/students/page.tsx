@@ -7,7 +7,6 @@ import {
   type StudentPaginationParams,
 } from "@/actions/student";
 import { toast } from "sonner";
-import { Users } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -188,15 +187,9 @@ const Students = () => {
     <div className="py-8 px-6 lg:px-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
-              <Users className="size-5.5" />
-            </div>
-
-            <Heading3 className="text-2xl font-semibold">
-              Manage Students
-            </Heading3>
-          </div>
+          <Heading3 className="text-2xl font-semibold">
+            Manage Students
+          </Heading3>
 
           <Small className="text-muted-foreground">
             Review and manage students, approve or reject pending requests, and
