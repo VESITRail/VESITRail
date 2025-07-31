@@ -16,7 +16,6 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, AlertCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -153,34 +152,6 @@ const UpdateBookletDialog = ({
   const serialEndNumber = formData.serialStartNumber.trim()
     ? calculateSerialEndNumber(formData.serialStartNumber)
     : "";
-
-  const getUpcomingStatus = () => {
-    if (formData.isDamaged) {
-      return "Damaged";
-    }
-
-    const applicationCount = booklet?._count?.applications || 0;
-    if (applicationCount === 0) {
-      return "Available";
-    } else if (applicationCount < 50) {
-      return "In Use";
-    } else {
-      return "Exhausted";
-    }
-  };
-
-  const StatusBadge = ({ status }: { status: string }) => {
-    const variants: Record<string, string> = {
-      Damaged: "bg-red-600 text-white",
-      "In Use": "bg-blue-600 text-white",
-      Exhausted: "bg-gray-600 text-white",
-      Available: "bg-green-600 text-white",
-    };
-
-    return (
-      <Badge className={`${variants[status]} font-medium`}>{status}</Badge>
-    );
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
