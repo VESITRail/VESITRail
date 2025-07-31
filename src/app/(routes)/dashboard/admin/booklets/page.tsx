@@ -120,6 +120,14 @@ const Booklets = () => {
     }));
   }, []);
 
+  const handleBookletDelete = useCallback((deletedBookletId: string) => {
+    setPaginationData((prev) => ({
+      ...prev,
+      totalCount: prev.totalCount - 1,
+      data: prev.data.filter((booklet) => booklet.id !== deletedBookletId),
+    }));
+  }, []);
+
   useEffect(() => {
     loadBooklets();
   }, [loadBooklets]);
@@ -174,6 +182,7 @@ const Booklets = () => {
           onPageChange={handlePageChange}
           onFilterChange={handleFilterChange}
           onSearchChange={handleSearchChange}
+          onBookletDelete={handleBookletDelete}
           totalCount={paginationData.totalCount}
           totalPages={paginationData.totalPages}
           currentPage={paginationData.currentPage}
