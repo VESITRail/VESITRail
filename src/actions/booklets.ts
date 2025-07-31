@@ -183,3 +183,40 @@ export const getBooklets = async (
     return failure(databaseError("Failed to fetch booklets"));
   }
 };
+
+export const deleteBooklet = async (
+  bookletId: string
+): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
+  try {
+    const booklet = await prisma.concessionBooklet.findUnique({
+      where: { id: bookletId },
+      include: {
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    });
+
+    if (!booklet) {
+      return failure(validationError("Booklet not found"));
+    }
+
+    if (booklet._count.applications > 0) {
+      return failure(
+        validationError("Cannot delete booklet that has applications")
+      );
+    }
+
+    await prisma.concessionBooklet.delete({
+      where: { id: bookletId },
+    });
+
+    revalidatePath("/dashboard/admin/booklets");
+    return success({ success: true });
+  } catch (error) {
+    console.error("Error deleting booklet:", error);
+    return failure(databaseError("Failed to delete booklet"));
+  }
+};
