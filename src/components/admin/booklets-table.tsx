@@ -151,12 +151,15 @@ const BookletsTable = ({
 
     return [...booklets].sort((a, b) => {
       const { key, direction } = sortConfig;
-      let aValue: any = a[key as keyof BookletItem];
-      let bValue: any = b[key as keyof BookletItem];
+      let aValue: string | number | Date;
+      let bValue: string | number | Date;
 
       if (key === "bookletNumber") {
         aValue = a.bookletNumber;
         bValue = b.bookletNumber;
+      } else {
+        aValue = a[key as keyof BookletItem] as string | number | Date;
+        bValue = b[key as keyof BookletItem] as string | number | Date;
       }
 
       if (aValue < bValue) return direction === "asc" ? -1 : 1;
