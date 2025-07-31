@@ -977,91 +977,88 @@ const StudentsTable = ({
   );
 
   const renderFilters = () => (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-      <div className="flex gap-3 flex-1">
-        <div className="relative flex-1 max-w-sm">
-          {isLoading ? (
-            <Skeleton className="h-10 w-full" />
-          ) : (
-            <>
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                value={localSearchQuery}
-                className="pl-10 pr-20 h-10"
-                placeholder="Search students..."
-                onKeyPress={handleSearchKeyPress}
-                onChange={(e) => setLocalSearchQuery(e.target.value)}
-              />
-
-              <Button
-                size="sm"
-                onClick={handleSearchSubmit}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2"
-              >
-                <Search className="size-3" />
-              </Button>
-            </>
-          )}
-        </div>
-
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex-1 md:max-w-sm">
         {isLoading ? (
-          <Skeleton className="h-10 w-36" />
+          <Skeleton className="h-10 w-full" />
         ) : (
-          <Select value={selectedStatus} onValueChange={handleStatusFilter}>
-            <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
-              <Filter className="mr-2 size-4 text-foreground" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Approved">Approved</SelectItem>
-              <SelectItem value="Rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              value={localSearchQuery}
+              className="pl-10 pr-20 h-10"
+              placeholder="Search students..."
+              onKeyPress={handleSearchKeyPress}
+              onChange={(e) => setLocalSearchQuery(e.target.value)}
+            />
+            <Button
+              size="sm"
+              onClick={handleSearchSubmit}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2"
+            >
+              <Search className="size-3" />
+            </Button>
+          </div>
         )}
       </div>
 
-      <div className="flex gap-3 sm:ml-auto">
+      <div className="flex gap-3">
         {isLoading ? (
-          <Skeleton className="h-10 w-28" />
+          <>
+            <Skeleton className="h-10 w-36" />
+            <Skeleton className="h-10 w-28" />
+          </>
         ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-28 h-10">
-                Columns
-                <ChevronDown className="ml-2 size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value: boolean) =>
-                        column.toggleVisibility(value)
-                      }
-                    >
-                      {column.id === "firstName"
-                        ? "Name"
-                        : column.id === "class"
-                        ? "Academic Info"
-                        : column.id === "createdAt"
-                        ? "Applied Date"
-                        : column.id === "serialNo"
-                        ? "Sr. No."
-                        : column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <>
+            <Select value={selectedStatus} onValueChange={handleStatusFilter}>
+              <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+                <Filter className="mr-2 size-4 text-foreground" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="w-28 h-10">
+                  Columns
+                  <ChevronDown className="ml-2 size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value: boolean) =>
+                          column.toggleVisibility(value)
+                        }
+                      >
+                        {column.id === "firstName"
+                          ? "Name"
+                          : column.id === "class"
+                          ? "Academic Info"
+                          : column.id === "createdAt"
+                          ? "Applied Date"
+                          : column.id === "serialNo"
+                          ? "Sr. No."
+                          : column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         )}
       </div>
     </div>

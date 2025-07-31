@@ -120,6 +120,23 @@ const Booklets = () => {
     }));
   }, []);
 
+  const handleBookletDelete = useCallback((deletedBookletId: string) => {
+    setPaginationData((prev) => ({
+      ...prev,
+      totalCount: prev.totalCount - 1,
+      data: prev.data.filter((booklet) => booklet.id !== deletedBookletId),
+    }));
+  }, []);
+
+  const handleBookletUpdate = useCallback((updatedBooklet: BookletItem) => {
+    setPaginationData((prev) => ({
+      ...prev,
+      data: prev.data.map((booklet) =>
+        booklet.id === updatedBooklet.id ? updatedBooklet : booklet
+      ),
+    }));
+  }, []);
+
   useEffect(() => {
     loadBooklets();
   }, [loadBooklets]);
@@ -174,6 +191,8 @@ const Booklets = () => {
           onPageChange={handlePageChange}
           onFilterChange={handleFilterChange}
           onSearchChange={handleSearchChange}
+          onBookletDelete={handleBookletDelete}
+          onBookletUpdate={handleBookletUpdate}
           totalCount={paginationData.totalCount}
           totalPages={paginationData.totalPages}
           currentPage={paginationData.currentPage}

@@ -3,12 +3,14 @@
 import {
   Search,
   Filter,
+  Trash2,
   BookOpen,
   ChevronLeft,
   AlertCircle,
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
+  Edit,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -38,13 +40,25 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogTitle,
+  AlertDialogCancel,
+  AlertDialogAction,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogDescription,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BookletItem } from "@/actions/booklets";
 import { Skeleton } from "@/components/ui/skeleton";
+import UpdateBookletDialog from "./update-booklet-dialog";
 import { ConcessionBookletStatusType } from "@/generated/zod";
+import { BookletItem, deleteBooklet } from "@/actions/booklets";
 import { useState, useMemo, useCallback, useEffect } from "react";
 
 declare module "@tanstack/react-table" {
@@ -79,6 +93,8 @@ type BookletsTableProps = {
   hasPreviousPage: boolean;
   onPageChange: (page: number) => void;
   onSearchChange: (query: string) => void;
+  onBookletDelete?: (deletedBookletId: string) => void;
+  onBookletUpdate?: (updatedBooklet: BookletItem) => void;
   onFilterChange: (filters: {
     status?: ConcessionBookletStatusType | "all";
   }) => void;
@@ -96,6 +112,8 @@ const BookletsTable = ({
   onPageChange,
   onFilterChange,
   onSearchChange,
+  onBookletDelete,
+  onBookletUpdate,
   hasPreviousPage,
 }: BookletsTableProps) => {
   const [sortConfig, setSortConfig] = useState<{
@@ -104,8 +122,17 @@ const BookletsTable = ({
   } | null>(null);
 
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState<boolean>(false);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
+  const [bookletToDelete, setBookletToDelete] = useState<BookletItem | null>(
+    null
+  );
+  const [bookletToUpdate, setBookletToUpdate] = useState<BookletItem | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const handleSort = useCallback((key: keyof BookletItem | "bookletNumber") => {
     setSortConfig((current) => {
@@ -141,6 +168,60 @@ const BookletsTable = ({
     },
     [handleSearchSubmit]
   );
+
+  const handleDeleteClick = useCallback((booklet: BookletItem) => {
+    setBookletToDelete(booklet);
+    setShowDeleteDialog(true);
+  }, []);
+
+  const handleUpdateClick = useCallback((booklet: BookletItem) => {
+    setBookletToUpdate(booklet);
+    setShowUpdateDialog(true);
+  }, []);
+
+  const handleUpdateClose = useCallback(() => {
+    setShowUpdateDialog(false);
+    setBookletToUpdate(null);
+  }, []);
+
+  const handleBookletUpdated = useCallback(
+    (updatedBooklet: BookletItem) => {
+      onBookletUpdate?.(updatedBooklet);
+    },
+    [onBookletUpdate]
+  );
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!bookletToDelete) return;
+
+    setIsDeleting(true);
+
+    const deletePromise = async () => {
+      const result = await deleteBooklet(bookletToDelete.id);
+
+      if (result.isSuccess) {
+        onBookletDelete?.(bookletToDelete.id);
+        setShowDeleteDialog(false);
+        setBookletToDelete(null);
+        return result.data;
+      } else {
+        throw new Error(
+          result.error.type === "VALIDATION_ERROR"
+            ? result.error.message
+            : "Failed to delete booklet. Please try again."
+        );
+      }
+    };
+
+    toast.promise(deletePromise, {
+      loading: "Deleting booklet...",
+      success: "Booklet deleted successfully",
+      error: (error) => error.message || "Failed to delete booklet",
+      finally: () => {
+        setIsDeleting(false);
+      },
+    });
+  }, [bookletToDelete, onBookletDelete]);
 
   useEffect(() => {
     setLocalSearchQuery(searchQuery);
@@ -295,8 +376,33 @@ const BookletsTable = ({
           </div>
         ),
       },
+      {
+        id: "actions",
+        meta: { displayName: "Actions" },
+        header: () => <div className="text-center">Actions</div>,
+        cell: ({ row }) => (
+          <div className="flex justify-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleUpdateClick(row.original)}
+              className="size-8 p-0 text-muted-foreground hover:text-foreground"
+            >
+              <Edit className="size-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleDeleteClick(row.original)}
+              className="size-8 p-0 text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ),
+      },
     ],
-    [handleSort, currentPage]
+    [handleSort, handleDeleteClick, handleUpdateClick, currentPage]
   );
 
   const table = useReactTable({
@@ -333,6 +439,9 @@ const BookletsTable = ({
               <TableCell className="text-center">
                 <Skeleton className="h-4 w-20 mx-auto" />
               </TableCell>
+              <TableCell className="text-center">
+                <Skeleton className="size-8 mx-auto" />
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -341,7 +450,7 @@ const BookletsTable = ({
 
     if (isError) {
       return (
-        <TableBody>
+        <TableBody className="h-64">
           <TableRow>
             <TableCell
               className="text-center py-8"
@@ -365,7 +474,7 @@ const BookletsTable = ({
 
     if (sortedBooklets.length === 0) {
       return (
-        <TableBody>
+        <TableBody className="h-64">
           <TableRow>
             <TableCell
               colSpan={table.getHeaderGroups()[0].headers.length}
@@ -554,6 +663,43 @@ const BookletsTable = ({
           </div>
         </div>
       )}
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Booklet</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              Are you sure you want to delete booklet #
+              {bookletToDelete?.bookletNumber}? This action cannot be undone.
+              {bookletToDelete?._count?.applications &&
+              bookletToDelete._count.applications > 0
+                ? " Note: This booklet has applications and cannot be deleted."
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={
+                isDeleting || (bookletToDelete?._count?.applications ?? 0) > 0
+              }
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete Booklet"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <UpdateBookletDialog
+        isOpen={showUpdateDialog}
+        booklet={bookletToUpdate}
+        onClose={handleUpdateClose}
+        onBookletUpdated={handleBookletUpdated}
+      />
     </div>
   );
 };

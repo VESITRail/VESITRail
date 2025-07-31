@@ -23,6 +23,11 @@ export type CreateBookletInput = {
   status: ConcessionBookletStatusType;
 };
 
+export type UpdateBookletInput = {
+  serialStartNumber: string;
+  isDamaged: boolean;
+};
+
 export type BookletItem = ConcessionBooklet & {
   _count: {
     applications: number;
@@ -181,5 +186,147 @@ export const getBooklets = async (
   } catch (error) {
     console.error("Error fetching booklets:", error);
     return failure(databaseError("Failed to fetch booklets"));
+  }
+};
+
+export const deleteBooklet = async (
+  bookletId: string
+): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
+  try {
+    const booklet = await prisma.concessionBooklet.findUnique({
+      where: { id: bookletId },
+      include: {
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    });
+
+    if (!booklet) {
+      return failure(validationError("Booklet not found"));
+    }
+
+    if (booklet._count.applications > 0) {
+      return failure(
+        validationError("Cannot delete booklet that has applications")
+      );
+    }
+
+    await prisma.concessionBooklet.delete({
+      where: { id: bookletId },
+    });
+
+    revalidatePath("/dashboard/admin/booklets");
+    return success({ success: true });
+  } catch (error) {
+    console.error("Error deleting booklet:", error);
+    return failure(databaseError("Failed to delete booklet"));
+  }
+};
+
+export const updateBooklet = async (
+  bookletId: string,
+  data: UpdateBookletInput
+): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+  try {
+    const existingBooklet = await prisma.concessionBooklet.findUnique({
+      where: { id: bookletId },
+      include: {
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    });
+
+    if (!existingBooklet) {
+      return failure(validationError("Booklet not found"));
+    }
+
+    const serialPattern = /^[A-Z]\d+$/;
+    if (!serialPattern.test(data.serialStartNumber)) {
+      return failure(
+        validationError(
+          "Invalid serial format. Use one letter followed by numbers (e.g., A0807551)"
+        )
+      );
+    }
+
+    const serialEndNumber = calculateSerialEndNumber(
+      data.serialStartNumber,
+      50
+    );
+
+    const duplicateBooklet = await prisma.concessionBooklet.findFirst({
+      where: {
+        AND: [
+          { id: { not: bookletId } },
+          {
+            OR: [
+              { serialEndNumber: serialEndNumber },
+              { serialStartNumber: data.serialStartNumber },
+              {
+                AND: [
+                  { serialEndNumber: { gte: data.serialStartNumber } },
+                  { serialStartNumber: { lte: data.serialStartNumber } },
+                ],
+              },
+              {
+                AND: [
+                  { serialEndNumber: { gte: serialEndNumber } },
+                  { serialStartNumber: { lte: serialEndNumber } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (duplicateBooklet) {
+      return failure(
+        validationError("Serial number range overlaps with existing booklet")
+      );
+    }
+
+    let newStatus: ConcessionBookletStatusType;
+
+    if (data.isDamaged) {
+      newStatus = "Damaged";
+    } else {
+      const applicationCount = existingBooklet._count?.applications || 0;
+      if (applicationCount === 0) {
+        newStatus = "Available";
+      } else if (applicationCount < 50) {
+        newStatus = "InUse";
+      } else {
+        newStatus = "Exhausted";
+      }
+    }
+
+    const updatedBooklet = await prisma.concessionBooklet.update({
+      where: { id: bookletId },
+      data: {
+        status: newStatus,
+        serialEndNumber: serialEndNumber,
+        serialStartNumber: data.serialStartNumber,
+      },
+      include: {
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    });
+
+    revalidatePath("/dashboard/admin/booklets");
+    return success(updatedBooklet);
+  } catch (error) {
+    console.error("Error updating booklet:", error);
+    return failure(databaseError("Failed to update booklet"));
   }
 };

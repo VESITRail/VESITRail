@@ -2,8 +2,8 @@
 
 import {
   BookletItem,
-  createBooklet,
-  CreateBookletInput,
+  updateBooklet,
+  UpdateBookletInput,
 } from "@/actions/booklets";
 import {
   Dialog,
@@ -11,28 +11,33 @@ import {
   DialogFooter,
   DialogHeader,
   DialogContent,
-  DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, AlertCircle } from "lucide-react";
+import { Edit, AlertCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useCallback, useEffect } from "react";
 
-type CreateBookletDialogProps = {
-  onBookletCreated?: (booklet: BookletItem) => void;
+type UpdateBookletDialogProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  booklet: BookletItem | null;
+  onBookletUpdated?: (booklet: BookletItem) => void;
 };
 
-const CreateBookletDialog = ({
-  onBookletCreated,
-}: CreateBookletDialogProps) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isCreating, setIsCreating] = useState<boolean>(false);
+const UpdateBookletDialog = ({
+  isOpen,
+  onClose,
+  booklet,
+  onBookletUpdated,
+}: UpdateBookletDialogProps) => {
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
-  const [formData, setFormData] = useState<CreateBookletInput>({
-    status: "Available",
+  const [formData, setFormData] = useState<UpdateBookletInput>({
+    isDamaged: false,
     serialStartNumber: "",
   });
 
@@ -76,88 +81,88 @@ const CreateBookletDialog = ({
   }, [formData]);
 
   const handleInputChange = useCallback(
-    (field: keyof CreateBookletInput, value: string) => {
+    (field: keyof UpdateBookletInput, value: string | boolean) => {
       let processedValue = value;
 
-      if (field === "serialStartNumber") {
+      if (field === "serialStartNumber" && typeof value === "string") {
         processedValue = value.toUpperCase();
       }
 
       setFormData((prev) => ({ ...prev, [field]: processedValue }));
-      if (errors[field as keyof typeof errors]) {
-        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      if (field === "serialStartNumber" && errors.serialStartNumber) {
+        setErrors((prev) => ({ ...prev, serialStartNumber: undefined }));
       }
     },
     [errors]
   );
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
+    if (!booklet || !validateForm()) {
       return;
     }
 
-    setIsCreating(true);
+    setIsUpdating(true);
 
-    const createPromise = async () => {
-      const result = await createBooklet({
+    const updatePromise = async () => {
+      const result = await updateBooklet(booklet.id, {
         ...formData,
         serialStartNumber: formData.serialStartNumber.toUpperCase().trim(),
       });
 
       if (result.isSuccess) {
-        onBookletCreated?.(result.data);
-        setIsOpen(false);
-        setFormData({
-          status: "Available",
-          serialStartNumber: "",
-        });
-        setErrors({});
+        onBookletUpdated?.(result.data);
+        onClose();
         return result.data;
       } else {
-        throw new Error(result.error.message || "Failed to create booklet");
+        throw new Error(result.error.message || "Failed to update booklet");
       }
     };
 
-    toast.promise(createPromise, {
-      loading: "Creating Booklet...",
-      success: "Booklet Created Successfully",
-      error: (error) => error.message || "Failed to create booklet",
+    toast.promise(updatePromise, {
+      loading: "Updating Booklet...",
+      success: "Booklet Updated Successfully",
+      error: (error) => error.message || "Failed to update booklet",
       finally: () => {
-        setIsCreating(false);
+        setIsUpdating(false);
       },
     });
   };
 
   const handleCancel = () => {
-    setIsOpen(false);
-    setFormData({
-      status: "Available",
-      serialStartNumber: "",
-    });
+    onClose();
+    if (booklet) {
+      setFormData({
+        isDamaged: booklet.status === "Damaged",
+        serialStartNumber: booklet.serialStartNumber,
+      });
+    }
     setErrors({});
   };
+
+  useEffect(() => {
+    if (booklet && isOpen) {
+      setFormData({
+        isDamaged: booklet.status === "Damaged",
+        serialStartNumber: booklet.serialStartNumber,
+      });
+      setErrors({});
+    }
+  }, [booklet, isOpen]);
 
   const serialEndNumber = formData.serialStartNumber.trim()
     ? calculateSerialEndNumber(formData.serialStartNumber)
     : "";
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="size-4 mr-2" />
-          Create Booklet
-        </Button>
-      </DialogTrigger>
-
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="size-5" />
-            Create New Booklet
+            <Edit className="size-5" />
+            Update Booklet #{booklet?.bookletNumber}
           </DialogTitle>
           <DialogDescription>
-            Create a new concession booklet with 50 pages.
+            Update the booklet serial number and status.
           </DialogDescription>
         </DialogHeader>
 
@@ -208,21 +213,39 @@ const CreateBookletDialog = ({
               Automatically calculated based on 50 pages
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Status</Label>
+
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="isDamaged"
+                className="cursor-pointer"
+                checked={formData.isDamaged}
+                onCheckedChange={(checked) =>
+                  handleInputChange("isDamaged", checked === true)
+                }
+              />
+              <Label htmlFor="isDamaged" className="text-sm cursor-pointer">
+                Is the booklet damaged?
+              </Label>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
           <Button
             variant="outline"
-            disabled={isCreating}
+            disabled={isUpdating}
             onClick={handleCancel}
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isCreating || !formData.serialStartNumber.trim()}
+            disabled={isUpdating || !formData.serialStartNumber.trim()}
           >
-            {isCreating ? "Creating..." : "Create Booklet"}
+            {isUpdating ? "Updating..." : "Update Booklet"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -230,4 +253,4 @@ const CreateBookletDialog = ({
   );
 };
 
-export default CreateBookletDialog;
+export default UpdateBookletDialog;
