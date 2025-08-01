@@ -10,7 +10,11 @@ import {
   ValidationError,
 } from "@/lib/result";
 import {
+  Student,
+  Station,
+  ConcessionPeriod,
   ConcessionBooklet,
+  ConcessionApplication,
   ConcessionBookletStatusType,
 } from "@/generated/zod";
 import prisma from "@/lib/prisma";
@@ -48,6 +52,44 @@ export type BookletPaginationParams = {
   pageSize: number;
   searchQuery?: string;
   statusFilter?: ConcessionBookletStatusType | "all";
+};
+
+export type BookletApplicationItem = Pick<
+  ConcessionApplication,
+  "id" | "createdAt" | "status" | "applicationType" | "pageOffset"
+> & {
+  student: Pick<
+    Student,
+    | "gender"
+    | "address"
+    | "lastName"
+    | "firstName"
+    | "middleName"
+    | "dateOfBirth"
+  >;
+  derivedSerialNumber?: number;
+  derivedCertificateNo?: string;
+  station: Pick<Station, "name" | "code">;
+  concessionPeriod: Pick<ConcessionPeriod, "name" | "duration">;
+  previousApplication?: Pick<ConcessionApplication, "id"> | null;
+};
+
+export type PaginatedBookletApplicationsResult = {
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  data: BookletApplicationItem[];
+  booklet: Pick<
+    ConcessionBooklet,
+    "id" | "bookletNumber" | "serialStartNumber" | "serialEndNumber"
+  >;
+};
+
+export type BookletApplicationPaginationParams = {
+  page: number;
+  pageSize: number;
 };
 
 export const createBooklet = async (
@@ -328,5 +370,123 @@ export const updateBooklet = async (
   } catch (error) {
     console.error("Error updating booklet:", error);
     return failure(databaseError("Failed to update booklet"));
+  }
+};
+
+export const getBookletApplications = async (
+  bookletId: string,
+  params: BookletApplicationPaginationParams
+): Promise<
+  Result<PaginatedBookletApplicationsResult, DatabaseError | ValidationError>
+> => {
+  try {
+    const booklet = await prisma.concessionBooklet.findUnique({
+      where: { id: bookletId },
+      select: {
+        id: true,
+        bookletNumber: true,
+        serialEndNumber: true,
+        serialStartNumber: true,
+      },
+    });
+
+    if (!booklet) {
+      return failure(validationError("Booklet not found"));
+    }
+
+    const whereClause = {
+      concessionBookletId: bookletId,
+    };
+
+    const totalCount = await prisma.concessionApplication.count({
+      where: whereClause,
+    });
+
+    const totalPages = Math.ceil(totalCount / params.pageSize);
+    const skip = (params.page - 1) * params.pageSize;
+    const hasNextPage = params.page < totalPages;
+    const hasPreviousPage = params.page > 1;
+
+    const applications = await prisma.concessionApplication.findMany({
+      skip,
+      where: whereClause,
+      take: params.pageSize,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        pageOffset: true,
+        applicationType: true,
+        student: {
+          select: {
+            gender: true,
+            address: true,
+            lastName: true,
+            firstName: true,
+            middleName: true,
+            dateOfBirth: true,
+          },
+        },
+        station: {
+          select: {
+            name: true,
+            code: true,
+          },
+        },
+        concessionPeriod: {
+          select: {
+            name: true,
+            duration: true,
+          },
+        },
+        previousApplication: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    const applicationsWithDerivedData: BookletApplicationItem[] =
+      applications.map((app, index) => {
+        const globalIndex = skip + index;
+        const actualPageOffset = app.pageOffset ?? globalIndex;
+
+        const serialStart = booklet.serialStartNumber;
+        const prefix = serialStart.replace(/\d+$/, "");
+        const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
+        const certificateNum = startNum + actualPageOffset;
+        const derivedCertificateNo = `${prefix}${certificateNum
+          .toString()
+          .padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+
+        return {
+          id: app.id,
+          status: app.status,
+          station: app.station,
+          derivedCertificateNo,
+          student: app.student,
+          createdAt: app.createdAt,
+          pageOffset: app.pageOffset,
+          applicationType: app.applicationType,
+          concessionPeriod: app.concessionPeriod,
+          derivedSerialNumber: actualPageOffset + 1,
+          previousApplication: app.previousApplication,
+        };
+      });
+
+    return success({
+      booklet,
+      totalCount,
+      totalPages,
+      hasNextPage,
+      hasPreviousPage,
+      currentPage: params.page,
+      data: applicationsWithDerivedData,
+    });
+  } catch (error) {
+    console.error("Error fetching booklet applications:", error);
+    return failure(databaseError("Failed to fetch booklet applications"));
   }
 };
