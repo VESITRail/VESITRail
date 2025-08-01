@@ -233,7 +233,7 @@ const UpdateBookletDialog = ({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-4">
           <Button
             variant="outline"
             disabled={isUpdating}
