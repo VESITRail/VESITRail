@@ -71,7 +71,11 @@ export type BookletApplicationItem = Pick<
   derivedCertificateNo?: string;
   station: Pick<Station, "name" | "code">;
   concessionPeriod: Pick<ConcessionPeriod, "name" | "duration">;
-  previousApplication?: Pick<ConcessionApplication, "id"> | null;
+  previousApplication?:
+    | (Pick<ConcessionApplication, "id" | "pageOffset"> & {
+        concessionBooklet?: Pick<ConcessionBooklet, "serialStartNumber"> | null;
+      })
+    | null;
 };
 
 export type PaginatedBookletApplicationsResult = {
@@ -411,7 +415,7 @@ export const getBookletApplications = async (
       skip,
       where: whereClause,
       take: params.pageSize,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
       select: {
         id: true,
         status: true,
@@ -443,6 +447,12 @@ export const getBookletApplications = async (
         previousApplication: {
           select: {
             id: true,
+            pageOffset: true,
+            concessionBooklet: {
+              select: {
+                serialStartNumber: true,
+              },
+            },
           },
         },
       },
