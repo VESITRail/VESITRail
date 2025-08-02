@@ -148,8 +148,8 @@ const BookletApplicationsTable = ({
           return (
             <div className="text-center">
               <span title={fullName} className="font-medium block truncate">
-                {fullName.length > 30
-                  ? `${fullName.slice(0, 30)}...`
+                {fullName.length > 25
+                  ? `${fullName.slice(0, 25)}...`
                   : fullName}
               </span>
             </div>
@@ -244,8 +244,8 @@ const BookletApplicationsTable = ({
               className="text-sm block truncate"
               title={row.original.student.address}
             >
-              {row.original.student.address.length > 50
-                ? `${row.original.student.address.slice(0, 50)}...`
+              {row.original.student.address.length > 30
+                ? `${row.original.student.address.slice(0, 30)}...`
                 : row.original.student.address}
             </span>
           </div>
