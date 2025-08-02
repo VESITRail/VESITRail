@@ -1,5 +1,4 @@
 "use client";
-
 import {
   SidebarInset,
   SidebarTrigger,
@@ -79,41 +78,52 @@ const AdminDashboardLayoutContent = ({
 
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b-[1.5px]">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
+          <div className="flex items-center gap-2 px-4 min-w-0 flex-1">
+            <SidebarTrigger className="-ml-1 flex-shrink-0" />
 
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 h-4 flex-shrink-0"
+            />
 
-            <Breadcrumb>
-              <BreadcrumbList>
-                {breadcrumbs.map((breadcrumb, index) => (
-                  <div
-                    key={breadcrumb.href}
-                    className="flex items-center gap-1.5"
-                  >
-                    {index > 0 && <BreadcrumbSeparator />}
+            <div className="relative min-w-0 flex-1">
+              <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 sm:hidden" />
 
-                    <BreadcrumbItem className="font-medium">
-                      {breadcrumb.isActive ? (
-                        <BreadcrumbPage className="font-medium">
-                          {breadcrumb.label}
-                        </BreadcrumbPage>
-                      ) : (
-                        <BreadcrumbLink href={breadcrumb.href}>
-                          {breadcrumb.label}
-                        </BreadcrumbLink>
-                      )}
-                    </BreadcrumbItem>
-                  </div>
-                ))}
-              </BreadcrumbList>
-            </Breadcrumb>
+              <Breadcrumb>
+                <div className="overflow-x-auto scrollbar-none">
+                  <BreadcrumbList className="flex-nowrap">
+                    {breadcrumbs.map((breadcrumb, index) => (
+                      <div
+                        key={breadcrumb.href}
+                        className="flex items-center gap-1.5 flex-shrink-0"
+                      >
+                        {index > 0 && (
+                          <BreadcrumbSeparator className="flex-shrink-0" />
+                        )}
+
+                        <BreadcrumbItem className="font-medium whitespace-nowrap">
+                          {breadcrumb.isActive ? (
+                            <BreadcrumbPage className="font-medium">
+                              {breadcrumb.label}
+                            </BreadcrumbPage>
+                          ) : (
+                            <BreadcrumbLink href={breadcrumb.href}>
+                              {breadcrumb.label}
+                            </BreadcrumbLink>
+                          )}
+                        </BreadcrumbItem>
+                      </div>
+                    ))}
+                  </BreadcrumbList>
+                </div>
+              </Breadcrumb>
+            </div>
           </div>
 
           <Button
             size="icon"
-            className="mr-5"
             variant="outline"
+            className="mr-5 flex-shrink-0"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             <Sun className="size-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
