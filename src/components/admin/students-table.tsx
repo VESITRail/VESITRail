@@ -679,11 +679,15 @@ const createColumns = (
     accessorKey: "firstName",
     cell: ({ row }) => {
       const student = row.original;
+      const { firstName, middleName, lastName } = student;
+      const fullName = `${firstName}${
+        middleName ? ` ${middleName}` : ""
+      } ${lastName}`;
       return (
         <div className="space-y-1">
-          <p className="font-medium text-foreground">
+          <p title={fullName} className="font-medium text-foreground">
             {toTitleCase(
-              `${student.firstName} ${student.middleName} ${student.lastName}`
+              fullName.length > 25 ? `${fullName.slice(0, 25)}...` : fullName
             )}
           </p>
           <p className="text-xs text-muted-foreground">{student.user.email}</p>
