@@ -448,7 +448,11 @@ const BookletsTable = ({
                 <Skeleton className="h-4 w-20 mx-auto" />
               </TableCell>
               <TableCell className="text-center">
-                <Skeleton className="size-8 mx-auto" />
+                <div className="flex justify-center gap-1">
+                  <Skeleton className="size-8" />
+                  <Skeleton className="size-8" />
+                  <Skeleton className="size-8" />
+                </div>
               </TableCell>
             </TableRow>
           ))}

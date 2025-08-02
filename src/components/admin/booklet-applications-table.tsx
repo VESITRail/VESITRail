@@ -272,12 +272,12 @@ const BookletApplicationsTable = ({
     if (isLoading) {
       return (
         <TableBody>
-          {Array.from({ length: 10 }).map((_, index) => (
+          {Array.from({ length: 8 }).map((_, index) => (
             <TableRow
               key={index}
               className="hover:bg-transparent border-border/50"
             >
-              {columns.map((col, colIndex) => (
+              {columns.map((_, colIndex) => (
                 <TableCell
                   key={colIndex}
                   className="text-center p-4 align-middle"
@@ -357,7 +357,7 @@ const BookletApplicationsTable = ({
 
   return (
     <div className="w-full space-y-6">
-      <div className="rounded-lg border bg-card">
+      <div className="rounded-lg border bg-card overflow-hidden">
         <div className="overflow-auto max-h-[70vh]">
           <Table>
             <TableHeader className="sticky top-0 bg-card z-10">
