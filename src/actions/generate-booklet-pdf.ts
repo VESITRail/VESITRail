@@ -10,12 +10,12 @@ import {
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import prisma from "@/lib/prisma";
-import autoTable from "jspdf-autotable";
-import { getBookletApplications } from "./booklets";
+import autoTable, { UserOptions } from "jspdf-autotable";
+import { getBookletApplications, BookletApplicationItem } from "./booklets";
 
 declare module "jspdf" {
   interface jsPDF {
-    autoTable: (options: any) => jsPDF;
+    autoTable: (options: UserOptions) => jsPDF;
   }
 }
 
@@ -109,7 +109,9 @@ export const generateBookletPDF = async (
     doc.setLineWidth(0.5);
     doc.line(15, 85, pageWidth - 15, 85);
 
-    const getCurrentPassNo = async (application: any): Promise<string> => {
+    const getCurrentPassNo = async (
+      application: BookletApplicationItem
+    ): Promise<string> => {
       if (application.applicationType === "New") {
         return "New Application";
       }

@@ -130,6 +130,7 @@ const BookletApplicationsPage = () => {
           });
         }
       } catch (error) {
+        console.error("Error loading applications:", error);
         setIsError(true);
         toast.error("Failed to load applications", {
           description: "An unexpected error occurred",

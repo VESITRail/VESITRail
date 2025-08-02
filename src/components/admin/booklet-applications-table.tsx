@@ -42,7 +42,6 @@ type BookletApplicationsTableProps = {
 
 const BookletApplicationsTable = ({
   isError,
-  booklet,
   isLoading,
   totalCount,
   totalPages,
@@ -81,18 +80,18 @@ const BookletApplicationsTable = ({
     return derivedCertificateNo;
   };
 
-  const getCurrentPassNo = (application: BookletApplicationItem): string => {
-    if (application.applicationType === "New") {
-      return "New";
-    }
-    if (application.previousApplication?.id) {
-      return generatePreviousCertificateNo(application.previousApplication);
-    }
-    return "N/A";
-  };
+  const columns: ColumnDef<BookletApplicationItem>[] = useMemo(() => {
+    const getCurrentPassNo = (application: BookletApplicationItem): string => {
+      if (application.applicationType === "New") {
+        return "New";
+      }
+      if (application.previousApplication?.id) {
+        return generatePreviousCertificateNo(application.previousApplication);
+      }
+      return "N/A";
+    };
 
-  const columns: ColumnDef<BookletApplicationItem>[] = useMemo(
-    () => [
+    return [
       {
         size: 60,
         id: "serialNo",
@@ -254,9 +253,8 @@ const BookletApplicationsTable = ({
           </div>
         ),
       },
-    ],
-    [currentPage, booklet]
-  );
+    ];
+  }, [currentPage]);
 
   const table = useReactTable({
     columns,
@@ -295,7 +293,7 @@ const BookletApplicationsTable = ({
 
     if (isError) {
       return (
-        <TableBody>
+        <TableBody className="h-64">
           <TableRow className="hover:bg-transparent">
             <TableCell
               className="text-center py-12 align-middle"
@@ -319,7 +317,7 @@ const BookletApplicationsTable = ({
 
     if (applications.length === 0) {
       return (
-        <TableBody>
+        <TableBody className="h-64">
           <TableRow className="hover:bg-transparent">
             <TableCell
               className="text-center py-12 align-middle"
