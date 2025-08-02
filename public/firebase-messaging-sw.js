@@ -19,8 +19,10 @@ messaging.onBackgroundMessage(function (payload) {
         const notificationTitle = payload.data.title || 'VESITRail Notification';
 
         const notificationOptions = {
+            sound: 'default',
             icon: '/icons/ios/256.png',
             tag: 'vesitrail-notification',
+            vibrate: [200, 100, 200, 100, 200],
             body: payload.data.body || 'You have a new notification',
             data: {
                 url: payload.data.url || '/dashboard/student',

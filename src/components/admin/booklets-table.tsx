@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  Eye,
+  Edit,
   Search,
   Filter,
   Trash2,
@@ -10,7 +12,6 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
-  Edit,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -50,6 +51,7 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -382,6 +384,12 @@ const BookletsTable = ({
         header: () => <div className="text-center">Actions</div>,
         cell: ({ row }) => (
           <div className="flex justify-center gap-1">
+            <Link href={`/dashboard/admin/booklets/${row.original.id}`}>
+              <Button size="sm" variant="outline" className="size-8 p-0">
+                <Eye className="size-4" />
+              </Button>
+            </Link>
+
             <Button
               size="sm"
               variant="ghost"
@@ -402,7 +410,7 @@ const BookletsTable = ({
         ),
       },
     ],
-    [handleSort, handleDeleteClick, handleUpdateClick, currentPage]
+    [handleSort, currentPage, handleDeleteClick, handleUpdateClick]
   );
 
   const table = useReactTable({
@@ -440,7 +448,11 @@ const BookletsTable = ({
                 <Skeleton className="h-4 w-20 mx-auto" />
               </TableCell>
               <TableCell className="text-center">
-                <Skeleton className="size-8 mx-auto" />
+                <div className="flex justify-center gap-1">
+                  <Skeleton className="size-8" />
+                  <Skeleton className="size-8" />
+                  <Skeleton className="size-8" />
+                </div>
               </TableCell>
             </TableRow>
           ))}

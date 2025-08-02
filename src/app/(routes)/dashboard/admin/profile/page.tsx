@@ -122,15 +122,20 @@ const AdminProfilePage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <Skeleton className="size-10 rounded-lg" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-5 w-36" />
                   <Skeleton className="h-4 w-28" />
                 </div>
+                <div className="hidden sm:block">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
               </div>
-              <Skeleton className="h-6 w-20 rounded-full" />
+              <div className="sm:hidden">
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
             </div>
           </CardHeader>
 
@@ -275,7 +280,7 @@ const AdminProfilePage = () => {
 
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
                 <User className="size-5" />
@@ -285,13 +290,32 @@ const AdminProfilePage = () => {
                 <CardTitle className="text-lg">Personal Information</CardTitle>
                 <CardDescription>Your account details</CardDescription>
               </div>
+
+              <Badge
+                variant={
+                  profileData.user.emailVerified ? "default" : "destructive"
+                }
+                className="hidden sm:flex"
+              >
+                {profileData.user.emailVerified ? (
+                  <>
+                    <CheckCircle className="size-4 mr-1" />
+                    Verified
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="size-4 mr-1" />
+                    Not Verified
+                  </>
+                )}
+              </Badge>
             </div>
 
             <Badge
               variant={
                 profileData.user.emailVerified ? "default" : "destructive"
               }
-              className="self-start sm:self-center"
+              className="self-start sm:hidden"
             >
               {profileData.user.emailVerified ? (
                 <>
