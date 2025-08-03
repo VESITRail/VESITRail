@@ -204,6 +204,7 @@ export const generateBookletPDF = async (
         lineColor: [0, 0, 0],
         overflow: "linebreak",
         cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
+        halign: "center",
       },
       headStyles: {
         fontSize: 9,
@@ -218,13 +219,13 @@ export const generateBookletPDF = async (
         0: { halign: "center", cellWidth: 15 },
         1: { halign: "center", cellWidth: 25 },
         2: { halign: "center", cellWidth: 25 },
-        3: { halign: "left", cellWidth: 65 },
-        4: { halign: "center", cellWidth: 35 },
-        5: { halign: "center", cellWidth: 18 },
-        6: { halign: "center", cellWidth: 25 },
-        7: { halign: "center", cellWidth: 28 },
-        8: { halign: "center", cellWidth: 45 },
-        9: { halign: "left", cellWidth: "auto" },
+        3: { halign: "left", cellWidth: 60 },
+        4: { halign: "center", cellWidth: 30 },
+        5: { halign: "center", cellWidth: 15 },
+        6: { halign: "center", cellWidth: 22 },
+        7: { halign: "center", cellWidth: 25 },
+        8: { halign: "center", cellWidth: 40 },
+        9: { halign: "left", overflow: "linebreak" },
       },
       alternateRowStyles: {
         fillColor: [240, 240, 240],
@@ -233,49 +234,53 @@ export const generateBookletPDF = async (
       showHead: "everyPage",
       rowPageBreak: "avoid",
       tableLineColor: [0, 0, 0],
-      margin: { left: 15, right: 15 },
+      margin: { left: 15, right: 15, bottom: 30 },
+      tableWidth: "auto",
+      didDrawPage: (data) => {
+        const pageNumber = data.pageNumber;
+        const totalPages = doc.getNumberOfPages();
+
+        const footerY = pageHeight - 15;
+
+        doc.setLineWidth(0.8);
+        doc.line(15, footerY - 8, pageWidth - 15, footerY - 8);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+
+        const footerIstTime = toZonedTime(new Date(), "Asia/Kolkata");
+        doc.text(
+          `Generated: ${format(footerIstTime, "dd/MM/yyyy HH:mm", {
+            timeZone: "Asia/Kolkata",
+          })}`,
+          15,
+          footerY
+        );
+
+        doc.setFont("helvetica", "bold");
+        doc.text(
+          "VESITRail - Railway Concession Management System",
+          centerX,
+          footerY,
+          { align: "center" }
+        );
+
+        doc.setFont("helvetica", "normal");
+        doc.text(
+          `Page ${pageNumber} of ${totalPages}`,
+          pageWidth - 15,
+          footerY,
+          {
+            align: "right",
+          }
+        );
+
+        doc.setFontSize(6);
+        doc.text("CONFIDENTIAL - For Official Use Only", centerX, footerY + 5, {
+          align: "center",
+        });
+      },
     });
-
-    const pageCount = doc.getNumberOfPages();
-
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-
-      const footerY = pageHeight - 15;
-
-      doc.setLineWidth(0.8);
-      doc.line(15, footerY - 8, pageWidth - 15, footerY - 8);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-
-      const footerIstTime = toZonedTime(new Date(), "Asia/Kolkata");
-      doc.text(
-        `Generated: ${format(footerIstTime, "dd/MM/yyyy HH:mm", {
-          timeZone: "Asia/Kolkata",
-        })}`,
-        15,
-        footerY
-      );
-
-      doc.setFont("helvetica", "bold");
-      doc.text(
-        "VESITRail - Railway Concession Management System",
-        centerX,
-        footerY,
-        { align: "center" }
-      );
-
-      doc.setFont("helvetica", "normal");
-      doc.text(`Page ${i} of ${pageCount}`, pageWidth - 15, footerY, {
-        align: "right",
-      });
-
-      doc.setFontSize(6);
-      doc.text("CONFIDENTIAL - For Official Use Only", centerX, footerY + 5, {
-        align: "center",
-      });
-    }
 
     const pdfBase64 = doc.output("datauristring");
     return success(pdfBase64);
