@@ -74,18 +74,24 @@ export const generateBookletPDF = async (
       align: "center",
     });
 
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.text("Route: Origin Station -> Kurla (CLA)", centerX, 60, {
+      align: "center",
+    });
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.text("REPORT DETAILS", 15, 64);
+    doc.text("REPORT DETAILS", 15, 72);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
 
-    doc.text(`Total Applications: ${applications.length}`, 15, 72);
+    doc.text(`Total Applications: ${applications.length}`, 15, 80);
     doc.text(
       `Serial Range: ${booklet.serialStartNumber} - ${booklet.serialEndNumber}`,
       15,
-      79
+      87
     );
 
     const newApplicationsCount = applications.filter(
@@ -95,7 +101,7 @@ export const generateBookletPDF = async (
     doc.text(
       `New: ${newApplicationsCount} | Renewal: ${renewalCount}`,
       pageWidth - 15,
-      72,
+      80,
       { align: "right" }
     );
 
@@ -105,12 +111,12 @@ export const generateBookletPDF = async (
         timeZone: "Asia/Kolkata",
       })}`,
       pageWidth - 15,
-      79,
+      87,
       { align: "right" }
     );
 
     doc.setLineWidth(0.5);
-    doc.line(15, 85, pageWidth - 15, 85);
+    doc.line(15, 93, pageWidth - 15, 93);
 
     const getCurrentPassNo = async (
       application: BookletApplicationItem
@@ -189,11 +195,11 @@ export const generateBookletPDF = async (
           "Gender",
           "Date of Birth",
           "Pass Type",
-          "Home Station",
+          "Origin Station",
           "Residential Address",
         ],
       ],
-      startY: 91,
+      startY: 99,
       body: tableData,
       styles: {
         fontSize: 8.5,
