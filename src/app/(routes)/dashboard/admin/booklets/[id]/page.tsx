@@ -166,15 +166,24 @@ const BookletApplicationsPage = () => {
         throw new Error(result.error.message || "Failed to generate PDF");
       }
 
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = result.data;
-      a.download = `Booklet ${paginationData.booklet.bookletNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const base64Data = result.data.split(",")[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
 
-      return "PDF generated successfully";
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const blobUrl = URL.createObjectURL(blob);
+
+      window.open(blobUrl, "_blank");
+
+      setTimeout(() => {
+        URL.revokeObjectURL(blobUrl);
+      }, 1000);
+
+      return "PDF opened in new tab successfully";
     };
 
     toast.promise(generatePDFPromise, {
