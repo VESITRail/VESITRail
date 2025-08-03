@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/sonner";
+import { GoogleTagManager } from "@next/third-parties/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 const inter = Inter({
@@ -13,6 +14,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "VESITRail",
   manifest: "/manifest.webmanifest",
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://vesitrail.ves.ac.in"
   ),
@@ -27,6 +31,10 @@ const RootLayout = ({
 }>) => {
   return (
     <html lang="en" className="scroll-smooth">
+      <GoogleTagManager
+        gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID!}
+      />
+
       <body className={`antialiased ${inter.variable}`}>
         <ThemeProvider
           enableSystem
