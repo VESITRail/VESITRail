@@ -8,7 +8,7 @@ import {
   ValidationError,
 } from "@/lib/result";
 import jsPDF from "jspdf";
-import { format } from "date-fns";
+import { format, toZonedTime } from "date-fns-tz";
 import prisma from "@/lib/prisma";
 import autoTable, { UserOptions } from "jspdf-autotable";
 import { getBookletApplications, BookletApplicationItem } from "./booklets";
@@ -99,8 +99,11 @@ export const generateBookletPDF = async (
       { align: "right" }
     );
 
+    const istTime = toZonedTime(new Date(), "Asia/Kolkata");
     doc.text(
-      `Generated: ${format(new Date(), "dd/MM/yyyy 'at' HH:mm")}`,
+      `Generated: ${format(istTime, "dd/MM/yyyy 'at' HH:mm", {
+        timeZone: "Asia/Kolkata",
+      })}`,
       pageWidth - 15,
       79,
       { align: "right" }
@@ -246,8 +249,11 @@ export const generateBookletPDF = async (
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
 
+      const footerIstTime = toZonedTime(new Date(), "Asia/Kolkata");
       doc.text(
-        `Generated: ${format(new Date(), "dd/MM/yyyy HH:mm")}`,
+        `Generated: ${format(footerIstTime, "dd/MM/yyyy HH:mm", {
+          timeZone: "Asia/Kolkata",
+        })}`,
         15,
         footerY
       );
