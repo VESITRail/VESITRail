@@ -74,7 +74,7 @@ type SortOrder = "asc" | "desc";
 
 const StatusBadge = ({ status }: { status: ConcessionBookletStatusType }) => {
   const variants = {
-    InUse: "bg-blue-600 text-white",
+    InUse: "bg-primary text-white",
     Damaged: "bg-red-600 text-white",
     Exhausted: "bg-gray-600 text-white",
     Available: "bg-green-600 text-white",
@@ -682,12 +682,21 @@ const BookletsTable = ({
             <AlertDialogTitle>Delete Booklet</AlertDialogTitle>
 
             <AlertDialogDescription>
-              Are you sure you want to delete booklet #
-              {bookletToDelete?.bookletNumber}? This action cannot be undone.
               {bookletToDelete?._count?.applications &&
-              bookletToDelete._count.applications > 0
-                ? " Note: This booklet has applications and cannot be deleted."
-                : ""}
+              bookletToDelete._count.applications > 0 ? (
+                <>
+                  Booklet #{bookletToDelete?.bookletNumber} cannot be deleted
+                  because it has {bookletToDelete._count.applications}{" "}
+                  associated application
+                  {bookletToDelete._count.applications > 1 ? "s" : ""}.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to delete booklet #
+                  {bookletToDelete?.bookletNumber}? This action cannot be
+                  undone.
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -698,7 +707,7 @@ const BookletsTable = ({
                 isDeleting || (bookletToDelete?._count?.applications ?? 0) > 0
               }
               onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive hover:bg-destructive/90"
             >
               {isDeleting ? "Deleting..." : "Delete Booklet"}
             </AlertDialogAction>

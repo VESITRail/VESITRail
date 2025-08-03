@@ -46,6 +46,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.2.0",
     "firebase": "^12.0.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",

@@ -141,16 +141,15 @@ const BookletApplicationsTable = ({
         id: "studentName",
         header: () => <div className="text-center">Student Name</div>,
         cell: ({ row }) => {
-          const { firstName, middleName, lastName } = row.original.student;
-          const fullName = `${firstName}${
-            middleName ? ` ${middleName}` : ""
-          } ${lastName}`;
+          const { firstName, lastName } = row.original.student;
+          const fullName = `${firstName} ${lastName}`;
+
           return (
             <div className="text-center">
               <span title={fullName} className="font-medium block truncate">
                 {toTitleCase(
-                  fullName.length > 25
-                    ? `${fullName.slice(0, 25)}...`
+                  fullName.length > 20
+                    ? `${fullName.slice(0, 20)}...`
                     : fullName
                 )}
               </span>

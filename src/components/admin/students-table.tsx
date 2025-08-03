@@ -679,10 +679,9 @@ const createColumns = (
     accessorKey: "firstName",
     cell: ({ row }) => {
       const student = row.original;
-      const { firstName, middleName, lastName } = student;
-      const fullName = `${firstName}${
-        middleName ? ` ${middleName}` : ""
-      } ${lastName}`;
+      const { firstName, lastName } = student;
+      const fullName = `${firstName} ${lastName}`;
+
       return (
         <div className="space-y-1">
           <p title={fullName} className="font-medium text-foreground">

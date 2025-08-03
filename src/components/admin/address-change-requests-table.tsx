@@ -884,12 +884,16 @@ const AddressChangeRequestsTable = ({
         accessorKey: "studentName",
         cell: ({ row }) => {
           const request = row.original;
-          const fullName = `${request.student.firstName} ${request.student.middleName} ${request.student.lastName}`;
+          const fullName = `${request.student.firstName} ${request.student.lastName}`;
 
           return (
             <div className="space-y-1 text-center">
               <p className="font-medium text-foreground">
-                {toTitleCase(fullName)}
+                {toTitleCase(
+                  fullName.length > 25
+                    ? `${fullName.slice(0, 25)}...`
+                    : fullName
+                )}
               </p>
               <p className="text-xs text-muted-foreground">
                 {request.student.user.email}
