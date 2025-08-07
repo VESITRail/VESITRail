@@ -8,8 +8,9 @@ import {
   ValidationError,
 } from "@/lib/result";
 import jsPDF from "jspdf";
-import { format, toZonedTime } from "date-fns-tz";
 import prisma from "@/lib/prisma";
+import { PDFDocument, degrees } from "pdf-lib";
+import { format, toZonedTime } from "date-fns-tz";
 import autoTable, { UserOptions } from "jspdf-autotable";
 import { getBookletApplications, BookletApplicationItem } from "./booklets";
 
@@ -288,7 +289,23 @@ export const generateBookletPDF = async (
       },
     });
 
-    const pdfBase64 = doc.output("datauristring");
+    const pdfBytes = doc.output("arraybuffer");
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pages = pdfDoc.getPages();
+
+    pages.forEach((page, index) => {
+      if ((index + 1) % 2 === 1) {
+        page.setRotation(degrees(90));
+      } else {
+        page.setRotation(degrees(270));
+      }
+    });
+
+    const modifiedPdfBytes = await pdfDoc.save();
+    const pdfBase64 = `data:application/pdf;base64,${Buffer.from(
+      modifiedPdfBytes
+    ).toString("base64")}`;
+
     return success(pdfBase64);
   } catch (error) {
     console.error("Error generating PDF:", error);

@@ -235,23 +235,6 @@ const BookletApplicationsTable = ({
           );
         },
       },
-      {
-        size: 150,
-        id: "address",
-        header: () => <div className="text-center">Address</div>,
-        cell: ({ row }) => (
-          <div className="text-center">
-            <span
-              className="text-sm block truncate"
-              title={row.original.student.address}
-            >
-              {row.original.student.address.length > 25
-                ? `${row.original.student.address.slice(0, 25)}...`
-                : row.original.student.address}
-            </span>
-          </div>
-        ),
-      },
     ];
   }, [currentPage]);
 
