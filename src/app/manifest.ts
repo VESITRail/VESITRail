@@ -34,10 +34,10 @@ const manifest = (): MetadataRoute.Manifest => {
         description: "Update your address for concession applications",
       },
       {
-        short_name: "Account",
-        name: "Account Settings",
-        url: "/dashboard/student/settings",
-        description: "Manage your account and app preferences",
+        name: "Profile",
+        short_name: "Profile",
+        url: "/dashboard/student/profile",
+        description: "Manage your profile information",
       },
     ],
     icons: [
@@ -600,6 +600,104 @@ const manifest = (): MetadataRoute.Manifest => {
         src: "/icons/ios/1024.png",
         sizes: "1024x1024",
         type: "image/png",
+      },
+    ],
+    screenshots: [
+      {
+        sizes: "1080x1920",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        src: "/icons/screenshots/narrow/1.jpg",
+        label:
+          "📱 Student Dashboard - View all your concession applications and track their status",
+      },
+      {
+        sizes: "1080x1920",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        src: "/icons/screenshots/narrow/2.jpg",
+        label:
+          "➕ Apply for Concession - Submit new railway concession applications easily",
+      },
+      {
+        sizes: "1080x1920",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        src: "/icons/screenshots/narrow/3.jpg",
+        label:
+          "🏠 Change Address - Update your home station and address details",
+      },
+      {
+        sizes: "1080x1920",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        src: "/icons/screenshots/narrow/4.jpg",
+        label:
+          "👤 Student Profile - View your personal and academic information",
+      },
+      {
+        sizes: "1080x1920",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        src: "/icons/screenshots/narrow/5.jpg",
+        label:
+          "⚙️ Settings & Preferences - Manage notifications and concession preferences",
+      },
+      {
+        sizes: "1080x1920",
+        type: "image/jpeg",
+        form_factor: "narrow",
+        src: "/icons/screenshots/narrow/6.jpg",
+        label:
+          "🔍 Application Status - Track pending, approved, and rejected applications",
+      },
+      {
+        sizes: "1920x920",
+        type: "image/png",
+        form_factor: "wide",
+        src: "/icons/screenshots/wide/1.png",
+        label:
+          "📱 Student Dashboard - View all your concession applications and track their status",
+      },
+      {
+        sizes: "1920x920",
+        type: "image/png",
+        form_factor: "wide",
+        src: "/icons/screenshots/wide/2.png",
+        label:
+          "➕ Apply for Concession - Submit new railway concession applications easily",
+      },
+      {
+        sizes: "1920x920",
+        type: "image/png",
+        form_factor: "wide",
+        src: "/icons/screenshots/wide/3.png",
+        label:
+          "🏠 Change Address - Update your home station and address details",
+      },
+      {
+        sizes: "1920x920",
+        type: "image/png",
+        form_factor: "wide",
+        src: "/icons/screenshots/wide/4.png",
+        label:
+          "👤 Student Profile - View your personal and academic information",
+      },
+      {
+        sizes: "1920x920",
+        type: "image/png",
+        form_factor: "wide",
+        src: "/icons/screenshots/wide/5.png",
+        label:
+          "⚙️ Settings & Preferences - Manage notifications and concession preferences",
+      },
+      {
+        sizes: "1920x920",
+        type: "image/png",
+        form_factor: "wide",
+        src: "/icons/screenshots/wide/6.png",
+        label:
+          "🔍 Application Status - Track pending, approved, and rejected applications",
       },
     ],
   };
