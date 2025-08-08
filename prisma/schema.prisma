@@ -87,3 +87,20 @@ model FcmToken {
 
   @@unique([studentId, deviceId])
 }
+
+model Notification {
+  id        String  @id @default(cuid())
+  studentId String
+  messageId String?
+
+  title String
+  body  String
+  url   String?
+
+  isRead Boolean          @default(false)
+  type   NotificationType @default(Update)
+
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+}
