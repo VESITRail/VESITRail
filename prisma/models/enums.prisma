@@ -3,6 +3,11 @@ enum Gender {
   Female
 }
 
+enum NotificationType {
+  Update
+  Announcement
+}
+
 enum FcmPlatform {
   Web
   iOS
