@@ -13,11 +13,12 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
+import { Bell, Moon, Sun } from "lucide-react";
 import { toTitleCase } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import NotificationSheet from "@/components/student/notification-sheet";
 import StudentAppSidebar from "@/components/app-sidebar/student/app-sidebar";
 import NotificationPermissionHandler from "@/components/student/notification-permission-handler";
 
@@ -121,6 +122,13 @@ const StudentDashboardLayoutContent = ({
               </Breadcrumb>
             </div>
           </div>
+
+          <NotificationSheet>
+            <Button size="icon" className="mr-2 flex-shrink-0">
+              <Bell className="size-[1.2rem]" />
+              <span className="sr-only">Notifications</span>
+            </Button>
+          </NotificationSheet>
 
           <Button
             size="icon"
