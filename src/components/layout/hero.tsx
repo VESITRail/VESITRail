@@ -42,7 +42,7 @@ const Hero = () => {
             callbackURL: "/dashboard",
           });
         } catch (error) {
-          console.log("One Tap initialization failed:", error);
+          console.error("One Tap initialization failed:", error);
         }
       }
     };
