@@ -198,6 +198,20 @@ const createColumns = (
     },
   },
   {
+    size: 100,
+    header: "ID",
+    id: "shortId",
+    accessorKey: "shortId",
+    cell: ({ row }) => {
+      const shortId = row.getValue("shortId") as number;
+      return (
+        <div className="font-mono text-sm font-medium text-foreground">
+          #{shortId}
+        </div>
+      );
+    },
+  },
+  {
     size: 150,
     header: "Type",
     accessorKey: "applicationType",
@@ -568,6 +582,8 @@ const ApplicationsTable = ({
                         ? "Applied Date"
                         : column.id === "serialNo"
                         ? "Sr. No."
+                        : column.id === "shortId"
+                        ? "ID"
                         : column.id}
                     </DropdownMenuCheckboxItem>
                   );
@@ -590,6 +606,9 @@ const ApplicationsTable = ({
               <TableRow className="hover:bg-transparent border-border/50">
                 <TableHead className="font-semibold h-12 text-center px-4 w-[80px]">
                   <Skeleton className="h-4 w-12 mx-auto" />
+                </TableHead>
+                <TableHead className="font-semibold h-12 text-center px-4 w-[100px]">
+                  <Skeleton className="h-4 w-16 mx-auto" />
                 </TableHead>
                 <TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
                   <Skeleton className="h-4 w-12 mx-auto" />
@@ -620,6 +639,9 @@ const ApplicationsTable = ({
                 >
                   <TableCell className="p-4 text-center">
                     <Skeleton className="h-4 w-6 mx-auto" />
+                  </TableCell>
+                  <TableCell className="p-4 text-center">
+                    <Skeleton className="h-4 w-12 mx-auto" />
                   </TableCell>
                   <TableCell className="p-4 text-center">
                     <div className="flex items-center justify-center gap-2">
