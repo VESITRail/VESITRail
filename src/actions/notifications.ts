@@ -14,7 +14,7 @@ import type { Notification } from "@/generated/zod";
 
 export type NotificationItem = Pick<
   Notification,
-  "id" | "title" | "body" | "url" | "isRead" | "type" | "createdAt"
+  "id" | "title" | "body" | "url" | "isRead" | "createdAt"
 >;
 
 export type PaginatedNotificationsResult = {
@@ -68,7 +68,6 @@ export const getNotifications = async (
         select: {
           id: true,
           url: true,
-          type: true,
           body: true,
           title: true,
           isRead: true,
