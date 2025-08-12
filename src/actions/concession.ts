@@ -23,7 +23,12 @@ import type { Prisma } from "@/generated/prisma";
 export type Concession =
   | (Pick<
       ConcessionApplication,
-      "id" | "status" | "createdAt" | "reviewedAt" | "applicationType"
+      | "id"
+      | "status"
+      | "shortId"
+      | "createdAt"
+      | "reviewedAt"
+      | "applicationType"
     > & {
       previousApplication?: Concession;
       station: Pick<Station, "id" | "code" | "name">;
@@ -103,6 +108,7 @@ export const getConcessions = async (
       select: {
         id: true,
         status: true,
+        shortId: true,
         createdAt: true,
         reviewedAt: true,
         applicationType: true,
@@ -131,6 +137,7 @@ export const getConcessions = async (
           select: {
             id: true,
             status: true,
+            shortId: true,
             createdAt: true,
             reviewedAt: true,
             applicationType: true,
@@ -199,6 +206,7 @@ export const getLastApplication = async (
       select: {
         id: true,
         status: true,
+        shortId: true,
         createdAt: true,
         reviewedAt: true,
         applicationType: true,
@@ -263,6 +271,7 @@ export const submitConcessionApplication = async (
       select: {
         id: true,
         status: true,
+        shortId: true,
         createdAt: true,
         reviewedAt: true,
         applicationType: true,
@@ -291,6 +300,7 @@ export const submitConcessionApplication = async (
           select: {
             id: true,
             status: true,
+            shortId: true,
             createdAt: true,
             reviewedAt: true,
             applicationType: true,
