@@ -19,11 +19,11 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { Bell, Clock, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect, useCallback } from "react";
-import { Bell, Clock, Info, Megaphone, Loader2 } from "lucide-react";
 
 type NotificationSheetProps = {
   children: React.ReactNode;
@@ -147,17 +147,6 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
     [hasNextPage, loadingMore, loadMore]
   );
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "Update":
-        return <Info className="size-4" />;
-      case "Announcement":
-        return <Megaphone className="size-4" />;
-      default:
-        return <Bell className="size-4" />;
-    }
-  };
-
   const NotificationSkeleton = () => (
     <div className="space-y-4 py-2">
       {Array.from({ length: 10 }).map((_, i) => (
@@ -222,7 +211,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
                       onClick={() => handleNotificationClick(notification)}
                     >
                       <div className="flex-shrink-0 mt-1">
-                        {getNotificationIcon(notification.type)}
+                        <Bell className="size-4" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">
@@ -254,12 +243,6 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
                               minute: "2-digit",
                             })}
                           </span>
-                          <Badge
-                            variant="outline"
-                            className="text-xs py-0 px-1"
-                          >
-                            {notification.type}
-                          </Badge>
                         </div>
                       </div>
                     </div>
