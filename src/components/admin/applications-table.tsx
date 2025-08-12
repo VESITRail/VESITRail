@@ -272,8 +272,8 @@ const ApplicationsTable = ({
     }
 
     return [...applications].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: number | string;
+      let bValue: number | string;
 
       switch (sortConfig.key) {
         case "createdAt":
