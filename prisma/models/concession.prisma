@@ -1,5 +1,6 @@
 model ConcessionApplication {
-  id String @id @default(uuid())
+  id      String @id @default(uuid())
+  shortId Int    @unique @default(autoincrement())
 
   pageOffset      Int?
   applicationType ConcessionApplicationType
