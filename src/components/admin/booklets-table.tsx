@@ -80,7 +80,11 @@ const StatusBadge = ({ status }: { status: ConcessionBookletStatusType }) => {
     Available: "bg-green-600 text-white",
   };
 
-  return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
+  const displayText = status === "InUse" ? "In Use" : status;
+
+  return (
+    <Badge className={`${variants[status]} font-medium`}>{displayText}</Badge>
+  );
 };
 
 type BookletsTableProps = {
