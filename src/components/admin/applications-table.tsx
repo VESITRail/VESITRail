@@ -774,7 +774,9 @@ const ApplicationsTable = ({
                     <TableHead
                       key={header.id}
                       style={{ width: header.getSize() }}
-                      className="font-semibold h-12 px-4 text-center"
+                      className={`font-semibold h-12 text-center ${
+                        header.id === "serialNo" ? "px-6" : "px-4"
+                      }`}
                     >
                       {header.isPlaceholder
                         ? null
