@@ -97,9 +97,7 @@ model Notification {
   body  String
   url   String?
 
-  isRead Boolean          @default(false)
-  type   NotificationType @default(Update)
-
+  isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
   student Student @relation(fields: [studentId], references: [userId], onDelete: Cascade)
