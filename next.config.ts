@@ -1,11 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // experimental: {
-  //   serverActions: {
-  //     allowedOrigins: ["localhost:3000", "cb8l64jv-3000.inc1.devtunnels.ms"],
-  //   },
-  // },
   webpack: (config, { isServer }) => {
     if (isServer) {
       const {
@@ -16,6 +11,11 @@ const nextConfig: NextConfig = {
 
     return config;
   },
+  // experimental: {
+  //   serverActions: {
+  //     allowedOrigins: ["localhost:3000", "cb8l64jv-3000.inc1.devtunnels.ms"],
+  //   },
+  // },
 };
 
 export default nextConfig;
