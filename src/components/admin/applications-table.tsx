@@ -1,8 +1,10 @@
+"use client";
+
 import {
   Inbox,
   Filter,
+  Search,
   XCircle,
-  History,
   ArrowUpDown,
   ChevronDown,
   ChevronLeft,
@@ -31,13 +33,6 @@ import {
   getCoreRowModel,
 } from "@tanstack/react-table";
 import {
-  Dialog,
-  DialogTitle,
-  DialogHeader,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -49,20 +44,20 @@ import {
 } from "@/generated/zod";
 import { format } from "date-fns";
 import Status from "../ui/status";
-import { Separator } from "../ui/separator";
+import { toTitleCase } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Concession } from "@/actions/concession";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdminApplication } from "@/actions/concession";
 import React, { useCallback, useState, useMemo } from "react";
 
 type SortOrder = "asc" | "desc";
-type Station = NonNullable<Concession>["station"];
-type ApplicationStatus = NonNullable<Concession>["status"];
-type ApplicationType = NonNullable<Concession>["applicationType"];
-type ConcessionClass = NonNullable<Concession>["concessionClass"];
-type ConcessionPeriod = NonNullable<Concession>["concessionPeriod"];
-type PreviousApplication = NonNullable<Concession>["previousApplication"];
+type Station = AdminApplication["station"];
+type ApplicationStatus = AdminApplication["status"];
+type ApplicationType = AdminApplication["applicationType"];
+type ConcessionClass = AdminApplication["concessionClass"];
+type ConcessionPeriod = AdminApplication["concessionPeriod"];
 
 const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
   const variants = {
@@ -82,107 +77,10 @@ const ApplicationTypeBadge = ({ type }: { type: ApplicationType }) => {
   );
 };
 
-const PreviousApplicationDialog = ({
-  previousApplication,
-}: {
-  previousApplication: PreviousApplication;
-}) => {
-  if (!previousApplication) return null;
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          title="View previous application details"
-          className="size-6 p-0 text-muted-foreground hover:text-foreground"
-        >
-          <History className="size-4" />
-        </Button>
-      </DialogTrigger>
-
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Previous Application Details</DialogTitle>
-        </DialogHeader>
-
-        <Separator className="my-2" />
-
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                Status
-              </p>
-              <StatusBadge status={previousApplication.status} />
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Type</p>
-              <ApplicationTypeBadge
-                type={previousApplication.applicationType}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Class</p>
-              <p className="font-medium text-foreground/90">
-                {previousApplication.concessionClass.name} (
-                {previousApplication.concessionClass.code})
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                Period
-              </p>
-              <p className="font-medium text-foreground/90">
-                {previousApplication.concessionPeriod.name} (
-                {previousApplication.concessionPeriod.duration}{" "}
-                {previousApplication.concessionPeriod.duration === 1
-                  ? "month"
-                  : "months"}
-                )
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                Home Station
-              </p>
-              <p className="font-medium text-foreground/90">
-                {previousApplication.station.name} (
-                {previousApplication.station.code})
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                Applied Date
-              </p>
-              <p className="font-medium text-foreground/90">
-                {format(
-                  new Date(previousApplication.createdAt),
-                  "MMMM dd, yyyy"
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
 const createColumns = (
   onSortChange: (column: string) => void,
   currentPage: number
-): ColumnDef<Concession>[] => [
+): ColumnDef<AdminApplication>[] => [
   {
     size: 80,
     id: "serialNo",
@@ -212,30 +110,36 @@ const createColumns = (
     },
   },
   {
+    size: 200,
+    header: "Name",
+    id: "studentName",
+    cell: ({ row }) => {
+      const student = row.original.student;
+      const fullName = `${student.firstName} ${student.lastName}`;
+
+      return (
+        <div className="space-y-1 text-center">
+          <p title={fullName} className="font-medium text-foreground">
+            {toTitleCase(
+              fullName.length > 25 ? `${fullName.slice(0, 25)}...` : fullName
+            )}
+          </p>
+          <p className="text-xs text-muted-foreground">{student.user.email}</p>
+        </div>
+      );
+    },
+  },
+  {
     size: 150,
     header: "Type",
     accessorKey: "applicationType",
     cell: ({ row }) => {
       const type = row.getValue("applicationType") as ApplicationType;
-
-      const previousApplication = row.original?.previousApplication;
-
-      return (
-        <div className="flex items-center justify-center gap-2">
-          <ApplicationTypeBadge type={type} />
-
-          {type === "Renewal" && previousApplication && (
-            <PreviousApplicationDialog
-              previousApplication={previousApplication}
-            />
-          )}
-        </div>
-      );
+      return <ApplicationTypeBadge type={type} />;
     },
     filterFn: (row, id, value) => {
       const type = row.getValue(id) as ApplicationType;
       const searchValue = value.toLowerCase().trim();
-
       return type.toLowerCase().startsWith(searchValue);
     },
   },
@@ -332,9 +236,10 @@ type ApplicationsTableProps = {
   currentPage: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
-  applications: Concession[];
+  applications: AdminApplication[];
   onPageChange: (page: number) => void;
   onFilterChange: (filters: {
+    searchQuery?: string;
     status?: ConcessionApplicationStatusType | "all";
     applicationType?: ConcessionApplicationTypeType | "all";
   }) => void;
@@ -354,6 +259,7 @@ const ApplicationsTable = ({
 }: ApplicationsTableProps) => {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [localSearchQuery, setLocalSearchQuery] = useState<string>("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -366,19 +272,17 @@ const ApplicationsTable = ({
     }
 
     return [...applications].sort((a, b) => {
-      if (!a || !b) return 0;
-
-      let aValue: string | Date;
-      let bValue: string | Date;
+      let aValue: number | string;
+      let bValue: number | string;
 
       switch (sortConfig.key) {
+        case "createdAt":
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
         case "status":
           aValue = a.status;
           bValue = b.status;
-          break;
-        case "createdAt":
-          aValue = new Date(a.createdAt);
-          bValue = new Date(b.createdAt);
           break;
         default:
           return 0;
@@ -409,29 +313,48 @@ const ApplicationsTable = ({
     });
   }, []);
 
+  const handleSearchSubmit = useCallback(() => {
+    onFilterChange({
+      searchQuery: localSearchQuery,
+    });
+  }, [localSearchQuery, onFilterChange]);
+
+  const handleSearchKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        handleSearchSubmit();
+      }
+    },
+    [handleSearchSubmit]
+  );
+
   const columns = createColumns(handleSort, currentPage);
 
   const handleStatusFilter = useCallback(
     (value: string): void => {
       setSelectedStatus(value);
       onFilterChange({
+        searchQuery: localSearchQuery,
         status: value as ConcessionApplicationStatusType | "all",
+        applicationType: selectedType as ConcessionApplicationTypeType | "all",
       });
     },
-    [onFilterChange]
+    [onFilterChange, selectedType, localSearchQuery]
   );
 
   const handleTypeFilter = useCallback(
     (value: string): void => {
       setSelectedType(value);
       onFilterChange({
+        status: selectedStatus as ConcessionApplicationStatusType | "all",
         applicationType: value as ConcessionApplicationTypeType | "all",
+        searchQuery: localSearchQuery,
       });
     },
-    [onFilterChange]
+    [onFilterChange, selectedStatus, localSearchQuery]
   );
 
-  const table = useReactTable<Concession>({
+  const table = useReactTable<AdminApplication>({
     state: {
       columnVisibility,
     },
@@ -506,12 +429,151 @@ const ApplicationsTable = ({
   );
 
   const renderFilters = () => (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-      <div className="flex gap-3">
+    <div className="space-y-4">
+      <div className="w-full md:hidden">
+        {isLoading ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              value={localSearchQuery}
+              onKeyPress={handleSearchKeyPress}
+              className="pl-10 pr-20 h-10 w-full"
+              placeholder="Search by Application ID..."
+              onChange={(e) => setLocalSearchQuery(e.target.value)}
+            />
+            <Button
+              size="sm"
+              onClick={handleSearchSubmit}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2"
+            >
+              <Search className="size-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="hidden md:flex md:items-center md:justify-between">
+        <div className="flex-1 max-w-sm">
+          {isLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input
+                value={localSearchQuery}
+                className="pl-10 pr-20 h-10"
+                onKeyPress={handleSearchKeyPress}
+                placeholder="Search by Application ID..."
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
+              />
+              <Button
+                size="sm"
+                onClick={handleSearchSubmit}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2"
+              >
+                <Search className="size-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-3">
+          {isLoading ? (
+            <>
+              <Skeleton className="h-10 w-36" />
+              <Skeleton className="h-10 w-36" />
+              <Skeleton className="h-10 w-28" />
+            </>
+          ) : (
+            <>
+              <Select value={selectedType} onValueChange={handleTypeFilter}>
+                <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+                  <Filter className="mr-2 size-4 text-foreground" />
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="New">New</SelectItem>
+                  <SelectItem value="Renewal">Renewal</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedStatus} onValueChange={handleStatusFilter}>
+                <SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+                  <Filter className="mr-2 size-4 text-foreground" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                  <SelectItem value="Rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-28 h-10">
+                    Columns
+                    <ChevronDown className="ml-2 size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  side="bottom"
+                  sideOffset={4}
+                  className="w-44"
+                >
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={column.id}
+                          className="capitalize"
+                          checked={column.getIsVisible()}
+                          onCheckedChange={(value: boolean) =>
+                            column.toggleVisibility(value)
+                          }
+                        >
+                          {column.id === "applicationType"
+                            ? "Type"
+                            : column.id === "concessionClass"
+                            ? "Class"
+                            : column.id === "concessionPeriod"
+                            ? "Period"
+                            : column.id === "station"
+                            ? "Home Station"
+                            : column.id === "createdAt"
+                            ? "Applied Date"
+                            : column.id === "serialNo"
+                            ? "Sr. No."
+                            : column.id === "shortId"
+                            ? "ID"
+                            : column.id === "studentName"
+                            ? "Name"
+                            : column.id}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3 md:hidden">
         {isLoading ? (
           <>
             <Skeleton className="h-10 w-36" />
             <Skeleton className="h-10 w-36" />
+            <Skeleton className="h-10 w-28" />
           </>
         ) : (
           <>
@@ -541,55 +603,56 @@ const ApplicationsTable = ({
                 <SelectItem value="Rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
-          </>
-        )}
-      </div>
 
-      <div className="flex gap-3 sm:ml-auto">
-        {isLoading ? (
-          <Skeleton className="h-10 w-28" />
-        ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-28 h-10">
-                Columns
-                <ChevronDown className="ml-2 size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value: boolean) =>
-                        column.toggleVisibility(value)
-                      }
-                    >
-                      {column.id === "applicationType"
-                        ? "Type"
-                        : column.id === "concessionClass"
-                        ? "Class"
-                        : column.id === "concessionPeriod"
-                        ? "Period"
-                        : column.id === "station"
-                        ? "Home Station"
-                        : column.id === "createdAt"
-                        ? "Applied Date"
-                        : column.id === "serialNo"
-                        ? "Sr. No."
-                        : column.id === "shortId"
-                        ? "ID"
-                        : column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="w-28 h-10">
+                  Columns
+                  <ChevronDown className="ml-2 size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                side="bottom"
+                sideOffset={4}
+                className="w-44"
+              >
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value: boolean) =>
+                          column.toggleVisibility(value)
+                        }
+                      >
+                        {column.id === "applicationType"
+                          ? "Type"
+                          : column.id === "concessionClass"
+                          ? "Class"
+                          : column.id === "concessionPeriod"
+                          ? "Period"
+                          : column.id === "station"
+                          ? "Home Station"
+                          : column.id === "createdAt"
+                          ? "Applied Date"
+                          : column.id === "serialNo"
+                          ? "Sr. No."
+                          : column.id === "shortId"
+                          ? "ID"
+                          : column.id === "studentName"
+                          ? "Name"
+                          : column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         )}
       </div>
     </div>
@@ -610,6 +673,9 @@ const ApplicationsTable = ({
                 <TableHead className="font-semibold h-12 text-center px-4 w-[100px]">
                   <Skeleton className="h-4 w-16 mx-auto" />
                 </TableHead>
+                <TableHead className="font-semibold h-12 text-center px-4 w-[200px]">
+                  <Skeleton className="h-4 w-24 mx-auto" />
+                </TableHead>
                 <TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
                   <Skeleton className="h-4 w-12 mx-auto" />
                 </TableHead>
@@ -617,10 +683,10 @@ const ApplicationsTable = ({
                   <Skeleton className="h-4 w-14 mx-auto" />
                 </TableHead>
                 <TableHead className="font-semibold h-12 text-center px-4 w-[200px]">
-                  <Skeleton className="h-4 w-12 mx-auto" />
+                  <Skeleton className="h-4 w-16 mx-auto" />
                 </TableHead>
                 <TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
-                  <Skeleton className="h-4 w-16 mx-auto" />
+                  <Skeleton className="h-4 w-20 mx-auto" />
                 </TableHead>
                 <TableHead className="font-semibold h-12 text-center px-4 w-[180px]">
                   <Skeleton className="h-4 w-20 mx-auto" />
@@ -644,10 +710,13 @@ const ApplicationsTable = ({
                     <Skeleton className="h-4 w-12 mx-auto" />
                   </TableCell>
                   <TableCell className="p-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <Skeleton className="h-6 w-16 rounded-md" />
-                      <Skeleton className="h-6 w-6 rounded" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-32 mx-auto" />
+                      <Skeleton className="h-3 w-24 mx-auto" />
                     </div>
+                  </TableCell>
+                  <TableCell className="p-4 text-center">
+                    <Skeleton className="h-6 w-16 rounded-md mx-auto" />
                   </TableCell>
                   <TableCell className="p-4 text-center">
                     <Skeleton className="h-6 w-16 rounded-full mx-auto" />
@@ -682,7 +751,7 @@ const ApplicationsTable = ({
         iconColor="text-white"
         iconBg="bg-destructive"
         containerClassName="min-h-[63vh]"
-        title="Failed to Fetch Application"
+        title="Failed to Fetch Applications"
         description="We couldn't load your application data. Please check your connection or try again shortly."
       />
     );
@@ -705,7 +774,7 @@ const ApplicationsTable = ({
                     <TableHead
                       key={header.id}
                       style={{ width: header.getSize() }}
-                      className="font-semibold h-12 text-center px-4"
+                      className="font-semibold h-12 px-4 text-center"
                     >
                       {header.isPlaceholder
                         ? null
@@ -752,8 +821,9 @@ const ApplicationsTable = ({
                         </h3>
 
                         <p className="text-sm text-muted-foreground max-w-md">
-                          You haven&apos;t submitted any concession applications
-                          yet.
+                          {localSearchQuery
+                            ? `No applications found for "${localSearchQuery}".`
+                            : "No concession applications have been submitted yet."}
                         </p>
                       </div>
                     </div>
@@ -765,7 +835,7 @@ const ApplicationsTable = ({
         </Table>
       </div>
 
-      {renderPagination()}
+      {!isLoading && !isError && renderPagination()}
     </div>
   );
 };

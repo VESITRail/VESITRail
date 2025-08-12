@@ -874,9 +874,9 @@ const AddressChangePage = () => {
 
       {lastApplication?.status === "Approved" && (
         <Alert className="my-6 flex flex-col gap-1">
-          <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between md:items-start">
-            <div className="flex items-start gap-2">
-              <CheckCircle className="size-5 md:size-4 mt-0.5 text-green-600" />
+          <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between md:items-center">
+            <div className="flex items-start justify-center gap-2">
+              <CheckCircle className="size-7 md:size-5 lg:size-4 mt-0.5 text-green-600" />
 
               <div>
                 <AlertTitle>Previous Request Approved</AlertTitle>
