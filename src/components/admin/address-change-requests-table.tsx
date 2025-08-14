@@ -600,27 +600,34 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Separator />
 
-              <div className="py-6">
-                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-                  Verification Document
-                </h4>
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
-                  <FileText className="size-4 text-muted-foreground" />
-                  <span className="text-sm font-medium flex-1">
-                    Student Verification Document
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      window.open(requestDetails.verificationDocUrl, "_blank")
-                    }
-                  >
-                    <ExternalLink className="size-4 mr-2" />
-                    View
-                  </Button>
+              {requestDetails.verificationDocUrl && (
+                <div className="py-6">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+                    Verification Document
+                  </h4>
+                  <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
+                    <FileText className="size-4 text-muted-foreground" />
+                    <span className="text-sm font-medium flex-1">
+                      Student Verification Document
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (requestDetails.verificationDocUrl) {
+                          window.open(
+                            requestDetails.verificationDocUrl,
+                            "_blank"
+                          );
+                        }
+                      }}
+                    >
+                      <ExternalLink className="size-4 mr-2" />
+                      View
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {requestDetails.rejectionReason && (
                 <>
