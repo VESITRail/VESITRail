@@ -96,7 +96,7 @@ model AddressChange {
   submissionCount Int     @default(1)
 
   reviewedById       String?
-  verificationDocUrl String
+  verificationDocUrl String?
   status             AddressChangeStatus @default(Pending)
 
   reviewedAt DateTime?

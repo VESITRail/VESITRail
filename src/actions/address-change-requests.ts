@@ -362,7 +362,17 @@ export const reviewAddressChangeRequest = async (
           data: {
             address: addressChangeRequest.newAddress,
             stationId: addressChangeRequest.newStationId,
-            verificationDocUrl: addressChangeRequest.verificationDocUrl,
+            verificationDocUrl: addressChangeRequest.verificationDocUrl || "",
+          },
+        });
+
+        await tx.addressChange.updateMany({
+          where: {
+            id: { not: requestId },
+            studentId: addressChangeRequest.studentId,
+          },
+          data: {
+            verificationDocUrl: "",
           },
         });
       }
@@ -370,8 +380,8 @@ export const reviewAddressChangeRequest = async (
       return updatedRequest;
     });
 
-    revalidatePath("/dashboard/admin/address-change-requests");
     revalidatePath("/dashboard/admin/profile");
+    revalidatePath("/dashboard/admin/address-change-requests");
 
     return success(result);
   } catch (error) {

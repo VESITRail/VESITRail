@@ -810,10 +810,10 @@ const AddressChangePage = () => {
         </Popover>
       </div>
 
-      <Separator className="mt-6" />
+      <Separator className="my-6" />
 
       {lastApplication?.status === "Rejected" && (
-        <div className="py-6">
+        <div className="pb-6">
           <div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
@@ -873,7 +873,7 @@ const AddressChangePage = () => {
       )}
 
       {lastApplication?.status === "Approved" && (
-        <Alert className="my-6 flex flex-col gap-1">
+        <Alert className="mb-6 flex flex-col gap-1">
           <div className="flex w-full flex-col gap-4 md:flex-row md:justify-between md:items-center">
             <div className="flex items-start justify-center gap-2">
               <CheckCircle className="size-7 md:size-5 lg:size-4 mt-0.5 text-green-600" />
