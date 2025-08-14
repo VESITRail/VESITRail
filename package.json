@@ -22,7 +22,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
     "@next/third-parties": "^15.4.5",
-    "@prisma/client": "^6.13.0",
+    "@prisma/client": "^6.14.0",
     "@prisma/nextjs-monorepo-workaround-plugin": "^6.12.0",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -76,7 +76,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
-    "prisma": "^6.13.0",
+    "prisma": "^6.14.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.4",
     "tw-animate-css": "^1.3.1",
