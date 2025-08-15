@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import {
   Sidebar,
+  useSidebar,
   SidebarMenu,
   SidebarHeader,
   SidebarFooter,
@@ -71,13 +72,21 @@ const data = {
 const AdminAppSidebar = ({
   ...props
 }: React.ComponentProps<typeof Sidebar>) => {
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleHeaderClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
     <Sidebar {...props} variant="inset">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard/admin">
+              <Link href="/dashboard/admin" onClick={handleHeaderClick}>
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <Image
                     width={0}
