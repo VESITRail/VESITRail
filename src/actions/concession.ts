@@ -773,6 +773,119 @@ export const reviewConcessionApplication = async (
   }
 };
 
+export const approveConcessionWithBooklet = async (
+  applicationId: string,
+  adminId: string,
+  bookletId: string
+): Promise<
+  Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>
+> => {
+  try {
+    const admin = await prisma.admin.findUnique({
+      where: { userId: adminId },
+      select: { isActive: true },
+    });
+
+    if (!admin) {
+      return failure(authError("Admin not found"));
+    }
+
+    if (!admin.isActive) {
+      return failure(authError("Admin account is not active"));
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const application = await tx.concessionApplication.findUnique({
+        where: { id: applicationId },
+      });
+
+      if (!application) {
+        throw new Error("Application not found");
+      }
+
+      if (application.status !== "Pending") {
+        throw new Error("Application has already been reviewed");
+      }
+
+      const booklet = await tx.concessionBooklet.findUnique({
+        where: { id: bookletId },
+        include: {
+          _count: {
+            select: {
+              applications: true,
+            },
+          },
+        },
+      });
+
+      if (!booklet) {
+        throw new Error("Booklet not found");
+      }
+
+      if (!["InUse", "Available"].includes(booklet.status)) {
+        throw new Error("Booklet is not available for use");
+      }
+
+      const currentApplicationCount = booklet._count.applications;
+      const pageOffset = currentApplicationCount;
+
+      if (currentApplicationCount >= booklet.totalPages) {
+        throw new Error("Booklet is full");
+      }
+
+      const updatedApplication = await tx.concessionApplication.update({
+        where: { id: applicationId },
+        data: {
+          status: "Approved",
+          reviewedById: adminId,
+          reviewedAt: new Date(),
+          pageOffset: pageOffset,
+          concessionBookletId: bookletId,
+        },
+      });
+
+      let newBookletStatus = booklet.status;
+
+      if (booklet.status === "Available") {
+        newBookletStatus = "InUse";
+      } else if (currentApplicationCount + 1 >= booklet.totalPages) {
+        newBookletStatus = "Exhausted";
+      }
+
+      await tx.concessionBooklet.update({
+        where: { id: bookletId },
+        data: {
+          status: newBookletStatus,
+        },
+      });
+
+      return updatedApplication;
+    });
+
+    revalidatePath("/dashboard/admin");
+    return success(result);
+  } catch (error) {
+    console.error("Error approving concession with booklet:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to approve application";
+
+    if (errorMessage.includes("not found")) {
+      return failure(validationError(errorMessage, "applicationId"));
+    }
+    if (errorMessage.includes("already been reviewed")) {
+      return failure(validationError(errorMessage, "status"));
+    }
+    if (
+      errorMessage.includes("not available") ||
+      errorMessage.includes("full")
+    ) {
+      return failure(validationError(errorMessage, "bookletId"));
+    }
+
+    return failure(databaseError("Failed to approve application"));
+  }
+};
+
 export const getConcessionApplicationDetails = async (
   applicationId: string
 ): Promise<
