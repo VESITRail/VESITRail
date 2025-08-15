@@ -1,4 +1,5 @@
 import {
+  useSidebar,
   SidebarMenu,
   SidebarGroup,
   SidebarMenuItem,
@@ -18,6 +19,14 @@ const NavSecondary = ({
     icon: LucideIcon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) => {
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -25,7 +34,7 @@ const NavSecondary = ({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild size="sm">
-                <Link href={item.url}>
+                <Link href={item.url} onClick={handleNavClick}>
                   <item.icon />
                   <span>{item.title}</span>
                 </Link>

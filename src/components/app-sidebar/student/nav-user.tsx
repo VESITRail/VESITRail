@@ -26,9 +26,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const StudentNavUser = () => {
   const router = useRouter();
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { data, isPending } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   if (isPending || isSigningOut) {
     return (
@@ -109,7 +115,7 @@ const StudentNavUser = () => {
 
             <DropdownMenuSeparator />
 
-            <Link href="/dashboard/student/settings">
+            <Link href="/dashboard/student/settings" onClick={handleNavClick}>
               <DropdownMenuItem>
                 <Settings />
                 Settings

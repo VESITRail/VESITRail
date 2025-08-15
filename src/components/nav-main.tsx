@@ -1,4 +1,5 @@
 import {
+  useSidebar,
   SidebarMenu,
   SidebarGroup,
   SidebarMenuItem,
@@ -16,6 +17,14 @@ const NavMain = ({
     items: { url: string; name: string; icon: LucideIcon }[];
   }[];
 }) => {
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return navMain.map((element, index) => {
     const { label, items } = element;
 
@@ -29,7 +38,7 @@ const NavMain = ({
           {items.map((item) => (
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild>
-                <Link href={item.url}>
+                <Link href={item.url} onClick={handleNavClick}>
                   <item.icon />
                   <span>{item.name}</span>
                 </Link>
