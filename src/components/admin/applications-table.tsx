@@ -373,7 +373,6 @@ const ApplicationsTable = ({
 
   const [selectedApplication, setSelectedApplication] =
     useState<AdminApplication | null>(null);
-  const [isApproving, setIsApproving] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
@@ -466,8 +465,6 @@ const ApplicationsTable = ({
   }, []);
 
   const confirmApprove = async (applicationId: string, bookletId: string) => {
-    setIsApproving(true);
-
     const approvePromise = async () => {
       const result = await approveConcessionWithBooklet(
         applicationId,
@@ -499,9 +496,6 @@ const ApplicationsTable = ({
       loading: "Approving application...",
       error: "Failed to approve application",
       success: "Application Approved Successfully",
-      finally: () => {
-        setIsApproving(false);
-      },
     });
   };
 
