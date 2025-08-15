@@ -31,9 +31,11 @@ const RootLayout = ({
 }>) => {
   return (
     <html lang="en" className="scroll-smooth">
-      <GoogleTagManager
-        gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID!}
-      />
+      {process.env.NODE_ENV === "production" && (
+        <GoogleTagManager
+          gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID!}
+        />
+      )}
 
       <body className={`antialiased ${inter.variable}`}>
         <ThemeProvider
