@@ -193,6 +193,7 @@ const Admin = () => {
         <ApplicationsTable
           isError={isError}
           isLoading={isLoading}
+          adminId={data?.user?.id ?? ""}
           onPageChange={handlePageChange}
           applications={paginationData.data}
           onFilterChange={handleFilterChange}
