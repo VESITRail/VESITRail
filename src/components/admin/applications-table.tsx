@@ -50,16 +50,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogTitle,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
-import {
   ConcessionApplicationTypeType,
   ConcessionApplicationStatusType,
 } from "@/generated/zod";
@@ -67,18 +57,19 @@ import {
   AdminApplication,
   reviewConcessionApplication,
   getConcessionApplicationDetails,
+  approveConcessionWithBooklet,
 } from "@/actions/concession";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import Status from "../ui/status";
 import { toTitleCase } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import React, { useCallback, useState, useMemo, useEffect } from "react";
+import { useCallback, useState, useMemo, useEffect } from "react";
+import ApproveApplicationDialog from "./approve-application-dialog";
 
 type SortOrder = "asc" | "desc";
 type Station = AdminApplication["station"];
@@ -474,27 +465,24 @@ const ApplicationsTable = ({
     setShowRejectionReasonDialog(true);
   }, []);
 
-  const confirmApprove = async () => {
-    if (!selectedApplication) return;
-
+  const confirmApprove = async (applicationId: string, bookletId: string) => {
     setIsApproving(true);
 
     const approvePromise = async () => {
-      const result = await reviewConcessionApplication(
-        selectedApplication.id,
+      const result = await approveConcessionWithBooklet(
+        applicationId,
         adminId,
-        "Approved"
+        bookletId
       );
 
       if (result.isSuccess) {
         const updatedApplication = {
-          ...selectedApplication,
+          ...selectedApplication!,
           reviewedAt: new Date(),
           status: "Approved" as ApplicationStatus,
         };
 
         updateLocalApplication(updatedApplication);
-        setShowApproveDialog(false);
         setSelectedApplication(null);
 
         return updatedApplication;
@@ -1106,27 +1094,15 @@ const ApplicationsTable = ({
 
       {!isLoading && !isError && renderPagination()}
 
-      <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Approve Application</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to approve this concession application? This
-              action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isApproving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmApprove}
-              disabled={isApproving}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isApproving ? "Approving..." : "Approve"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ApproveApplicationDialog
+        isOpen={showApproveDialog}
+        onApprove={confirmApprove}
+        application={selectedApplication}
+        onClose={() => {
+          setShowApproveDialog(false);
+          setSelectedApplication(null);
+        }}
+      />
 
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent>
