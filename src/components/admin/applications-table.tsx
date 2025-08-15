@@ -1,10 +1,14 @@
 "use client";
 
 import {
+  X,
+  Eye,
   Inbox,
+  Check,
   Filter,
   Search,
   XCircle,
+  Printer,
   ArrowUpDown,
   ChevronDown,
   ChevronLeft,
@@ -39,9 +43,23 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   ConcessionApplicationTypeType,
   ConcessionApplicationStatusType,
 } from "@/generated/zod";
+import {
+  AdminApplication,
+  reviewConcessionApplication,
+  getConcessionApplicationDetails,
+  approveConcessionWithBooklet,
+} from "@/actions/concession";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import Status from "../ui/status";
 import { toTitleCase } from "@/lib/utils";
@@ -49,8 +67,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AdminApplication } from "@/actions/concession";
-import React, { useCallback, useState, useMemo } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { useCallback, useState, useMemo, useEffect } from "react";
+import ApproveApplicationDialog from "./approve-application-dialog";
 
 type SortOrder = "asc" | "desc";
 type Station = AdminApplication["station"];
@@ -78,8 +97,11 @@ const ApplicationTypeBadge = ({ type }: { type: ApplicationType }) => {
 };
 
 const createColumns = (
+  currentPage: number,
   onSortChange: (column: string) => void,
-  currentPage: number
+  onReject?: (application: AdminApplication) => void,
+  onApprove?: (application: AdminApplication) => void,
+  onViewRejection?: (application: AdminApplication) => void
 ): ColumnDef<AdminApplication>[] => [
   {
     size: 80,
@@ -226,9 +248,73 @@ const createColumns = (
       );
     },
   },
+  {
+    size: 120,
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as ApplicationStatus;
+      const application = row.original;
+
+      return (
+        <div className="flex items-center justify-center gap-2">
+          {status === "Approved" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="size-8 p-0"
+              title="Print Application"
+              aria-label="Print application"
+            >
+              <Printer className="size-4" />
+            </Button>
+          )}
+
+          {status === "Pending" && (
+            <>
+              <Button
+                size="sm"
+                variant="default"
+                className="size-8 p-0"
+                title="Approve Application"
+                aria-label="Approve application"
+                onClick={() => onApprove && onApprove(application)}
+              >
+                <Check className="size-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="size-8 p-0"
+                title="Reject Application"
+                aria-label="Reject application"
+                onClick={() => onReject && onReject(application)}
+              >
+                <X className="size-4" />
+              </Button>
+            </>
+          )}
+
+          {status === "Rejected" && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="size-8 p-0"
+              title="View Rejection Reason"
+              aria-label="View rejection reason"
+              onClick={() => onViewRejection && onViewRejection(application)}
+            >
+              <Eye className="size-4" />
+            </Button>
+          )}
+        </div>
+      );
+    },
+  },
 ];
 
 type ApplicationsTableProps = {
+  adminId: string;
   isError: boolean;
   isLoading: boolean;
   totalCount: number;
@@ -246,6 +332,7 @@ type ApplicationsTableProps = {
 };
 
 const ApplicationsTable = ({
+  adminId,
   isError,
   isLoading,
   totalCount,
@@ -266,12 +353,46 @@ const ApplicationsTable = ({
     direction: SortOrder;
   } | null>(null);
 
+  const [localApplications, setLocalApplications] =
+    useState<AdminApplication[]>(applications);
+
+  useEffect(() => {
+    setLocalApplications(applications);
+  }, [applications]);
+
+  const updateLocalApplication = useCallback(
+    (updatedApplication: AdminApplication) => {
+      setLocalApplications((prev) =>
+        prev.map((app) =>
+          app.id === updatedApplication.id ? updatedApplication : app
+        )
+      );
+    },
+    []
+  );
+
+  const [selectedApplication, setSelectedApplication] =
+    useState<AdminApplication | null>(null);
+  const [isRejecting, setIsRejecting] = useState<boolean>(false);
+  const [rejectionReason, setRejectionReason] = useState<string>("");
+  const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
+  const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
+  const [showRejectionReasonDialog, setShowRejectionReasonDialog] =
+    useState<boolean>(false);
+  const [applicationDetails, setApplicationDetails] = useState<
+    | (AdminApplication & {
+        rejectionReason: string | null;
+        submissionCount: number;
+      })
+    | null
+  >(null);
+
   const sortedApplications = useMemo(() => {
     if (!sortConfig) {
-      return applications;
+      return localApplications;
     }
 
-    return [...applications].sort((a, b) => {
+    return [...localApplications].sort((a, b) => {
       let aValue: number | string;
       let bValue: number | string;
 
@@ -296,7 +417,7 @@ const ApplicationsTable = ({
       }
       return 0;
     });
-  }, [applications, sortConfig]);
+  }, [localApplications, sortConfig]);
 
   const handleSort = useCallback((column: string) => {
     setSortConfig((current) => {
@@ -328,7 +449,135 @@ const ApplicationsTable = ({
     [handleSearchSubmit]
   );
 
-  const columns = createColumns(handleSort, currentPage);
+  const handleApprove = useCallback((application: AdminApplication) => {
+    setSelectedApplication(application);
+    setShowApproveDialog(true);
+  }, []);
+
+  const handleReject = useCallback((application: AdminApplication) => {
+    setSelectedApplication(application);
+    setShowRejectDialog(true);
+  }, []);
+
+  const handleViewRejection = useCallback((application: AdminApplication) => {
+    setSelectedApplication(application);
+    setShowRejectionReasonDialog(true);
+  }, []);
+
+  const confirmApprove = async (applicationId: string, bookletId: string) => {
+    const approvePromise = async () => {
+      const result = await approveConcessionWithBooklet(
+        applicationId,
+        adminId,
+        bookletId
+      );
+
+      if (result.isSuccess) {
+        const updatedApplication = {
+          ...selectedApplication!,
+          reviewedAt: new Date(),
+          status: "Approved" as ApplicationStatus,
+        };
+
+        updateLocalApplication(updatedApplication);
+        setSelectedApplication(null);
+
+        return updatedApplication;
+      } else {
+        throw new Error(
+          result.error.type === "VALIDATION_ERROR"
+            ? result.error.message
+            : "Unable to approve the application. Please try again."
+        );
+      }
+    };
+
+    toast.promise(approvePromise, {
+      loading: "Approving application...",
+      error: "Failed to approve application",
+      success: "Application Approved Successfully",
+    });
+  };
+
+  const confirmReject = async () => {
+    if (!selectedApplication) return;
+
+    if (!rejectionReason.trim()) {
+      toast.error("Please provide a reason for rejecting this application.");
+      return;
+    }
+
+    setIsRejecting(true);
+
+    const rejectPromise = async () => {
+      const result = await reviewConcessionApplication(
+        selectedApplication.id,
+        adminId,
+        "Rejected",
+        rejectionReason.trim()
+      );
+
+      if (result.isSuccess) {
+        const updatedApplication = {
+          ...selectedApplication,
+          reviewedAt: new Date(),
+          status: "Rejected" as ApplicationStatus,
+          rejectionReason: rejectionReason.trim(),
+        };
+
+        updateLocalApplication(updatedApplication);
+        setShowRejectDialog(false);
+        setRejectionReason("");
+        setSelectedApplication(null);
+        return updatedApplication;
+      } else {
+        throw new Error(
+          result.error.type === "VALIDATION_ERROR"
+            ? result.error.message
+            : "Unable to reject the application. Please try again."
+        );
+      }
+    };
+
+    toast.promise(rejectPromise, {
+      loading: "Rejecting application...",
+      error: "Failed to reject application",
+      success: "Application Rejected Successfully",
+      finally: () => {
+        setIsRejecting(false);
+      },
+    });
+  };
+
+  const loadRejectionReason = useCallback(async () => {
+    if (!selectedApplication) return;
+
+    try {
+      const result = await getConcessionApplicationDetails(
+        selectedApplication.id
+      );
+      if (result.isSuccess) {
+        setApplicationDetails(result.data);
+      }
+    } catch (error) {
+      console.error("Error loading rejection reason:", error);
+      toast.error("Failed to load rejection reason");
+    }
+  }, [selectedApplication]);
+
+  useEffect(() => {
+    if (showRejectionReasonDialog && selectedApplication) {
+      loadRejectionReason();
+    }
+  }, [showRejectionReasonDialog, selectedApplication, loadRejectionReason]);
+
+  const columns = createColumns(
+    currentPage,
+    handleSort,
+    handleReject,
+    handleApprove,
+    handleViewRejection
+  );
 
   const handleStatusFilter = useCallback(
     (value: string): void => {
@@ -838,6 +1087,107 @@ const ApplicationsTable = ({
       </div>
 
       {!isLoading && !isError && renderPagination()}
+
+      <ApproveApplicationDialog
+        isOpen={showApproveDialog}
+        onApprove={confirmApprove}
+        application={selectedApplication}
+        onClose={() => {
+          setShowApproveDialog(false);
+          setSelectedApplication(null);
+        }}
+      />
+
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Application</DialogTitle>
+          </DialogHeader>
+
+          <Textarea
+            id="rejectionReason"
+            autoCapitalize="words"
+            disabled={isRejecting}
+            value={rejectionReason}
+            className="mt-2 min-h-[100px] capitalize"
+            placeholder="Please provide a detailed reason for rejecting this application..."
+            onChange={(e) => {
+              const capitalizedValue = e.target.value
+                .split(" ")
+                .map(
+                  (word) =>
+                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                )
+                .join(" ");
+              setRejectionReason(capitalizedValue);
+            }}
+          />
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={isRejecting}
+              onClick={() => {
+                setShowRejectDialog(false);
+                setRejectionReason("");
+                setSelectedApplication(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmReject}
+              disabled={isRejecting || !rejectionReason.trim()}
+            >
+              {isRejecting ? "Rejecting..." : "Reject Application"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showRejectionReasonDialog}
+        onOpenChange={setShowRejectionReasonDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejection Reason</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {applicationDetails ? (
+              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <h4 className="font-medium text-destructive mb-2">
+                  Application Rejected
+                </h4>
+                <p className="text-destructive/80">
+                  {applicationDetails.rejectionReason}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="p-4 border rounded-lg space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setShowRejectionReasonDialog(false);
+                setSelectedApplication(null);
+                setApplicationDetails(null);
+              }}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

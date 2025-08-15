@@ -96,6 +96,16 @@ export type BookletApplicationPaginationParams = {
   pageSize: number;
 };
 
+export type AvailableBooklet = Pick<
+  ConcessionBooklet,
+  "id" | "status" | "totalPages" | "bookletNumber" | "serialStartNumber"
+> & {
+  _count: {
+    applications: number;
+  };
+  lastUsedAt?: Date | null;
+};
+
 export const createBooklet = async (
   data: CreateBookletInput
 ): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
@@ -498,5 +508,68 @@ export const getBookletApplications = async (
   } catch (error) {
     console.error("Error fetching booklet applications:", error);
     return failure(databaseError("Failed to fetch booklet applications"));
+  }
+};
+
+export const getAvailableBooklets = async (): Promise<
+  Result<AvailableBooklet[], DatabaseError>
+> => {
+  try {
+    const booklets = await prisma.concessionBooklet.findMany({
+      where: {
+        status: {
+          in: ["InUse", "Available"],
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+        totalPages: true,
+        bookletNumber: true,
+        serialStartNumber: true,
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+        applications: {
+          select: {
+            createdAt: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+        },
+      },
+    });
+
+    const sortedBooklets = booklets.sort((a, b) => {
+      if (a.status === "InUse" && b.status === "Available") return -1;
+      if (a.status === "Available" && b.status === "InUse") return 1;
+
+      if (a._count.applications !== b._count.applications) {
+        return b._count.applications - a._count.applications;
+      }
+
+      return b.bookletNumber - a.bookletNumber;
+    });
+
+    const availableBooklets: AvailableBooklet[] = sortedBooklets.map(
+      (booklet) => ({
+        id: booklet.id,
+        status: booklet.status,
+        _count: booklet._count,
+        totalPages: booklet.totalPages,
+        bookletNumber: booklet.bookletNumber,
+        serialStartNumber: booklet.serialStartNumber,
+        lastUsedAt: booklet.applications[0]?.createdAt || null,
+      })
+    );
+
+    return success(availableBooklets);
+  } catch (error) {
+    console.error("Error fetching available booklets:", error);
+    return failure(databaseError("Failed to fetch available booklets"));
   }
 };

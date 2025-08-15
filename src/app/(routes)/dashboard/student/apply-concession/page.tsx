@@ -154,6 +154,13 @@ const ConcessionApplicationForm = () => {
   }, [lastApplication]);
 
   useEffect(() => {
+    if (lastApplication?.status === "Rejected") {
+      setSelectedConcessionClass(lastApplication.concessionClass.id);
+      setSelectedConcessionPeriod(lastApplication.concessionPeriod.id);
+    }
+  }, [lastApplication]);
+
+  useEffect(() => {
     const fetchOptions = async () => {
       setLoadingOptions(true);
 
@@ -389,10 +396,20 @@ const ConcessionApplicationForm = () => {
 
     const submissionPromise = submitConcessionApplication(applicationData);
 
+    const isResubmission = lastApplication?.status === "Rejected";
+
     toast.promise(submissionPromise, {
-      loading: "Submitting your application...",
-      success: "Application submitted successfully! Redirecting...",
-      error: (error) => error.message || "Failed to submit application",
+      loading: isResubmission
+        ? "Resubmitting your application..."
+        : "Submitting your application...",
+      success: isResubmission
+        ? "Application resubmitted successfully! Redirecting..."
+        : "Application submitted successfully! Redirecting...",
+      error: (error) =>
+        error.message ||
+        (isResubmission
+          ? "Failed to resubmit application"
+          : "Failed to submit application"),
     });
 
     try {
@@ -401,9 +418,15 @@ const ConcessionApplicationForm = () => {
       if (result.isSuccess) {
         router.push("/dashboard/student");
       } else {
-        toast.error("Submission Failed", {
-          description: "Unable to submit your application. Please try again.",
-        });
+        const isResubmission = lastApplication?.status === "Rejected";
+        toast.error(
+          isResubmission ? "Resubmission Failed" : "Submission Failed",
+          {
+            description: isResubmission
+              ? "Unable to resubmit your application. Please try again."
+              : "Unable to submit your application. Please try again.",
+          }
+        );
       }
     } catch (error) {
       console.error("Submission error:", error);
@@ -532,11 +555,65 @@ const ConcessionApplicationForm = () => {
       <Separator className="my-6" />
 
       {lastApplication?.status === "Rejected" && (
-        <Alert variant="destructive" className="mb-6">
-          <XCircle className="size-4" />
-          <AlertTitle>Previous Application Rejected</AlertTitle>
-          <AlertDescription>You can submit a new application.</AlertDescription>
-        </Alert>
+        <div className="pb-6">
+          <div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="size-9 hidden bg-destructive/10 rounded-full md:flex items-center justify-center">
+                  <AlertTriangle className="size-4.5 text-destructive" />
+                </div>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h3 className="text-base font-semibold">
+                    Application Rejected
+                  </h3>
+
+                  {lastApplication.submissionCount &&
+                    lastApplication.submissionCount > 1 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                        <History className="size-3" />
+                        Attempt #{lastApplication.submissionCount}
+                      </span>
+                    )}
+                </div>
+
+                <div className="space-y-3">
+                  {lastApplication.rejectionReason ? (
+                    <div className="space-y-2 mt-3">
+                      <div className="p-4 bg-muted/50 rounded-md border-l-4 border-muted-foreground/20">
+                        <div className="flex items-start gap-2">
+                          <span className="text-sm font-medium text-foreground">
+                            Reason:
+                          </span>
+                          <span className="text-sm text-foreground">
+                            {lastApplication.rejectionReason}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <span>
+                          Please review the feedback above and update your
+                          application accordingly.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Your previous concession application was rejected.
+                        Please review and correct your details before
+                        resubmitting.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {!lastApplication && (
@@ -763,12 +840,16 @@ const ConcessionApplicationForm = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-1 size-4 animate-spin" />
-                    Submitting...
+                    {lastApplication?.status === "Rejected"
+                      ? "Resubmitting..."
+                      : "Submitting..."}
                   </>
                 ) : (
                   <>
                     <Send className="mr-1 size-4" />
-                    Submit Application
+                    {lastApplication?.status === "Rejected"
+                      ? "Resubmit Application"
+                      : "Submit Application"}
                   </>
                 )}
               </Button>
@@ -781,13 +862,19 @@ const ConcessionApplicationForm = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="size-10 bg-destructive/10 rounded-full flex items-center justify-center">
-                <AlertTriangle className="size-4 text-destructive" />
+              <div className="size-10 bg-destructive/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="size-5 text-destructive" />
               </div>
               <div>
-                <AlertDialogTitle>Final Submission</AlertDialogTitle>
+                <AlertDialogTitle>
+                  {lastApplication?.status === "Rejected"
+                    ? "Confirm Application Resubmission"
+                    : "Final Submission"}
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you absolutely sure you want to submit?
+                  {lastApplication?.status === "Rejected"
+                    ? "Please review your application details before resubmitting. Once resubmitted, you cannot modify this application."
+                    : "Are you absolutely sure you want to submit?"}
                 </AlertDialogDescription>
               </div>
             </div>

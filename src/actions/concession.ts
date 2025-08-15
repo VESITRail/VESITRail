@@ -16,8 +16,11 @@ import {
   authError,
   databaseError,
   DatabaseError,
+  validationError,
+  ValidationError,
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma";
 
 export type Concession =
@@ -29,6 +32,8 @@ export type Concession =
       | "createdAt"
       | "reviewedAt"
       | "applicationType"
+      | "rejectionReason"
+      | "submissionCount"
     > & {
       previousApplication?: Concession;
       station: Pick<Station, "id" | "code" | "name">;
@@ -112,6 +117,8 @@ export const getConcessions = async (
         createdAt: true,
         reviewedAt: true,
         applicationType: true,
+        rejectionReason: true,
+        submissionCount: true,
         station: {
           select: {
             id: true,
@@ -141,6 +148,8 @@ export const getConcessions = async (
             createdAt: true,
             reviewedAt: true,
             applicationType: true,
+            rejectionReason: true,
+            submissionCount: true,
             station: {
               select: {
                 id: true,
@@ -210,6 +219,8 @@ export const getLastApplication = async (
         createdAt: true,
         reviewedAt: true,
         applicationType: true,
+        rejectionReason: true,
+        submissionCount: true,
         station: {
           select: {
             id: true,
@@ -251,7 +262,14 @@ export type AdminApplicationParams = {
 
 export type AdminApplication = Pick<
   ConcessionApplication,
-  "id" | "status" | "shortId" | "createdAt" | "reviewedAt" | "applicationType"
+  | "id"
+  | "status"
+  | "shortId"
+  | "createdAt"
+  | "reviewedAt"
+  | "applicationType"
+  | "rejectionReason"
+  | "submissionCount"
 > & {
   student: {
     lastName: string;
@@ -324,6 +342,8 @@ export const getAllApplications = async (
         createdAt: true,
         reviewedAt: true,
         applicationType: true,
+        rejectionReason: true,
+        submissionCount: true,
         student: {
           select: {
             lastName: true,
@@ -393,15 +413,223 @@ export const submitConcessionApplication = async (
       return failure(authError("Student is not approved"));
     }
 
-    const application = await prisma.concessionApplication.create({
+    const existingApplication = await prisma.concessionApplication.findFirst({
+      where: {
+        studentId: data.studentId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    let application: Concession;
+
+    if (!existingApplication || existingApplication.status === "Approved") {
+      application = await prisma.concessionApplication.create({
+        data: {
+          status: "Pending",
+          submissionCount: 1,
+          studentId: data.studentId,
+          stationId: data.stationId,
+          applicationType: data.applicationType,
+          concessionClassId: data.concessionClassId,
+          concessionPeriodId: data.concessionPeriodId,
+          previousApplicationId: data.previousApplicationId,
+        },
+        select: {
+          id: true,
+          status: true,
+          shortId: true,
+          createdAt: true,
+          reviewedAt: true,
+          applicationType: true,
+          rejectionReason: true,
+          submissionCount: true,
+          station: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
+          concessionClass: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
+          concessionPeriod: {
+            select: {
+              id: true,
+              name: true,
+              duration: true,
+            },
+          },
+          previousApplication: {
+            select: {
+              id: true,
+              status: true,
+              shortId: true,
+              createdAt: true,
+              reviewedAt: true,
+              applicationType: true,
+              rejectionReason: true,
+              submissionCount: true,
+              station: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                },
+              },
+              concessionClass: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                },
+              },
+              concessionPeriod: {
+                select: {
+                  id: true,
+                  name: true,
+                  duration: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } else {
+      application = await prisma.concessionApplication.update({
+        where: {
+          id: existingApplication.id,
+        },
+        data: {
+          status: "Pending",
+          reviewedAt: null,
+          reviewedById: null,
+          rejectionReason: null,
+          stationId: data.stationId,
+          concessionClassId: data.concessionClassId,
+          concessionPeriodId: data.concessionPeriodId,
+          submissionCount: { increment: 1 },
+        },
+        select: {
+          id: true,
+          status: true,
+          shortId: true,
+          createdAt: true,
+          reviewedAt: true,
+          applicationType: true,
+          rejectionReason: true,
+          submissionCount: true,
+          station: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
+          concessionClass: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
+          concessionPeriod: {
+            select: {
+              id: true,
+              name: true,
+              duration: true,
+            },
+          },
+          previousApplication: {
+            select: {
+              id: true,
+              status: true,
+              shortId: true,
+              createdAt: true,
+              reviewedAt: true,
+              applicationType: true,
+              rejectionReason: true,
+              submissionCount: true,
+              station: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                },
+              },
+              concessionClass: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                },
+              },
+              concessionPeriod: {
+                select: {
+                  id: true,
+                  name: true,
+                  duration: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    revalidatePath("/dashboard/student");
+
+    return success(application);
+  } catch (error) {
+    console.error("Error while submitting application:", error);
+    return failure(databaseError("Failed to submit application"));
+  }
+};
+
+export const submitConcessionResubmission = async (
+  applicationId: string,
+  data: Omit<ConcessionApplicationData, "studentId">
+): Promise<Result<Concession, AuthError | DatabaseError | ValidationError>> => {
+  try {
+    const existingApplication = await prisma.concessionApplication.findUnique({
+      where: { id: applicationId },
+      include: { student: true },
+    });
+
+    if (!existingApplication) {
+      return failure(validationError("Application not found", "applicationId"));
+    }
+
+    if (existingApplication.status !== "Rejected") {
+      return failure(
+        validationError(
+          "Only rejected applications can be resubmitted",
+          "status"
+        )
+      );
+    }
+
+    if (existingApplication.student.status !== "Approved") {
+      return failure(authError("Student is not approved"));
+    }
+
+    const updatedApplication = await prisma.concessionApplication.update({
+      where: { id: applicationId },
       data: {
         status: "Pending",
-        studentId: data.studentId,
+        reviewedAt: null,
+        reviewedById: null,
+        rejectionReason: null,
         stationId: data.stationId,
-        applicationType: data.applicationType,
+        submissionCount: { increment: 1 },
         concessionClassId: data.concessionClassId,
         concessionPeriodId: data.concessionPeriodId,
-        previousApplicationId: data.previousApplicationId,
       },
       select: {
         id: true,
@@ -410,6 +638,8 @@ export const submitConcessionApplication = async (
         createdAt: true,
         reviewedAt: true,
         applicationType: true,
+        rejectionReason: true,
+        submissionCount: true,
         station: {
           select: {
             id: true,
@@ -439,6 +669,8 @@ export const submitConcessionApplication = async (
             createdAt: true,
             reviewedAt: true,
             applicationType: true,
+            rejectionReason: true,
+            submissionCount: true,
             station: {
               select: {
                 id: true,
@@ -465,9 +697,270 @@ export const submitConcessionApplication = async (
       },
     });
 
+    revalidatePath("/dashboard/student");
+
+    return success(updatedApplication);
+  } catch (error) {
+    console.error("Error while resubmitting application:", error);
+    return failure(databaseError("Failed to resubmit application"));
+  }
+};
+
+export const reviewConcessionApplication = async (
+  applicationId: string,
+  adminId: string,
+  status: "Approved" | "Rejected",
+  rejectionReason?: string
+): Promise<
+  Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>
+> => {
+  try {
+    if (
+      status === "Rejected" &&
+      (!rejectionReason || !rejectionReason.trim())
+    ) {
+      return failure(
+        validationError(
+          "Rejection reason is required when rejecting",
+          "rejectionReason"
+        )
+      );
+    }
+
+    const admin = await prisma.admin.findUnique({
+      where: { userId: adminId },
+      select: { isActive: true },
+    });
+
+    if (!admin) {
+      return failure(authError("Admin not found"));
+    }
+
+    if (!admin.isActive) {
+      return failure(authError("Admin account is not active"));
+    }
+
+    const application = await prisma.concessionApplication.findUnique({
+      where: { id: applicationId },
+    });
+
+    if (!application) {
+      return failure(validationError("Application not found", "applicationId"));
+    }
+
+    if (application.status !== "Pending") {
+      return failure(
+        validationError("Application has already been reviewed", "status")
+      );
+    }
+
+    const updatedApplication = await prisma.concessionApplication.update({
+      where: { id: applicationId },
+      data: {
+        status,
+        reviewedById: adminId,
+        reviewedAt: new Date(),
+        rejectionReason: status === "Rejected" ? rejectionReason?.trim() : null,
+      },
+    });
+
+    revalidatePath("/dashboard/admin");
+
+    return success(updatedApplication);
+  } catch (error) {
+    console.error("Error reviewing concession application:", error);
+    return failure(databaseError("Failed to review application"));
+  }
+};
+
+export const approveConcessionWithBooklet = async (
+  applicationId: string,
+  adminId: string,
+  bookletId: string
+): Promise<
+  Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>
+> => {
+  try {
+    const admin = await prisma.admin.findUnique({
+      where: { userId: adminId },
+      select: { isActive: true },
+    });
+
+    if (!admin) {
+      return failure(authError("Admin not found"));
+    }
+
+    if (!admin.isActive) {
+      return failure(authError("Admin account is not active"));
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const application = await tx.concessionApplication.findUnique({
+        where: { id: applicationId },
+      });
+
+      if (!application) {
+        throw new Error("Application not found");
+      }
+
+      if (application.status !== "Pending") {
+        throw new Error("Application has already been reviewed");
+      }
+
+      const booklet = await tx.concessionBooklet.findUnique({
+        where: { id: bookletId },
+        include: {
+          _count: {
+            select: {
+              applications: true,
+            },
+          },
+        },
+      });
+
+      if (!booklet) {
+        throw new Error("Booklet not found");
+      }
+
+      if (!["InUse", "Available"].includes(booklet.status)) {
+        throw new Error("Booklet is not available for use");
+      }
+
+      const currentApplicationCount = booklet._count.applications;
+      const pageOffset = currentApplicationCount;
+
+      if (currentApplicationCount >= booklet.totalPages) {
+        throw new Error("Booklet is full");
+      }
+
+      const updatedApplication = await tx.concessionApplication.update({
+        where: { id: applicationId },
+        data: {
+          status: "Approved",
+          reviewedById: adminId,
+          reviewedAt: new Date(),
+          pageOffset: pageOffset,
+          concessionBookletId: bookletId,
+        },
+      });
+
+      let newBookletStatus = booklet.status;
+
+      if (booklet.status === "Available") {
+        newBookletStatus = "InUse";
+      } else if (currentApplicationCount + 1 >= booklet.totalPages) {
+        newBookletStatus = "Exhausted";
+      }
+
+      await tx.concessionBooklet.update({
+        where: { id: bookletId },
+        data: {
+          status: newBookletStatus,
+        },
+      });
+
+      return updatedApplication;
+    });
+
+    revalidatePath("/dashboard/admin");
+    return success(result);
+  } catch (error) {
+    console.error("Error approving concession with booklet:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to approve application";
+
+    if (errorMessage.includes("not found")) {
+      return failure(validationError(errorMessage, "applicationId"));
+    }
+    if (errorMessage.includes("already been reviewed")) {
+      return failure(validationError(errorMessage, "status"));
+    }
+    if (
+      errorMessage.includes("not available") ||
+      errorMessage.includes("full")
+    ) {
+      return failure(validationError(errorMessage, "bookletId"));
+    }
+
+    return failure(databaseError("Failed to approve application"));
+  }
+};
+
+export const getConcessionApplicationDetails = async (
+  applicationId: string
+): Promise<
+  Result<
+    AdminApplication & {
+      rejectionReason: string | null;
+      submissionCount: number;
+    },
+    DatabaseError | ValidationError
+  >
+> => {
+  try {
+    const application = await prisma.concessionApplication.findUnique({
+      where: { id: applicationId },
+      select: {
+        id: true,
+        status: true,
+        shortId: true,
+        createdAt: true,
+        reviewedAt: true,
+        applicationType: true,
+        rejectionReason: true,
+        submissionCount: true,
+        student: {
+          select: {
+            lastName: true,
+            firstName: true,
+            middleName: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+        station: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+        concessionClass: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
+        concessionPeriod: {
+          select: {
+            id: true,
+            name: true,
+            duration: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      return failure(validationError("Application not found", "applicationId"));
+    }
+
     return success(application);
   } catch (error) {
-    console.error("Error while submitting application:", error);
-    return failure(databaseError("Failed to submit application"));
+    console.error("Error fetching application details:", error);
+    return failure(databaseError("Failed to fetch application details"));
   }
 };
