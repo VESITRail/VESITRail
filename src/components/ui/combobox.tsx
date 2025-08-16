@@ -23,7 +23,7 @@ interface ComboboxOption {
   value: string;
   label: string;
   searchTerms?: string;
-  data?: any;
+  data?: unknown;
 }
 
 interface ComboboxProps {
