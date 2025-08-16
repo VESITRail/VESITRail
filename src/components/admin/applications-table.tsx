@@ -261,7 +261,7 @@ const createColumns = (
           {status === "Approved" && (
             <Button
               size="sm"
-              variant="outline"
+              variant="default"
               className="size-8 p-0"
               title="Print Application"
               aria-label="Print application"
