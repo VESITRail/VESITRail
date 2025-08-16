@@ -7,19 +7,14 @@ import {
   DialogHeader,
   DialogContent,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectItem,
-  SelectValue,
-  SelectContent,
-  SelectTrigger,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminApplication } from "@/actions/concession";
 import { useState, useEffect, useCallback } from "react";
@@ -85,6 +80,37 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
       .toString()
       .padStart(paddingLength, "0")}`;
     setNextSerialNumber(nextSerial);
+  };
+
+  const generateBookletSearchTerms = (booklet: AvailableBooklet) => {
+    const serialStart = booklet.serialStartNumber;
+    const prefix = serialStart.replace(/\d+$/, "");
+    const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
+    const endNum = startNum + 49;
+    const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 3;
+    const serialEnd = `${prefix}${endNum
+      .toString()
+      .padStart(paddingLength, "0")}`;
+
+    const statusText = booklet.status === "InUse" ? "in use" : "available";
+    const usageText = `${booklet._count.applications}/${booklet.totalPages} used`;
+
+    const searchTerms = [
+      prefix,
+      usageText,
+      serialEnd,
+      statusText,
+      serialStart,
+      `#${booklet.bookletNumber}`,
+      booklet.status.toLowerCase(),
+      `${booklet.totalPages} total`,
+      booklet.bookletNumber.toString(),
+      `booklet ${booklet.bookletNumber}`,
+      `${booklet._count.applications} used`,
+      `${booklet.totalPages - booklet._count.applications} remaining`,
+    ].join(" ");
+
+    return searchTerms;
   };
 
   const handleBookletChange = (bookletId: string) => {
@@ -188,46 +214,52 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
                   </Button>
                 </div>
               ) : (
-                <Select
+                <Combobox
+                  options={availableBooklets.map((booklet) => ({
+                    data: booklet,
+                    value: booklet.id,
+                    label: `Booklet #${booklet.bookletNumber}`,
+                    searchTerms: generateBookletSearchTerms(booklet),
+                  }))}
+                  className="w-full"
                   value={selectedBookletId}
+                  showFullOptionInTrigger={true}
                   onValueChange={handleBookletChange}
-                >
-                  <SelectTrigger id="booklet-select" className="w-full">
-                    <SelectValue placeholder="Choose a booklet..." />
-                  </SelectTrigger>
-                  <SelectContent className="w-full">
-                    {availableBooklets.map((booklet) => (
-                      <SelectItem
-                        key={booklet.id}
-                        value={booklet.id}
-                        className="w-full"
-                      >
-                        <div className="flex items-center justify-between w-full min-w-0">
-                          <span className="font-medium">
-                            Booklet #{booklet.bookletNumber}
+                  placeholder="Search and select a booklet..."
+                  emptyText="No booklets found matching your search."
+                  searchPlaceholder="Search by booklet number, serial, status..."
+                  renderOption={(option) => {
+                    const booklet = option.data as AvailableBooklet;
+
+                    return (
+                      <div className="flex items-center justify-between w-full min-w-0">
+                        <span className="font-medium">
+                          Booklet #{booklet.bookletNumber}
+                        </span>
+                        <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {booklet._count.applications}/{booklet.totalPages}{" "}
+                            used
                           </span>
-                          <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {booklet._count.applications}/{booklet.totalPages}{" "}
-                              used
-                            </span>
-                            <span
-                              className={`text-xs px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${
-                                booklet.status === "InUse"
-                                  ? "bg-primary text-white"
-                                  : "bg-green-600 text-white"
-                              }`}
-                            >
-                              {booklet.status === "InUse"
-                                ? "In Use"
-                                : "Available"}
-                            </span>
-                          </div>
+                          <Badge
+                            variant={
+                              booklet.status === "InUse" ? "default" : "outline"
+                            }
+                            className={`text-xs whitespace-nowrap ${
+                              booklet.status === "InUse"
+                                ? ""
+                                : "bg-green-600 text-white border-green-600"
+                            }`}
+                          >
+                            {booklet.status === "InUse"
+                              ? "In Use"
+                              : "Available"}
+                          </Badge>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      </div>
+                    );
+                  }}
+                />
               )}
             </div>
 
@@ -243,7 +275,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
                   className="font-mono bg-muted/50"
                 />
                 <div className="text-xs text-muted-foreground">
-                  Serial range: {selectedBooklet.serialStartNumber} -
+                  Serial range: {selectedBooklet.serialStartNumber} -{" "}
                   {selectedBooklet.serialStartNumber.replace(/\d+$/, "") +
                     (
                       parseInt(
