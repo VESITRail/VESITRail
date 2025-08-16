@@ -32,7 +32,9 @@ const StudentNavUser = () => {
 
   const handleNavClick = () => {
     if (isMobile) {
-      setOpenMobile(false);
+      setTimeout(() => {
+        setOpenMobile(false);
+      }, 150);
     }
   };
 
