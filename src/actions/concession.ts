@@ -22,6 +22,7 @@ import {
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma";
+import { sendConcessionNotification } from "@/lib/notifications";
 
 export type Concession =
   | (Pick<
@@ -764,6 +765,16 @@ export const reviewConcessionApplication = async (
       },
     });
 
+    sendConcessionNotification(
+      application.studentId,
+      applicationId,
+      status === "Approved",
+      application.applicationType,
+      rejectionReason
+    ).catch((error) => {
+      console.error("Failed to send concession notification:", error);
+    });
+
     revalidatePath("/dashboard/admin");
 
     return success(updatedApplication);
@@ -793,20 +804,19 @@ export const approveConcessionWithBooklet = async (
     if (!admin.isActive) {
       return failure(authError("Admin account is not active"));
     }
+    const application = await prisma.concessionApplication.findUnique({
+      where: { id: applicationId },
+    });
+
+    if (!application) {
+      throw new Error("Application not found");
+    }
+
+    if (application.status !== "Pending") {
+      throw new Error("Application has already been reviewed");
+    }
 
     const result = await prisma.$transaction(async (tx) => {
-      const application = await tx.concessionApplication.findUnique({
-        where: { id: applicationId },
-      });
-
-      if (!application) {
-        throw new Error("Application not found");
-      }
-
-      if (application.status !== "Pending") {
-        throw new Error("Application has already been reviewed");
-      }
-
       const booklet = await tx.concessionBooklet.findUnique({
         where: { id: bookletId },
         include: {
@@ -860,6 +870,16 @@ export const approveConcessionWithBooklet = async (
       });
 
       return updatedApplication;
+    });
+
+    sendConcessionNotification(
+      result.studentId,
+      applicationId,
+      true,
+      application.applicationType,
+      undefined
+    ).catch((error) => {
+      console.error("Failed to send concession approval notification:", error);
     });
 
     revalidatePath("/dashboard/admin");
