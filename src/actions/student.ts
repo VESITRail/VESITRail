@@ -5,14 +5,15 @@ import {
   success,
   failure,
   databaseError,
-  DatabaseError,
   validationError,
-  ValidationError,
+  type DatabaseError,
+  type ValidationError,
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma";
-import { Student, StudentApprovalStatusType } from "@/generated/zod";
+import { sendStudentAccountNotification } from "@/lib/notifications";
+import type { Student, StudentApprovalStatusType } from "@/generated/zod";
 
 export type StudentListItem = Pick<
   Student,
@@ -498,6 +499,15 @@ export const approveStudent = async (
       },
     });
 
+    sendStudentAccountNotification(
+      data.studentId,
+      true,
+      undefined,
+      updatedStudent.submissionCount
+    ).catch((error) => {
+      console.error("Failed to send student approval notification:", error);
+    });
+
     revalidatePath("/dashboard/admin/students");
     return success(updatedStudent);
   } catch (error) {
@@ -616,6 +626,15 @@ export const rejectStudent = async (
           },
         },
       },
+    });
+
+    sendStudentAccountNotification(
+      data.studentId,
+      false,
+      data.rejectionReason,
+      updatedStudent.submissionCount
+    ).catch((error) => {
+      console.error("Failed to send student rejection notification:", error);
     });
 
     revalidatePath("/dashboard/admin/students");
