@@ -15,6 +15,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma";
 import { deleteCloudinaryFile } from "./cloudinary";
+import { sendAddressChangeNotification } from "@/lib/notifications";
 import { AddressChange, AddressChangeStatusType } from "@/generated/zod";
 
 export type AddressChangeRequestItem = Pick<
@@ -325,6 +326,14 @@ export const reviewAddressChangeRequest = async (
           rejectionReason:
             status === "Rejected" ? rejectionReason?.trim() : null,
         },
+        include: {
+          currentStation: {
+            select: { name: true },
+          },
+          newStation: {
+            select: { name: true },
+          },
+        },
       });
 
       if (status === "Approved") {
@@ -378,6 +387,17 @@ export const reviewAddressChangeRequest = async (
       }
 
       return updatedRequest;
+    });
+
+    sendAddressChangeNotification(
+      addressChangeRequest.studentId,
+      requestId,
+      status === "Approved",
+      result.currentStation.name,
+      result.newStation.name,
+      rejectionReason
+    ).catch((error) => {
+      console.error("Failed to send address change notification:", error);
     });
 
     revalidatePath("/dashboard/admin/profile");
