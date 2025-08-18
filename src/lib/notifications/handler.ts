@@ -1,18 +1,22 @@
-import prisma from "@/lib/prisma";
-import admin from "firebase-admin";
-import nodemailer from "nodemailer";
-import { getNotificationScenario } from "./scenarios";
+import {
+  Result,
+  success,
+  failure,
+  type AppError,
+  databaseError,
+  validationError,
+} from "@/lib/result";
 import {
   generateEmailTemplate,
   type EmailTemplateParams,
 } from "./email-templates";
 import {
-  Result,
-  success,
-  failure,
-  databaseError,
-  validationError,
-} from "@/lib/result";
+  getNotificationScenario,
+  type NotificationScenario,
+} from "./scenarios";
+import prisma from "@/lib/prisma";
+import admin from "firebase-admin";
+import nodemailer from "nodemailer";
 
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(
@@ -52,7 +56,7 @@ export type NotificationResult = {
 
 export const sendNotification = async (
   payload: NotificationPayload
-): Promise<Result<NotificationResult, any>> => {
+): Promise<Result<NotificationResult, AppError>> => {
   try {
     const scenario = getNotificationScenario(payload.scenarioId);
 
@@ -153,10 +157,10 @@ export const sendNotification = async (
 
 const sendInAppNotification = async (params: {
   url?: string;
-  scenario: any;
   studentId: string;
   applicationId?: string;
-}): Promise<Result<boolean, any>> => {
+  scenario: NotificationScenario;
+}): Promise<Result<boolean, AppError>> => {
   try {
     await prisma.notification.create({
       data: {
@@ -176,10 +180,10 @@ const sendInAppNotification = async (params: {
 };
 
 const sendEmailNotification = async (params: {
-  scenario: any;
   recipientEmail: string;
+  scenario: NotificationScenario;
   templateParams: EmailTemplateParams;
-}): Promise<Result<boolean, any>> => {
+}): Promise<Result<boolean, AppError>> => {
   try {
     const emailTemplate = generateEmailTemplate(
       params.scenario,
@@ -206,9 +210,9 @@ const sendEmailNotification = async (params: {
 
 const sendPushNotification = async (params: {
   url?: string;
-  scenario: any;
   studentId: string;
-}): Promise<Result<boolean, any>> => {
+  scenario: NotificationScenario;
+}): Promise<Result<boolean, AppError>> => {
   try {
     const fcmTokens = await prisma.fcmToken.findMany({
       where: { studentId: params.studentId },

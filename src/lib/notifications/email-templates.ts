@@ -26,8 +26,8 @@ export const generateEmailTemplate = (
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const logoUrl = `${baseUrl}/icons/ios/256.png`;
 
-  let subject = scenario.email.subject;
-  let heading = scenario.email.heading;
+  const subject = scenario.email.subject;
+  const heading = scenario.email.heading;
   let description = scenario.email.description;
 
   if (
