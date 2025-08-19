@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Bell, Clock, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -31,6 +32,7 @@ type NotificationSheetProps = {
 
 const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const { data: session } = authClient.useSession();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -120,6 +122,10 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
       } catch (error) {
         console.error("Failed to mark notification as read:", error);
       }
+    }
+
+    if (isMobile) {
+      setIsOpen(false);
     }
 
     if (notification.url) {
