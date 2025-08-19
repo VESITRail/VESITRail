@@ -485,7 +485,6 @@ const AddressChangePage = () => {
       const result = await deleteCloudinaryFile(publicId);
 
       if (result.isSuccess) {
-        // Successfully deleted from Cloudinary
         setPublicId("");
         form.setValue("verificationDocUrl", "", {
           shouldDirty: true,
