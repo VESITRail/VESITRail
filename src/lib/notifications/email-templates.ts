@@ -56,394 +56,80 @@ export const generateEmailTemplate = (
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${subject}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
-        :root {
-            --primary: oklch(0.606 0.25 292.717);
-            --primary-foreground: oklch(0.969 0.016 293.756);
-            --secondary: oklch(0.967 0.001 286.375);
-            --secondary-foreground: oklch(0.21 0.006 285.885);
-            --muted: oklch(0.967 0.001 286.375);
-            --muted-foreground: oklch(0.552 0.016 285.938);
-            --destructive: oklch(0.577 0.245 27.325);
-            --border: oklch(0.92 0.004 286.32);
-            --background: oklch(1 0 0);
-            --foreground: oklch(0.141 0.005 285.823);
-            --card: oklch(1 0 0);
-            --card-foreground: oklch(0.141 0.005 285.823);
-            --success: oklch(0.646 0.222 41.116);
-            --success-foreground: oklch(1 0 0);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: var(--foreground);
-            background-color: var(--muted);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        .email-container {
-            max-width: 640px;
-            margin: 20px auto;
-            background-color: var(--background);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
-        }
-        
-        .header {
-            background: var(--primary);
-            padding: 40px 32px;
-            text-align: center;
-            color: var(--primary-foreground);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
-            pointer-events: none;
-        }
-        
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background-color: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .logo img {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-        }
-        
-        .header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            letter-spacing: -0.025em;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .brand-name {
-            font-weight: 800;
-        }
-        
-        .header p {
-            font-size: 16px;
-            opacity: 0.95;
-            font-weight: 500;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .content {
-            padding: 48px 32px;
-        }
-        
-        .greeting {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--foreground);
-            margin-bottom: 8px;
-        }
-        
-        .main-heading {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--foreground);
-            margin-bottom: 24px;
-            letter-spacing: -0.025em;
-            line-height: 1.3;
-        }
-        
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 32px;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-        }
-        
-        .status-approved {
-            background-color: var(--success);
-            color: var(--success-foreground);
-            box-shadow: 0 4px 6px -1px rgba(100, 200, 100, 0.2);
-        }
-        
-        .status-rejected {
-            background-color: var(--destructive);
-            color: var(--primary-foreground);
-            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
-        }
-        
-        .description {
-            font-size: 16px;
-            color: var(--muted-foreground);
-            margin-bottom: 32px;
-            line-height: 1.7;
-        }
-        
-        .info-box {
-            background-color: var(--muted);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin: 32px 0;
-        }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .info-row:last-child {
-            margin-bottom: 0;
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: var(--muted-foreground);
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-        }
-        
-        .info-value {
-            font-weight: 700;
-            color: var(--foreground);
-            font-size: 15px;
-        }
-        
-        .cta-section {
-            text-align: center;
-            margin: 40px 0;
-            padding: 32px;
-            background: linear-gradient(135deg, var(--muted) 0%, rgba(255, 255, 255, 0.5) 100%);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background: var(--primary);
-            color: var(--primary-foreground) !important;
-            text-decoration: none;
-            padding: 16px 32px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 16px;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.15);
-        }
-        
-        .divider {
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent 0%, var(--border) 50%, transparent 100%);
-            margin: 32px 0;
-        }
-        
-        .support-note {
-            font-size: 14px;
-            color: var(--muted-foreground);
-            background-color: var(--muted);
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary);
-            margin: 24px 0;
-        }
-        
-        .footer {
-            background: linear-gradient(135deg, var(--muted) 0%, rgba(255, 255, 255, 0.8) 100%);
-            padding: 40px 32px;
-            text-align: center;
-            border-top: 1px solid var(--border);
-        }
-        
-        .footer .brand-name {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--foreground);
-            margin-bottom: 8px;
-        }
-        
-        .footer p {
-            font-size: 14px;
-            color: var(--muted-foreground);
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
-        
-        .footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s ease;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        
-        .footer-links {
-            margin: 20px 0;
-        }
-        
-        .footer-disclaimer {
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-            font-size: 12px;
-            color: var(--muted-foreground);
-            opacity: 0.8;
-        }
-        
-        /* Accessibility improvements */
-        @media (prefers-reduced-motion: reduce) {
-            .cta-button,
-            .footer a {
-                transition: none;
-            }
-        }
-        
-        @media only screen and (max-width: 640px) {
-            .email-container {
-                margin: 10px;
-                border-radius: 8px;
-            }
-            
-            .header {
-                padding: 32px 20px;
-            }
-            
-            .content {
-                padding: 32px 20px;
-            }
-            
-            .footer {
-                padding: 32px 20px;
-            }
-            
-            .header h1 {
-                font-size: 24px;
-            }
-            
-            .main-heading {
-                font-size: 20px;
-            }
-            
-            .info-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
-                padding: 12px 0;
-            }
-            
-            .cta-section {
-                padding: 24px 16px;
-            }
-            
-            .logo {
-                width: 64px;
-                height: 64px;
-            }
-            
-            .logo img {
-                width: 36px;
-                height: 36px;
-            }
-        }
-        
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            .email-container {
-                border: 2px solid var(--foreground);
-            }
-            
-            .status-badge,
-            .cta-button {
-                border: 2px solid currentColor;
-            }
+        @media only screen and (max-width: 600px) {
+            .mobile-text { font-size: 15px !important; }
+            .mobile-title { font-size: 18px !important; }
+            .mobile-greeting { font-size: 16px !important; }
+            .mobile-padding { padding: 20px 16px !important; }
+            .mobile-header-padding { padding: 24px 16px !important; }
+            .mobile-logo { width: 52px !important; height: 52px !important; }
+            .mobile-logo img { width: 32px !important; height: 32px !important; }
+            .mobile-brand { font-size: 19px !important; }
+            .mobile-subtitle { font-size: 14px !important; }
+            .mobile-badge { font-size: 12px !important; padding: 8px 16px !important; gap: 8px !important; }
+            .mobile-info-box { padding: 16px !important; margin: 18px 0 !important; }
+            .mobile-info-row { }
+            .mobile-info-label { font-size: 13px !important; }
+            .mobile-info-value { font-size: 14px !important; }
+            .mobile-cta-padding { padding: 18px 12px !important; }
+            .mobile-button { padding: 12px 24px !important; font-size: 14px !important; }
+            .mobile-footer { padding: 20px 16px !important; }
         }
     </style>
 </head>
-<body>
-    <div class="email-container">
-        <div class="header">
-            <div class="logo">
-                <img src="${logoUrl}" alt="VESITRail Logo">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.4; color: #1f2937; background-color: #ffffff;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb;">
+        <div style="background: #7c3aed; padding: 24px 20px; text-align: center; color: #ffffff;" class="mobile-header-padding">
+            <div style="width: 56px; height: 56px; margin: 0 auto 12px; background-color: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;" class="mobile-logo">
+                <img src="${logoUrl}" alt="VESITRail Logo" style="width: 32px; height: 32px; border-radius: 6px;" class="mobile-logo">
             </div>
-            <h1 class="brand-name">VESITRail</h1>
-            <p>Railway Concession Portal</p>
+            <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 4px 0;" class="mobile-brand">VESITRail</h1>
+            <p style="font-size: 14px; opacity: 0.9; font-weight: 400; margin: 0;" class="mobile-subtitle">Railway Concession Portal</p>
         </div>
         
-        <div class="content">
-            <div class="status-badge ${
+        <div style="padding: 24px 20px;" class="mobile-padding">
+            <div style="display: inline-flex; align-items: center; vertical-align: middle; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 22px; ${
               scenario.type === "approval"
-                ? "status-approved"
-                : "status-rejected"
-            }">
-                ${
-                  scenario.type === "approval"
-                    ? "✅ Approved"
-                    : "⚠️ Action Required"
-                }
+                ? "background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0;"
+                : "background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;"
+            }" class="mobile-badge">
+                <span style="display: inline-flex; align-items: center; height: 16px; line-height: 16px; margin-right: 8px;">${
+                  scenario.type === "approval" ? "✅" : "⚠️"
+                }</span>
+                <span style="display: inline-flex; align-items: center; height: 16px; line-height: 16px;">${
+                  scenario.type === "approval" ? "Approved" : "Action Required"
+                }</span>
             </div>
             
-            <div class="greeting">Hello ${params.userName}!</div>
-            <div class="main-heading">${heading}</div>
+            <div style="font-size: 17px; font-weight: 500; color: #374151; margin-bottom: 6px;" class="mobile-greeting">Hello ${
+              params.userName
+            }!</div>
+            <div style="font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 18px; line-height: 1.3;" class="mobile-title">${heading}</div>
             
-            <div class="description">${description}</div>
+            <div style="font-size: 16px; color: #4b5563; margin-bottom: 22px; line-height: 1.5;" class="mobile-text">${
+              scenario.type === "rejection" && params.rejectionReason
+                ? description.replace(` Reason: ${params.rejectionReason}`, "")
+                : description
+            }</div>
             
             ${generateInfoBox(scenario, params)}
             
             ${
+              scenario.type === "rejection" && params.rejectionReason
+                ? `
+                <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 14px; margin: 16px 0;" class="mobile-info-box">
+                    <div style="font-weight: 600; color: #dc2626; font-size: 13px; margin-bottom: 4px;">Rejection Reason:</div>
+                    <div style="color: #374151; font-size: 14px; line-height: 1.4;">${params.rejectionReason}</div>
+                </div>
+            `
+                : ""
+            }
+            
+            ${
               scenario.email.cta
                 ? `
-                <div class="cta-section">
-                    <a href="${baseUrl}${scenario.email.cta.url}" class="cta-button">
+                <div style="text-align: center; margin: 26px 0;" class="mobile-cta-padding">
+                    <a href="${baseUrl}${scenario.email.cta.url}" style="display: inline-block; background: #7c3aed; color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600; font-size: 15px; text-align: center;" class="mobile-button">
                         ${scenario.email.cta.text}
                     </a>
                 </div>
@@ -451,21 +137,22 @@ export const generateEmailTemplate = (
                 : ""
             }
             
-            <div class="divider"></div>
+            <div style="width: 100%; height: 1px; background-color: #e5e7eb; margin: 20px 0;"></div>
             
-            <div class="support-note">
-                <strong>Need Help?</strong> If you have any questions or need assistance, please don't hesitate to contact our support team.
+            <div style="font-size: 13px; color: #6b7280; background-color: #f3f4f6; padding: 12px; border-radius: 5px; border-left: 3px solid #7c3aed; margin: 16px 0;">
+                <strong>Need Help?</strong> If you have any questions or need assistance, please contact our support team.
             </div>
         </div>
         
-        <div class="footer">
-            <div class="brand-name">VESITRail</div>
-            <p>Vivekanand Education Society's Institute of Technology</p>
-            <div class="footer-links">
-                <a href="${baseUrl}">Visit Portal</a> | 
-                <a href="${baseUrl}/#contact">Contact Support</a>
+        <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb; min-height: 120px;" class="mobile-footer">
+            <div style="font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 4px;">VESITRail</div>
+            <p style="font-size: 12px; color: #6b7280; margin: 0 0 4px 0; line-height: 1.3;">Vivekanand Education Society's Institute of Technology</p>
+            <div style="margin: 12px 0;">
+                <a href="${baseUrl}" style="color: #7c3aed; text-decoration: none; font-weight: 500; font-size: 12px;">Visit Portal</a>
+                <span style="color: #d1d5db; margin: 0 6px;">|</span>
+                <a href="${baseUrl}/#contact" style="color: #7c3aed; text-decoration: none; font-weight: 500; font-size: 12px;">Contact Support</a>
             </div>
-            <div class="footer-disclaimer">
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #9ca3af; line-height: 1.3;">
                 This is an automated email from <strong>VESITRail</strong>. Please do not reply to this message.
             </div>
         </div>
@@ -511,20 +198,26 @@ const generateInfoBox = (
     });
   }
 
-  if (scenario.type === "rejection" && params.rejectionReason) {
-    infoItems.push({ label: "Reason", value: params.rejectionReason });
-  }
-
   if (infoItems.length === 0) return "";
 
   return `
-    <div class="info-box">
+    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 18px; margin: 18px 0;" class="mobile-info-box">
       ${infoItems
         .map(
-          (item) => `
-        <div class="info-row">
-          <span class="info-label">${item.label}: </span>
-          <span class="info-value">${item.value}</span>
+          (item, index) => `
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: ${
+          index === infoItems.length - 1 ? "0" : "12px"
+        }; padding: 6px 0; ${
+            index === infoItems.length - 1
+              ? ""
+              : "border-bottom: 1px solid #e5e7eb;"
+          }" class="mobile-info-row">
+          <span style="font-weight: 500; color: #6b7280; font-size: 14px; flex-shrink: 0;" class="mobile-info-label">${
+            item.label
+          }:</span>
+          <span style="font-weight: 600; color: #111827; font-size: 14px; text-align: right; margin-left: 12px; word-break: break-word;" class="mobile-info-value">${
+            item.value
+          }</span>
         </div>
       `
         )
