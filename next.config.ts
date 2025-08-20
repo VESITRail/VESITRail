@@ -11,11 +11,6 @@ const nextConfig: NextConfig = {
 
     return config;
   },
-  // experimental: {
-  //   serverActions: {
-  //     allowedOrigins: ["localhost:3000", "cb8l64jv-3000.inc1.devtunnels.ms"],
-  //   },
-  // },
 };
 
 export default nextConfig;
