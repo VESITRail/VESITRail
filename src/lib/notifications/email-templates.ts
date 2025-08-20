@@ -63,7 +63,7 @@ export const generateEmailTemplate = (
             .mobile-padding { padding: 20px 16px !important; }
             .mobile-header-padding { padding: 24px 16px !important; }
             .mobile-logo { width: 52px !important; height: 52px !important; }
-            .mobile-logo img { width: 32px !important; height: 32px !important; }
+            .mobile-logo img { width: 52px !important; height: 52px !important; border-radius: 8px !important; }
             .mobile-brand { font-size: 19px !important; }
             .mobile-subtitle { font-size: 14px !important; }
             .mobile-badge { font-size: 12px !important; padding: 8px 16px !important; gap: 8px !important; }
@@ -81,7 +81,7 @@ export const generateEmailTemplate = (
     <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb;">
         <div style="background: #7c3aed; padding: 24px 20px; text-align: center; color: #ffffff;" class="mobile-header-padding">
             <div style="width: 56px; height: 56px; margin: 0 auto 12px; background-color: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;" class="mobile-logo">
-                <img src="${logoUrl}" alt="VESITRail Logo" style="width: 32px; height: 32px; border-radius: 6px;" class="mobile-logo">
+                  <img src="${logoUrl}" alt="VESITRail Logo" style="width: 56px; height: 56px; border-radius: 10px;" />
             </div>
             <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 4px 0;" class="mobile-brand">VESITRail</h1>
             <p style="font-size: 14px; opacity: 0.9; font-weight: 400; margin: 0;" class="mobile-subtitle">Railway Concession Portal</p>
