@@ -689,7 +689,14 @@ const createColumns = (
               fullName.length > 25 ? `${fullName.slice(0, 25)}...` : fullName
             )}
           </p>
-          <p className="text-xs text-muted-foreground">{student.user.email}</p>
+          <p
+            title={student.user.email}
+            className="text-xs text-muted-foreground"
+          >
+            {student.user.email.length > 25
+              ? `${student.user.email.slice(0, 25)}...`
+              : student.user.email}
+          </p>
         </div>
       );
     },

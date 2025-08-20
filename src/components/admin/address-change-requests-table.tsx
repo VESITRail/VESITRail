@@ -895,15 +895,20 @@ const AddressChangeRequestsTable = ({
 
           return (
             <div className="space-y-1 text-center">
-              <p className="font-medium text-foreground">
+              <p title={fullName} className="font-medium text-foreground">
                 {toTitleCase(
                   fullName.length > 25
                     ? `${fullName.slice(0, 25)}...`
                     : fullName
                 )}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {request.student.user.email}
+              <p
+                title={request.student.user.email}
+                className="text-xs text-muted-foreground"
+              >
+                {request.student.user.email.length > 25
+                  ? `${request.student.user.email.slice(0, 25)}...`
+                  : request.student.user.email}
               </p>
             </div>
           );
