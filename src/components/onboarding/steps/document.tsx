@@ -57,7 +57,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
       const id = documentUrl.split("/").pop()?.split(".")[0];
 
       if (id) {
-        const publicIdFromUrl = `VESITRail/${id}.pdf`;
+        const publicIdFromUrl = `VESITRail/Verification Documents/${id}.pdf`;
 
         setIsVerifying(true);
 
@@ -485,10 +485,10 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
                           options={{
                             maxFiles: 1,
                             resourceType: "raw",
-                            folder: "VESITRail",
                             maxFileSize: 2097152,
-                            uploadPreset: "VESITRail",
                             clientAllowedFormats: ["pdf"],
+                            folder: "VESITRail/Verification Documents",
+                            uploadPreset: "VESITRail_Verification_Documents",
                             publicId: `${session.data?.user.id}-${
                               defaultValues?.station || "default"
                             }.pdf`,
