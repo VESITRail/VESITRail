@@ -199,7 +199,7 @@ const AddressChangePage = () => {
     if (watchedUrl) {
       const id = watchedUrl.split("/").pop()?.split(".")[0];
       if (id) {
-        setPublicId(`VESITRail/${id}.pdf`);
+        setPublicId(`VESITRail/Verification Documents/${id}.pdf`);
       }
     }
   }, [watchedUrl]);
@@ -373,7 +373,7 @@ const AddressChangePage = () => {
                   .pop()
                   ?.split(".")[0];
                 if (id) {
-                  setPublicId(`VESITRail/${id}.pdf`);
+                  setPublicId(`VESITRail/Verification Documents/${id}.pdf`);
                 }
 
                 toast.success("Document verified successfully!", {
@@ -1290,10 +1290,12 @@ const AddressChangePage = () => {
                                     options={{
                                       maxFiles: 1,
                                       resourceType: "raw",
-                                      folder: "VESITRail",
                                       maxFileSize: 2097152,
-                                      uploadPreset: "VESITRail",
                                       clientAllowedFormats: ["pdf"],
+                                      folder:
+                                        "VESITRail/Verification Documents",
+                                      uploadPreset:
+                                        "VESITRail_Verification_Documents",
                                       publicId: `${data?.user.id}-${formValues.newStationId}.pdf`,
                                     }}
                                   />
