@@ -42,6 +42,9 @@ model ConcessionBooklet {
   serialStartNumber String
   serialEndNumber   String
 
+  overlayTemplateUrl String
+  overlayStatus      ConcessionOverlayStatus @default(NotConfigured)
+
   status ConcessionBookletStatus
 
   updatedAt DateTime @updatedAt
