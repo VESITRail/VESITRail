@@ -24,6 +24,7 @@ import { calculateSerialEndNumber } from "@/lib/utils";
 
 export type CreateBookletInput = {
   serialStartNumber: string;
+  overlayTemplateUrl: string;
   status: ConcessionBookletStatusType;
 };
 
@@ -110,11 +111,13 @@ export const createBooklet = async (
   data: CreateBookletInput
 ): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
   try {
-    if (!data.serialStartNumber?.trim()) {
+    const serialStartNumber = data.serialStartNumber
+      .toUpperCase()
+      .replace(/\s+/g, "");
+
+    if (!serialStartNumber) {
       return failure(validationError("Serial start number is required"));
     }
-
-    const serialStartNumber = data.serialStartNumber.toUpperCase().trim();
 
     if (!/^[A-Z]+\d+$/.test(serialStartNumber)) {
       return failure(
@@ -122,6 +125,10 @@ export const createBooklet = async (
           "Serial number must contain letters followed by numbers (e.g., A0807550)"
         )
       );
+    }
+
+    if (!data.overlayTemplateUrl) {
+      return failure(validationError("Overlay template is required"));
     }
 
     const existingBooklet = await prisma.concessionBooklet.findFirst({
@@ -150,6 +157,8 @@ export const createBooklet = async (
         serialEndNumber,
         serialStartNumber,
         status: data.status,
+        overlayStatus: "NotConfigured",
+        overlayTemplateUrl: data.overlayTemplateUrl,
       },
       include: {
         _count: {

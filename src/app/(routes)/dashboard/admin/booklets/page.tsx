@@ -7,19 +7,22 @@ import {
   PaginatedBookletsResult,
 } from "@/actions/booklets";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useState, useCallback, useEffect } from "react";
 import { ConcessionBookletStatusType } from "@/generated/zod";
 import BookletsTable from "@/components/admin/booklets-table";
-import CreateBookletDialog from "@/components/admin/create-booklet-dialog";
 
 type FilterParams = {
   status?: ConcessionBookletStatusType | "all";
 };
 
 const Booklets = () => {
+  const router = useRouter();
   const { data, isPending } = authClient.useSession();
 
   const [isError, setIsError] = useState<boolean>(false);
@@ -112,14 +115,6 @@ const Booklets = () => {
     [loadBooklets, filters.status]
   );
 
-  const handleBookletCreated = useCallback((newBooklet: BookletItem) => {
-    setPaginationData((prev) => ({
-      ...prev,
-      totalCount: prev.totalCount + 1,
-      data: [newBooklet, ...prev.data.slice(0, 9)],
-    }));
-  }, []);
-
   const handleBookletDelete = useCallback((deletedBookletId: string) => {
     setPaginationData((prev) => ({
       ...prev,
@@ -177,7 +172,10 @@ const Booklets = () => {
           </p>
         </div>
 
-        <CreateBookletDialog onBookletCreated={handleBookletCreated} />
+        <Button onClick={() => router.push("/dashboard/admin/booklets/create")}>
+          <Plus className="size-4" />
+          Create Booklet
+        </Button>
       </div>
 
       <Separator className="my-4" />

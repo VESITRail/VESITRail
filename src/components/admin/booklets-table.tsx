@@ -12,6 +12,8 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
+  MoreVertical,
+  ExternalLink,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -37,8 +39,10 @@ import {
 } from "@/components/ui/table";
 import {
   DropdownMenu,
+  DropdownMenuItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -51,6 +55,10 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
+import {
+  ConcessionBookletStatusType,
+  ConcessionOverlayStatusType,
+} from "@/generated/zod";
 import Link from "next/link";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -59,7 +67,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import UpdateBookletDialog from "./update-booklet-dialog";
-import { ConcessionBookletStatusType } from "@/generated/zod";
 import { BookletItem, deleteBooklet } from "@/actions/booklets";
 import { useState, useMemo, useCallback, useEffect } from "react";
 
@@ -81,6 +88,23 @@ const StatusBadge = ({ status }: { status: ConcessionBookletStatusType }) => {
   };
 
   const displayText = status === "InUse" ? "In Use" : status;
+
+  return (
+    <Badge className={`${variants[status]} font-medium`}>{displayText}</Badge>
+  );
+};
+
+const OverlayStatusBadge = ({
+  status,
+}: {
+  status: ConcessionOverlayStatusType;
+}) => {
+  const variants = {
+    Configured: "bg-green-600 text-white",
+    NotConfigured: "bg-red-600 text-white",
+  };
+
+  const displayText = status === "NotConfigured" ? "Not Configured" : status;
 
   return (
     <Badge className={`${variants[status]} font-medium`}>{displayText}</Badge>
@@ -347,6 +371,29 @@ const BookletsTable = ({
         ),
       },
       {
+        size: 130,
+        id: "overlayStatus",
+        accessorKey: "overlayStatus",
+        meta: { displayName: "Overlay Status" },
+        header: () => (
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              onClick={() => handleSort("overlayStatus")}
+              className="h-8 px-2 data-[state=open]:bg-accent"
+            >
+              Overlay Status
+              <ArrowUpDown className="ml-2 size-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-center">
+            <OverlayStatusBadge status={row.original.overlayStatus} />
+          </div>
+        ),
+      },
+      {
         size: 100,
         id: "applications",
         accessorKey: "applications",
@@ -387,29 +434,56 @@ const BookletsTable = ({
         meta: { displayName: "Actions" },
         header: () => <div className="text-center">Actions</div>,
         cell: ({ row }) => (
-          <div className="flex justify-center gap-1">
-            <Link href={`/dashboard/admin/booklets/${row.original.id}`}>
-              <Button size="sm" variant="outline" className="size-8 p-0">
-                <Eye className="size-4" />
-              </Button>
-            </Link>
-
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => handleUpdateClick(row.original)}
-              className="size-8 p-0 text-muted-foreground hover:text-foreground"
-            >
-              <Edit className="size-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => handleDeleteClick(row.original)}
-              className="size-8 p-0 text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="size-4" />
-            </Button>
+          <div className="flex justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                >
+                  <MoreVertical className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link
+                    className="flex items-center"
+                    href={`/dashboard/admin/booklets/${row.original.id}`}
+                  >
+                    <Eye className="mr-2 size-4" />
+                    View Booklet
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleUpdateClick(row.original)}
+                >
+                  <Edit className="mr-2 size-4" />
+                  Edit Booklet
+                </DropdownMenuItem>
+                {row.original.overlayTemplateUrl && (
+                  <DropdownMenuItem asChild>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center"
+                      href={row.original.overlayTemplateUrl}
+                    >
+                      <ExternalLink className="mr-2 size-4" />
+                      View Template
+                    </a>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => handleDeleteClick(row.original)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Delete Booklet
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ),
       },
@@ -446,17 +520,16 @@ const BookletsTable = ({
                 <Skeleton className="h-6 w-20 mx-auto rounded-full" />
               </TableCell>
               <TableCell className="text-center">
+                <Skeleton className="h-6 w-24 mx-auto rounded-full" />
+              </TableCell>
+              <TableCell className="text-center">
                 <Skeleton className="h-4 w-8 mx-auto" />
               </TableCell>
               <TableCell className="text-center">
                 <Skeleton className="h-4 w-20 mx-auto" />
               </TableCell>
               <TableCell className="text-center">
-                <div className="flex justify-center gap-1">
-                  <Skeleton className="size-8" />
-                  <Skeleton className="size-8" />
-                  <Skeleton className="size-8" />
-                </div>
+                <Skeleton className="size-8 mx-auto" />
               </TableCell>
             </TableRow>
           ))}

@@ -28,6 +28,11 @@ enum ConcessionBookletStatus {
   Exhausted
 }
 
+enum ConcessionOverlayStatus {
+  Configured
+  NotConfigured
+}
+
 enum ConcessionApplicationType {
   New
   Renewal
