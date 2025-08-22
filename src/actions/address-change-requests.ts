@@ -354,7 +354,7 @@ export const reviewAddressChangeRequest = async (
               }
             }
 
-            const publicId = pathAfterUpload;
+            const publicId = decodeURIComponent(pathAfterUpload);
             const deleteResult = await deleteCloudinaryFile(publicId);
 
             if (!deleteResult.isSuccess) {
