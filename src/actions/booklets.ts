@@ -30,8 +30,9 @@ export type CreateBookletInput = {
 };
 
 export type UpdateBookletInput = {
-  serialStartNumber: string;
   isDamaged: boolean;
+  serialStartNumber: string;
+  overlayTemplateUrl?: string;
 };
 
 export type BookletItem = ConcessionBooklet & {
@@ -412,13 +413,19 @@ export const updateBooklet = async (
       }
     }
 
+    const updateData: Prisma.ConcessionBookletUpdateInput = {
+      status: newStatus,
+      serialEndNumber: serialEndNumber,
+      serialStartNumber: data.serialStartNumber,
+    };
+
+    if (data.overlayTemplateUrl !== undefined) {
+      updateData.overlayTemplateUrl = data.overlayTemplateUrl;
+    }
+
     const updatedBooklet = await prisma.concessionBooklet.update({
+      data: updateData,
       where: { id: bookletId },
-      data: {
-        status: newStatus,
-        serialEndNumber: serialEndNumber,
-        serialStartNumber: data.serialStartNumber,
-      },
       include: {
         _count: {
           select: {
@@ -433,6 +440,32 @@ export const updateBooklet = async (
   } catch (error) {
     console.error("Error updating booklet:", error);
     return failure(databaseError("Failed to update booklet"));
+  }
+};
+
+export const getBooklet = async (
+  bookletId: string
+): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+  try {
+    const booklet = await prisma.concessionBooklet.findUnique({
+      where: { id: bookletId },
+      include: {
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    });
+
+    if (!booklet) {
+      return failure(validationError("Booklet not found"));
+    }
+
+    return success(booklet);
+  } catch (error) {
+    console.error("Error fetching booklet:", error);
+    return failure(databaseError("Failed to fetch booklet"));
   }
 };
 

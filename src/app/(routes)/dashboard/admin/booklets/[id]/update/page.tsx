@@ -2,13 +2,19 @@
 
 import {
   Eye,
-  FileUp,
   Trash2,
+  FileUp,
   Loader2,
   BookOpen,
   ArrowLeft,
   AlertCircle,
 } from "lucide-react";
+import {
+  getBooklet,
+  BookletItem,
+  updateBooklet,
+  UpdateBookletInput,
+} from "@/actions/booklets";
 import type {
   CloudinaryUploadWidgetInfo,
   CloudinaryUploadWidgetError,
@@ -16,26 +22,33 @@ import type {
 } from "next-cloudinary";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { CldUploadButton } from "next-cloudinary";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { useRouter, useParams } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
 import { deleteCloudinaryFile } from "@/actions/cloudinary";
-import { createBooklet, CreateBookletInput } from "@/actions/booklets";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const CreateBookletPage = () => {
+const UpdateBookletPage = () => {
   const router = useRouter();
-  const [publicId, setPublicId] = useState<string>("");
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [isCreating, setIsCreating] = useState<boolean>(false);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const params = useParams();
+  const bookletId = params.id as string;
 
-  const [formData, setFormData] = useState<CreateBookletInput>({
-    status: "Available",
+  const [publicId, setPublicId] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [booklet, setBooklet] = useState<BookletItem | null>(null);
+
+  const [formData, setFormData] = useState<UpdateBookletInput>({
+    isDamaged: false,
     serialStartNumber: "",
     overlayTemplateUrl: "",
   });
@@ -79,7 +92,7 @@ const CreateBookletPage = () => {
       }
     }
 
-    if (!formData.overlayTemplateUrl.trim()) {
+    if (!formData.overlayTemplateUrl?.trim()) {
       newErrors.overlayTemplateUrl = "Overlay template is required";
     }
 
@@ -88,10 +101,10 @@ const CreateBookletPage = () => {
   }, [formData]);
 
   const handleInputChange = useCallback(
-    (field: keyof CreateBookletInput, value: string) => {
+    (field: keyof UpdateBookletInput, value: string | boolean) => {
       let processedValue = value;
 
-      if (field === "serialStartNumber") {
+      if (field === "serialStartNumber" && typeof value === "string") {
         processedValue = value.toUpperCase();
       }
 
@@ -102,6 +115,120 @@ const CreateBookletPage = () => {
     },
     [errors]
   );
+
+  const fetchBooklet = useCallback(async () => {
+    if (!bookletId) return;
+
+    setLoading(true);
+
+    try {
+      const result = await getBooklet(bookletId);
+
+      if (result.isSuccess) {
+        const bookletData = result.data;
+        setBooklet(bookletData);
+        setFormData({
+          isDamaged: bookletData.status === "Damaged",
+          serialStartNumber: bookletData.serialStartNumber,
+          overlayTemplateUrl: bookletData.overlayTemplateUrl || "",
+        });
+
+        if (bookletData.overlayTemplateUrl) {
+          const verifyAndSetDocument = async () => {
+            setIsVerifying(true);
+
+            const verifyToastId = toast.loading("Verifying template...", {
+              description: "Please wait while we check your uploaded template.",
+            });
+
+            try {
+              const response = await fetch(bookletData.overlayTemplateUrl!, {
+                method: "HEAD",
+              });
+
+              if (response.ok) {
+                const url = new URL(bookletData.overlayTemplateUrl!);
+                const pathSegments = url.pathname.split("/");
+
+                const uploadIndex = pathSegments.findIndex(
+                  (segment) => segment === "upload"
+                );
+                if (
+                  uploadIndex !== -1 &&
+                  uploadIndex + 2 < pathSegments.length
+                ) {
+                  const publicIdParts = pathSegments.slice(uploadIndex + 2);
+                  let publicId = publicIdParts.join("/");
+
+                  if (publicId.includes(".")) {
+                    publicId = publicId.substring(0, publicId.lastIndexOf("."));
+                  }
+
+                  setPublicId(`${decodeURIComponent(publicId)}.pdf`);
+                }
+
+                toast.dismiss(verifyToastId);
+                toast.success("Template verified successfully!", {
+                  description: "Your existing template is available.",
+                });
+              } else {
+                setFormData((prev) => ({
+                  ...prev,
+                  overlayTemplateUrl: "",
+                }));
+
+                toast.dismiss(verifyToastId);
+                toast.warning("Template not accessible", {
+                  description:
+                    "The existing template file could not be accessed. Please upload a new one.",
+                });
+              }
+            } catch (error) {
+              console.error("Error while verifying template:", error);
+              setFormData((prev) => ({
+                ...prev,
+                overlayTemplateUrl: "",
+              }));
+
+              toast.dismiss(verifyToastId);
+              toast.warning("Template verification failed", {
+                description:
+                  "Could not verify the existing template. Please upload a new one.",
+              });
+            } finally {
+              setIsVerifying(false);
+            }
+          };
+
+          verifyAndSetDocument();
+        }
+      } else {
+        toast.error("Booklet Not Found", {
+          description: "The requested booklet could not be found.",
+        });
+        router.push("/dashboard/admin/booklets");
+      }
+    } catch (error) {
+      console.error("Error while fetching booklet:", error);
+      toast.error("Failed to Load Booklet", {
+        description: "Unable to load booklet details. Please try again.",
+      });
+      router.push("/dashboard/admin/booklets");
+    } finally {
+      setLoading(false);
+    }
+  }, [bookletId, router]);
+
+  useEffect(() => {
+    fetchBooklet();
+  }, [fetchBooklet]);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "auto";
+      document.documentElement.style.overflow = "auto";
+    };
+  }, []);
 
   const handleUploadSuccess = (result: CloudinaryUploadWidgetResults) => {
     try {
@@ -159,6 +286,7 @@ const CreateBookletPage = () => {
       : null;
 
     try {
+      console.log("Deleting Cloudinary file:", publicId);
       const result = await deleteCloudinaryFile(publicId);
 
       if (result.isSuccess) {
@@ -281,57 +409,96 @@ const CreateBookletPage = () => {
       return;
     }
 
-    setIsCreating(true);
+    setIsUpdating(true);
 
-    const createPromise = async () => {
-      const result = await createBooklet({
-        ...formData,
+    const updatePromise = async () => {
+      const result = await updateBooklet(bookletId, {
+        isDamaged: formData.isDamaged,
         serialStartNumber: formData.serialStartNumber.toUpperCase().trim(),
+        overlayTemplateUrl: formData.overlayTemplateUrl,
       });
 
       if (result.isSuccess) {
-        setFormData({
-          status: "Available",
-          serialStartNumber: "",
-          overlayTemplateUrl: "",
-        });
-        setErrors({});
-        setPublicId("");
-        setIsUploading(false);
-        setIsDeleting(false);
         router.push("/dashboard/admin/booklets");
         return result.data;
       } else {
-        throw new Error(result.error.message || "Failed to create booklet");
+        throw new Error(result.error.message || "Failed to update booklet");
       }
     };
 
-    toast.promise(createPromise, {
-      loading: "Creating Booklet...",
-      success: "Booklet Created Successfully",
-      error: (error) => error.message || "Failed to create booklet",
+    toast.promise(updatePromise, {
+      loading: "Updating Booklet...",
+      success: "Booklet Updated Successfully",
+      error: (error) => error.message || "Failed to update booklet",
       finally: () => {
-        setIsCreating(false);
+        setIsUpdating(false);
       },
     });
   };
 
   const handleCancel = () => {
-    setFormData({
-      status: "Available",
-      serialStartNumber: "",
-      overlayTemplateUrl: "",
-    });
-    setErrors({});
-    setPublicId("");
-    setIsUploading(false);
-    setIsDeleting(false);
     router.push("/dashboard/admin/booklets");
   };
 
   const serialEndNumber = formData.serialStartNumber.trim()
     ? calculateSerialEndNumber(formData.serialStartNumber)
     : "";
+
+  if (loading || isVerifying) {
+    return (
+      <div className="container max-w-2xl mx-auto py-8 px-4">
+        <div className="flex w-full gap-4 justify-between items-start mb-6">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-10" />
+              <Skeleton className="h-8 w-48" />
+            </div>
+          </div>
+        </div>
+
+        <Separator className="mb-8" />
+
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-3 w-64" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-3 w-48" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-48 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-6 w-48" />
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <Skeleton className="h-10 w-20" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!booklet) {
+    return null;
+  }
 
   return (
     <div className="container max-w-2xl mx-auto py-8 px-4">
@@ -349,7 +516,9 @@ const CreateBookletPage = () => {
             <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
               <BookOpen className="size-5" />
             </div>
-            <h1 className="text-2xl font-semibold">Create New Booklet</h1>
+            <h1 className="text-2xl font-semibold">
+              Update Booklet #{booklet.bookletNumber}
+            </h1>
           </div>
         </div>
       </div>
@@ -417,8 +586,8 @@ const CreateBookletPage = () => {
                 <div
                   className={cn(
                     "border-2 border-dashed rounded-lg",
-                    "flex flex-col items-center justify-center w-full h-48",
                     "bg-muted/50 transition-colors duration-200 relative",
+                    "flex flex-col items-center justify-center w-full h-48",
                     !formData.serialStartNumber.trim() ||
                       !/^[A-Z]\d+$/.test(
                         formData.serialStartNumber.toUpperCase().trim()
@@ -563,10 +732,28 @@ const CreateBookletPage = () => {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Status</Label>
+
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="isDamaged"
+                className="cursor-pointer"
+                checked={formData.isDamaged}
+                onCheckedChange={(checked) =>
+                  handleInputChange("isDamaged", checked === true)
+                }
+              />
+              <Label htmlFor="isDamaged" className="text-sm cursor-pointer">
+                Is the booklet damaged?
+              </Label>
+            </div>
+          </div>
+
           <div className="flex justify-end gap-4 py-1">
             <Button
               variant="outline"
-              disabled={isCreating}
+              disabled={isUpdating}
               onClick={handleCancel}
             >
               Cancel
@@ -575,20 +762,20 @@ const CreateBookletPage = () => {
               className="min-w-32"
               onClick={handleSubmit}
               disabled={
-                isCreating ||
+                isUpdating ||
                 !formData.serialStartNumber.trim() ||
-                !formData.overlayTemplateUrl.trim()
+                !formData.overlayTemplateUrl?.trim()
               }
             >
-              {isCreating ? (
+              {isUpdating ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  Creating...
+                  Updating...
                 </>
               ) : (
                 <>
                   <BookOpen className="size-4" />
-                  Create Booklet
+                  Update Booklet
                 </>
               )}
             </Button>
@@ -599,4 +786,4 @@ const CreateBookletPage = () => {
   );
 };
 
-export default CreateBookletPage;
+export default UpdateBookletPage;
