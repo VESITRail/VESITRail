@@ -124,7 +124,6 @@ type BookletsTableProps = {
   onPageChange: (page: number) => void;
   onSearchChange: (query: string) => void;
   onBookletDelete?: (deletedBookletId: string) => void;
-  onBookletUpdate?: (updatedBooklet: BookletItem) => void;
   onFilterChange: (filters: {
     status?: ConcessionBookletStatusType | "all";
   }) => void;
@@ -143,7 +142,6 @@ const BookletsTable = ({
   onFilterChange,
   onSearchChange,
   onBookletDelete,
-  onBookletUpdate,
   hasPreviousPage,
 }: BookletsTableProps) => {
   const router = useRouter();
