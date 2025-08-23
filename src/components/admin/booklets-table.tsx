@@ -62,11 +62,11 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import UpdateBookletDialog from "./update-booklet-dialog";
 import { BookletItem, deleteBooklet } from "@/actions/booklets";
 import { useState, useMemo, useCallback, useEffect } from "react";
 
@@ -146,6 +146,7 @@ const BookletsTable = ({
   onBookletUpdate,
   hasPreviousPage,
 }: BookletsTableProps) => {
+  const router = useRouter();
   const [sortConfig, setSortConfig] = useState<{
     key: keyof BookletItem | "bookletNumber";
     direction: SortOrder;
@@ -153,13 +154,9 @@ const BookletsTable = ({
 
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
-  const [showUpdateDialog, setShowUpdateDialog] = useState<boolean>(false);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
   const [bookletToDelete, setBookletToDelete] = useState<BookletItem | null>(
-    null
-  );
-  const [bookletToUpdate, setBookletToUpdate] = useState<BookletItem | null>(
     null
   );
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -204,21 +201,11 @@ const BookletsTable = ({
     setShowDeleteDialog(true);
   }, []);
 
-  const handleUpdateClick = useCallback((booklet: BookletItem) => {
-    setBookletToUpdate(booklet);
-    setShowUpdateDialog(true);
-  }, []);
-
-  const handleUpdateClose = useCallback(() => {
-    setShowUpdateDialog(false);
-    setBookletToUpdate(null);
-  }, []);
-
-  const handleBookletUpdated = useCallback(
-    (updatedBooklet: BookletItem) => {
-      onBookletUpdate?.(updatedBooklet);
+  const handleUpdateClick = useCallback(
+    (booklet: BookletItem) => {
+      router.push(`/dashboard/admin/booklets/${booklet.id}/update`);
     },
-    [onBookletUpdate]
+    [router]
   );
 
   const handleDeleteConfirm = useCallback(async () => {
@@ -791,13 +778,6 @@ const BookletsTable = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <UpdateBookletDialog
-        isOpen={showUpdateDialog}
-        booklet={bookletToUpdate}
-        onClose={handleUpdateClose}
-        onBookletUpdated={handleBookletUpdated}
-      />
     </div>
   );
 };
