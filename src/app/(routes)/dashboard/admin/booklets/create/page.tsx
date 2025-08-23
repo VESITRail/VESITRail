@@ -481,9 +481,9 @@ const CreateBookletPage = () => {
                           clientAllowedFormats: ["pdf"],
                           folder: "VESITRail/Concession Booklets",
                           uploadPreset: "VESITRail_Concession_Booklets",
-                          publicId: `booklet-${formData.serialStartNumber.toUpperCase()}-to-${calculateSerialEndNumber(
-                            formData.serialStartNumber
-                          )}.pdf`,
+                          publicId: `booklet-${Date.now()}-${Math.random()
+                            .toString(36)
+                            .substr(2, 9)}.pdf`,
                         }}
                       />
                     )}
