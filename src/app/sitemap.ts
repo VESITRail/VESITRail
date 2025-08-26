@@ -17,6 +17,12 @@ const sitemap = (): MetadataRoute.Sitemap => {
       changeFrequency: "monthly",
       url: `${siteUrl}/privacy-policy`,
     },
+    {
+      lastModified,
+      priority: 0.5,
+      changeFrequency: "monthly",
+      url: `${siteUrl}/terms-of-service`,
+    },
   ];
 };
 
