@@ -69,11 +69,11 @@ const PrivacyPolicy = () => {
                 <Heading2>Introduction</Heading2>
               </div>
               <Paragraph className="text-muted-foreground leading-relaxed">
-                VESITRail ("we," "our," or "us") is a web application designed
-                exclusively for VESIT students to apply for and manage railway
-                concessions. This Privacy Policy explains how we collect, use,
-                disclose, and safeguard your information when you use our
-                service at {siteDomain}.
+                VESITRail (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;)
+                is a web application designed exclusively for VESIT students to
+                apply for and manage railway concessions. This Privacy Policy
+                explains how we collect, use, disclose, and safeguard your
+                information when you use our service at {siteDomain}.
               </Paragraph>
             </div>
 
@@ -396,9 +396,9 @@ const PrivacyPolicy = () => {
               <Paragraph className="text-muted-foreground">
                 We may update this Privacy Policy from time to time. We will
                 notify you of any material changes by posting the new Privacy
-                Policy on this page and updating the "Last updated" date. We
-                encourage you to review this Privacy Policy periodically for any
-                changes.
+                Policy on this page and updating the &quot;Last updated&quot;
+                date. We encourage you to review this Privacy Policy
+                periodically for any changes.
               </Paragraph>
             </div>
 
