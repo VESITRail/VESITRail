@@ -291,8 +291,8 @@ const TermsOfService = () => {
                   <Paragraph className="text-muted-foreground">
                     We strive to maintain continuous service availability but
                     cannot guarantee uninterrupted access. The service is
-                    provided "as is" without warranties of any kind, either
-                    express or implied.
+                    provided &quot;as is&quot; without warranties of any kind,
+                    either express or implied.
                   </Paragraph>
                 </div>
 
@@ -387,9 +387,9 @@ const TermsOfService = () => {
               <Paragraph className="text-muted-foreground">
                 We reserve the right to modify these Terms at any time. We will
                 notify users of any material changes by posting the updated
-                Terms on this page and updating the "Last updated" date. Your
-                continued use of the service after changes become effective
-                constitutes acceptance of the new Terms.
+                Terms on this page and updating the &quot;Last updated&quot;
+                date. Your continued use of the service after changes become
+                effective constitutes acceptance of the new Terms.
               </Paragraph>
             </div>
 
