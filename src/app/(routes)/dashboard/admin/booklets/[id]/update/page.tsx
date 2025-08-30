@@ -25,8 +25,8 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { CldUploadButton } from "next-cloudinary";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useRouter, useParams } from "next/navigation";
@@ -450,10 +450,7 @@ const UpdateBookletPage = () => {
         <div className="flex w-full gap-4 justify-between items-start mb-6">
           <div className="flex items-center gap-3">
             <Skeleton className="size-10" />
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-10" />
-              <Skeleton className="h-8 w-48" />
-            </div>
+            <Skeleton className="h-8 w-48" />
           </div>
         </div>
 
@@ -481,9 +478,17 @@ const UpdateBookletPage = () => {
               <Skeleton className="h-48 w-full" />
             </div>
 
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-6 w-48" />
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-24" />
+              <div className="p-4 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                  <Skeleton className="h-6 w-11 rounded-full" />
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-4">
@@ -565,7 +570,7 @@ const UpdateBookletPage = () => {
               Serial End Number (Auto-calculated)
             </Label>
 
-            <div className="p-2 bg-muted rounded-md">
+            <div className="h-9 px-3 py-2 bg-muted rounded-md flex items-center">
               <span className="font-mono text-sm">
                 {serialEndNumber ||
                   "Enter serial start number to see end number"}
@@ -732,21 +737,22 @@ const UpdateBookletPage = () => {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Status</Label>
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Booklet Status</Label>
 
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="isDamaged"
-                className="cursor-pointer"
+            <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">Mark as Damaged</Label>
+                <p className="text-xs text-muted-foreground">
+                  Toggle if the booklet is damaged or unusable
+                </p>
+              </div>
+              <Switch
                 checked={formData.isDamaged}
                 onCheckedChange={(checked) =>
-                  handleInputChange("isDamaged", checked === true)
+                  handleInputChange("isDamaged", checked)
                 }
               />
-              <Label htmlFor="isDamaged" className="text-sm cursor-pointer">
-                Is the booklet damaged?
-              </Label>
             </div>
           </div>
 

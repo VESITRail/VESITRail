@@ -396,7 +396,7 @@ const CreateBookletPage = () => {
               Serial End Number (Auto-calculated)
             </Label>
 
-            <div className="p-2 bg-muted rounded-md">
+            <div className="h-9 px-3 py-2 bg-muted rounded-md flex items-center">
               <span className="font-mono text-sm">
                 {serialEndNumber ||
                   "Enter serial start number to see end number"}
