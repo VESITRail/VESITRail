@@ -70,29 +70,17 @@ export const generateBookletPDF = async (
     doc.line(15, 41.5, pageWidth - 15, 41.5);
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("CONCESSION APPLICATIONS REPORT", centerX, 52, {
-      align: "center",
-    });
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text("Route: Origin Station -> Kurla (CLA)", centerX, 60, {
-      align: "center",
-    });
-
-    doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.text("REPORT DETAILS", 15, 72);
+    doc.text("REPORT DETAILS", 15, 52);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
 
-    doc.text(`Total Applications: ${applications.length}`, 15, 80);
+    doc.text(`Total Applications: ${applications.length}`, 15, 60);
     doc.text(
       `Serial Range: ${booklet.serialStartNumber} - ${booklet.serialEndNumber}`,
       15,
-      87
+      67
     );
 
     const newApplicationsCount = applications.filter(
@@ -102,7 +90,7 @@ export const generateBookletPDF = async (
     doc.text(
       `New: ${newApplicationsCount} | Renewal: ${renewalCount}`,
       pageWidth - 15,
-      80,
+      60,
       { align: "right" }
     );
 
@@ -112,12 +100,12 @@ export const generateBookletPDF = async (
         timeZone: "Asia/Kolkata",
       })}`,
       pageWidth - 15,
-      87,
+      67,
       { align: "right" }
     );
 
     doc.setLineWidth(0.5);
-    doc.line(15, 93, pageWidth - 15, 93);
+    doc.line(15, 73, pageWidth - 15, 73);
 
     const getCurrentPassNo = async (
       application: BookletApplicationItem
@@ -179,6 +167,7 @@ export const generateBookletPDF = async (
         format(new Date(app.student.dateOfBirth), "dd/MM/yyyy"),
         app.concessionPeriod.name || "N/A",
         `${app.station.name} (${app.station.code})`,
+        "Kurla (CLA)",
         fullAddress,
       ];
     });
@@ -196,46 +185,45 @@ export const generateBookletPDF = async (
           "Gender",
           "Date of Birth",
           "Pass Type",
-          "Origin Station",
+          "From Station",
+          "To Station",
           "Residential Address",
         ],
       ],
-      startY: 99,
+      startY: 79,
       body: tableData,
       styles: {
         fontSize: 8.5,
         valign: "top",
         lineWidth: 0.3,
+        halign: "center",
         minCellHeight: 12,
         textColor: [0, 0, 0],
         lineColor: [0, 0, 0],
         overflow: "linebreak",
         cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
-        halign: "center",
       },
       headStyles: {
         fontSize: 9,
         halign: "center",
         valign: "middle",
         fontStyle: "bold",
-        fillColor: [60, 60, 60],
-        textColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        fillColor: [248, 248, 248],
         cellPadding: { top: 5, right: 3, bottom: 5, left: 3 },
       },
       columnStyles: {
         0: { halign: "center", cellWidth: 15 },
-        1: { halign: "center", cellWidth: 25 },
-        2: { halign: "center", cellWidth: 25 },
-        3: { halign: "left", cellWidth: 60 },
-        4: { halign: "center", cellWidth: 30 },
-        5: { halign: "center", cellWidth: 15 },
+        1: { halign: "center", cellWidth: 23 },
+        2: { halign: "center", cellWidth: 23 },
+        3: { halign: "left", cellWidth: 52 },
+        4: { halign: "center", cellWidth: 28 },
+        5: { halign: "center", cellWidth: 20 },
         6: { halign: "center", cellWidth: 22 },
-        7: { halign: "center", cellWidth: 25 },
-        8: { halign: "center", cellWidth: 40 },
-        9: { halign: "left", overflow: "linebreak" },
-      },
-      alternateRowStyles: {
-        fillColor: [240, 240, 240],
+        7: { halign: "center", cellWidth: 23 },
+        8: { halign: "center", cellWidth: 33 },
+        9: { halign: "center", cellWidth: 23 },
+        10: { halign: "left", overflow: "linebreak" },
       },
       tableLineWidth: 0.3,
       showHead: "everyPage",
