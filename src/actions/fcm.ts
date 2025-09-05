@@ -14,7 +14,7 @@ import { FcmPlatformType } from "@/generated/zod";
 
 export type FcmTokenData = {
   token: string;
-  studentId: string;
+  userId: string;
   deviceId?: string;
   platform: FcmPlatformType;
 };
@@ -27,28 +27,24 @@ export const saveFcmToken = async (
       return failure(validationError("FCM token is required"));
     }
 
-    if (!data.studentId?.trim()) {
-      return failure(validationError("Student ID is required"));
+    if (!data.userId?.trim()) {
+      return failure(validationError("User ID is required"));
     }
 
-    const student = await prisma.student.findUnique({
-      select: { status: true },
-      where: { userId: data.studentId },
+    const user = await prisma.user.findUnique({
+      select: { id: true },
+      where: { id: data.userId },
     });
 
-    if (!student) {
-      return failure(validationError("Student not found"));
-    }
-
-    if (student.status !== "Approved") {
-      return failure(validationError("Student is not approved"));
+    if (!user) {
+      return failure(validationError("User not found"));
     }
 
     const whereClause = data.deviceId
       ? {
-          studentId_deviceId: {
+          userId_deviceId: {
+            userId: data.userId,
             deviceId: data.deviceId,
-            studentId: data.studentId,
           },
         }
       : { token: data.token };
@@ -57,8 +53,8 @@ export const saveFcmToken = async (
       where: whereClause,
       create: {
         token: data.token,
+        userId: data.userId,
         platform: data.platform,
-        studentId: data.studentId,
         deviceId: data.deviceId ?? null,
       },
       update: {
@@ -75,17 +71,17 @@ export const saveFcmToken = async (
 };
 
 export const removeFcmToken = async (
-  studentId: string,
+  userId: string,
   deviceId?: string
 ): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
   try {
-    if (!studentId?.trim()) {
-      return failure(validationError("Student ID is required"));
+    if (!userId?.trim()) {
+      return failure(validationError("User ID is required"));
     }
 
     await prisma.fcmToken.deleteMany({
       where: {
-        studentId,
+        userId,
         deviceId: deviceId ?? null,
       },
     });

@@ -131,9 +131,9 @@ export const sendNotification = async (
 
     if (student.pushNotificationsEnabled) {
       const pushResult = await sendPushNotification({
-        studentId: payload.studentId,
         scenario,
         url: payload.url,
+        userId: payload.studentId,
       });
 
       if (pushResult.isSuccess) {
@@ -210,17 +210,17 @@ const sendEmailNotification = async (params: {
 
 const sendPushNotification = async (params: {
   url?: string;
-  studentId: string;
+  userId: string;
   scenario: NotificationScenario;
 }): Promise<Result<boolean, AppError>> => {
   try {
     const fcmTokens = await prisma.fcmToken.findMany({
-      where: { studentId: params.studentId },
       select: { token: true },
+      where: { userId: params.userId },
     });
 
     if (fcmTokens.length === 0) {
-      return failure(validationError("No FCM tokens found for student"));
+      return failure(validationError("No FCM tokens found for user"));
     }
 
     const tokens = fcmTokens.map((t) => t.token);
