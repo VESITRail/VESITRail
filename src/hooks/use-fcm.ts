@@ -32,7 +32,7 @@ const generateDeviceId = (): string => {
   return deviceId;
 };
 
-export const useFcm = (studentId?: string) => {
+export const useFcm = (userId?: string) => {
   const [state, setState] = useState<FcmState>({
     token: null,
     error: null,
@@ -42,15 +42,15 @@ export const useFcm = (studentId?: string) => {
 
   const saveTokenToDb = useCallback(
     async (token: string): Promise<void> => {
-      if (!studentId) return;
+      if (!userId) return;
 
       try {
         const deviceId = generateDeviceId();
 
         const result = await saveFcmToken({
           token,
+          userId,
           deviceId,
-          studentId,
           platform: getPlatform(),
         });
 
@@ -68,7 +68,7 @@ export const useFcm = (studentId?: string) => {
         });
       }
     },
-    [studentId]
+    [userId]
   );
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
