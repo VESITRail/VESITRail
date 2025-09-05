@@ -23,10 +23,11 @@ model User {
   updatedAt     DateTime @updatedAt
   createdAt     DateTime @default(now())
 
-  admin    Admin?
-  student  Student?
-  sessions Session[]
-  accounts Account[]
+  admin     Admin?
+  student   Student?
+  sessions  Session[]
+  accounts  Account[]
+  fcmTokens FcmToken[]
 
   @@unique([email])
 }
@@ -73,8 +74,8 @@ model Verification {
 }
 
 model FcmToken {
-  id        String @id @default(cuid())
-  studentId String
+  id     String @id @default(cuid())
+  userId String
 
   deviceId String?
   platform FcmPlatform
@@ -83,9 +84,9 @@ model FcmToken {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
-  student Student @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, deviceId])
+  @@unique([userId, deviceId])
 }
 
 model Notification {
