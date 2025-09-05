@@ -8,6 +8,7 @@ import {
 } from "@/actions/check-role";
 import { toast } from "sonner";
 import { isFailure } from "@/lib/result";
+import { useFcm } from "@/hooks/use-fcm";
 import Status from "@/components/ui/status";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
@@ -27,6 +28,8 @@ const DashboardLayoutContent = ({
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [allUserRoles, setAllUserRoles] = useState<UserRoles | null>(null);
   const [showRoleSelection, setShowRoleSelection] = useState<boolean>(false);
+
+  useFcm(session.data?.user?.id);
 
   useEffect(() => {
     const isAdminPath = pathname.startsWith("/dashboard/admin");
