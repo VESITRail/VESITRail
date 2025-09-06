@@ -61,19 +61,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
 import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect, useState, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateConcessionValidity } from "@/lib/utils";
 import { ConcessionApplicationType } from "@/generated/prisma";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
 
 const ApplicationTypeBadge = ({
   type,
@@ -99,7 +101,9 @@ const StatusBadge = ({
 
 const ConcessionApplicationForm = () => {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const { data, isPending } = authClient.useSession();
+  const slideButtonRef = useRef<SlideButtonRef>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [canApply, setCanApply] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -381,6 +385,11 @@ const ConcessionApplicationForm = () => {
     }
 
     setIsSubmitting(true);
+    setShowConfirmDialog(false);
+
+    if (isMobile) {
+      slideButtonRef.current?.showSubmitting();
+    }
 
     const applicationData = {
       studentId: data.user.id,
@@ -432,7 +441,13 @@ const ConcessionApplicationForm = () => {
       console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
-      setShowConfirmDialog(false);
+    }
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setShowConfirmDialog(open);
+    if (!open && isMobile) {
+      slideButtonRef.current?.reset();
     }
   };
 
@@ -490,7 +505,11 @@ const ConcessionApplicationForm = () => {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Skeleton className="h-11 w-40 rounded-md" />
+                {isMobile ? (
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                ) : (
+                  <Skeleton className="h-11 w-40 rounded-md" />
+                )}
               </div>
             </div>
           </div>
@@ -830,35 +849,58 @@ const ConcessionApplicationForm = () => {
             </div>
 
             <div className="flex justify-end pt-4">
-              <Button
-                size="lg"
-                onClick={() => {
-                  setShowConfirmDialog(true);
-                }}
-                disabled={!isFormValid || isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-1 size-4 animate-spin" />
-                    {lastApplication?.status === "Rejected"
+              {isMobile ? (
+                <SlideButton
+                  fullWidth
+                  ref={slideButtonRef}
+                  text={
+                    lastApplication?.status === "Rejected"
+                      ? "Slide to resubmit application"
+                      : "Slide to submit application"
+                  }
+                  loadingText={
+                    lastApplication?.status === "Rejected"
                       ? "Resubmitting..."
-                      : "Submitting..."}
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-1 size-4" />
-                    {lastApplication?.status === "Rejected"
-                      ? "Resubmit Application"
-                      : "Submit Application"}
-                  </>
-                )}
-              </Button>
+                      : "Submitting..."
+                  }
+                  onSlideComplete={() => {
+                    setShowConfirmDialog(true);
+                  }}
+                  disabled={!isFormValid}
+                  isLoading={loadingOptions}
+                  isSubmitting={isSubmitting}
+                />
+              ) : (
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    setShowConfirmDialog(true);
+                  }}
+                  disabled={!isFormValid || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-1 size-4 animate-spin" />
+                      {lastApplication?.status === "Rejected"
+                        ? "Resubmitting..."
+                        : "Submitting..."}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-1 size-4" />
+                      {lastApplication?.status === "Rejected"
+                        ? "Resubmit Application"
+                        : "Submit Application"}
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <AlertDialog open={showConfirmDialog} onOpenChange={handleDialogClose}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
