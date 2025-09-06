@@ -2,6 +2,7 @@ import {
   User,
   Users,
   MapPin,
+  Github,
   BookOpen,
   FileText,
   MessageSquare,
@@ -28,6 +29,11 @@ const data = {
       icon: User,
       title: "Profile",
       url: "/dashboard/admin/profile",
+    },
+    {
+      icon: Github,
+      title: "GitHub",
+      url: "https://github.com/VESITRail/VESITRail",
     },
     {
       icon: MessageSquare,

@@ -1,4 +1,13 @@
 import {
+  Eye,
+  Send,
+  User,
+  MapPin,
+  Github,
+  LifeBuoy,
+  PlusCircle,
+} from "lucide-react";
+import {
   Sidebar,
   useSidebar,
   SidebarMenu,
@@ -13,7 +22,6 @@ import Image from "next/image";
 import NavMain from "@/components/nav-main";
 import NavSecondary from "@/components/nav-secondary";
 import NavUser from "@/components/app-sidebar/student/nav-user";
-import { Eye, Send, User, MapPin, LifeBuoy, PlusCircle } from "lucide-react";
 
 const data = {
   navSecondary: [
@@ -21,6 +29,11 @@ const data = {
       icon: User,
       title: "Profile",
       url: "/dashboard/student/profile",
+    },
+    {
+      icon: Github,
+      title: "GitHub",
+      url: "https://github.com/VESITRail/VESITRail",
     },
     {
       icon: LifeBuoy,
