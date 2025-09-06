@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import GitHubStars from "@/components/utils/github-stars";
 
 const Hero = () => {
   const session = authClient.useSession();
@@ -57,12 +58,16 @@ const Hero = () => {
       <div className="container grid lg:grid-cols-2 gap-4 md:gap-8 items-center mx-auto max-w-7xl">
         <div className="flex flex-col items-center gap-8 text-center lg:items-start lg:text-left px-2 md:px-8">
           <div className="space-y-6 max-w-[540px] w-full">
-            <Badge
-              variant="secondary"
-              className="px-4 py-1 text-sm font-medium rounded-full"
-            >
-              VESIT Students Only
-            </Badge>
+            <div className="flex items-center justify-center lg:justify-start gap-3 flex-wrap">
+              <Badge
+                variant="secondary"
+                className="px-4 py-1 text-sm font-medium rounded-full"
+              >
+                VESIT Students Only
+              </Badge>
+
+              <GitHubStars />
+            </div>
 
             <Heading1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
               Apply with Ease!

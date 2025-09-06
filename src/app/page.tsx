@@ -5,6 +5,7 @@ import Footer from "@/components/layout/footer";
 import Contact from "@/components/layout/contact";
 import Developers from "@/components/layout/developers";
 import ScrollToTop from "@/components/utils/scroll-to-top";
+import FloatingGithubButton from "@/components/utils/floating-github-button";
 
 const Home = () => {
   return (
@@ -15,6 +16,7 @@ const Home = () => {
       <Developers />
       <Contact />
       <Footer />
+      <FloatingGithubButton />
       <ScrollToTop />
     </main>
   );
