@@ -43,52 +43,62 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
+import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
 
 type ReviewProps = {
   defaultValues: z.infer<typeof OnboardingSchema>;
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const ReviewSkeleton = () => (
-  <div className="max-w-5xl mx-auto space-y-6">
-    {[1, 2, 3, 4].map((index) => (
-      <Card key={index} className="shadow-sm">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="size-10 rounded-lg" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-40" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-            <Skeleton className="w-10 h-8 rounded-md" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[1, 2].map((item) => (
-              <div key={item} className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-5 w-full" />
+const ReviewSkeleton = () => {
+  const isMobile = useIsMobile();
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6">
+      {[1, 2, 3, 4].map((index) => (
+        <Card key={index} className="shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-10 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-32" />
               </div>
-            ))}
-          </div>
-          <Separator />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-5 w-full" />
-          </div>
-        </CardContent>
-      </Card>
-    ))}
-    <div className="flex justify-end pt-6">
-      <Skeleton className="w-48 h-12 rounded-lg" />
+              <Skeleton className="w-10 h-8 rounded-md" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[1, 2].map((item) => (
+                <div key={item} className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-5 w-full" />
+                </div>
+              ))}
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      <div className="flex justify-end pt-6">
+        <Skeleton
+          className={
+            isMobile ? "h-12 w-full rounded-lg" : "w-48 h-12 rounded-lg"
+          }
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ErrorComponent = ({
   error,
@@ -117,7 +127,9 @@ const ErrorComponent = ({
 
 const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const session = authClient.useSession();
+  const slideButtonRef = useRef<SlideButtonRef>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRetrying, setIsRetrying] = useState<boolean>(false);
@@ -187,6 +199,11 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setShowConfirmDialog(false);
+
+    if (isMobile) {
+      slideButtonRef.current?.showSubmitting();
+    }
 
     try {
       if (!session.data?.user?.id) {
@@ -247,7 +264,13 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       });
     } finally {
       setIsSubmitting(false);
-      setShowConfirmDialog(false);
+    }
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setShowConfirmDialog(open);
+    if (!open && isMobile) {
+      slideButtonRef.current?.reset();
     }
   };
 
@@ -492,27 +515,41 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
       </Card>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-end pt-6">
-        <Button
-          size="lg"
-          disabled={isSubmitting}
-          onClick={() => setShowConfirmDialog(true)}
-          className="w-full sm:w-auto min-w-[200px]"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            <>
-              <Send className="mr-2 size-4" />
-              Submit Application
-            </>
-          )}
-        </Button>
+        {isMobile ? (
+          <SlideButton
+            fullWidth
+            ref={slideButtonRef}
+            loadingText="Submitting..."
+            text="Slide to submit application"
+            onSlideComplete={() => {
+              setShowConfirmDialog(true);
+            }}
+            isLoading={isLoading}
+            isSubmitting={isSubmitting}
+          />
+        ) : (
+          <Button
+            size="lg"
+            disabled={isSubmitting}
+            onClick={() => setShowConfirmDialog(true)}
+            className="w-full sm:w-auto min-w-[200px]"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 size-4" />
+                Submit Application
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <AlertDialog open={showConfirmDialog} onOpenChange={handleDialogClose}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">

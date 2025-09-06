@@ -85,15 +85,17 @@ import { Input } from "@/components/ui/input";
 import { getStations } from "@/actions/utils";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CldUploadButton } from "next-cloudinary";
 import { capitalizeWords, cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
-import { useCallback, useEffect, useState } from "react";
 import { deleteCloudinaryFile } from "@/actions/cloudinary";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
 
 const AddressChangeSchema = z.object({
   verificationDocUrl: z.string().url(),
@@ -142,8 +144,10 @@ const StatusBadge = ({ status }: { status: AddressChangeStatusType }) => {
 };
 
 const AddressChangePage = () => {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState<boolean>(false);
   const { data, isPending } = authClient.useSession();
+  const slideButtonRef = useRef<SlideButtonRef>(null);
   const [publicId, setPublicId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [canApply, setCanApply] = useState<boolean>(false);
@@ -608,6 +612,11 @@ const AddressChangePage = () => {
     }
 
     setIsSubmitting(true);
+    setShowConfirmDialog(false);
+
+    if (isMobile) {
+      slideButtonRef.current?.showSubmitting();
+    }
 
     const newAddress = `${formData.building.trim()}, ${formData.area.trim()}, ${formData.city.trim()}, ${formData.pincode.trim()}`;
 
@@ -671,9 +680,27 @@ const AddressChangePage = () => {
       }
     } finally {
       setIsSubmitting(false);
-      setShowConfirmDialog(false);
     }
   };
+
+  const handleDialogClose = (open: boolean) => {
+    setShowConfirmDialog(open);
+    if (!open && isMobile) {
+      slideButtonRef.current?.reset();
+    }
+  };
+
+  const isFormValid =
+    form.watch("newStationId") &&
+    form.watch("building")?.trim() &&
+    form.watch("area")?.trim() &&
+    form.watch("city")?.trim() &&
+    form.watch("pincode")?.length === 6 &&
+    form.watch("verificationDocUrl") &&
+    !form.formState.isSubmitting &&
+    !isSubmitting &&
+    !isUploading &&
+    !isDeleting;
 
   if (isPending || loading || loadingStations || isVerifying || !student) {
     return (
@@ -750,7 +777,11 @@ const AddressChangePage = () => {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Skeleton className="h-10 w-36 rounded-md" />
+                {isMobile ? (
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                ) : (
+                  <Skeleton className="h-10 w-36 rounded-md" />
+                )}
               </div>
             </div>
           </CardContent>
@@ -966,7 +997,9 @@ const AddressChangePage = () => {
         <form
           className="space-y-5 md:space-y-7"
           onSubmit={form.handleSubmit(() => {
-            setShowConfirmDialog(true);
+            if (!isMobile) {
+              setShowConfirmDialog(true);
+            }
           })}
         >
           <Card>
@@ -1392,27 +1425,50 @@ const AddressChangePage = () => {
                 />
 
                 <div className="flex justify-end pt-4">
-                  <Button
-                    type="submit"
-                    className="min-w-32"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="size-4 mr-2 animate-spin" />
-                        {lastApplication?.status === "Rejected"
+                  {isMobile ? (
+                    <SlideButton
+                      fullWidth
+                      ref={slideButtonRef}
+                      text={
+                        lastApplication?.status === "Rejected"
+                          ? "Slide to resubmit request"
+                          : "Slide to submit request"
+                      }
+                      loadingText={
+                        lastApplication?.status === "Rejected"
                           ? "Resubmitting..."
-                          : "Submitting..."}
-                      </>
-                    ) : (
-                      <>
-                        <Send className="size-4 mr-2" />
-                        {lastApplication?.status === "Rejected"
-                          ? "Resubmit Request"
-                          : "Submit Request"}
-                      </>
-                    )}
-                  </Button>
+                          : "Submitting..."
+                      }
+                      onSlideComplete={() => {
+                        setShowConfirmDialog(true);
+                      }}
+                      disabled={!isFormValid}
+                      isSubmitting={isSubmitting}
+                      isLoading={loadingStations || isVerifying}
+                    />
+                  ) : (
+                    <Button
+                      type="submit"
+                      className="min-w-32"
+                      disabled={!isFormValid || isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="size-4 mr-2 animate-spin" />
+                          {lastApplication?.status === "Rejected"
+                            ? "Resubmitting..."
+                            : "Submitting..."}
+                        </>
+                      ) : (
+                        <>
+                          <Send className="size-4 mr-2" />
+                          {lastApplication?.status === "Rejected"
+                            ? "Resubmit Request"
+                            : "Submit Request"}
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -1420,7 +1476,7 @@ const AddressChangePage = () => {
         </form>
       </Form>
 
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <AlertDialog open={showConfirmDialog} onOpenChange={handleDialogClose}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
