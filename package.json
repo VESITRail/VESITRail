@@ -6,7 +6,7 @@
   "homepage": "https://vesitrail.ves.ac.in",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jaykerkar0405/VESITRail.git"
+    "url": "https://github.com/VESITRail/VESITRail.git"
   },
   "description": "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
   "prisma": {
