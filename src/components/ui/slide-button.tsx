@@ -168,7 +168,7 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
     const backgroundWidth = useTransform(springX, (x) =>
       Math.min(x + 56, containerWidth - 4)
     );
-    const textOpacity = useTransform(springX, [0, 20], [1, 0]);
+    const textOpacity = useTransform(springX, [0, 45], [1, 0]);
 
     if (isLoading) {
       return (
@@ -223,7 +223,7 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
 
         <motion.div
           style={{ opacity: textOpacity }}
-          className="absolute inset-0 flex items-center justify-center z-5 pointer-events-none select-none px-16"
+          className="absolute inset-0 flex items-center justify-center z-5 pointer-events-none select-none pl-16 pr-4"
         >
           <span className="text-sm font-medium">{text}</span>
         </motion.div>
