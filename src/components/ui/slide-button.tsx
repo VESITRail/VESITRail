@@ -61,11 +61,9 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
       disabled,
       isSubmitting = false,
       isLoading = false,
-      ...props
     },
     ref
   ) => {
-    const [isDragging, setIsDragging] = useState(false);
     const [slideCompleted, setSlideCompleted] = useState(false);
     const [showSubmittingState, setShowSubmittingState] = useState(false);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -91,7 +89,6 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
       reset: () => {
         setSlideCompleted(false);
         setShowSubmittingState(false);
-        setIsDragging(false);
         dragX.stop();
         dragX.set(0);
       },
@@ -120,13 +117,11 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
     const handleDragStart = useCallback(() => {
       if (slideCompleted || disabled || isSubmitting || showSubmittingState)
         return;
-      setIsDragging(true);
     }, [slideCompleted, disabled, isSubmitting, showSubmittingState]);
 
     const handleDragEnd = useCallback(() => {
       if (slideCompleted || disabled || isSubmitting || showSubmittingState)
         return;
-      setIsDragging(false);
 
       const progress = dragProgress.get();
       if (progress >= DRAG_THRESHOLD) {
@@ -215,7 +210,8 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
           "relative flex h-12 items-center justify-center rounded-lg border bg-muted/30 overflow-hidden",
           fullWidth && "w-full",
           !fullWidth && "w-64",
-          disabled && "opacity-50 cursor-not-allowed"
+          disabled && "opacity-50 cursor-not-allowed",
+          className
         )}
       >
         <motion.div
