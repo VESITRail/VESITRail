@@ -412,3 +412,16 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
   [![Star this repo](https://img.shields.io/badge/⭐-Star%20this%20repo-yellow?style=for-the-badge)](https://github.com/jaykerkar0405/vesitrail)
   [![Follow on GitHub](https://img.shields.io/badge/Follow-@jaykerkar0405-blue?style=for-the-badge&logo=github)](https://github.com/jaykerkar0405)
 </div>
+
+---
+
+## 📜 License & Policies
+
+This project is released under the **VESITRail Community License v1.0** (custom, source-available, restricted deployment). Only **Vivekanand Education Society's Institute of Technology (VESIT)** is authorized to deploy operational instances. External contributors are welcome to submit improvements under the same license.
+
+- License: See [`LICENSE`](LICENSE)
+- Contributing: See [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Code of Conduct: See [`CODE_OF_CONDUCT.md`](./.github/CODE_OF_CONDUCT.md)
+- Security Policy: See [`SECURITY.md`](./.github/SECURITY.md)
+
+If you need a different license arrangement or deployment permission, open a discussion or contact the maintainer privately.
