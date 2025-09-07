@@ -8,13 +8,6 @@
 
 _A modern web application for VESIT students to apply and manage railway concessions with ease_
 
-[![Next.js 15](https://img.shields.io/badge/Next.js-15.3.2-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-6.13.0-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://prisma.io/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
-
-[🚀 Live Demo](https://vesitrail.ves.ac.in) • [🐛 Report Bug](https://github.com/jaykerkar0405/VESITRail/issues) • [💡 Request Feature](https://github.com/jaykerkar0405/VESITRail/issues)
-
 </div>
 
 ---
@@ -303,49 +296,6 @@ VESITRail is a fully-featured PWA with:
 
 ---
 
-## 🌍 Environment Variables
-
-<details>
-<summary>Click to expand environment variables</summary>
-
-```env
-# Site Configuration
-NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-
-# BetterAuth Configuration
-BETTER_AUTH_URL="http://localhost:3000"
-BETTER_AUTH_SECRET="your-32-character-secret-key-here"
-
-# Cloudinary Configuration (File Upload)
-NEXT_PUBLIC_CLOUDINARY_API_KEY="your-cloudinary-api-key"
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloudinary-cloud-name"
-CLOUDINARY_API_SECRET="your-cloudinary-api-secret"
-
-# Google Analytics
-NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID="your-google-tag-manager-id"
-NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION="your-google-site-verification"
-
-# Google OAuth
-GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
-NEXT_PUBLIC_GOOGLE_CLIENT_ID="your-google-oauth-client-id"
-
-# Firebase Configuration (Push Notifications)
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-firebase-project-id"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-firebase-sender-id"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-firebase-auth-domain"
-NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
-NEXT_PUBLIC_FIREBASE_APP_ID="your-firebase-app-id"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-firebase-storage-bucket"
-NEXT_PUBLIC_FIREBASE_VAPID_KEY="your-firebase-vapid-key"
-
-# Database Configuration
-DATABASE_URL="postgresql://username:password@localhost:5432/vesitrail?sslmode=require"
-```
-
-</details>
-
----
-
 ## 🚀 Deployment
 
 ### Deploy on Vercel (Recommended)
@@ -384,34 +334,6 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - **ESLint**: Custom configuration for Next.js
 - **Prettier**: Consistent code formatting
 - **Conventional Commits**: Semantic commit messages
-
----
-
-## ‍💻 Authors & Contributors
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/jaykerkar0405">
-        <img src="https://github.com/jaykerkar0405.png" width="100px;" alt="Jay Kerkar"/>
-        <br />
-        <sub><b>Jay Kerkar</b></sub>
-      </a>
-      <br />
-      <sub>Lead Developer</sub>
-    </td>
-    <!-- Add more contributors here -->
-  </tr>
-</table>
-
----
-
-<div align="center">
-  <p>Made with ❤️ by VESIT students for VESIT students</p>
-  
-  [![Star this repo](https://img.shields.io/badge/⭐-Star%20this%20repo-yellow?style=for-the-badge)](https://github.com/jaykerkar0405/vesitrail)
-  [![Follow on GitHub](https://img.shields.io/badge/Follow-@jaykerkar0405-blue?style=for-the-badge&logo=github)](https://github.com/jaykerkar0405)
-</div>
 
 ---
 

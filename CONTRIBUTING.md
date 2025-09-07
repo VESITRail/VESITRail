@@ -2,18 +2,18 @@
 
 Thanks for your interest in contributing! This project is licensed under the **VESITRail Community License**. Please read it before contributing.
 
-## ⚠️ Deployment & Usage Restriction
+## Deployment & Usage Restriction
 
 Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permitted to deploy or operate this software. External forks must not deploy public instances without prior written permission.
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js 18+ and npm/yarn/pnpm
 - PostgreSQL database
 - Google OAuth credentials (@ves.ac.in usage preferred)
 - Cloudinary & Firebase credentials (if working on related features)
 
-## 🛠️ Development Setup
+## Development Setup
 
 1. Fork the repository
 2. Clone your fork
@@ -24,7 +24,7 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 7. Generate Prisma client: `npx prisma generate`
 8. Start dev server: `npm run dev`
 
-## 🧪 Code Guidelines
+## Code Guidelines
 
 - TypeScript strict mode is enforced
 - Follow existing file/module patterns under `src/`
@@ -34,13 +34,13 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 - Keep components accessible (ARIA attributes, keyboard navigation)
 - Avoid adding heavy dependencies without discussion
 
-## 🔄 Git & Commit Standards
+## Git & Commit Standards
 
 - Use short, descriptive branches: `feature/...`, `fix/...`, `refactor/...`
 - Follow Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `perf:`, `test:`
 - Reference issues in PR descriptions using `Closes: #<issue>`
 
-## ✅ Pull Request Checklist
+## Pull Request Checklist
 
 Before opening a PR:
 
@@ -48,46 +48,45 @@ Before opening a PR:
 - [ ] Updated or added types/schemas if models changed
 - [ ] Added migrations if Prisma schema changed
 - [ ] Updated docs (`README.md` or relevant .md files) if behavior changed
-- [ ] Added tests (if/when test setup exists)
 - [ ] No unrelated formatting or dependency noise
 
-## 🗃 Database & Prisma
+## Database & Prisma
 
 - Edit models in `prisma/schema.prisma` only
 - Run `npx prisma migrate dev --name meaningful_name` (if schema changes)
 - Do NOT manually edit generated files in `src/generated/`
 
-## 🔐 Security & Privacy
+## Security & Privacy
 
 - Never commit secrets (.env is ignored)
 - Use environment variables for keys/config
 - Report vulnerabilities privately (see `SECURITY.md`)
 
-## 🧩 Adding UI Components
+## Adding UI Components
 
 - Place shared components under `src/components/ui` or appropriate domain folder
 - Reuse existing patterns; keep styling via Tailwind utility classes
 - Avoid inline styles unless dynamic
 
-## 📄 Documentation
+## Documentation
 
 - Update `README.md` if your change affects setup or core workflows
 - Add comments for non-trivial logic
 
-## 🤝 Communication
+## Communication
 
 - Use GitHub Issues for bugs & feature proposals
 - Be respectful (see `CODE_OF_CONDUCT.md`)
 
-## 🛑 Out of Scope
+## Out of Scope
 
 Please avoid submitting:
 
 - Complete redesigns without prior discussion
-- vendor lock-in changes (e.g., moving to a different auth provider) without justification
+- Vendor lock-in changes (e.g., moving to a different auth provider) without justification
 
-## 🏁 Getting Help
+## Getting Help
 
 Open an issue and label it with `question` or `discussion`.
 
-Thanks again for contributing to VESITRail! 🚆
+Thank you for contributing to VESITRail.
