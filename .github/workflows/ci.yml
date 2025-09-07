@@ -28,6 +28,8 @@ jobs:
 
       - name: Prisma Validate
         run: npx prisma validate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: GitGuardian Scan
         uses: GitGuardian/ggshield/actions/secret@v1.43.0
