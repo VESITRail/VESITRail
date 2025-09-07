@@ -4,15 +4,15 @@
 
 Active development occurs on the `main` branch. Only the latest commit on `main` receives security updates.
 
+**Note:** The project is currently in active development (version `1.0.0`) and not yet production-ready. Security practices are applied, but features may evolve significantly before stable release.
+
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please DO NOT open a public issue.
 
-Instead, report it privately via email:
+Instead, report it privately via email at: vesit.railwayconcession@ves.ac.in
 
-- Primary: vesit.railwayconcession@ves.ac.in
-
-Include:
+When reporting, please include:
 
 - Description of the vulnerability
 - Steps to reproduce / proof of concept
@@ -37,7 +37,7 @@ In-scope components:
 - Prisma models & database layer (`prisma/`)
 - Authentication & authorization logic (`src/lib/auth*`, `src/middleware.ts`)
 - Server actions (`src/actions/`)
-- Push notification logic (`src/hooks/use-fcm.ts`, related API routes)
+- Push notification logic (`src/hooks/use-fcm.ts`, related API routes`)
 
 Out of scope:
 
