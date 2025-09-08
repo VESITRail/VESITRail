@@ -33,28 +33,23 @@ export type NotificationPaginationParams = {
 };
 
 export const getNotifications = async (
-  studentId: string,
+  userId: string,
   params: NotificationPaginationParams
 ): Promise<Result<PaginatedNotificationsResult, DatabaseError | AuthError>> => {
   try {
     const { page, pageSize } = params;
     const skip = (page - 1) * pageSize;
 
-    const student = await prisma.student.findUnique({
-      select: { status: true },
-      where: { userId: studentId },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
-    if (!student) {
-      return failure(authError("Student not found"));
-    }
-
-    if (student.status !== "Approved") {
-      return failure(authError("Student is not approved"));
+    if (!user) {
+      return failure(authError("User not found"));
     }
 
     const whereClause = {
-      studentId: studentId,
+      userId: userId,
     };
 
     const [notifications, totalCount, unreadCount] = await Promise.all([
@@ -80,7 +75,7 @@ export const getNotifications = async (
       prisma.notification.count({
         where: {
           isRead: false,
-          studentId: studentId,
+          userId: userId,
         },
       }),
     ]);
@@ -105,14 +100,14 @@ export const getNotifications = async (
 };
 
 export const markNotificationAsRead = async (
-  studentId: string,
+  userId: string,
   notificationId: string
 ): Promise<Result<{ success: boolean }, DatabaseError | AuthError>> => {
   try {
     const notification = await prisma.notification.findFirst({
       where: {
+        userId: userId,
         id: notificationId,
-        studentId: studentId,
       },
     });
 
@@ -133,22 +128,21 @@ export const markNotificationAsRead = async (
 };
 
 export const getUnreadNotificationCount = async (
-  studentId: string
+  userId: string
 ): Promise<Result<{ count: number }, DatabaseError | AuthError>> => {
   try {
-    const student = await prisma.student.findUnique({
-      select: { status: true },
-      where: { userId: studentId },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
-    if (!student) {
-      return failure(authError("Student not found"));
+    if (!user) {
+      return failure(authError("User not found"));
     }
 
     const count = await prisma.notification.count({
       where: {
         isRead: false,
-        studentId: studentId,
+        userId: userId,
       },
     });
 
