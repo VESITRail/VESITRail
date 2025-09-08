@@ -17,6 +17,7 @@ import {
 import prisma from "@/lib/prisma";
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
+import { getNotificationPreferences } from "@/actions/settings";
 
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(
@@ -71,8 +72,6 @@ export const sendNotification = async (
       where: { userId: payload.studentId },
       select: {
         status: true,
-        pushNotificationsEnabled: true,
-        emailNotificationsEnabled: true,
         user: {
           select: {
             name: true,
@@ -87,6 +86,20 @@ export const sendNotification = async (
       return failure(validationError("Student not found"));
     }
 
+    const notificationPrefsResult = await getNotificationPreferences(
+      payload.studentId
+    );
+
+    if (!notificationPrefsResult.isSuccess) {
+      console.error(
+        "Failed to get notification preferences:",
+        notificationPrefsResult.error
+      );
+      return failure(notificationPrefsResult.error);
+    }
+
+    const { pushEnabled, emailEnabled } = notificationPrefsResult.data;
+
     const isStudentNotification = payload.scenarioId.startsWith("student_");
 
     if (!isStudentNotification && student.status !== "Approved") {
@@ -98,9 +111,9 @@ export const sendNotification = async (
     const result: NotificationResult = {};
 
     const inAppResult = await sendInAppNotification({
-      studentId: payload.studentId,
       scenario,
       url: payload.url,
+      studentId: payload.studentId,
       applicationId: payload.applicationId,
     });
 
@@ -111,7 +124,7 @@ export const sendNotification = async (
       console.error("In-app notification failed:", inAppResult.error.message);
     }
 
-    if (student.emailNotificationsEnabled) {
+    if (emailEnabled) {
       const emailResult = await sendEmailNotification({
         scenario,
         templateParams: {
@@ -129,7 +142,7 @@ export const sendNotification = async (
       }
     }
 
-    if (student.pushNotificationsEnabled) {
+    if (pushEnabled) {
       const pushResult = await sendPushNotification({
         scenario,
         url: payload.url,
@@ -164,7 +177,7 @@ const sendInAppNotification = async (params: {
   try {
     await prisma.notification.create({
       data: {
-        studentId: params.studentId,
+        userId: params.studentId,
         messageId: params.applicationId,
         body: params.scenario.inApp.body,
         title: params.scenario.inApp.title,
