@@ -14,20 +14,29 @@ import {
   DropdownMenuContent,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, ChevronsUpDown } from "lucide-react";
 import { getUserInitials, toTitleCase } from "@/lib/utils";
+import { LogOut, ChevronsUpDown, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const AdminNavUser = () => {
   const router = useRouter();
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { data, isPending } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setTimeout(() => {
+        setOpenMobile(false);
+      }, 150);
+    }
+  };
 
   if (isPending || isSigningOut) {
     return (
@@ -105,6 +114,15 @@ const AdminNavUser = () => {
                 </div>
               </div>
             </DropdownMenuLabel>
+
+            <DropdownMenuSeparator />
+
+            <Link href="/dashboard/admin/settings" onClick={handleNavClick}>
+              <DropdownMenuItem>
+                <Settings />
+                Settings
+              </DropdownMenuItem>
+            </Link>
 
             <DropdownMenuSeparator />
 
