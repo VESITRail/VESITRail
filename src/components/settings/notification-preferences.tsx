@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  getNotificationPreferences,
+  updateNotificationPreferences,
+} from "@/actions/settings";
 import { toast } from "sonner";
 import { Switch } from "../ui/switch";
 import { useState, useEffect } from "react";
@@ -7,12 +11,11 @@ import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { updateNotificationPreferences } from "@/actions/settings";
 
 const NotificationPreferences = () => {
   const { data, isPending } = authClient.useSession();
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [pushNotificationsEnabled, setPushNotificationsEnabled] =
     useState<boolean>(true);
@@ -20,14 +23,30 @@ const NotificationPreferences = () => {
     useState<boolean>(true);
 
   useEffect(() => {
-    if (!isPending && data?.user) {
-      setPushNotificationsEnabled(data.user.pushNotificationsEnabled ?? true);
-      setEmailNotificationsEnabled(data.user.emailNotificationsEnabled ?? true);
-      setLoading(false);
-    } else if (!isPending) {
-      setLoading(false);
+    const fetchPreferences = async () => {
+      if (!data?.user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const result = await getNotificationPreferences(data.user.id);
+
+        if (result.isSuccess) {
+          setPushNotificationsEnabled(result.data.pushEnabled);
+          setEmailNotificationsEnabled(result.data.emailEnabled);
+        }
+      } catch (error) {
+        console.error("Error fetching notification preferences:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!isPending) {
+      fetchPreferences();
     }
-  }, [data?.user, isPending]);
+  }, [data?.user?.id, isPending]);
 
   const handleToggle = async (type: "push" | "email", enabled: boolean) => {
     if (!data?.user?.id || isUpdating) return;
