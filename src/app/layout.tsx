@@ -5,6 +5,7 @@ import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/sonner";
 import { GoogleTagManager } from "@next/third-parties/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import ServiceWorkerProvider from "@/components/providers/service-worker-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,9 +45,11 @@ const RootLayout = ({
           defaultTheme="system"
           disableTransitionOnChange
         >
-          <NextTopLoader color="#9333EA" showSpinner={false} />
-          {children}
-          <Toaster />
+          <ServiceWorkerProvider>
+            <NextTopLoader color="#9333EA" showSpinner={false} />
+            {children}
+            <Toaster />
+          </ServiceWorkerProvider>
         </ThemeProvider>
       </body>
     </html>
