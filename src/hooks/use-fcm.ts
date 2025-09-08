@@ -197,6 +197,8 @@ export const useFcm = (userId?: string) => {
 
       const currentToken = await getToken(messagingInstance, {
         vapidKey: vapidKey,
+        serviceWorkerRegistration:
+          await navigator.serviceWorker.getRegistration(),
       });
 
       if (currentToken) {
