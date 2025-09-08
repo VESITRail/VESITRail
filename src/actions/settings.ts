@@ -138,14 +138,6 @@ export async function updateNotificationPreferences(
   preferences: { pushEnabled?: boolean; emailEnabled?: boolean }
 ): Promise<Result<{ success: boolean }, DatabaseError>> {
   try {
-    const student = await prisma.student.findUnique({
-      where: { userId },
-    });
-
-    if (!student) {
-      return failure(databaseError("Student profile not found"));
-    }
-
     const updateData: {
       pushNotificationsEnabled?: boolean;
       emailNotificationsEnabled?: boolean;
@@ -158,9 +150,9 @@ export async function updateNotificationPreferences(
       updateData.emailNotificationsEnabled = preferences.emailEnabled;
     }
 
-    await prisma.student.update({
-      where: { userId },
+    await prisma.user.update({
       data: updateData,
+      where: { id: userId },
     });
 
     return success({ success: true });
@@ -176,69 +168,24 @@ export async function getNotificationPreferences(
   Result<{ pushEnabled: boolean; emailEnabled: boolean }, DatabaseError>
 > {
   try {
-    const student = await prisma.student.findUnique({
-      where: { userId },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
       select: {
         pushNotificationsEnabled: true,
         emailNotificationsEnabled: true,
       },
     });
 
-    if (!student) {
-      return failure(databaseError("Student profile not found"));
+    if (!user) {
+      return failure(databaseError("User not found"));
     }
 
     return success({
-      pushEnabled: student.pushNotificationsEnabled,
-      emailEnabled: student.emailNotificationsEnabled,
+      pushEnabled: user.pushNotificationsEnabled,
+      emailEnabled: user.emailNotificationsEnabled,
     });
   } catch (error) {
     console.error("Error getting notification preferences:", error);
     return failure(databaseError("Failed to get notification preferences"));
-  }
-}
-
-export async function updateNotificationPreference(
-  userId: string,
-  enabled: boolean
-): Promise<Result<{ success: boolean }, DatabaseError>> {
-  try {
-    const student = await prisma.student.findUnique({
-      where: { userId },
-    });
-
-    if (!student) {
-      return failure(databaseError("Student profile not found"));
-    }
-
-    await prisma.student.update({
-      where: { userId },
-      data: { pushNotificationsEnabled: enabled },
-    });
-
-    return success({ success: true });
-  } catch (error) {
-    console.error("Error updating notification preference:", error);
-    return failure(databaseError("Failed to update notification preference"));
-  }
-}
-
-export async function getNotificationPreference(
-  userId: string
-): Promise<Result<{ enabled: boolean }, DatabaseError>> {
-  try {
-    const student = await prisma.student.findUnique({
-      where: { userId },
-      select: { pushNotificationsEnabled: true },
-    });
-
-    if (!student) {
-      return failure(databaseError("Student profile not found"));
-    }
-
-    return success({ enabled: student.pushNotificationsEnabled });
-  } catch (error) {
-    console.error("Error getting notification preference:", error);
-    return failure(databaseError("Failed to get notification preference"));
   }
 }

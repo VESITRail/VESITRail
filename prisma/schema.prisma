@@ -15,29 +15,35 @@ generator zod {
 }
 
 model User {
-  id            String   @id
+  id            String  @id
   name          String
   email         String
   image         String?
   emailVerified Boolean
-  updatedAt     DateTime @updatedAt
-  createdAt     DateTime @default(now())
 
-  admin     Admin?
-  student   Student?
-  sessions  Session[]
-  accounts  Account[]
-  fcmTokens FcmToken[]
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  pushNotificationsEnabled  Boolean @default(true)
+  emailNotificationsEnabled Boolean @default(true)
+
+  admin         Admin?
+  student       Student?
+  sessions      Session[]
+  accounts      Account[]
+  fcmTokens     FcmToken[]
+  notifications Notification[]
 
   @@unique([email])
 }
 
 model Session {
-  id        String   @id
+  id        String  @id
   token     String
   userId    String
   ipAddress String?
   userAgent String?
+
   expiresAt DateTime
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
@@ -48,36 +54,42 @@ model Session {
 }
 
 model Account {
-  id                    String    @id
-  userId                String
-  accountId             String
-  providerId            String
-  scope                 String?
-  idToken               String?
-  accessToken           String?
-  refreshToken          String?
+  id         String @id
+  userId     String
+  accountId  String
+  providerId String
+
+  scope    String?
+  password String?
+
+  idToken      String?
+  accessToken  String?
+  refreshToken String?
+
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  updatedAt             DateTime  @updatedAt
-  createdAt             DateTime  @default(now())
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Verification {
-  id         String    @id
+  id         String @id
   value      String
   identifier String
-  expiresAt  DateTime
-  createdAt  DateTime?
-  updatedAt  DateTime?
+
+  expiresAt DateTime
+  createdAt DateTime?
+  updatedAt DateTime?
 }
 
 model FcmToken {
-  id     String @id @default(cuid())
-  userId String
-
+  id       String  @id @default(cuid())
+  userId   String
   deviceId String?
+
   platform FcmPlatform
   token    String      @unique
 
@@ -91,7 +103,7 @@ model FcmToken {
 
 model Notification {
   id        String  @id @default(cuid())
-  studentId String
+  userId    String
   messageId String?
 
   title String
@@ -101,5 +113,5 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  student Student @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

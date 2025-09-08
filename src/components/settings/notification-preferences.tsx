@@ -24,34 +24,28 @@ const NotificationPreferences = () => {
 
   useEffect(() => {
     const fetchPreferences = async () => {
-      if (isPending || !data?.user?.id) return;
-
-      setLoading(true);
+      if (!data?.user?.id) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const result = await getNotificationPreferences(data.user.id);
 
-        if (result.isSuccess && result.data) {
+        if (result.isSuccess) {
           setPushNotificationsEnabled(result.data.pushEnabled);
           setEmailNotificationsEnabled(result.data.emailEnabled);
-        } else {
-          toast.error("Notification Settings Not Loading", {
-            description:
-              "Unable to load your notification preferences. Please try again.",
-          });
         }
       } catch (error) {
-        console.error("Notification preferences load error:", error);
-        toast.error("Settings Not Loading", {
-          description:
-            "Unable to load your notification settings. Please try again.",
-        });
+        console.error("Error fetching notification preferences:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPreferences();
+    if (!isPending) {
+      fetchPreferences();
+    }
   }, [data?.user?.id, isPending]);
 
   const handleToggle = async (type: "push" | "email", enabled: boolean) => {
