@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  getNotificationPreferences,
-  updateNotificationPreferences,
-} from "@/actions/settings";
 import { toast } from "sonner";
 import { Switch } from "../ui/switch";
 import { useState, useEffect } from "react";
@@ -11,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { updateNotificationPreferences } from "@/actions/settings";
 
 const NotificationPreferences = () => {
   const { data, isPending } = authClient.useSession();
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [pushNotificationsEnabled, setPushNotificationsEnabled] =
     useState<boolean>(true);
@@ -23,36 +20,14 @@ const NotificationPreferences = () => {
     useState<boolean>(true);
 
   useEffect(() => {
-    const fetchPreferences = async () => {
-      if (isPending || !data?.user?.id) return;
-
-      setLoading(true);
-
-      try {
-        const result = await getNotificationPreferences(data.user.id);
-
-        if (result.isSuccess && result.data) {
-          setPushNotificationsEnabled(result.data.pushEnabled);
-          setEmailNotificationsEnabled(result.data.emailEnabled);
-        } else {
-          toast.error("Notification Settings Not Loading", {
-            description:
-              "Unable to load your notification preferences. Please try again.",
-          });
-        }
-      } catch (error) {
-        console.error("Notification preferences load error:", error);
-        toast.error("Settings Not Loading", {
-          description:
-            "Unable to load your notification settings. Please try again.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPreferences();
-  }, [data?.user?.id, isPending]);
+    if (!isPending && data?.user) {
+      setPushNotificationsEnabled(data.user.pushNotificationsEnabled ?? true);
+      setEmailNotificationsEnabled(data.user.emailNotificationsEnabled ?? true);
+      setLoading(false);
+    } else if (!isPending) {
+      setLoading(false);
+    }
+  }, [data?.user, isPending]);
 
   const handleToggle = async (type: "push" | "email", enabled: boolean) => {
     if (!data?.user?.id || isUpdating) return;
