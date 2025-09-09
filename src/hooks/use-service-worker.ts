@@ -154,6 +154,7 @@ export const useServiceWorker = () => {
     if (state.updateAvailable && !updateToastShown) {
       showUpdateToast();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.updateAvailable, updateToastShown]);
 
   const clearCache = async () => {
