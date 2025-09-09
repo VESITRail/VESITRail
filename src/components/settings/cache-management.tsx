@@ -89,6 +89,7 @@ const CacheManagement = () => {
     } else {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSupported]);
 
   const totalCacheEntries = cacheInfo.reduce(
