@@ -171,15 +171,6 @@ export const useServiceWorker = () => {
       });
 
       await Promise.all(clearPromises);
-      const remainingCaches = await caches.keys();
-
-      if ("localStorage" in window) {
-        try {
-          localStorage.clear();
-        } catch (e) {
-          console.warn("Failed to clear localStorage:", e);
-        }
-      }
 
       if ("sessionStorage" in window) {
         try {
