@@ -1,0 +1,333 @@
+"use client";
+
+import {
+  Trash2,
+  Database,
+  HardDrive,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogTitle,
+  AlertDialogCancel,
+  AlertDialogAction,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogTrigger,
+  AlertDialogDescription,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
+import { useServiceWorker } from "@/hooks/use-service-worker";
+
+type CacheInfo = {
+  name: string;
+  size: number;
+};
+
+const CacheManagement = () => {
+  const [loading, setLoading] = useState<boolean>(true);
+  const [clearing, setClearing] = useState<boolean>(false);
+  const [cacheInfo, setCacheInfo] = useState<CacheInfo[]>([]);
+  const { clearCache, getCacheInfo, isSupported } = useServiceWorker();
+
+  const loadCacheInfo = async () => {
+    setLoading(true);
+    try {
+      const info = await getCacheInfo();
+      setCacheInfo(info);
+    } catch (error) {
+      console.error("Failed to load cache info:", error);
+      toast.error("Failed to Load Cache Info", {
+        description: "Unable to retrieve cache information.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    setClearing(true);
+    try {
+      await clearCache();
+      setCacheInfo([]);
+
+      toast.success("Cache Cleared", {
+        duration: 2000,
+        description: "All cached data has been cleared successfully.",
+      });
+
+      setTimeout(async () => {
+        try {
+          const info = await getCacheInfo();
+          setCacheInfo(info);
+        } catch (error) {
+          console.error("Failed to reload cache info after clearing:", error);
+          setCacheInfo([]);
+        }
+      }, 1000);
+    } catch (error) {
+      console.error("Failed to clear cache:", error);
+      toast.error("Failed to Clear Cache", {
+        description: "Unable to clear cached data. Please try again.",
+      });
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isSupported) {
+      loadCacheInfo();
+    } else {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSupported]);
+
+  const totalCacheEntries = cacheInfo.reduce(
+    (sum, cache) => sum + cache.size,
+    0
+  );
+
+  if (!isSupported) {
+    return (
+      <div id="cache-management" className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold mb-2">Cache Management</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage application cache and storage to optimize performance.
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="py-2.5">
+            <div className="flex flex-col items-center justify-center min-h-[200px] space-y-4">
+              <div className="size-16 rounded-full bg-destructive flex items-center justify-center">
+                <AlertCircle className="text-white size-7" />
+              </div>
+
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium text-foreground">
+                  Cache Not Supported
+                </h3>
+
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Your browser doesn&apos;t support the Cache API or Service
+                  Workers. Cache management features are not available.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div id="cache-management" className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold mb-2">Cache Management</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage application cache and storage to optimize performance.
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="py-2.5">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+
+              <div className="space-y-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-2 w-full" />
+              </div>
+
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-4">
+                <Skeleton className="h-10 w-40" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div id="cache-management" className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Cache Management</h2>
+        <p className="text-sm text-muted-foreground">
+          Manage application cache and storage to optimize performance.
+        </p>
+      </div>
+
+      <Card>
+        <CardContent className="py-2.5">
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Database className="size-4 text-muted-foreground" />
+                <h3 className="font-medium">Cache Overview</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Total cached resources: {totalCacheEntries}{" "}
+                {totalCacheEntries === 1 ? "item" : "items"}
+              </p>
+            </div>
+
+            {cacheInfo.length > 0 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">Cache Usage</span>
+                    <span className="text-muted-foreground">
+                      {totalCacheEntries}{" "}
+                      {totalCacheEntries === 1 ? "entry" : "entries"}
+                    </span>
+                  </div>
+
+                  <Progress
+                    className="h-2"
+                    value={Math.min((totalCacheEntries / 1000) * 100, 100)}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  {cacheInfo.map((cache) => (
+                    <div
+                      key={cache.name}
+                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <HardDrive className="size-4 text-muted-foreground flex-shrink-0" />
+                          <span className="font-medium text-sm truncate pr-2">
+                            {cache.name}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground">
+                          {cache.size} {cache.size === 1 ? "item" : "items"}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-sm font-medium">
+                          {cache.size}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {cacheInfo.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                <div className="size-16 rounded-full bg-primary flex items-center justify-center">
+                  <CheckCircle className="text-white size-7" />
+                </div>
+
+                <div className="text-center space-y-2">
+                  <h3 className="text-lg font-medium text-foreground">
+                    No Cache Data
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    There are currently no cached resources. Cache will be
+                    populated as you use the application.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-4">
+              <Button
+                variant="outline"
+                onClick={loadCacheInfo}
+                disabled={loading || clearing}
+              >
+                <RefreshCw
+                  className={`size-4 mr-1 ${loading ? "animate-spin" : ""}`}
+                />
+                {loading ? "Refreshing..." : "Refresh Cache Info"}
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    disabled={clearing || loading || cacheInfo.length === 0}
+                  >
+                    <Trash2 className="size-4 mr-1" />
+                    Clear Cache
+                  </Button>
+                </AlertDialogTrigger>
+
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear All Cache?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will clear all cached data including images, fonts,
+                      and static assets. The app might load slower until the
+                      cache is rebuilt. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <AlertDialogFooter className="gap-4">
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleClearCache}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {clearing ? (
+                        <>
+                          <RefreshCw className="size-4 mr-1 animate-spin" />
+                          Clearing...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="size-4 mr-1" />
+                          Clear Cache
+                        </>
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default CacheManagement;

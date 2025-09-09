@@ -165,7 +165,7 @@ const Preferences = () => {
 
   if (isPending || loading) {
     return (
-      <div id="concession-preferences" className="space-y-6">
+      <div id="concession-preferences" className="mb-6 space-y-6">
         <div>
           <h2 className="text-lg font-semibold mb-2">Concession Preferences</h2>
           <p className="text-sm text-muted-foreground">
@@ -197,7 +197,7 @@ const Preferences = () => {
 
   if (!preferences || !concessionClasses.length || !concessionPeriods.length) {
     return (
-      <div id="concession-preferences" className="space-y-6">
+      <div id="concession-preferences" className="mb-6 space-y-6">
         <div>
           <h2 className="text-lg font-semibold mb-2">Concession Preferences</h2>
           <p className="text-sm text-muted-foreground">
@@ -234,7 +234,7 @@ const Preferences = () => {
   }
 
   return (
-    <div id="concession-preferences" className="space-y-6">
+    <div id="concession-preferences" className="mb-6 space-y-6">
       <div>
         <h2 className="text-lg font-semibold mb-2">Concession Preferences</h2>
         <p className="text-sm text-muted-foreground">

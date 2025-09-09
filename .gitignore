@@ -73,4 +73,6 @@ next-env.d.ts
 # Temporary Files
 .tmp/
 .cache/
+public/sw.js
 /src/generated
+public/swe-worker-*.js
