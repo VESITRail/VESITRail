@@ -391,8 +391,8 @@ const AddressChangeRequestDetailsDialog = ({
           ) : hasError ? (
             <div className="flex flex-col items-center justify-center space-y-6 py-12">
               <div className="flex flex-col items-center space-y-4">
-                <div className="p-4 rounded-full bg-destructive/10">
-                  <XCircle className="size-8 text-destructive" />
+                <div className="p-4 rounded-full bg-destructive">
+                  <XCircle className="size-8 text-white" />
                 </div>
 
                 <div className="space-y-2 text-center">
@@ -744,7 +744,7 @@ const AddressChangeRequestDetailsDialog = ({
             <AlertDialogAction
               onClick={handleReject}
               disabled={isRejecting || !rejectionReason.trim()}
-              className="bg-destructive hover:bg-destructive/90"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               {isRejecting ? "Rejecting..." : "Reject Request"}
             </AlertDialogAction>
