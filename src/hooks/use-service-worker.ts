@@ -154,7 +154,7 @@ export const useServiceWorker = () => {
     };
 
     registerSW();
-  }, []);
+  }, [hasShownInitialToasts]);
 
   useEffect(() => {
     if (state.updateAvailable && !updateToastShown) {
