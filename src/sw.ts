@@ -12,6 +12,8 @@ declare global {
   }
 }
 
+declare function importScripts(...urls: string[]): void;
+
 interface ExtendableEvent extends Event {
   waitUntil: (promise: Promise<void>) => void;
 }
@@ -22,30 +24,6 @@ interface ExtendableMessageEvent extends ExtendableEvent {
     type?: string;
     [key: string]: unknown;
   };
-}
-
-interface ServiceWorkerGlobalScopeEventMap {
-  install: ExtendableEvent;
-  activate: ExtendableEvent;
-  message: ExtendableMessageEvent;
-  notificationclick: NotificationClickEvent;
-}
-
-interface ServiceWorkerGlobalScopeWithEvents extends WorkerGlobalScope {
-  addEventListener<K extends keyof ServiceWorkerGlobalScopeEventMap>(
-    type: K,
-    listener: (event: ServiceWorkerGlobalScopeEventMap[K]) => void
-  ): void;
-}
-
-interface FirebasePayload {
-  data?: {
-    url?: string;
-    body?: string;
-    title?: string;
-  };
-  messageId?: string;
-  notification?: unknown;
 }
 
 interface ServiceWorkerClient {
@@ -69,16 +47,17 @@ interface ServiceWorkerGlobalScopeWithUtils extends WorkerGlobalScope {
     listener: (event: ExtendableEvent) => void
   ) => void) &
     ((
-      type: "notificationclick",
-      listener: (event: NotificationClickEvent) => void
-    ) => void) &
-    ((type: "message", listener: (event: MessageEvent) => void) => void);
+      type: "message",
+      listener: (event: ExtendableMessageEvent) => void
+    ) => void);
   clients: ServiceWorkerClients;
   skipWaiting: () => Promise<void>;
   registration: ServiceWorkerRegistration;
 }
 
 declare const self: ServiceWorkerGlobalScopeWithUtils;
+
+importScripts("/firebase-messaging-sw.js");
 
 const serwist = new Serwist({
   skipWaiting: true,
@@ -176,61 +155,6 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
-const FIREBASE_CONFIG = {
-  projectId: "vesitrail-e16b0",
-  messagingSenderId: "166739007948",
-  authDomain: "vesitrail-e16b0.firebaseapp.com",
-  apiKey: "AIzaSyDmv7VLR6SGerZcsNHQYBEnAv3dk_PSMmY",
-  appId: "1:166739007948:web:c7aab5a492437b13d9e569",
-  storageBucket: "vesitrail-e16b0.firebasestorage.app",
-};
-
-self.addEventListener("install", (event: ExtendableEvent) => {
-  event.waitUntil(
-    (async () => {
-      try {
-        const { initializeApp } = await import("firebase/app");
-        const { getMessaging, onBackgroundMessage } = await import(
-          "firebase/messaging/sw"
-        );
-
-        const app = initializeApp(FIREBASE_CONFIG);
-        const messaging = getMessaging(app);
-
-        onBackgroundMessage(messaging, (payload: FirebasePayload) => {
-          if (!payload.notification && payload.data) {
-            const notificationTitle =
-              payload.data.title || "VESITRail Notification";
-
-            const notificationOptions = {
-              icon: "/icons/ios/256.png",
-              tag: "vesitrail-notification",
-              body: payload.data.body || "You have a new notification",
-              data: {
-                url: payload.data.url || "/dashboard/student",
-                messageId: payload.messageId || Date.now().toString(),
-              },
-              actions: [
-                {
-                  action: "open",
-                  title: "Open App",
-                },
-              ],
-            };
-
-            return self.registration.showNotification(
-              notificationTitle,
-              notificationOptions
-            );
-          }
-        });
-      } catch (error) {
-        console.error("Failed to initialize Firebase messaging:", error);
-      }
-    })()
-  );
-});
-
 self.addEventListener("activate", (event: ExtendableEvent) => {
   event.waitUntil(
     (async () => {
@@ -251,82 +175,43 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
   );
 });
 
-interface NotificationClickEvent extends ExtendableEvent {
-  notification: Notification & {
-    close: () => void;
-    data?: { url?: string };
-  };
-  action?: string;
-}
+self.addEventListener("message", (event: ExtendableMessageEvent) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
 
-self.addEventListener("notificationclick", (event: NotificationClickEvent) => {
-  event.notification.close();
+    event.ports?.[0]?.postMessage({
+      type: "SKIP_WAITING_RESPONSE",
+      payload: "Updating service worker...",
+    });
+  }
 
-  if (event.action === "open" || !event.action) {
-    const url = event.notification.data?.url || "/dashboard/student";
-
+  if (event.data && event.data.type === "CACHE_CLEARED") {
     event.waitUntil(
       (async () => {
-        const clientList = await self.clients.matchAll({
-          type: "window",
-          includeUncontrolled: true,
-        });
-        for (let i = 0; i < clientList.length; i++) {
-          const client = clientList[i];
-          if (client.url.includes(url.split("?")[0]) && "focus" in client) {
-            await client.focus();
-            return;
-          }
-        }
+        try {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map((cacheName) => caches.delete(cacheName))
+          );
 
-        if (self.clients.openWindow) {
-          await self.clients.openWindow(url);
+          const clients = await self.clients.matchAll();
+          clients.forEach((client: ServiceWorkerClient) => {
+            client.postMessage({
+              type: "CACHE_CLEARED_RESPONSE",
+              payload: "All caches cleared successfully",
+            });
+          });
+        } catch (error) {
+          console.error("Failed to clear caches in service worker:", error);
         }
       })()
     );
   }
-});
 
-(self as ServiceWorkerGlobalScopeWithEvents).addEventListener(
-  "message",
-  (event: ExtendableMessageEvent) => {
-    if (event.data && event.data.type === "SKIP_WAITING") {
-      self.skipWaiting();
-
-      event.ports?.[0]?.postMessage({
-        type: "SKIP_WAITING_RESPONSE",
-        payload: "Updating service worker...",
-      });
-    }
-
-    if (event.data && event.data.type === "CACHE_CLEARED") {
-      event.waitUntil(
-        (async () => {
-          try {
-            const cacheNames = await caches.keys();
-            await Promise.all(
-              cacheNames.map((cacheName) => caches.delete(cacheName))
-            );
-
-            const clients = await self.clients.matchAll();
-            clients.forEach((client: ServiceWorkerClient) => {
-              client.postMessage({
-                type: "CACHE_CLEARED_RESPONSE",
-                payload: "All caches cleared successfully",
-              });
-            });
-          } catch (error) {
-            console.error("Failed to clear caches in service worker:", error);
-          }
-        })()
-      );
-    }
-
-    if (event.data && event.data.type === "CACHE_UPDATED") {
-      event.ports?.[0]?.postMessage({
-        type: "CACHE_UPDATED_RESPONSE",
-        payload: "Cache has been updated",
-      });
-    }
+  if (event.data && event.data.type === "CACHE_UPDATED") {
+    event.ports?.[0]?.postMessage({
+      type: "CACHE_UPDATED_RESPONSE",
+      payload: "Cache has been updated",
+    });
   }
-);
+});
