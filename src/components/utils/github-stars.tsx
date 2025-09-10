@@ -56,12 +56,12 @@ const GitHubStars = ({ className }: GitHubStarsProps) => {
   return (
     <button
       onClick={handleClick}
-      className={`inline-flex cursor-pointer items-center gap-2 px-3 py-1 rounded-full bg-primary ${className}`}
+      className={`inline-flex cursor-pointer items-center gap-2 px-3 py-1 rounded-full bg-primary text-white ${className}`}
     >
       <Github className="size-4" />
 
       <div className="flex items-center gap-1">
-        <Star className="size-3 text-white fill-white" />
+        <Star className="size-3 fill-current" />
 
         <span className="text-sm font-medium">{stars.toLocaleString()}</span>
       </div>

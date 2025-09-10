@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 type ServiceWorkerState = {
   isWaiting: boolean;
@@ -17,9 +17,11 @@ export const useServiceWorker = () => {
     isInstalled: false,
     updateAvailable: false,
   });
-  const [updateToastShown, setUpdateToastShown] = useState(false);
+  const [updateToastShown, setUpdateToastShown] = useState<boolean>(false);
+  const [hasShownInitialToasts, setHasShownInitialToasts] =
+    useState<boolean>(false);
 
-  const updateServiceWorker = () => {
+  const updateServiceWorker = useCallback(() => {
     if (state.isWaiting && navigator.serviceWorker.controller) {
       toast.dismiss();
 
@@ -37,9 +39,9 @@ export const useServiceWorker = () => {
       }));
       setUpdateToastShown(false);
     }
-  };
+  }, [state.isWaiting]);
 
-  const showUpdateToast = () => {
+  const showUpdateToast = useCallback(() => {
     if (!state.updateAvailable || updateToastShown) return;
 
     setUpdateToastShown(true);
@@ -59,7 +61,7 @@ export const useServiceWorker = () => {
         },
       },
     });
-  };
+  }, [state.updateAvailable, updateToastShown, updateServiceWorker]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
@@ -105,6 +107,10 @@ export const useServiceWorker = () => {
                   ...prev,
                   isInstalled: true,
                 }));
+
+                if (!hasShownInitialToasts) {
+                  setHasShownInitialToasts(true);
+                }
               }
             }
           });
@@ -148,14 +154,13 @@ export const useServiceWorker = () => {
     };
 
     registerSW();
-  }, []);
+  }, [hasShownInitialToasts]);
 
   useEffect(() => {
     if (state.updateAvailable && !updateToastShown) {
       showUpdateToast();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.updateAvailable, updateToastShown]);
+  }, [state.updateAvailable, updateToastShown, showUpdateToast]);
 
   const clearCache = async () => {
     if (!("caches" in window)) {
@@ -211,11 +216,6 @@ export const useServiceWorker = () => {
           type: "CACHE_CLEARED",
         });
       }
-
-      toast.success("Cache Cleared", {
-        duration: 2000,
-        description: "All cached data has been cleared successfully.",
-      });
 
       return true;
     } catch (error) {

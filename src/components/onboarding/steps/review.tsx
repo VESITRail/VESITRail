@@ -553,8 +553,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="size-12 bg-destructive/10 rounded-full flex items-center justify-center">
-                <AlertTriangle className="size-6 text-destructive" />
+              <div className="size-12 bg-destructive rounded-full flex items-center justify-center">
+                <AlertTriangle className="size-6 text-white" />
               </div>
               <div>
                 <AlertDialogTitle>Final Submission</AlertDialogTitle>

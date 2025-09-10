@@ -23,14 +23,14 @@ import { buttonVariants } from "@/components/ui/button";
 import { type VariantProps } from "class-variance-authority";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const DRAG_THRESHOLD = 0.75;
+const DRAG_THRESHOLD = 0.8;
 
 const ANIMATION_CONFIG = {
   spring: {
     type: "spring",
-    stiffness: 400,
-    damping: 40,
-    mass: 0.8,
+    stiffness: 300,
+    damping: 30,
+    mass: 0.5,
   },
 };
 
@@ -79,11 +79,6 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
 
     const dragX = useMotionValue(0);
     const springX = useSpring(dragX, ANIMATION_CONFIG.spring);
-    const dragProgress = useTransform(
-      springX,
-      [0, dragConstraints.right],
-      [0, 1]
-    );
 
     useImperativeHandle(ref, () => ({
       reset: () => {
@@ -119,40 +114,54 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
         return;
     }, [slideCompleted, disabled, isSubmitting, showSubmittingState]);
 
-    const handleDragEnd = useCallback(() => {
-      if (slideCompleted || disabled || isSubmitting || showSubmittingState)
-        return;
+    const handleDragEnd = useCallback(
+      (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        if (slideCompleted || disabled || isSubmitting || showSubmittingState)
+          return;
 
-      const progress = dragProgress.get();
-      if (progress >= DRAG_THRESHOLD) {
-        dragX.set(dragConstraints.right);
-        setSlideCompleted(true);
-        onSlideComplete?.();
-        setTimeout(() => {
-          dragX.set(0);
-        }, 200);
-      } else {
+        const newX = Math.max(
+          0,
+          Math.min(info.offset.x, dragConstraints.right)
+        );
+        const progress = newX / dragConstraints.right;
+
+        if (progress >= DRAG_THRESHOLD) {
+          setSlideCompleted(true);
+          onSlideComplete?.();
+        }
+        dragX.stop();
         dragX.set(0);
-      }
-    }, [
-      slideCompleted,
-      disabled,
-      isSubmitting,
-      showSubmittingState,
-      dragProgress,
-      onSlideComplete,
-      dragX,
-      dragConstraints.right,
-    ]);
+      },
+      [
+        slideCompleted,
+        disabled,
+        isSubmitting,
+        showSubmittingState,
+        dragConstraints.right,
+        onSlideComplete,
+        dragX,
+      ]
+    );
 
     const handleDrag = useCallback(
       (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         if (slideCompleted || disabled || isSubmitting || showSubmittingState)
           return;
+
         const newX = Math.max(
           0,
           Math.min(info.offset.x, dragConstraints.right)
         );
+
+        const progress = newX / dragConstraints.right;
+        if (progress >= DRAG_THRESHOLD) {
+          setSlideCompleted(true);
+          onSlideComplete?.();
+          dragX.stop();
+          dragX.set(0);
+          return;
+        }
+
         dragX.set(newX);
       },
       [
@@ -162,6 +171,7 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
         showSubmittingState,
         dragConstraints.right,
         dragX,
+        onSlideComplete,
       ]
     );
 
@@ -243,6 +253,7 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
                 "absolute left-1 z-10 flex cursor-grab items-center justify-center active:cursor-grabbing",
                 (disabled || slideCompleted) && "cursor-not-allowed"
               )}
+              transition={{ duration: 0.2 }}
             >
               <motion.div className="flex h-10 w-14 z-10 items-center justify-center rounded-md bg-transparent">
                 <SendHorizontal className="size-4 mr-2 text-white" />

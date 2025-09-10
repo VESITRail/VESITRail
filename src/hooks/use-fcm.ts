@@ -39,6 +39,8 @@ export const useFcm = (userId?: string) => {
     loading: true,
     permission: "default",
   });
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [hasShownToasts, setHasShownToasts] = useState<boolean>(false);
 
   const saveTokenToDb = useCallback(
     async (token: string): Promise<void> => {
@@ -55,20 +57,26 @@ export const useFcm = (userId?: string) => {
         });
 
         if (!result.isSuccess) {
-          toast.error("Notification Setup Failed", {
-            description:
-              "Could not enable notifications. Please try again later",
-          });
+          if (!hasShownToasts) {
+            setHasShownToasts(true);
+            toast.error("Notification Setup Failed", {
+              description:
+                "Could not enable notifications. Please try again later",
+            });
+          }
         }
       } catch (error) {
         console.error("Notification Setup Failed:", error);
-        toast.error("Notification Setup Failed", {
-          description:
-            "An unexpected error occurred while setting up notifications",
-        });
+        if (!hasShownToasts) {
+          setHasShownToasts(true);
+          toast.error("Notification Setup Failed", {
+            description:
+              "An unexpected error occurred while setting up notifications",
+          });
+        }
       }
     },
-    [userId]
+    [userId, hasShownToasts]
   );
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
@@ -106,16 +114,22 @@ export const useFcm = (userId?: string) => {
       setState((prev) => ({ ...prev, permission }));
 
       if (permission === "granted") {
-        toast.success("Notifications Enabled", {
-          description:
-            "You'll now receive push notifications for important updates",
-        });
+        if (!hasShownToasts) {
+          setHasShownToasts(true);
+          toast.success("Notifications Enabled", {
+            description:
+              "You'll now receive push notifications for important updates",
+          });
+        }
         return true;
       } else if (permission === "denied") {
-        toast.error("Notifications Blocked", {
-          description:
-            "You can enable notifications later from your browser settings",
-        });
+        if (!hasShownToasts) {
+          setHasShownToasts(true);
+          toast.error("Notifications Blocked", {
+            description:
+              "You can enable notifications later from your browser settings",
+          });
+        }
         setState((prev) => ({
           ...prev,
           loading: false,
@@ -143,7 +157,7 @@ export const useFcm = (userId?: string) => {
       }));
       return false;
     }
-  }, []);
+  }, [hasShownToasts]);
 
   const setupInAppNotifications = useCallback(
     async (messagingInstance: Messaging) => {
@@ -195,10 +209,11 @@ export const useFcm = (userId?: string) => {
         return;
       }
 
+      const serviceWorkerRegistration = await navigator.serviceWorker.ready;
+
       const currentToken = await getToken(messagingInstance, {
         vapidKey: vapidKey,
-        serviceWorkerRegistration:
-          await navigator.serviceWorker.getRegistration(),
+        serviceWorkerRegistration: serviceWorkerRegistration,
       });
 
       if (currentToken) {
@@ -232,6 +247,9 @@ export const useFcm = (userId?: string) => {
   }, [saveTokenToDb, setupInAppNotifications]);
 
   const initializeFcm = useCallback(async (): Promise<void> => {
+    if (isInitialized) return;
+    setIsInitialized(true);
+
     try {
       const currentPermission = Notification.permission;
       setState((prev) => ({ ...prev, permission: currentPermission }));
@@ -258,13 +276,17 @@ export const useFcm = (userId?: string) => {
           error instanceof Error ? error.message : "Failed to initialize FCM",
       }));
     }
-  }, [generateToken, requestPermission]);
+  }, [generateToken, requestPermission, isInitialized]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      initializeFcm();
+    if (typeof window !== "undefined" && userId && !isInitialized) {
+      const timer = setTimeout(() => {
+        initializeFcm();
+      }, 1000);
+
+      return () => clearTimeout(timer);
     }
-  }, [initializeFcm]);
+  }, [initializeFcm, userId, isInitialized]);
 
   return {
     ...state,

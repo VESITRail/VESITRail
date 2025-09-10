@@ -1130,7 +1130,7 @@ const ApplicationsTable = ({
             }}
           />
 
-          <DialogFooter>
+          <DialogFooter className="gap-4">
             <Button
               variant="outline"
               disabled={isRejecting}
@@ -1164,10 +1164,7 @@ const ApplicationsTable = ({
           <div className="space-y-4">
             {applicationDetails ? (
               <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <h4 className="font-medium text-destructive mb-2">
-                  Application Rejected
-                </h4>
-                <p className="text-destructive/80">
+                <p className="text-destructive">
                   {applicationDetails.rejectionReason}
                 </p>
               </div>

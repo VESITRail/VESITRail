@@ -578,8 +578,8 @@ const ConcessionApplicationForm = () => {
           <div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
-                <div className="size-9 hidden bg-destructive/10 rounded-full md:flex items-center justify-center">
-                  <AlertTriangle className="size-4.5 text-destructive" />
+                <div className="size-9 hidden bg-destructive rounded-full md:flex items-center justify-center">
+                  <AlertTriangle className="size-4.5 text-white" />
                 </div>
               </div>
 
@@ -904,8 +904,8 @@ const ConcessionApplicationForm = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="size-10 bg-destructive/10 rounded-full flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="size-5 text-destructive" />
+              <div className="size-10 bg-destructive rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="size-5 text-white" />
               </div>
               <div>
                 <AlertDialogTitle>
