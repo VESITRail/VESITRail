@@ -4,7 +4,6 @@ import {
   Trash2,
   Database,
   HardDrive,
-  RefreshCw,
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
@@ -38,21 +37,6 @@ const CacheManagement = () => {
   const [cacheInfo, setCacheInfo] = useState<CacheInfo[]>([]);
   const { clearCache, getCacheInfo, isSupported } = useServiceWorker();
 
-  const loadCacheInfo = async () => {
-    setLoading(true);
-    try {
-      const info = await getCacheInfo();
-      setCacheInfo(info);
-    } catch (error) {
-      console.error("Failed to load cache info:", error);
-      toast.error("Failed to Load Cache Info", {
-        description: "Unable to retrieve cache information.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleClearCache = async () => {
     setClearing(true);
     try {
@@ -85,6 +69,20 @@ const CacheManagement = () => {
 
   useEffect(() => {
     if (isSupported) {
+      const loadCacheInfo = async () => {
+        setLoading(true);
+        try {
+          const info = await getCacheInfo();
+          setCacheInfo(info);
+        } catch (error) {
+          console.error("Failed to load cache info:", error);
+          toast.error("Failed to Load Cache Info", {
+            description: "Unable to retrieve cache information.",
+          });
+        } finally {
+          setLoading(false);
+        }
+      };
       loadCacheInfo();
     } else {
       setLoading(false);
@@ -268,18 +266,7 @@ const CacheManagement = () => {
               </div>
             )}
 
-            <div className="flex justify-end gap-4">
-              <Button
-                variant="outline"
-                onClick={loadCacheInfo}
-                disabled={loading || clearing}
-              >
-                <RefreshCw
-                  className={`size-4 mr-1 ${loading ? "animate-spin" : ""}`}
-                />
-                {loading ? "Refreshing..." : "Refresh Cache Info"}
-              </Button>
-
+            <div className="flex justify-end">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -305,11 +292,11 @@ const CacheManagement = () => {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleClearCache}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      className="bg-destructive text-white hover:bg-destructive/90"
                     >
                       {clearing ? (
                         <>
-                          <RefreshCw className="size-4 mr-1 animate-spin" />
+                          <div className="size-4 mr-1 animate-spin rounded-full border-2 border-white border-t-transparent" />
                           Clearing...
                         </>
                       ) : (
