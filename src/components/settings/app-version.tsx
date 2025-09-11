@@ -20,7 +20,7 @@ export const AppVersion = ({ initialVersion }: AppVersionProps) => {
   const [version, setVersion] = useState<string | null>(initialVersion || null);
 
   const formatLastChecked = (date: Date): string => {
-    return format(date, "MMM d, yyyy HH:mm");
+    return format(date, "MMMM d, yyyy HH:mm");
   };
 
   const checkForUpdates = async (): Promise<void> => {
