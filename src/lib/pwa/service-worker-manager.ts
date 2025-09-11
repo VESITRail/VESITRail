@@ -81,7 +81,6 @@ export class ServiceWorkerManager {
   private handleUpdate(): void {
     console.log("Service worker update detected");
     versionManager.clearCache();
-    // The controllerchange event will handle the reload
   }
 
   private handleMessage(event: MessageEvent): void {

@@ -19,8 +19,32 @@ export const AppVersion = ({ initialVersion }: AppVersionProps) => {
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [version, setVersion] = useState<string | null>(initialVersion || null);
 
+  const LAST_CHECKED_KEY = "app-version-last-checked";
+
   const formatLastChecked = (date: Date): string => {
     return format(date, "MMMM d, yyyy HH:mm");
+  };
+
+  const saveLastChecked = (date: Date): void => {
+    try {
+      localStorage.setItem(LAST_CHECKED_KEY, date.toISOString());
+      setLastChecked(date);
+    } catch (error) {
+      console.warn("Failed to save last checked time:", error);
+      setLastChecked(date);
+    }
+  };
+
+  const loadLastChecked = (): Date | null => {
+    try {
+      const stored = localStorage.getItem(LAST_CHECKED_KEY);
+      if (stored) {
+        return new Date(stored);
+      }
+    } catch (error) {
+      console.warn("Failed to load last checked time:", error);
+    }
+    return null;
   };
 
   const checkForUpdates = async (): Promise<void> => {
@@ -30,7 +54,7 @@ export const AppVersion = ({ initialVersion }: AppVersionProps) => {
       const newVersion = await versionManager.getVersionString();
 
       setVersion(newVersion);
-      setLastChecked(new Date());
+      saveLastChecked(new Date());
 
       toast.success("Check Complete", {
         duration: 2000,
@@ -59,6 +83,11 @@ export const AppVersion = ({ initialVersion }: AppVersionProps) => {
         setLoading(false);
       }
     };
+
+    const storedLastChecked = loadLastChecked();
+    if (storedLastChecked) {
+      setLastChecked(storedLastChecked);
+    }
 
     if (!initialVersion) {
       loadVersion();
