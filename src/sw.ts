@@ -1,6 +1,7 @@
 import {
   Serwist,
   CacheFirst,
+  NetworkOnly,
   NetworkFirst,
   StaleWhileRevalidate,
 } from "serwist";
@@ -14,34 +15,37 @@ declare global {
 
 declare function importScripts(...urls: string[]): void;
 
-interface ExtendableEvent extends Event {
+type ExtendableEvent = Event & {
   waitUntil: (promise: Promise<void>) => void;
-}
+};
 
-interface ExtendableMessageEvent extends ExtendableEvent {
+type ExtendableMessageEvent = ExtendableEvent & {
   ports: MessagePort[];
   data: {
     type?: string;
     [key: string]: unknown;
   };
-}
+};
 
-interface ServiceWorkerClient {
+type ServiceWorkerClient = {
   url: string;
   focus: () => Promise<void>;
   postMessage: (message: unknown) => void;
-}
+};
 
-interface ServiceWorkerClients {
+type ServiceWorkerClients = {
   claim: () => Promise<void>;
   matchAll: (options?: {
     type?: string;
     includeUncontrolled?: boolean;
   }) => Promise<ServiceWorkerClient[]>;
   openWindow: (url: string) => Promise<ServiceWorkerClient | null>;
-}
+};
 
-interface ServiceWorkerGlobalScopeWithUtils extends WorkerGlobalScope {
+type ServiceWorkerGlobalScopeWithUtils = WorkerGlobalScope & {
+  clients: ServiceWorkerClients;
+  skipWaiting: () => Promise<void>;
+  registration: ServiceWorkerRegistration;
   addEventListener: ((
     type: "install" | "activate",
     listener: (event: ExtendableEvent) => void
@@ -50,14 +54,27 @@ interface ServiceWorkerGlobalScopeWithUtils extends WorkerGlobalScope {
       type: "message",
       listener: (event: ExtendableMessageEvent) => void
     ) => void);
-  clients: ServiceWorkerClients;
-  skipWaiting: () => Promise<void>;
-  registration: ServiceWorkerRegistration;
-}
+};
 
 declare const self: ServiceWorkerGlobalScopeWithUtils;
 
 importScripts("/firebase-messaging-sw.js");
+
+const getAppVersion = (): string => {
+  try {
+    const stored = globalThis.localStorage?.getItem("app-version-info");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return `v${parsed.version || "1.0.0"}`;
+    }
+  } catch (error) {
+    console.warn("Failed to get version from storage:", error);
+  }
+
+  return "v1.0.0";
+};
+
+const APP_VERSION = getAppVersion();
 
 const serwist = new Serwist({
   skipWaiting: true,
@@ -68,92 +85,248 @@ const serwist = new Serwist({
     {
       matcher: /^https:\/\/fonts\.googleapis\.com\/.*/i,
       handler: new CacheFirst({
-        cacheName: "google-fonts-cache",
+        cacheName: `google-fonts-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+          },
+        ],
       }),
     },
     {
       matcher: /^https:\/\/fonts\.gstatic\.com\/.*/i,
       handler: new CacheFirst({
-        cacheName: "gstatic-fonts-cache",
+        cacheName: `gstatic-fonts-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+          },
+        ],
       }),
     },
     {
-      matcher: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
-      handler: new StaleWhileRevalidate({
-        cacheName: "static-font-assets",
+      matcher: /\.(?:eot|otf|ttc|ttf|woff|woff2|font\.css)$/i,
+      handler: new CacheFirst({
+        cacheName: `font-assets-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+          },
+        ],
       }),
     },
     {
-      matcher: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
+      matcher: /\.(?:jpg|jpeg|gif|png|svg|ico|webp|avif)$/i,
       handler: new StaleWhileRevalidate({
-        cacheName: "static-image-assets",
+        cacheName: `image-assets-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+            cacheWillUpdate: async ({ response }) => {
+              return response.status === 200;
+            },
+          },
+        ],
       }),
     },
     {
       matcher: /\/_next\/image\?url=.*/i,
       handler: new StaleWhileRevalidate({
-        cacheName: "next-image",
+        cacheName: `next-images-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+            cacheWillUpdate: async ({ response }) => {
+              return response.status === 200;
+            },
+          },
+        ],
       }),
     },
     {
-      matcher: /\.(?:mp3|wav|ogg)$/i,
+      matcher: /\.(?:mp3|wav|ogg|m4a|aac)$/i,
       handler: new CacheFirst({
-        cacheName: "static-audio-assets",
+        cacheName: `audio-assets-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+          },
+        ],
       }),
     },
     {
-      matcher: /\.(?:mp4)$/i,
+      matcher: /\.(?:mp4|webm|ogg|avi|mov)$/i,
       handler: new CacheFirst({
-        cacheName: "static-video-assets",
+        cacheName: `video-assets-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+          },
+        ],
       }),
     },
     {
-      matcher: /\.(?:js)$/i,
+      matcher: /\/_next\/static\/.+\.js$/i,
+      handler: new CacheFirst({
+        cacheName: `js-static-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+          },
+        ],
+      }),
+    },
+    {
+      matcher: /\/_next\/static\/.+\.css$/i,
+      handler: new CacheFirst({
+        cacheName: `css-static-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+          },
+        ],
+      }),
+    },
+    {
+      matcher: /\.(?:js|mjs)$/i,
       handler: new StaleWhileRevalidate({
-        cacheName: "static-js-assets",
+        cacheName: `js-assets-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+            cacheWillUpdate: async ({ response }) => {
+              return response.status === 200;
+            },
+          },
+        ],
       }),
     },
     {
       matcher: /\.(?:css)$/i,
       handler: new StaleWhileRevalidate({
-        cacheName: "static-style-assets",
+        cacheName: `css-assets-${APP_VERSION}`,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+            cacheWillUpdate: async ({ response }) => {
+              return response.status === 200;
+            },
+          },
+        ],
       }),
     },
     {
-      matcher: /\/_next\/static.+\.js$/i,
-      handler: new CacheFirst({
-        cacheName: "next-static-js-assets",
+      matcher: ({ url, request, sameOrigin }) =>
+        request.method === "GET" &&
+        sameOrigin &&
+        url.pathname.startsWith("/api/auth/"),
+      handler: new NetworkOnly(),
+    },
+    {
+      matcher: ({ url, request, sameOrigin }) =>
+        request.method === "GET" &&
+        sameOrigin &&
+        url.pathname.startsWith("/api/") &&
+        !url.pathname.startsWith("/api/auth/"),
+      handler: new NetworkFirst({
+        cacheName: `api-cache-${APP_VERSION}`,
+        networkTimeoutSeconds: 3,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+            cacheWillUpdate: async ({ response }) => {
+              return response.status === 200;
+            },
+          },
+        ],
       }),
     },
     {
-      matcher: /\/_next\/static.+\.css$/i,
-      handler: new CacheFirst({
-        cacheName: "next-static-css-assets",
-      }),
-    },
-    {
-      matcher: ({
-        request,
-        url,
-        sameOrigin,
-      }: {
-        request: Request;
-        url: URL;
-        sameOrigin: boolean;
-      }) =>
+      matcher: ({ url, request, sameOrigin }) =>
         request.method === "GET" &&
         sameOrigin &&
         !url.pathname.startsWith("/api/") &&
-        !url.pathname.startsWith("/dashboard/") &&
-        !url.pathname.includes("_next/data"),
+        !url.pathname.includes("_next/data") &&
+        !url.pathname.startsWith("/_next/webpack-hmr"),
       handler: new NetworkFirst({
-        cacheName: "pages",
+        cacheName: `pages-${APP_VERSION}`,
+        networkTimeoutSeconds: 5,
+        plugins: [
+          {
+            cacheKeyWillBeUsed: async ({ request }) => {
+              return `${request.url}?v=${APP_VERSION}`;
+            },
+            cacheWillUpdate: async ({ response }) => {
+              return response.status === 200;
+            },
+          },
+        ],
       }),
     },
   ],
 });
 
 serwist.addEventListeners();
+
+const cleanupOldCaches = async (): Promise<void> => {
+  try {
+    const cacheNames = await caches.keys();
+    const oldCaches = cacheNames.filter(
+      (name) =>
+        !name.includes(APP_VERSION) &&
+        (name.includes("google-fonts") ||
+          name.includes("gstatic-fonts") ||
+          name.includes("font-assets") ||
+          name.includes("image-assets") ||
+          name.includes("next-images") ||
+          name.includes("audio-assets") ||
+          name.includes("video-assets") ||
+          name.includes("js-static") ||
+          name.includes("css-static") ||
+          name.includes("js-assets") ||
+          name.includes("css-assets") ||
+          name.includes("api-cache") ||
+          name.includes("pages"))
+    );
+
+    await Promise.all(oldCaches.map((cacheName) => caches.delete(cacheName)));
+  } catch (error) {
+    console.error("Failed to cleanup old caches:", error);
+  }
+};
+
+self.addEventListener("install", (event: ExtendableEvent) => {
+  event.waitUntil(
+    (async () => {
+      await cleanupOldCaches();
+      await self.skipWaiting();
+    })()
+  );
+});
 
 self.addEventListener("activate", (event: ExtendableEvent) => {
   event.waitUntil(
@@ -163,12 +336,14 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
       }
 
       await self.clients.claim();
+      await cleanupOldCaches();
 
       const clients = await self.clients.matchAll();
       clients.forEach((client: ServiceWorkerClient) => {
         client.postMessage({
           type: "SW_ACTIVATED",
-          payload: Date.now(),
+          version: APP_VERSION,
+          timestamp: Date.now(),
         });
       });
     })()
@@ -176,16 +351,15 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
 });
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
+  if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
-
     event.ports?.[0]?.postMessage({
       type: "SKIP_WAITING_RESPONSE",
-      payload: "Updating service worker...",
+      version: APP_VERSION,
     });
   }
 
-  if (event.data && event.data.type === "CACHE_CLEARED") {
+  if (event.data?.type === "CACHE_CLEARED") {
     event.waitUntil(
       (async () => {
         try {
@@ -197,21 +371,22 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
           const clients = await self.clients.matchAll();
           clients.forEach((client: ServiceWorkerClient) => {
             client.postMessage({
+              version: APP_VERSION,
+              timestamp: Date.now(),
               type: "CACHE_CLEARED_RESPONSE",
-              payload: "All caches cleared successfully",
             });
           });
         } catch (error) {
-          console.error("Failed to clear caches in service worker:", error);
+          console.error("Failed to clear caches:", error);
         }
       })()
     );
   }
 
-  if (event.data && event.data.type === "CACHE_UPDATED") {
+  if (event.data?.type === "GET_VERSION") {
     event.ports?.[0]?.postMessage({
-      type: "CACHE_UPDATED_RESPONSE",
-      payload: "Cache has been updated",
+      version: APP_VERSION,
+      type: "VERSION_RESPONSE",
     });
   }
 });
