@@ -4,7 +4,6 @@ import {
   Trash2,
   Database,
   HardDrive,
-  RefreshCw,
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
@@ -22,10 +21,10 @@ import {
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { serviceWorkerManager } from "@/lib/pwa";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { serviceWorkerManager, versionManager } from "@/lib/pwa";
 
 type CacheInfo = {
   name: string;
@@ -35,31 +34,8 @@ type CacheInfo = {
 const CacheManagement = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [clearing, setClearing] = useState<boolean>(false);
-  const [updating, setUpdating] = useState<boolean>(false);
   const [cacheInfo, setCacheInfo] = useState<CacheInfo[]>([]);
   const [isSupported, setIsSupported] = useState<boolean>(false);
-  const [swVersion, setSwVersion] = useState<string | null>(null);
-
-  const checkForUpdates = async (): Promise<void> => {
-    setUpdating(true);
-    try {
-      await serviceWorkerManager.update();
-      const version = await versionManager.getVersionString();
-      setSwVersion(version);
-
-      toast.success("App Updated", {
-        duration: 2000,
-        description: "The app has been updated to the latest version.",
-      });
-    } catch (error) {
-      console.error("Failed to update app:", error);
-      toast.error("Update Failed", {
-        description: "Unable to update the app. Please try again.",
-      });
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   const clearCache = async (): Promise<void> => {
     await serviceWorkerManager.clearCaches();
@@ -111,12 +87,8 @@ const CacheManagement = () => {
       const loadCacheInfo = async (): Promise<void> => {
         setLoading(true);
         try {
-          const [info, version] = await Promise.all([
-            getCacheInfo(),
-            versionManager.getVersionString(),
-          ]);
+          const info = await getCacheInfo();
           setCacheInfo(info);
-          setSwVersion(version);
         } catch (error) {
           console.error("Failed to load cache info:", error);
           toast.error("Failed to Load Cache Info", {
@@ -209,10 +181,7 @@ const CacheManagement = () => {
                 ))}
               </div>
 
-              <div className="flex justify-end gap-4">
-                <Skeleton className="h-10 w-40" />
-                <Skeleton className="h-10 w-32" />
-              </div>
+              <Skeleton className="h-10 w-32 ml-auto" />
             </div>
           </CardContent>
         </Card>
@@ -232,32 +201,6 @@ const CacheManagement = () => {
       <Card>
         <CardContent className="py-2.5">
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h3 className="text-sm font-medium">App Version</h3>
-                <p className="text-xs text-muted-foreground">
-                  Current version: {swVersion || "Loading..."}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={updating}
-                onClick={checkForUpdates}
-              >
-                {updating ? (
-                  <>
-                    <div className="size-4 mr-1 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Checking...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="size-4 mr-1" />
-                    Check Updates
-                  </>
-                )}
-              </Button>
-            </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Database className="size-4 text-muted-foreground" />
@@ -271,20 +214,10 @@ const CacheManagement = () => {
 
             {cacheInfo.length > 0 && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">Cache Usage</span>
-                    <span className="text-muted-foreground">
-                      {totalCacheEntries}{" "}
-                      {totalCacheEntries === 1 ? "entry" : "entries"}
-                    </span>
-                  </div>
-
-                  <Progress
-                    className="h-2"
-                    value={Math.min((totalCacheEntries / 1000) * 100, 100)}
-                  />
-                </div>
+                <Progress
+                  className="h-2"
+                  value={Math.min((totalCacheEntries / 1000) * 100, 100)}
+                />
 
                 <div className="space-y-3">
                   {cacheInfo.map((cache) => (
@@ -303,12 +236,6 @@ const CacheManagement = () => {
                         <p className="text-xs text-muted-foreground">
                           {cache.size} {cache.size === 1 ? "item" : "items"}
                         </p>
-                      </div>
-
-                      <div className="text-right">
-                        <span className="text-sm font-medium">
-                          {cache.size}
-                        </span>
                       </div>
                     </div>
                   ))}
