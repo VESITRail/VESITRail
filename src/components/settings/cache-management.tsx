@@ -4,6 +4,7 @@ import {
   Trash2,
   Database,
   HardDrive,
+  RefreshCw,
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
@@ -24,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { useServiceWorker } from "@/hooks/use-service-worker";
+import { serviceWorkerManager, versionManager } from "@/lib/pwa";
 
 type CacheInfo = {
   name: string;
@@ -34,10 +35,41 @@ type CacheInfo = {
 const CacheManagement = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [clearing, setClearing] = useState<boolean>(false);
+  const [updating, setUpdating] = useState<boolean>(false);
   const [cacheInfo, setCacheInfo] = useState<CacheInfo[]>([]);
-  const { clearCache, getCacheInfo, isSupported } = useServiceWorker();
+  const [isSupported, setIsSupported] = useState<boolean>(false);
+  const [swVersion, setSwVersion] = useState<string | null>(null);
 
-  const handleClearCache = async () => {
+  const checkForUpdates = async (): Promise<void> => {
+    setUpdating(true);
+    try {
+      await serviceWorkerManager.update();
+      const version = await versionManager.getVersionString();
+      setSwVersion(version);
+
+      toast.success("App Updated", {
+        duration: 2000,
+        description: "The app has been updated to the latest version.",
+      });
+    } catch (error) {
+      console.error("Failed to update app:", error);
+      toast.error("Update Failed", {
+        description: "Unable to update the app. Please try again.",
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const clearCache = async (): Promise<void> => {
+    await serviceWorkerManager.clearCaches();
+  };
+
+  const getCacheInfo = async (): Promise<CacheInfo[]> => {
+    return await serviceWorkerManager.getCacheInfo();
+  };
+
+  const handleClearCache = async (): Promise<void> => {
     setClearing(true);
     try {
       await clearCache();
@@ -68,12 +100,23 @@ const CacheManagement = () => {
   };
 
   useEffect(() => {
+    const checkSupport = (): void => {
+      const supported = typeof window !== "undefined" && "caches" in window;
+      setIsSupported(supported);
+    };
+
+    checkSupport();
+
     if (isSupported) {
-      const loadCacheInfo = async () => {
+      const loadCacheInfo = async (): Promise<void> => {
         setLoading(true);
         try {
-          const info = await getCacheInfo();
+          const [info, version] = await Promise.all([
+            getCacheInfo(),
+            versionManager.getVersionString(),
+          ]);
           setCacheInfo(info);
+          setSwVersion(version);
         } catch (error) {
           console.error("Failed to load cache info:", error);
           toast.error("Failed to Load Cache Info", {
@@ -87,7 +130,6 @@ const CacheManagement = () => {
     } else {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSupported]);
 
   const totalCacheEntries = cacheInfo.reduce(
@@ -190,6 +232,32 @@ const CacheManagement = () => {
       <Card>
         <CardContent className="py-2.5">
           <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium">App Version</h3>
+                <p className="text-xs text-muted-foreground">
+                  Current version: {swVersion || "Loading..."}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={updating}
+                onClick={checkForUpdates}
+              >
+                {updating ? (
+                  <>
+                    <div className="size-4 mr-1 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="size-4 mr-1" />
+                    Check Updates
+                  </>
+                )}
+              </Button>
+            </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Database className="size-4 text-muted-foreground" />
