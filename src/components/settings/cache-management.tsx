@@ -21,10 +21,10 @@ import {
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { serviceWorkerManager } from "@/lib/pwa";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { useServiceWorker } from "@/hooks/use-service-worker";
 
 type CacheInfo = {
   name: string;
@@ -35,9 +35,17 @@ const CacheManagement = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [clearing, setClearing] = useState<boolean>(false);
   const [cacheInfo, setCacheInfo] = useState<CacheInfo[]>([]);
-  const { clearCache, getCacheInfo, isSupported } = useServiceWorker();
+  const [isSupported, setIsSupported] = useState<boolean>(false);
 
-  const handleClearCache = async () => {
+  const clearCache = async (): Promise<void> => {
+    await serviceWorkerManager.clearCaches();
+  };
+
+  const getCacheInfo = async (): Promise<CacheInfo[]> => {
+    return await serviceWorkerManager.getCacheInfo();
+  };
+
+  const handleClearCache = async (): Promise<void> => {
     setClearing(true);
     try {
       await clearCache();
@@ -68,8 +76,15 @@ const CacheManagement = () => {
   };
 
   useEffect(() => {
+    const checkSupport = (): void => {
+      const supported = typeof window !== "undefined" && "caches" in window;
+      setIsSupported(supported);
+    };
+
+    checkSupport();
+
     if (isSupported) {
-      const loadCacheInfo = async () => {
+      const loadCacheInfo = async (): Promise<void> => {
         setLoading(true);
         try {
           const info = await getCacheInfo();
@@ -87,7 +102,6 @@ const CacheManagement = () => {
     } else {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSupported]);
 
   const totalCacheEntries = cacheInfo.reduce(
@@ -167,10 +181,7 @@ const CacheManagement = () => {
                 ))}
               </div>
 
-              <div className="flex justify-end gap-4">
-                <Skeleton className="h-10 w-40" />
-                <Skeleton className="h-10 w-32" />
-              </div>
+              <Skeleton className="h-10 w-32 ml-auto" />
             </div>
           </CardContent>
         </Card>
@@ -203,20 +214,10 @@ const CacheManagement = () => {
 
             {cacheInfo.length > 0 && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">Cache Usage</span>
-                    <span className="text-muted-foreground">
-                      {totalCacheEntries}{" "}
-                      {totalCacheEntries === 1 ? "entry" : "entries"}
-                    </span>
-                  </div>
-
-                  <Progress
-                    className="h-2"
-                    value={Math.min((totalCacheEntries / 1000) * 100, 100)}
-                  />
-                </div>
+                <Progress
+                  className="h-2"
+                  value={Math.min((totalCacheEntries / 1000) * 100, 100)}
+                />
 
                 <div className="space-y-3">
                   {cacheInfo.map((cache) => (
@@ -235,12 +236,6 @@ const CacheManagement = () => {
                         <p className="text-xs text-muted-foreground">
                           {cache.size} {cache.size === 1 ? "item" : "items"}
                         </p>
-                      </div>
-
-                      <div className="text-right">
-                        <span className="text-sm font-medium">
-                          {cache.size}
-                        </span>
                       </div>
                     </div>
                   ))}

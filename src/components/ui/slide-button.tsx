@@ -29,8 +29,14 @@ const ANIMATION_CONFIG = {
   spring: {
     type: "spring",
     stiffness: 300,
+    damping: 25,
+    mass: 0.4,
+  },
+  immediate: {
+    type: "spring",
+    stiffness: 500,
     damping: 30,
-    mass: 0.5,
+    mass: 0.2,
   },
 };
 
@@ -127,10 +133,13 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
 
         if (progress >= DRAG_THRESHOLD) {
           setSlideCompleted(true);
+          setTimeout(() => {
+            dragX.set(0);
+          }, 100);
           onSlideComplete?.();
+        } else {
+          dragX.set(0);
         }
-        dragX.stop();
-        dragX.set(0);
       },
       [
         slideCompleted,
@@ -153,16 +162,17 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
           Math.min(info.offset.x, dragConstraints.right)
         );
 
+        dragX.set(newX);
+
         const progress = newX / dragConstraints.right;
         if (progress >= DRAG_THRESHOLD) {
           setSlideCompleted(true);
+          setTimeout(() => {
+            dragX.set(0);
+          }, 100);
           onSlideComplete?.();
-          dragX.stop();
-          dragX.set(0);
           return;
         }
-
-        dragX.set(newX);
       },
       [
         slideCompleted,
@@ -243,7 +253,7 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
             <motion.div
               drag={slideCompleted || disabled ? false : "x"}
               dragConstraints={dragConstraints}
-              dragElastic={0.05}
+              dragElastic={0.1}
               dragMomentum={false}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
@@ -253,7 +263,7 @@ const SlideButton = forwardRef<SlideButtonRef, SlideButtonProps>(
                 "absolute left-1 z-10 flex cursor-grab items-center justify-center active:cursor-grabbing",
                 (disabled || slideCompleted) && "cursor-not-allowed"
               )}
-              transition={{ duration: 0.2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
             >
               <motion.div className="flex h-10 w-14 z-10 items-center justify-center rounded-md bg-transparent">
                 <SendHorizontal className="size-4 mr-2 text-white" />
