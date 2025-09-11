@@ -63,12 +63,13 @@ export class ServiceWorkerManager {
           newWorker.state === "installed" &&
           navigator.serviceWorker.controller
         ) {
-          this.handleUpdate();
+          console.log("New service worker installed, ready to activate");
         }
       });
     });
 
     navigator.serviceWorker.addEventListener("controllerchange", () => {
+      console.log("Service worker controller changed, reloading page");
       window.location.reload();
     });
 
@@ -78,8 +79,9 @@ export class ServiceWorkerManager {
   }
 
   private handleUpdate(): void {
+    console.log("Service worker update detected");
     versionManager.clearCache();
-    window.location.reload();
+    // The controllerchange event will handle the reload
   }
 
   private handleMessage(event: MessageEvent): void {
@@ -100,13 +102,42 @@ export class ServiceWorkerManager {
 
     try {
       await this.registration.update();
+
+      if (this.registration.waiting) {
+        this.registration.waiting.postMessage({ type: "SKIP_WAITING" });
+        return;
+      }
+
+      if (this.registration.installing) {
+        await new Promise<void>((resolve, reject) => {
+          const newWorker = this.registration!.installing!;
+          const timeout = setTimeout(() => {
+            reject(new Error("Service worker installation timeout"));
+          }, 10000);
+
+          newWorker.addEventListener("statechange", () => {
+            if (newWorker.state === "installed") {
+              clearTimeout(timeout);
+              newWorker.postMessage({ type: "SKIP_WAITING" });
+              resolve();
+            } else if (newWorker.state === "redundant") {
+              clearTimeout(timeout);
+              reject(new Error("Service worker became redundant"));
+            }
+          });
+        });
+        return;
+      }
+
       const hasUpdates = await versionManager.checkForUpdates();
 
       if (hasUpdates) {
         versionManager.clearCache();
+        window.location.reload();
       }
     } catch (error) {
       console.error("Service worker update failed:", error);
+      throw error;
     }
   }
 
