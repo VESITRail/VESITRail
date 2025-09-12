@@ -69,6 +69,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.57.0",
+    "react-markdown": "^10.1.0",
     "serwist": "^9.2.1",
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.0",
