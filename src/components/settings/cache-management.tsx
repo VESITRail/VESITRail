@@ -19,11 +19,11 @@ import {
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { serviceWorkerManager } from "@/lib/pwa";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
 type CacheInfo = {
@@ -48,11 +48,11 @@ const CacheManagement = () => {
     await serviceWorkerManager.clearCaches();
   };
 
-  const getCacheInfo = async (): Promise<CacheInfo[]> => {
+  const getCacheInfo = useCallback(async (): Promise<CacheInfo[]> => {
     return await serviceWorkerManager.getCacheInfo();
-  };
+  }, []);
 
-  const getCacheUsage = async (): Promise<CacheUsageInfo> => {
+  const getCacheUsage = useCallback(async (): Promise<CacheUsageInfo> => {
     const caches = await getCacheInfo();
     const totalItems = caches.reduce((sum, cache) => sum + cache.size, 0);
 
@@ -64,7 +64,7 @@ const CacheManagement = () => {
       totalSize: totalItems,
       cacheCount: caches.length,
     };
-  };
+  }, [getCacheInfo]);
 
   const handleClearCache = async (): Promise<void> => {
     setClearing(true);
@@ -128,7 +128,7 @@ const CacheManagement = () => {
     } else {
       setLoading(false);
     }
-  }, [isSupported]);
+  }, [isSupported, getCacheInfo, getCacheUsage]);
 
   const totalCacheEntries = cacheInfo.reduce(
     (sum, cache) => sum + cache.size,

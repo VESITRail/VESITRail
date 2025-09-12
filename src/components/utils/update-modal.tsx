@@ -55,7 +55,7 @@ const UpdateModal = ({
       toast.success("Update Applied", {
         description: "The app is reloading with the latest version.",
       });
-    } catch (error) {
+    } catch {
       toast.error("Update Failed", {
         description: "Failed to apply update. Please try again.",
       });
@@ -117,7 +117,7 @@ const UpdateModal = ({
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium">What's New</h4>
+                <h4 className="text-sm font-medium">What&apos;s New</h4>
                 {canExpand && (
                   <Button
                     size="sm"
@@ -203,7 +203,7 @@ const UpdateModal = ({
         <div className="px-4 pb-6 space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">What's New</h4>
+              <h4 className="text-sm font-medium">What&apos;s New</h4>
               {canExpand && (
                 <Button
                   size="sm"
