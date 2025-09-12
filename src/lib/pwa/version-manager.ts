@@ -98,7 +98,7 @@ class VersionManager {
     return fallback;
   }
 
-  private compareVersions(currentVersion: string, newVersion: string): number {
+  compareVersions(currentVersion: string, newVersion: string): number {
     const latest = newVersion.split(".").map(Number);
     const current = currentVersion.split(".").map(Number);
 

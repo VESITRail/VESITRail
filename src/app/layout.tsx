@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { PWAInitializer } from "@/lib/pwa-initializer";
 import { GoogleTagManager } from "@next/third-parties/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { UpdateProvider } from "@/components/providers/update-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,10 +46,12 @@ const RootLayout = ({
           defaultTheme="system"
           disableTransitionOnChange
         >
-          <NextTopLoader color="#9333EA" showSpinner={false} />
-          {children}
-          <Toaster />
-          <PWAInitializer />
+          <UpdateProvider>
+            <NextTopLoader color="#9333EA" showSpinner={false} />
+            {children}
+            <Toaster />
+            <PWAInitializer />
+          </UpdateProvider>
         </ThemeProvider>
       </body>
     </html>
