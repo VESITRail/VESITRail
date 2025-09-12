@@ -31,11 +31,18 @@ type CacheInfo = {
   size: number;
 };
 
+type CacheUsageInfo = {
+  totalSize: number;
+  cacheCount: number;
+  percentage: number;
+};
+
 const CacheManagement = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [clearing, setClearing] = useState<boolean>(false);
   const [cacheInfo, setCacheInfo] = useState<CacheInfo[]>([]);
   const [isSupported, setIsSupported] = useState<boolean>(false);
+  const [cacheUsage, setCacheUsage] = useState<CacheUsageInfo | null>(null);
 
   const clearCache = async (): Promise<void> => {
     await serviceWorkerManager.clearCaches();
@@ -43,6 +50,20 @@ const CacheManagement = () => {
 
   const getCacheInfo = async (): Promise<CacheInfo[]> => {
     return await serviceWorkerManager.getCacheInfo();
+  };
+
+  const getCacheUsage = async (): Promise<CacheUsageInfo> => {
+    const caches = await getCacheInfo();
+    const totalItems = caches.reduce((sum, cache) => sum + cache.size, 0);
+
+    const maxReasonableCache = 500;
+    const percentage = Math.min((totalItems / maxReasonableCache) * 100, 100);
+
+    return {
+      percentage,
+      totalSize: totalItems,
+      cacheCount: caches.length,
+    };
   };
 
   const handleClearCache = async (): Promise<void> => {
@@ -60,9 +81,12 @@ const CacheManagement = () => {
         try {
           const info = await getCacheInfo();
           setCacheInfo(info);
+          const usage = await getCacheUsage();
+          setCacheUsage(usage);
         } catch (error) {
           console.error("Failed to reload cache info after clearing:", error);
           setCacheInfo([]);
+          setCacheUsage(null);
         }
       }, 1000);
     } catch (error) {
@@ -89,6 +113,8 @@ const CacheManagement = () => {
         try {
           const info = await getCacheInfo();
           setCacheInfo(info);
+          const usage = await getCacheUsage();
+          setCacheUsage(usage);
         } catch (error) {
           console.error("Failed to load cache info:", error);
           toast.error("Failed to Load Cache Info", {
@@ -163,7 +189,12 @@ const CacheManagement = () => {
 
               <div className="space-y-4">
                 <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-2 w-full" />
+                <Skeleton className="h-3 w-full" />
+                <div className="flex justify-between text-xs">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <Skeleton className="h-3 w-48" />
               </div>
 
               <div className="space-y-3">
@@ -212,12 +243,34 @@ const CacheManagement = () => {
               </p>
             </div>
 
+            {cacheUsage && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Cache Usage</span>
+                  <span className="text-sm text-muted-foreground">
+                    {cacheUsage.percentage.toFixed(1)}%
+                  </span>
+                </div>
+
+                <Progress className="h-3" value={cacheUsage.percentage} />
+
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{cacheUsage.totalSize} items cached</span>
+                  <span>
+                    {cacheUsage.cacheCount} cache
+                    {cacheUsage.cacheCount !== 1 ? "s" : ""}
+                  </span>
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Based on {cacheUsage.totalSize} of 500 recommended cache items
+                </p>
+              </div>
+            )}
+
             {cacheInfo.length > 0 && (
               <div className="space-y-4">
-                <Progress
-                  className="h-2"
-                  value={Math.min((totalCacheEntries / 1000) * 100, 100)}
-                />
+                <h4 className="text-sm font-medium">Cache Details</h4>
 
                 <div className="space-y-3">
                   {cacheInfo.map((cache) => (
