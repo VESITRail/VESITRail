@@ -3,76 +3,74 @@
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { RefreshCw } from "lucide-react";
+import { versionManager } from "@/lib/pwa";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAppUpdate } from "@/hooks/use-app-update";
 import { Card, CardContent } from "@/components/ui/card";
-import { serviceWorkerManager, versionManager } from "@/lib/pwa";
+import UpdateModal from "@/components/utils/update-modal";
 
 type AppVersionProps = {
   initialVersion?: string | null;
 };
 
 export const AppVersion = ({ initialVersion }: AppVersionProps) => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [updating, setUpdating] = useState<boolean>(false);
-  const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [version, setVersion] = useState<string | null>(initialVersion || null);
+  const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
+  const [versionLoading, setVersionLoading] = useState<boolean>(
+    !initialVersion
+  );
 
-  const LAST_CHECKED_KEY = "app-version-last-checked";
+  const {
+    lastChecked,
+    applyUpdate,
+    dismissUpdate,
+    checkForUpdates,
+    info: updateInfo,
+    loading: updateLoading,
+    available: updateAvailable,
+  } = useAppUpdate();
 
   const formatLastChecked = (date: Date): string => {
     return format(date, "MMMM d, yyyy HH:mm");
   };
 
-  const saveLastChecked = (date: Date): void => {
+  const handleCheckForUpdates = async (): Promise<void> => {
     try {
-      localStorage.setItem(LAST_CHECKED_KEY, date.toISOString());
-      setLastChecked(date);
-    } catch (error) {
-      console.warn("Failed to save last checked time:", error);
-      setLastChecked(date);
-    }
-  };
+      const hasUpdate = await checkForUpdates(true);
 
-  const loadLastChecked = (): Date | null => {
-    try {
-      const stored = localStorage.getItem(LAST_CHECKED_KEY);
-      if (stored) {
-        return new Date(stored);
+      if (hasUpdate) {
+        setShowUpdateModal(true);
+      } else {
+        toast.success("Check Complete", {
+          duration: 2000,
+          description: "You're running the latest version.",
+        });
       }
-    } catch (error) {
-      console.warn("Failed to load last checked time:", error);
-    }
-    return null;
-  };
-
-  const checkForUpdates = async (): Promise<void> => {
-    setUpdating(true);
-    try {
-      await serviceWorkerManager.update();
-      const newVersion = await versionManager.getVersionString();
-
-      setVersion(newVersion);
-      saveLastChecked(new Date());
-
-      toast.success("Check Complete", {
-        duration: 2000,
-        description: "You're running the latest version.",
-      });
     } catch (error) {
       console.error("Failed to check for updates:", error);
       toast.error("Update Check Failed", {
         description: "Unable to check for updates. Please try again.",
       });
-    } finally {
-      setUpdating(false);
+    }
+  };
+
+  const handleUpdateModalClose = (open: boolean) => {
+    setShowUpdateModal(open);
+    if (!open && updateAvailable) {
+      dismissUpdate();
     }
   };
 
   useEffect(() => {
     const loadVersion = async (): Promise<void> => {
-      setLoading(true);
+      if (initialVersion) {
+        setVersionLoading(false);
+        return;
+      }
+
+      setVersionLoading(true);
       try {
         const currentVersion = await versionManager.getVersionString();
         setVersion(currentVersion);
@@ -80,23 +78,14 @@ export const AppVersion = ({ initialVersion }: AppVersionProps) => {
         console.error("Failed to load version:", error);
         setVersion("Unknown");
       } finally {
-        setLoading(false);
+        setVersionLoading(false);
       }
     };
 
-    const storedLastChecked = loadLastChecked();
-    if (storedLastChecked) {
-      setLastChecked(storedLastChecked);
-    }
-
-    if (!initialVersion) {
-      loadVersion();
-    } else {
-      setLoading(false);
-    }
+    loadVersion();
   }, [initialVersion]);
 
-  if (loading) {
+  if (versionLoading) {
     return (
       <div id="app-version" className="mb-6 space-y-6">
         <div>
@@ -148,11 +137,11 @@ export const AppVersion = ({ initialVersion }: AppVersionProps) => {
               </div>
               <Button
                 size="sm"
-                disabled={updating}
-                onClick={checkForUpdates}
+                disabled={updateLoading}
                 className="w-full sm:w-auto"
+                onClick={handleCheckForUpdates}
               >
-                {updating ? (
+                {updateLoading ? (
                   <>
                     <div className="size-4 mr-1 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     Checking...
@@ -168,6 +157,16 @@ export const AppVersion = ({ initialVersion }: AppVersionProps) => {
           </div>
         </CardContent>
       </Card>
+
+      {updateInfo && (
+        <UpdateModal
+          open={showUpdateModal}
+          onUpdate={applyUpdate}
+          updateInfo={updateInfo}
+          onIgnore={dismissUpdate}
+          onOpenChange={handleUpdateModalClose}
+        />
+      )}
     </div>
   );
 };
