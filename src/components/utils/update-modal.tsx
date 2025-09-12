@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import ChangelogRenderer from "@/components/utils/changelog-renderer";
 
 type UpdateInfo = {
   version: string;
@@ -81,15 +82,17 @@ const UpdateModal = ({
   const formatChangelog = (changelog: string) => {
     const lines = changelog.split("\n").filter((line) => line.trim());
     const truncated = changelogExpanded ? lines : lines.slice(0, 3);
+    const truncatedContent = truncated.join("\n");
+    const fullContent = lines.join("\n");
 
     return {
-      lines: truncated,
       canExpand: lines.length > 3,
       isExpanded: changelogExpanded,
+      content: changelogExpanded ? fullContent : truncatedContent,
     };
   };
 
-  const { lines, canExpand, isExpanded } = formatChangelog(
+  const { content, canExpand, isExpanded } = formatChangelog(
     updateInfo.changelog
   );
 
@@ -138,16 +141,13 @@ const UpdateModal = ({
               </div>
 
               <ScrollArea className="max-h-40">
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  {lines.map((line, index) => (
-                    <p key={index} className="leading-relaxed">
-                      {line}
-                    </p>
-                  ))}
-                  {!isExpanded && canExpand && (
-                    <p className="text-xs italic">...</p>
-                  )}
-                </div>
+                <ChangelogRenderer
+                  content={content}
+                  className="space-y-1 text-sm text-muted-foreground"
+                />
+                {!isExpanded && canExpand && (
+                  <p className="text-xs italic mt-2">...</p>
+                )}
               </ScrollArea>
             </div>
 
@@ -227,16 +227,13 @@ const UpdateModal = ({
             </div>
 
             <ScrollArea className="max-h-32">
-              <div className="space-y-1 text-sm text-muted-foreground">
-                {lines.map((line, index) => (
-                  <p key={index} className="leading-relaxed">
-                    {line}
-                  </p>
-                ))}
-                {!isExpanded && canExpand && (
-                  <p className="text-xs italic">...</p>
-                )}
-              </div>
+              <ChangelogRenderer
+                content={content}
+                className="space-y-1 text-sm text-muted-foreground"
+              />
+              {!isExpanded && canExpand && (
+                <p className="text-xs italic mt-2">...</p>
+              )}
             </ScrollArea>
           </div>
 
