@@ -17,7 +17,6 @@ const isMarkdownContent = (content: string): boolean => {
     /\*\*.*\*\*/m, // Bold text
     /^\d+\.\s/m, // Ordered list
     /```[\s\S]*```/m, // Code blocks
-    /https?:\/\/[^\s]+/m, // Plain URLs
   ];
 
   return markdownPatterns.some((pattern) => pattern.test(content));
@@ -51,36 +50,7 @@ const renderLineWithLinks = (line: string) => {
 
 const ChangelogRenderer = ({ content, className }: ChangelogRendererProps) => {
   const cleanContent = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-
-  const contentWithLinks = cleanContent
-    .replace(
-      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/pull\/(\d+)(?![^<]*>)/g,
-      "[#$3](https://github.com/$1/$2/pull/$3)"
-    )
-    .replace(
-      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/issues\/(\d+)(?![^<]*>)/g,
-      "[#$3](https://github.com/$1/$2/issues/$3)"
-    )
-    .replace(
-      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/commit\/([a-f0-9]+)(?![^<]*>)/g,
-      "[`${$3.substring(0, 7)}`](https://github.com/$1/$2/commit/$3)"
-    )
-    .replace(
-      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/releases\/tag\/([^\/\s\[\]()]+)(?![^<]*>)/g,
-      "[$3](https://github.com/$1/$2/releases/tag/$3)"
-    )
-    .replace(
-      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/tree\/([^\/\s\[\]()]+)(?![^<]*>)/g,
-      "[$3](https://github.com/$1/$2/tree/$3)"
-    )
-    .replace(
-      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/compare\/([^\/\s\[\]()]+)(?![^<]*>)/g,
-      "[compare](https://github.com/$1/$2/compare/$3)"
-    )
-    .replace(
-      /(?<![\[\(])(https?:\/\/(?!github\.com)[^\s\[\]()]+)(?![^<]*>)/g,
-      "[$1]($1)"
-    );
+  const contentWithLinks = cleanContent;
 
   if (isMarkdownContent(cleanContent)) {
     return (
