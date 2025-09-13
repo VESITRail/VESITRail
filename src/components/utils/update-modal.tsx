@@ -140,7 +140,7 @@ const UpdateModal = ({
                 )}
               </div>
 
-              <ScrollArea className="max-h-40">
+              <div className="max-h-40 overflow-y-auto">
                 <ChangelogRenderer
                   content={content}
                   className="space-y-1 text-sm text-muted-foreground"
@@ -148,7 +148,7 @@ const UpdateModal = ({
                 {!isExpanded && canExpand && (
                   <p className="text-xs italic mt-2">...</p>
                 )}
-              </ScrollArea>
+              </div>
             </div>
 
             <div className="flex gap-4 justify-end">
@@ -226,7 +226,7 @@ const UpdateModal = ({
               )}
             </div>
 
-            <ScrollArea className="max-h-32">
+            <div className="max-h-32 overflow-y-auto">
               <ChangelogRenderer
                 content={content}
                 className="space-y-1 text-sm text-muted-foreground"
@@ -234,7 +234,7 @@ const UpdateModal = ({
               {!isExpanded && canExpand && (
                 <p className="text-xs italic mt-2">...</p>
               )}
-            </ScrollArea>
+            </div>
           </div>
 
           <div className="flex gap-4">
