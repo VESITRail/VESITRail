@@ -78,6 +78,13 @@ const UpdateModal = ({
     }
   };
 
+  const formatVersionDisplay = (version: string) => {
+    if (version.startsWith("v")) {
+      return version;
+    }
+    return `v${version}`;
+  };
+
   const formatChangelog = (changelog: string) => {
     const lines = changelog.split("\n").filter((line) => line.trim());
     const truncated = changelogExpanded ? lines : lines.slice(0, 3);
@@ -105,7 +112,9 @@ const UpdateModal = ({
                 <DialogTitle className="text-lg font-semibold">
                   Update Available
                 </DialogTitle>
-                <Badge variant="secondary">v{updateInfo.version}</Badge>
+                <Badge variant="secondary">
+                  {formatVersionDisplay(updateInfo.version)}
+                </Badge>
               </div>
             </div>
             <p className="text-sm text-muted-foreground text-left">
@@ -139,7 +148,7 @@ const UpdateModal = ({
                 )}
               </div>
 
-              <div className="max-h-40 overflow-y-auto">
+              <div className="max-h-40 overflow-y-auto overflow-x-hidden">
                 <ChangelogRenderer
                   content={content}
                   className="space-y-1 text-sm text-muted-foreground"
@@ -191,7 +200,9 @@ const UpdateModal = ({
               <DrawerTitle className="text-lg font-semibold">
                 Update Available
               </DrawerTitle>
-              <Badge variant="secondary">v{updateInfo.version}</Badge>
+              <Badge variant="secondary">
+                {formatVersionDisplay(updateInfo.version)}
+              </Badge>
             </div>
           </div>
           <p className="text-sm text-muted-foreground text-left">
@@ -225,7 +236,7 @@ const UpdateModal = ({
               )}
             </div>
 
-            <div className="max-h-32 overflow-y-auto">
+            <div className="max-h-32 overflow-y-auto overflow-x-hidden">
               <ChangelogRenderer
                 content={content}
                 className="space-y-1 text-sm text-muted-foreground"
