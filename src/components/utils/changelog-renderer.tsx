@@ -17,28 +17,93 @@ const isMarkdownContent = (content: string): boolean => {
     /\*\*.*\*\*/m, // Bold text
     /^\d+\.\s/m, // Ordered list
     /```[\s\S]*```/m, // Code blocks
+    /https?:\/\/[^\s]+/m, // Plain URLs
   ];
 
   return markdownPatterns.some((pattern) => pattern.test(content));
 };
 
+const renderLineWithLinks = (line: string) => {
+  const urlRegex = /(https?:\/\/[^\s\[\]()]+)/g;
+  const parts = line.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: "var(--selection-color)",
+            backgroundColor: "var(--selection-background)",
+          }}
+          className="hover:underline break-all bg-accent/20 px-1 py-0.5 rounded-sm"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 const ChangelogRenderer = ({ content, className }: ChangelogRendererProps) => {
-  if (isMarkdownContent(content)) {
+  const cleanContent = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+  const contentWithLinks = cleanContent
+    .replace(
+      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/pull\/(\d+)(?![^<]*>)/g,
+      "[#$3](https://github.com/$1/$2/pull/$3)"
+    )
+    .replace(
+      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/issues\/(\d+)(?![^<]*>)/g,
+      "[#$3](https://github.com/$1/$2/issues/$3)"
+    )
+    .replace(
+      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/commit\/([a-f0-9]+)(?![^<]*>)/g,
+      "[`${$3.substring(0, 7)}`](https://github.com/$1/$2/commit/$3)"
+    )
+    .replace(
+      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/releases\/tag\/([^\/\s\[\]()]+)(?![^<]*>)/g,
+      "[$3](https://github.com/$1/$2/releases/tag/$3)"
+    )
+    .replace(
+      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/tree\/([^\/\s\[\]()]+)(?![^<]*>)/g,
+      "[$3](https://github.com/$1/$2/tree/$3)"
+    )
+    .replace(
+      /https:\/\/github\.com\/([^\/\s\[\]()]+)\/([^\/\s\[\]()]+)\/compare\/([^\/\s\[\]()]+)(?![^<]*>)/g,
+      "[compare](https://github.com/$1/$2/compare/$3)"
+    )
+    .replace(
+      /(?<![\[\(])(https?:\/\/(?!github\.com)[^\s\[\]()]+)(?![^<]*>)/g,
+      "[$1]($1)"
+    );
+
+  if (isMarkdownContent(cleanContent)) {
     return (
       <div className={className}>
         <ReactMarkdown
           components={{
             h1: ({ children }) => (
-              <h1 className="text-base font-semibold mb-2">{children}</h1>
+              <h1 className="text-base font-semibold mb-2 text-foreground">
+                {children}
+              </h1>
             ),
             h2: ({ children }) => (
-              <h2 className="text-sm font-semibold mb-1">{children}</h2>
+              <h2 className="text-sm font-semibold mb-1 text-foreground">
+                {children}
+              </h2>
             ),
             h3: ({ children }) => (
-              <h3 className="text-sm font-medium mb-1">{children}</h3>
+              <h3 className="text-sm font-medium mb-1 text-foreground">
+                {children}
+              </h3>
             ),
             p: ({ children }) => (
-              <p className="leading-relaxed mb-1">{children}</p>
+              <p className="leading-relaxed mb-1 text-foreground">{children}</p>
             ),
             ul: ({ children }) => (
               <ul className="list-disc list-inside space-y-1 mb-2">
@@ -51,19 +116,23 @@ const ChangelogRenderer = ({ content, className }: ChangelogRendererProps) => {
               </ol>
             ),
             li: ({ children }) => (
-              <li className="leading-relaxed">{children}</li>
+              <li className="leading-relaxed text-foreground">{children}</li>
             ),
             strong: ({ children }) => (
-              <strong className="font-medium">{children}</strong>
+              <strong className="font-medium text-foreground">
+                {children}
+              </strong>
             ),
-            em: ({ children }) => <em className="italic">{children}</em>,
+            em: ({ children }) => (
+              <em className="italic text-muted-foreground">{children}</em>
+            ),
             code: ({ children }) => (
-              <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
+              <code className="bg-muted text-muted-foreground px-1 py-0.5 rounded text-xs font-mono">
                 {children}
               </code>
             ),
             pre: ({ children }) => (
-              <pre className="bg-muted p-2 rounded text-xs font-mono overflow-x-auto mb-2">
+              <pre className="bg-muted text-muted-foreground p-2 rounded text-xs font-mono overflow-x-auto mb-2">
                 {children}
               </pre>
             ),
@@ -72,19 +141,23 @@ const ChangelogRenderer = ({ content, className }: ChangelogRendererProps) => {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                style={{
+                  color: "var(--selection-color)",
+                  backgroundColor: "var(--selection-background)",
+                }}
+                className="hover:underline break-all bg-accent/20 px-1 py-0.5 rounded-sm"
               >
                 {children}
               </a>
             ),
             blockquote: ({ children }) => (
-              <blockquote className="border-l-2 border-muted-foreground pl-3 italic mb-2">
+              <blockquote className="border-l-2 border-muted-foreground pl-3 italic mb-2 text-muted-foreground">
                 {children}
               </blockquote>
             ),
           }}
         >
-          {content}
+          {contentWithLinks}
         </ReactMarkdown>
       </div>
     );
@@ -92,9 +165,9 @@ const ChangelogRenderer = ({ content, className }: ChangelogRendererProps) => {
 
   return (
     <div className={className}>
-      {content.split("\n").map((line, index) => (
-        <p key={index} className="leading-relaxed">
-          {line || "\u00A0"}
+      {cleanContent.split("\n").map((line, index) => (
+        <p key={index} className="leading-relaxed text-foreground">
+          {line ? renderLineWithLinks(line) : "\u00A0"}
         </p>
       ))}
     </div>
