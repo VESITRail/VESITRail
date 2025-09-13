@@ -37,10 +37,10 @@ class VersionManager {
       console.error("Failed to parse stored version:", error);
     }
 
-    return await this.fetchLatestVersion();
+    return this.getFallbackVersion();
   }
 
-  private async fetchLatestVersion(): Promise<VersionInfo | null> {
+  async getLatestRelease(): Promise<VersionInfo | null> {
     try {
       const response = await fetch(
         `https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest`,
@@ -67,17 +67,10 @@ class VersionManager {
         version: data.tag_name.replace(/^v/, ""),
       };
 
-      try {
-        localStorage.setItem(this.storageKey, JSON.stringify(versionInfo));
-      } catch (error) {
-        console.warn("Failed to store version info:", error);
-      }
-
-      this.cachedVersion = versionInfo;
       return versionInfo;
     } catch (error) {
-      console.error("Failed to fetch version from GitHub:", error);
-      return this.getFallbackVersion();
+      console.error("Failed to fetch latest release from GitHub:", error);
+      return null;
     }
   }
 
@@ -117,28 +110,10 @@ class VersionManager {
     const current = await this.getCurrentVersion();
     if (!current) return false;
 
-    try {
-      const response = await fetch(
-        `https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest`,
-        {
-          headers: {
-            Accept: "application/vnd.github.v3+json",
-          },
-        }
-      );
+    const latest = await this.getLatestRelease();
+    if (!latest) return false;
 
-      if (!response.ok) return false;
-
-      const data = (await response.json()) as GitHubRelease;
-
-      if (data.draft || data.prerelease) return false;
-
-      const latestVersion = data.tag_name.replace(/^v/, "");
-      return this.compareVersions(current.version, latestVersion) < 0;
-    } catch (error) {
-      console.error("Failed to check for updates:", error);
-      return false;
-    }
+    return this.compareVersions(current.version, latest.version) < 0;
   }
 
   async storeNewVersion(version: string, tagName: string): Promise<void> {

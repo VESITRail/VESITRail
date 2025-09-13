@@ -101,6 +101,12 @@ export const useAppUpdate = () => {
           return false;
         }
 
+        const latest = await versionManager.getLatestRelease();
+        if (!latest) {
+          setState((prev) => ({ ...prev, loading: false }));
+          return false;
+        }
+
         const response = await fetch(
           `https://api.github.com/repos/VESITRail/VESITRail/releases/latest`,
           {
@@ -115,22 +121,16 @@ export const useAppUpdate = () => {
           return false;
         }
 
-        const data = await response.json();
+        const releaseData = await response.json();
 
-        if (data.draft || data.prerelease) {
-          setState((prev) => ({ ...prev, loading: false }));
-          return false;
-        }
+        const hasUpdate = compareVersions(current.version, latest.version) < 0;
 
-        const latestVersion = data.tag_name.replace(/^v/, "");
-        const hasUpdate = compareVersions(current.version, latestVersion) < 0;
-
-        if (hasUpdate && (force || !isVersionIgnored(latestVersion))) {
+        if (hasUpdate && (force || !isVersionIgnored(latest.version))) {
           const updateInfo: UpdateInfo = {
-            version: latestVersion,
-            tagName: data.tag_name,
-            publishedAt: data.published_at,
-            changelog: data.body || "No changelog available.",
+            version: latest.version,
+            tagName: latest.tagName,
+            publishedAt: releaseData.published_at,
+            changelog: releaseData.body || "No changelog available.",
           };
 
           setState({

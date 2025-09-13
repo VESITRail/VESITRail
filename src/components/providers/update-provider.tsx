@@ -34,7 +34,6 @@ export const UpdateProvider = ({ children }: UpdateProviderProps) => {
     applyUpdate,
     dismissUpdate,
     checkForUpdates,
-    backgroundCheck,
   } = useAppUpdate();
   const [showModal, setShowModal] = useState<boolean>(false);
 
@@ -47,19 +46,19 @@ export const UpdateProvider = ({ children }: UpdateProviderProps) => {
   useEffect(() => {
     let mounted = true;
 
-    const performBackgroundCheck = async () => {
+    const performInitialCheck = async () => {
       if (typeof window === "undefined") return;
 
       try {
-        await backgroundCheck();
+        await checkForUpdates(false);
       } catch (error) {
-        console.error("Background update check failed:", error);
+        console.error("Initial update check failed:", error);
       }
     };
 
     const timer = setTimeout(() => {
       if (mounted) {
-        performBackgroundCheck();
+        performInitialCheck();
       }
     }, 1000);
 
@@ -67,7 +66,7 @@ export const UpdateProvider = ({ children }: UpdateProviderProps) => {
       mounted = false;
       clearTimeout(timer);
     };
-  }, [backgroundCheck]);
+  }, [checkForUpdates]);
 
   const handleModalClose = (open: boolean) => {
     setShowModal(open);
