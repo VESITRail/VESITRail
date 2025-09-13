@@ -18,7 +18,6 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronUp, Download } from "lucide-react";
 import ChangelogRenderer from "@/components/utils/changelog-renderer";
 
