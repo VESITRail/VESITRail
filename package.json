@@ -1,8 +1,8 @@
 {
   "private": true,
-  "version": "0.0.0-development",
   "name": "vesitrail",
   "author": "VESITRail",
+  "version": "0.0.0-semantically-released",
   "homepage": "https://vesitrail.ves.ac.in",
   "repository": {
     "type": "git",
