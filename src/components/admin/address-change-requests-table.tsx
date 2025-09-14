@@ -8,6 +8,7 @@ import {
   Train,
   MapPin,
   XCircle,
+  Loader2,
   FileText,
   Calendar,
   RefreshCw,
@@ -16,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import {
   AddressChangeRequestItem,
@@ -45,6 +47,14 @@ import {
   getCoreRowModel,
 } from "@tanstack/react-table";
 import {
+  Dialog,
+  DialogTitle,
+  DialogFooter,
+  DialogHeader,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogTitle,
   AlertDialogCancel,
@@ -63,7 +73,6 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 import { toTitleCase } from "@/lib/utils";
 import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +81,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressChangeStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+
+const PREDEFINED_REJECTION_REASONS = [
+  {
+    label: "Address Mismatch",
+    reason: "The entered address does not match the verification document.",
+  },
+  {
+    label: "Invalid Document",
+    reason: "The uploaded verification document is invalid.",
+  },
+  {
+    label: "Unclear Document",
+    reason: "The uploaded document is unclear or unreadable.",
+  },
+  {
+    label: "Station Mismatch",
+    reason: "The address does not belong to the selected station.",
+  },
+];
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -110,6 +137,8 @@ const AddressChangeRequestDetailsDialog = ({
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [rejectionReason, setRejectionReason] = useState<string>("");
+  const [selectedPredefinedReason, setSelectedPredefinedReason] =
+    useState<string>("");
   const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
   const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
 
@@ -188,8 +217,16 @@ const AddressChangeRequestDetailsDialog = ({
   const handleReject = async () => {
     if (!requestDetails) return;
 
-    if (!rejectionReason.trim()) {
-      toast.error("Please provide a reason for rejecting this request.");
+    const selectedReasonObj = PREDEFINED_REJECTION_REASONS.find(
+      (r) => r.label === selectedPredefinedReason
+    );
+    const finalReason =
+      rejectionReason.trim() || selectedReasonObj?.reason || "";
+
+    if (!finalReason) {
+      toast.error("Reason required", {
+        description: "Please provide a reason for rejecting this request.",
+      });
       return;
     }
 
@@ -200,7 +237,7 @@ const AddressChangeRequestDetailsDialog = ({
         requestDetails.id,
         adminId,
         "Rejected",
-        rejectionReason.trim()
+        finalReason
       );
 
       if (result.isSuccess) {
@@ -208,13 +245,14 @@ const AddressChangeRequestDetailsDialog = ({
           ...requestDetails,
           status: "Rejected" as AddressChangeStatusType,
           reviewedAt: new Date(),
-          rejectionReason: rejectionReason.trim(),
+          rejectionReason: finalReason,
         };
 
         setRequestDetails(updatedRequest);
         onRequestUpdate?.(updatedRequest);
         setShowRejectDialog(false);
         setRejectionReason("");
+        setSelectedPredefinedReason("");
         setIsOpen(false);
         return updatedRequest;
       } else {
@@ -301,6 +339,13 @@ const AddressChangeRequestDetailsDialog = ({
                   <div>
                     <Skeleton className="h-4 w-28 mb-4" />
                     <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="size-4" />
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                      </div>
                       <div className="flex items-start gap-3">
                         <Skeleton className="size-4 mt-0.5" />
                         <div className="flex-1 space-y-1">
@@ -311,13 +356,6 @@ const AddressChangeRequestDetailsDialog = ({
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="size-4" />
-                        <div className="space-y-1">
-                          <Skeleton className="h-4 w-24" />
-                          <Skeleton className="h-3 w-16" />
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -326,6 +364,13 @@ const AddressChangeRequestDetailsDialog = ({
                   <div>
                     <Skeleton className="h-4 w-32 mb-4" />
                     <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="size-4" />
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-20" />
+                          <Skeleton className="h-3 w-14" />
+                        </div>
+                      </div>
                       <div className="flex items-start gap-3">
                         <Skeleton className="size-4 mt-0.5" />
                         <div className="flex-1 space-y-1">
@@ -334,13 +379,6 @@ const AddressChangeRequestDetailsDialog = ({
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-4 w-2/3 mt-1" />
                           </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="size-4" />
-                        <div className="space-y-1">
-                          <Skeleton className="h-4 w-20" />
-                          <Skeleton className="h-3 w-14" />
                         </div>
                       </div>
                     </div>
@@ -499,6 +537,17 @@ const AddressChangeRequestDetailsDialog = ({
                       Current Details
                     </h4>
                     <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Train className="size-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">
+                            {requestDetails.currentStation.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {requestDetails.currentStation.code}
+                          </p>
+                        </div>
+                      </div>
                       <div className="flex items-start gap-3">
                         <Home className="size-4 text-muted-foreground mt-0.5" />
                         <div className="flex-1">
@@ -512,17 +561,6 @@ const AddressChangeRequestDetailsDialog = ({
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Train className="size-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">
-                            {requestDetails.currentStation.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {requestDetails.currentStation.code}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -533,6 +571,17 @@ const AddressChangeRequestDetailsDialog = ({
                       Requested Changes
                     </h4>
                     <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Train className="size-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">
+                            {requestDetails.newStation.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {requestDetails.newStation.code}
+                          </p>
+                        </div>
+                      </div>
                       <div className="flex items-start gap-3">
                         <Home className="size-4 text-muted-foreground mt-0.5" />
                         <div className="flex-1">
@@ -544,17 +593,6 @@ const AddressChangeRequestDetailsDialog = ({
                               {requestDetails.newAddress}
                             </p>
                           </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Train className="size-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">
-                            {requestDetails.newStation.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {requestDetails.newStation.code}
-                          </p>
                         </div>
                       </div>
                     </div>
@@ -707,50 +745,150 @@ const AddressChangeRequestDetailsDialog = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reject Address Change Request</AlertDialogTitle>
-            <AlertDialogDescription>
-              Please provide a detailed reason for rejecting this address change
-              request. This will help the student understand what needs to be
-              corrected.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-full bg-destructive">
+                <AlertTriangle className="size-5 text-white" />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="rejection-reason">Rejection Reason</Label>
-            <Textarea
-              id="rejection-reason"
-              autoCapitalize="words"
-              value={rejectionReason}
-              className="min-h-[100px] capitalize"
-              placeholder="Please explain why this address change request is being rejected..."
-              onChange={(e) => {
-                const capitalizedValue = e.target.value
-                  .split(" ")
-                  .map(
-                    (word) =>
-                      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                  )
-                  .join(" ");
-                setRejectionReason(capitalizedValue);
-              }}
-            />
+              <div>
+                <DialogTitle className="text-lg font-semibold text-foreground">
+                  Reject Address Change Request
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Please provide a reason for rejecting this request
+                </p>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Quick Select Reason
+              </label>
+
+              <Select
+                disabled={isRejecting}
+                value={selectedPredefinedReason}
+                onValueChange={(value) => {
+                  setSelectedPredefinedReason(value);
+                  if (value) {
+                    setRejectionReason("");
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full mt-2 !h-10 !text-foreground cursor-pointer">
+                  <SelectValue
+                    className="whitespace-normal break-words"
+                    placeholder="Select a predefined reason..."
+                  />
+                </SelectTrigger>
+
+                <SelectContent className="w-full max-h-60 overflow-y-auto">
+                  {PREDEFINED_REJECTION_REASONS.map((reasonObj, index) => (
+                    <SelectItem
+                      key={index}
+                      value={reasonObj.label}
+                      className="whitespace-normal text-sm py-2 px-3"
+                    >
+                      {reasonObj.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or write custom reason
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Custom Rejection Reason
+              </label>
+              <Textarea
+                autoCapitalize="words"
+                value={rejectionReason}
+                disabled={isRejecting || !!selectedPredefinedReason}
+                className="min-h-[100px] resize-none mt-2 capitalize"
+                placeholder="Enter a detailed reason for rejection..."
+                onChange={(e) => {
+                  const capitalizedValue = e.target.value
+                    .split(" ")
+                    .map(
+                      (word) =>
+                        word.charAt(0).toUpperCase() +
+                        word.slice(1).toLowerCase()
+                    )
+                    .join(" ");
+
+                  setRejectionReason(capitalizedValue);
+
+                  if (e.target.value) {
+                    setSelectedPredefinedReason("");
+                  }
+                }}
+              />
+            </div>
+
+            {(rejectionReason || selectedPredefinedReason) && (
+              <div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 break-words">
+                <p className="text-sm font-medium text-destructive mb-1">
+                  Preview:
+                </p>
+
+                <p className="text-sm break-words">
+                  {rejectionReason ||
+                    PREDEFINED_REJECTION_REASONS.find(
+                      (r) => r.label === selectedPredefinedReason
+                    )?.reason}
+                </p>
+              </div>
+            )}
           </div>
 
-          <AlertDialogFooter className="gap-4">
-            <AlertDialogCancel disabled={isRejecting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleReject}
-              disabled={isRejecting || !rejectionReason.trim()}
-              className="bg-destructive text-white hover:bg-destructive/90"
+          <DialogFooter className="gap-4 pt-4">
+            <Button
+              variant="outline"
+              disabled={isRejecting}
+              onClick={() => {
+                setRejectionReason("");
+                setShowRejectDialog(false);
+                setSelectedPredefinedReason("");
+              }}
             >
-              {isRejecting ? "Rejecting..." : "Reject Request"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReject}
+              disabled={
+                isRejecting ||
+                (!rejectionReason.trim() && !selectedPredefinedReason)
+              }
+            >
+              {isRejecting ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="size-4 animate-spin" />
+                  Rejecting...
+                </div>
+              ) : (
+                "Reject Request"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
