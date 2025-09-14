@@ -190,10 +190,6 @@ const CacheManagement = () => {
               <div className="space-y-4">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-3 w-full" />
-                <div className="flex justify-between text-xs">
-                  <Skeleton className="h-3 w-16" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
                 <Skeleton className="h-3 w-48" />
               </div>
 
@@ -253,24 +249,17 @@ const CacheManagement = () => {
                 </div>
 
                 <Progress className="h-3" value={cacheUsage.percentage} />
-
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{cacheUsage.totalSize} items cached</span>
-                  <span>
-                    {cacheUsage.cacheCount} cache
-                    {cacheUsage.cacheCount !== 1 ? "s" : ""}
-                  </span>
-                </div>
-
-                <p className="text-xs text-muted-foreground">
-                  Based on {cacheUsage.totalSize} of 500 recommended cache items
-                </p>
               </div>
             )}
 
             {cacheInfo.length > 0 && (
               <div className="space-y-4">
-                <h4 className="text-sm font-medium">Cache Details</h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Cache Details</h4>
+                  <span className="text-sm text-muted-foreground">
+                    {cacheInfo.length} cache{cacheInfo.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
 
                 <div className="space-y-3">
                   {cacheInfo.map((cache) => (

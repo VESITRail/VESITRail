@@ -6,6 +6,7 @@ import {
   Filter,
   Search,
   XCircle,
+  Loader2,
   FileText,
   RefreshCw,
   ArrowUpDown,
@@ -13,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import {
   rejectStudent,
@@ -44,15 +46,13 @@ import {
   getCoreRowModel,
 } from "@tanstack/react-table";
 import {
-  AlertDialog,
-  AlertDialogTitle,
-  AlertDialogCancel,
-  AlertDialogAction,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogTitle,
+  DialogFooter,
+  DialogHeader,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +63,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import Status from "../ui/status";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +72,26 @@ import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { StudentApprovalStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+
+const PREDEFINED_REJECTION_REASONS = [
+  {
+    label: "Address Mismatch",
+    reason:
+      "Address in the verification document and the entered address mismatch",
+  },
+  {
+    label: "Invalid Verification Document",
+    reason: "Invalid verification document",
+  },
+  {
+    label: "Document Not Clear",
+    reason: "Verification document not clear",
+  },
+  {
+    label: "Address Station Mismatch",
+    reason: "Address does not belong to the new station selected",
+  },
+];
 
 type SortOrder = "asc" | "desc";
 
@@ -104,6 +122,8 @@ const StudentDetailsDialog = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [rejectionReason, setRejectionReason] = useState<string>("");
+  const [selectedPredefinedReason, setSelectedPredefinedReason] =
+    useState<string>("");
   const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
 
   const loadStudentDetails = useCallback(async () => {
@@ -164,8 +184,16 @@ const StudentDetailsDialog = ({
   };
 
   const handleReject = async () => {
-    if (!rejectionReason.trim()) {
-      toast.error("Please provide a reason for rejecting this application.");
+    const selectedReasonObj = PREDEFINED_REJECTION_REASONS.find(
+      (r) => r.label === selectedPredefinedReason
+    );
+    const finalReason =
+      rejectionReason.trim() || selectedReasonObj?.reason || "";
+
+    if (!finalReason) {
+      toast.error("Reason required", {
+        description: "Please provide a reason for rejecting this application.",
+      });
       return;
     }
 
@@ -175,7 +203,7 @@ const StudentDetailsDialog = ({
       const result = await rejectStudent({
         reviewedById: adminId,
         studentId: student.userId,
-        rejectionReason: rejectionReason.trim(),
+        rejectionReason: finalReason,
       });
 
       if (result.isSuccess) {
@@ -183,6 +211,7 @@ const StudentDetailsDialog = ({
         onStudentUpdate?.(result.data);
         setShowRejectDialog(false);
         setRejectionReason("");
+        setSelectedPredefinedReason("");
         setIsOpen(false);
         return result.data;
       } else {
@@ -598,59 +627,150 @@ const StudentDetailsDialog = ({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reject Student Application</AlertDialogTitle>
-            <AlertDialogDescription>
-              Please provide a detailed reason for rejecting this student&apos;s
-              application. This will help them understand what needs to be
-              corrected.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-full bg-destructive">
+                <AlertTriangle className="size-5 text-white" />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="rejection-reason">Rejection Reason</Label>
-            <Textarea
-              id="rejection-reason"
-              autoCapitalize="words"
-              value={rejectionReason}
-              className="min-h-[100px] capitalize"
-              placeholder="Please explain why this application is being rejected..."
-              onChange={(e) => {
-                const capitalizedValue = e.target.value
-                  .split(" ")
-                  .map(
-                    (word) =>
-                      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                  )
-                  .join(" ");
-                setRejectionReason(capitalizedValue);
-              }}
-            />
+              <div>
+                <DialogTitle className="text-lg font-semibold text-foreground">
+                  Reject Student Application
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Please provide a reason for rejecting this application
+                </p>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Quick Select Reason
+              </label>
+
+              <Select
+                disabled={isProcessing}
+                value={selectedPredefinedReason}
+                onValueChange={(value) => {
+                  setSelectedPredefinedReason(value);
+                  if (value) {
+                    setRejectionReason("");
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full mt-2 !h-10 !text-foreground cursor-pointer">
+                  <SelectValue
+                    className="whitespace-normal break-words"
+                    placeholder="Select a predefined reason..."
+                  />
+                </SelectTrigger>
+
+                <SelectContent className="w-full max-h-60 overflow-y-auto">
+                  {PREDEFINED_REJECTION_REASONS.map((reasonObj, index) => (
+                    <SelectItem
+                      key={index}
+                      value={reasonObj.label}
+                      className="whitespace-normal text-sm py-2 px-3"
+                    >
+                      {reasonObj.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or write custom reason
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Custom Rejection Reason
+              </label>
+              <Textarea
+                autoCapitalize="words"
+                value={rejectionReason}
+                disabled={isProcessing || !!selectedPredefinedReason}
+                className="min-h-[100px] resize-none mt-2 capitalize"
+                placeholder="Enter a detailed reason for rejection..."
+                onChange={(e) => {
+                  const capitalizedValue = e.target.value
+                    .split(" ")
+                    .map(
+                      (word) =>
+                        word.charAt(0).toUpperCase() +
+                        word.slice(1).toLowerCase()
+                    )
+                    .join(" ");
+
+                  setRejectionReason(capitalizedValue);
+
+                  if (e.target.value) {
+                    setSelectedPredefinedReason("");
+                  }
+                }}
+              />
+            </div>
+
+            {(rejectionReason || selectedPredefinedReason) && (
+              <div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 break-words">
+                <p className="text-sm font-medium text-destructive mb-1">
+                  Preview:
+                </p>
+
+                <p className="text-sm break-words">
+                  {rejectionReason ||
+                    PREDEFINED_REJECTION_REASONS.find(
+                      (r) => r.label === selectedPredefinedReason
+                    )?.reason}
+                </p>
+              </div>
+            )}
           </div>
 
-          <AlertDialogFooter className="gap-4">
-            <AlertDialogCancel disabled={isProcessing}>
+          <DialogFooter className="gap-4 pt-4">
+            <Button
+              variant="outline"
+              disabled={isProcessing}
+              onClick={() => {
+                setRejectionReason("");
+                setShowRejectDialog(false);
+                setSelectedPredefinedReason("");
+              }}
+            >
               Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
+              variant="destructive"
               onClick={handleReject}
-              disabled={isProcessing || !rejectionReason.trim()}
-              className="bg-destructive text-white hover:bg-destructive/90"
+              disabled={
+                isProcessing ||
+                (!rejectionReason.trim() && !selectedPredefinedReason)
+              }
             >
               {isProcessing ? (
-                <>
-                  <div className="size-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <div className="flex items-center gap-2">
+                  <Loader2 className="size-4 animate-spin" />
                   Rejecting...
-                </>
+                </div>
               ) : (
-                <>Reject Student</>
+                "Reject Student"
               )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
