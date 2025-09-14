@@ -4,7 +4,6 @@ import { Inter } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/sonner";
 import { PWAInitializer } from "@/lib/pwa-initializer";
-import { GoogleTagManager } from "@next/third-parties/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { UpdateProvider } from "@/components/providers/update-provider";
 
@@ -33,12 +32,6 @@ const RootLayout = ({
 }>) => {
   return (
     <html lang="en" className="scroll-smooth">
-      {process.env.NODE_ENV === "production" && (
-        <GoogleTagManager
-          gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID!}
-        />
-      )}
-
       <body className={`antialiased ${inter.variable}`}>
         <ThemeProvider
           enableSystem
