@@ -9,10 +9,12 @@ import {
   Search,
   XCircle,
   Printer,
+  Loader2,
   ArrowUpDown,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Table,
@@ -44,10 +46,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
-  DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogHeader,
+  DialogContent,
 } from "@/components/ui/dialog";
 import {
   ConcessionApplicationTypeType,
@@ -70,6 +72,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import ApproveApplicationDialog from "./approve-application-dialog";
+
+const PREDEFINED_REJECTION_REASONS = [
+  {
+    label: "Monthly Period Only",
+    reason:
+      "Currently, only monthly concessions are being issued. Please reapply by selecting 'Monthly' in the concession period.",
+  },
+  {
+    label: "Quarterly Period Only",
+    reason:
+      "Currently, only quarterly concessions are being issued. Please reapply by selecting 'Quarterly' in the concession period.",
+  },
+];
 
 type SortOrder = "asc" | "desc";
 type Station = AdminApplication["station"];
@@ -382,6 +397,8 @@ const ApplicationsTable = ({
     useState<AdminApplication | null>(null);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [rejectionReason, setRejectionReason] = useState<string>("");
+  const [selectedPredefinedReason, setSelectedPredefinedReason] =
+    useState<string>("");
   const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
   const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
   const [showRejectionReasonDialog, setShowRejectionReasonDialog] =
@@ -463,6 +480,8 @@ const ApplicationsTable = ({
 
   const handleReject = useCallback((application: AdminApplication) => {
     setSelectedApplication(application);
+    setRejectionReason("");
+    setSelectedPredefinedReason("");
     setShowRejectDialog(true);
   }, []);
 
@@ -509,8 +528,16 @@ const ApplicationsTable = ({
   const confirmReject = async () => {
     if (!selectedApplication) return;
 
-    if (!rejectionReason.trim()) {
-      toast.error("Please provide a reason for rejecting this application.");
+    const selectedReasonObj = PREDEFINED_REJECTION_REASONS.find(
+      (r) => r.label === selectedPredefinedReason
+    );
+    const finalReason =
+      rejectionReason.trim() || selectedReasonObj?.reason || "";
+
+    if (!finalReason) {
+      toast.error("Reason required", {
+        description: "Please provide a reason for rejecting this application.",
+      });
       return;
     }
 
@@ -521,20 +548,21 @@ const ApplicationsTable = ({
         selectedApplication.id,
         adminId,
         "Rejected",
-        rejectionReason.trim()
+        finalReason
       );
 
       if (result.isSuccess) {
         const updatedApplication = {
           ...selectedApplication,
           reviewedAt: new Date(),
+          rejectionReason: finalReason,
           status: "Rejected" as ApplicationStatus,
-          rejectionReason: rejectionReason.trim(),
         };
 
         updateLocalApplication(updatedApplication);
         setShowRejectDialog(false);
         setRejectionReason("");
+        setSelectedPredefinedReason("");
         setSelectedApplication(null);
         return updatedApplication;
       } else {
@@ -1106,38 +1134,126 @@ const ApplicationsTable = ({
       />
 
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reject Application</DialogTitle>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-full bg-destructive">
+                <AlertTriangle className="size-5 text-white" />
+              </div>
+
+              <div>
+                <DialogTitle className="text-lg font-semibold text-foreground">
+                  Reject Application
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Please provide a reason for rejecting this application
+                </p>
+              </div>
+            </div>
           </DialogHeader>
 
-          <Textarea
-            id="rejectionReason"
-            autoCapitalize="words"
-            disabled={isRejecting}
-            value={rejectionReason}
-            className="mt-2 min-h-[100px] capitalize"
-            placeholder="Please provide a detailed reason for rejecting this application..."
-            onChange={(e) => {
-              const capitalizedValue = e.target.value
-                .split(" ")
-                .map(
-                  (word) =>
-                    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-                )
-                .join(" ");
-              setRejectionReason(capitalizedValue);
-            }}
-          />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Quick Select Reason
+              </label>
 
-          <DialogFooter className="gap-4">
+              <Select
+                disabled={isRejecting}
+                value={selectedPredefinedReason}
+                onValueChange={(value) => {
+                  setSelectedPredefinedReason(value);
+                  if (value) {
+                    setRejectionReason("");
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full mt-2 !h-10 !text-foreground cursor-pointer">
+                  <SelectValue
+                    className="whitespace-normal break-words"
+                    placeholder="Select a predefined reason..."
+                  />
+                </SelectTrigger>
+
+                <SelectContent className="w-full max-h-60 overflow-y-auto">
+                  {PREDEFINED_REJECTION_REASONS.map((reasonObj, index) => (
+                    <SelectItem
+                      key={index}
+                      value={reasonObj.label}
+                      className="whitespace-normal text-sm py-2 px-3"
+                    >
+                      {reasonObj.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or write custom reason
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Custom Rejection Reason
+              </label>
+              <Textarea
+                autoCapitalize="words"
+                value={rejectionReason}
+                disabled={isRejecting || !!selectedPredefinedReason}
+                className="min-h-[100px] resize-none mt-2 capitalize"
+                placeholder="Enter a detailed reason for rejection..."
+                onChange={(e) => {
+                  const capitalizedValue = e.target.value
+                    .split(" ")
+                    .map(
+                      (word) =>
+                        word.charAt(0).toUpperCase() +
+                        word.slice(1).toLowerCase()
+                    )
+                    .join(" ");
+
+                  setRejectionReason(capitalizedValue);
+
+                  if (e.target.value) {
+                    setSelectedPredefinedReason("");
+                  }
+                }}
+              />
+            </div>
+
+            {(rejectionReason || selectedPredefinedReason) && (
+              <div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 break-words">
+                <p className="text-sm font-medium text-destructive mb-1">
+                  Preview:
+                </p>
+
+                <p className="text-sm break-words">
+                  {rejectionReason ||
+                    PREDEFINED_REJECTION_REASONS.find(
+                      (r) => r.label === selectedPredefinedReason
+                    )?.reason}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-4 pt-4">
             <Button
               variant="outline"
               disabled={isRejecting}
               onClick={() => {
-                setShowRejectDialog(false);
                 setRejectionReason("");
+                setShowRejectDialog(false);
                 setSelectedApplication(null);
+                setSelectedPredefinedReason("");
               }}
             >
               Cancel
@@ -1145,9 +1261,19 @@ const ApplicationsTable = ({
             <Button
               variant="destructive"
               onClick={confirmReject}
-              disabled={isRejecting || !rejectionReason.trim()}
+              disabled={
+                isRejecting ||
+                (!rejectionReason.trim() && !selectedPredefinedReason)
+              }
             >
-              {isRejecting ? "Rejecting..." : "Reject Application"}
+              {isRejecting ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="size-4 animate-spin" />
+                  Rejecting...
+                </div>
+              ) : (
+                "Reject Application"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1157,30 +1283,95 @@ const ApplicationsTable = ({
         open={showRejectionReasonDialog}
         onOpenChange={setShowRejectionReasonDialog}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rejection Reason</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {applicationDetails ? (
-              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <p className="text-destructive">
-                  {applicationDetails.rejectionReason}
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-full bg-destructive">
+                <XCircle className="size-5 text-white" />
+              </div>
+
+              <div>
+                <DialogTitle className="text-lg font-semibold text-foreground">
+                  Application Rejection Details
+                </DialogTitle>
+
+                <p className="text-sm text-muted-foreground mt-1">
+                  {selectedApplication && (
+                    <>Application ID: #{selectedApplication.shortId}</>
+                  )}
                 </p>
               </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="p-4 border rounded-lg space-y-2">
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {selectedApplication && (
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Student Name:
+                    </span>
+
+                    <span className="text-sm font-medium text-foreground">
+                      {toTitleCase(
+                        `${selectedApplication.student.firstName} ${selectedApplication.student.lastName}`
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Application Type:
+                    </span>
+
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedApplication.applicationType}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Rejected Date:
+                    </span>
+
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedApplication.reviewedAt
+                        ? format(
+                            new Date(selectedApplication.reviewedAt),
+                            "MMMM dd, yyyy"
+                          )
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-foreground">
+                Rejection Reason
+              </label>
+
+              {applicationDetails ? (
+                <div className="mt-2 p-4 rounded-lg bg-destructive/5 border border-destructive/20">
+                  <p className="text-sm text-destructive leading-relaxed break-words whitespace-pre-wrap">
+                    {applicationDetails.rejectionReason}
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-2 p-4 rounded-lg bg-destructive/5 border border-destructive/20 space-y-2">
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="pt-4">
             <Button
-              variant="destructive"
+              variant="outline"
               onClick={() => {
                 setShowRejectionReasonDialog(false);
                 setSelectedApplication(null);
