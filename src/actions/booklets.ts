@@ -23,11 +23,15 @@ import type { Prisma } from "@/generated/prisma";
 import { calculateSerialEndNumber } from "@/lib/utils";
 
 export type CreateBookletInput = {
+  anchorX: number;
+  anchorY: number;
   serialStartNumber: string;
   status: ConcessionBookletStatusType;
 };
 
 export type UpdateBookletInput = {
+  anchorX: number;
+  anchorY: number;
   isDamaged: boolean;
   serialStartNumber: string;
 };
@@ -152,6 +156,8 @@ export const createBooklet = async (
         serialEndNumber,
         serialStartNumber,
         status: data.status,
+        anchorX: data.anchorX,
+        anchorY: data.anchorY,
       },
       include: {
         _count: {
@@ -367,6 +373,8 @@ export const updateBooklet = async (
 
     const updateData: Prisma.ConcessionBookletUpdateInput = {
       status: newStatus,
+      anchorX: data.anchorX,
+      anchorY: data.anchorY,
       serialEndNumber: serialEndNumber,
       serialStartNumber: data.serialStartNumber,
     };
