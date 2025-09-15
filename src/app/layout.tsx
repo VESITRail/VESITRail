@@ -42,7 +42,7 @@ const RootLayout = ({
           <UpdateProvider>
             <NextTopLoader color="#9333EA" showSpinner={false} />
             {children}
-            <Toaster />
+            <Toaster richColors />
             <PWAInitializer />
           </UpdateProvider>
         </ThemeProvider>
