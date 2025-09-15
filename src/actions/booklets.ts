@@ -21,18 +21,15 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma";
 import { calculateSerialEndNumber } from "@/lib/utils";
-import { deleteCloudinaryFile } from "@/actions/cloudinary";
 
 export type CreateBookletInput = {
   serialStartNumber: string;
-  overlayTemplateUrl: string;
   status: ConcessionBookletStatusType;
 };
 
 export type UpdateBookletInput = {
   isDamaged: boolean;
   serialStartNumber: string;
-  overlayTemplateUrl?: string;
 };
 
 export type BookletItem = ConcessionBooklet & {
@@ -129,10 +126,6 @@ export const createBooklet = async (
       );
     }
 
-    if (!data.overlayTemplateUrl) {
-      return failure(validationError("Overlay template is required"));
-    }
-
     const existingBooklet = await prisma.concessionBooklet.findFirst({
       where: {
         serialStartNumber,
@@ -159,8 +152,6 @@ export const createBooklet = async (
         serialEndNumber,
         serialStartNumber,
         status: data.status,
-        overlayStatus: "NotConfigured",
-        overlayTemplateUrl: data.overlayTemplateUrl,
       },
       include: {
         _count: {
@@ -281,45 +272,6 @@ export const deleteBooklet = async (
       );
     }
 
-    if (booklet.overlayTemplateUrl) {
-      try {
-        const url = new URL(booklet.overlayTemplateUrl);
-        const pathSegments = url.pathname.split("/");
-
-        const uploadIndex = pathSegments.findIndex(
-          (segment) => segment === "upload"
-        );
-        if (uploadIndex !== -1 && uploadIndex + 2 < pathSegments.length) {
-          const publicIdParts = pathSegments.slice(uploadIndex + 2);
-          let publicId = publicIdParts.join("/");
-
-          if (publicId.includes(".")) {
-            publicId = publicId.substring(0, publicId.lastIndexOf("."));
-          }
-
-          publicId = `${decodeURIComponent(publicId)}.pdf`;
-          const cloudinaryResult = await deleteCloudinaryFile(publicId);
-
-          if (!cloudinaryResult.isSuccess) {
-            console.warn(
-              "Failed to delete overlay template from Cloudinary:",
-              cloudinaryResult.error.message
-            );
-          }
-        } else {
-          console.warn(
-            "Could not extract public ID from Cloudinary URL:",
-            booklet.overlayTemplateUrl
-          );
-        }
-      } catch (error) {
-        console.warn(
-          "Error while deleting overlay template from Cloudinary:",
-          error
-        );
-      }
-    }
-
     await prisma.concessionBooklet.delete({
       where: { id: bookletId },
     });
@@ -418,10 +370,6 @@ export const updateBooklet = async (
       serialEndNumber: serialEndNumber,
       serialStartNumber: data.serialStartNumber,
     };
-
-    if (data.overlayTemplateUrl !== undefined) {
-      updateData.overlayTemplateUrl = data.overlayTemplateUrl;
-    }
 
     const updatedBooklet = await prisma.concessionBooklet.update({
       data: updateData,
