@@ -28,11 +28,15 @@ const UpdateBookletPage = () => {
   const [booklet, setBooklet] = useState<BookletItem | null>(null);
 
   const [formData, setFormData] = useState<UpdateBookletInput>({
+    anchorX: 0,
+    anchorY: 0,
     isDamaged: false,
     serialStartNumber: "",
   });
 
   const [errors, setErrors] = useState<{
+    anchorX?: string;
+    anchorY?: string;
     serialStartNumber?: string;
   }>({});
 
@@ -56,6 +60,8 @@ const UpdateBookletPage = () => {
 
   const validateForm = useCallback((): boolean => {
     const newErrors: {
+      anchorX?: string;
+      anchorY?: string;
       serialStartNumber?: string;
     } = {};
 
@@ -69,12 +75,20 @@ const UpdateBookletPage = () => {
       }
     }
 
+    if (formData.anchorX < 0 || formData.anchorX > 100) {
+      newErrors.anchorX = "Anchor X must be between 0 and 100";
+    }
+
+    if (formData.anchorY < 0 || formData.anchorY > 100) {
+      newErrors.anchorY = "Anchor Y must be between 0 and 100";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
   const handleInputChange = useCallback(
-    (field: keyof UpdateBookletInput, value: string | boolean) => {
+    (field: keyof UpdateBookletInput, value: string | boolean | number) => {
       let processedValue = value;
 
       if (field === "serialStartNumber" && typeof value === "string") {
@@ -101,6 +115,8 @@ const UpdateBookletPage = () => {
         const bookletData = result.data;
         setBooklet(bookletData);
         setFormData({
+          anchorX: bookletData.anchorX || 0,
+          anchorY: bookletData.anchorY || 0,
           isDamaged: bookletData.status === "Damaged",
           serialStartNumber: bookletData.serialStartNumber,
         });
@@ -193,6 +209,18 @@ const UpdateBookletPage = () => {
               <Skeleton className="h-4 w-48" />
               <Skeleton className="h-9 w-full" />
               <Skeleton className="h-3 w-56" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-9 w-full" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-9 w-full" />
+                <Skeleton className="h-3 w-32" />
+              </div>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="flex items-center justify-between">
@@ -292,6 +320,70 @@ const UpdateBookletPage = () => {
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="anchorX" className="text-sm font-medium">
+                Anchor X Coordinate <span className="text-destructive">*</span>
+              </Label>
+
+              <Input
+                min="0"
+                step="1"
+                max="100"
+                id="anchorX"
+                type="number"
+                placeholder="0.0"
+                value={formData.anchorX}
+                className={`${errors.anchorX ? "border-destructive" : ""}`}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleInputChange("anchorX", parseFloat(e.target.value) || 0)
+                }
+              />
+
+              {errors.anchorX && (
+                <div className="flex items-center gap-2 text-sm text-destructive">
+                  <AlertCircle className="size-4" />
+                  {errors.anchorX}
+                </div>
+              )}
+
+              <div className="text-xs text-muted-foreground">
+                X coordinate (0-100)
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="anchorY" className="text-sm font-medium">
+                Anchor Y Coordinate <span className="text-destructive">*</span>
+              </Label>
+
+              <Input
+                min="0"
+                step="1"
+                max="100"
+                id="anchorY"
+                type="number"
+                placeholder="0.0"
+                value={formData.anchorY}
+                className={`${errors.anchorY ? "border-destructive" : ""}`}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleInputChange("anchorY", parseFloat(e.target.value) || 0)
+                }
+              />
+
+              {errors.anchorY && (
+                <div className="flex items-center gap-2 text-sm text-destructive">
+                  <AlertCircle className="size-4" />
+                  {errors.anchorY}
+                </div>
+              )}
+
+              <div className="text-xs text-muted-foreground">
+                Y coordinate (0-100)
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="space-y-0.5">
               <Label className="text-sm">Mark as Damaged</Label>
@@ -318,7 +410,14 @@ const UpdateBookletPage = () => {
             <Button
               className="min-w-32"
               onClick={handleSubmit}
-              disabled={isUpdating || !formData.serialStartNumber.trim()}
+              disabled={
+                isUpdating ||
+                !formData.serialStartNumber.trim() ||
+                formData.anchorX < 0 ||
+                formData.anchorX > 100 ||
+                formData.anchorY < 0 ||
+                formData.anchorY > 100
+              }
             >
               {isUpdating ? (
                 <>
