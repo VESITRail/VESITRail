@@ -39,13 +39,11 @@ model ConcessionBooklet {
   totalPages    Int @default(50)
   bookletNumber Int @unique @default(autoincrement())
 
+  anchorX           Float
+  anchorY           Float
   serialStartNumber String
   serialEndNumber   String
-
-  overlayTemplateUrl String
-  overlayStatus      ConcessionOverlayStatus @default(NotConfigured)
-
-  status ConcessionBookletStatus @default(Available)
+  status            ConcessionBookletStatus @default(Available)
 
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
