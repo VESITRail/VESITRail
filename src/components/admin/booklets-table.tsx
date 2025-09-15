@@ -335,6 +335,19 @@ const BookletsTable = ({
         ),
       },
       {
+        size: 120,
+        id: "anchorCoordinates",
+        meta: { displayName: "Anchor Coordinates" },
+        header: () => <div className="text-center">Anchor Coordinates</div>,
+        cell: ({ row }) => (
+          <div className="text-center text-sm">
+            <span className="font-mono">
+              ({row.original.anchorX}, {row.original.anchorY})
+            </span>
+          </div>
+        ),
+      },
+      {
         size: 100,
         id: "applications",
         accessorKey: "applications",
