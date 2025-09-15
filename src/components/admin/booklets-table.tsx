@@ -13,7 +13,6 @@ import {
   ChevronDown,
   ChevronRight,
   MoreVertical,
-  ExternalLink,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -55,10 +54,6 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
-import {
-  ConcessionBookletStatusType,
-  ConcessionOverlayStatusType,
-} from "@/generated/zod";
 import Link from "next/link";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -67,6 +62,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConcessionBookletStatusType } from "@/generated/zod";
 import { BookletItem, deleteBooklet } from "@/actions/booklets";
 import { useState, useMemo, useCallback, useEffect } from "react";
 
@@ -88,23 +84,6 @@ const StatusBadge = ({ status }: { status: ConcessionBookletStatusType }) => {
   };
 
   const displayText = status === "InUse" ? "In Use" : status;
-
-  return (
-    <Badge className={`${variants[status]} font-medium`}>{displayText}</Badge>
-  );
-};
-
-const OverlayStatusBadge = ({
-  status,
-}: {
-  status: ConcessionOverlayStatusType;
-}) => {
-  const variants = {
-    Configured: "bg-green-600 text-white",
-    NotConfigured: "bg-red-600 text-white",
-  };
-
-  const displayText = status === "NotConfigured" ? "Not Configured" : status;
 
   return (
     <Badge className={`${variants[status]} font-medium`}>{displayText}</Badge>
@@ -356,29 +335,6 @@ const BookletsTable = ({
         ),
       },
       {
-        size: 130,
-        id: "overlayStatus",
-        accessorKey: "overlayStatus",
-        meta: { displayName: "Overlay Status" },
-        header: () => (
-          <div className="flex justify-center">
-            <Button
-              variant="ghost"
-              onClick={() => handleSort("overlayStatus")}
-              className="h-8 px-2 data-[state=open]:bg-accent"
-            >
-              Overlay Status
-              <ArrowUpDown className="ml-2 size-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <OverlayStatusBadge status={row.original.overlayStatus} />
-          </div>
-        ),
-      },
-      {
         size: 100,
         id: "applications",
         accessorKey: "applications",
@@ -446,19 +402,6 @@ const BookletsTable = ({
                   <Edit className="mr-2 size-4" />
                   Edit Booklet
                 </DropdownMenuItem>
-                {row.original.overlayTemplateUrl && (
-                  <DropdownMenuItem asChild>
-                    <a
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center"
-                      href={row.original.overlayTemplateUrl}
-                    >
-                      <ExternalLink className="mr-2 size-4" />
-                      View Template
-                    </a>
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDeleteClick(row.original)}
