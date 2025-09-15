@@ -39,6 +39,8 @@ model ConcessionBooklet {
   totalPages    Int @default(50)
   bookletNumber Int @unique @default(autoincrement())
 
+  anchorX           Float
+  anchorY           Float
   serialStartNumber String
   serialEndNumber   String
   status            ConcessionBookletStatus @default(Available)
