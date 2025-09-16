@@ -71,6 +71,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useState, useMemo, useEffect } from "react";
+import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
 import ApproveApplicationDialog from "./approve-application-dialog";
 
 const PREDEFINED_REJECTION_REASONS = [
@@ -116,7 +117,8 @@ const createColumns = (
   onSortChange: (column: string) => void,
   onReject?: (application: AdminApplication) => void,
   onApprove?: (application: AdminApplication) => void,
-  onViewRejection?: (application: AdminApplication) => void
+  onViewRejection?: (application: AdminApplication) => void,
+  onPrint?: (application: AdminApplication) => void
 ): ColumnDef<AdminApplication>[] => [
   {
     size: 80,
@@ -287,6 +289,7 @@ const createColumns = (
               className="size-8 p-0"
               title="Print Application"
               aria-label="Print application"
+              onClick={() => onPrint && onPrint(application)}
             >
               <Printer className="size-4" />
             </Button>
@@ -490,6 +493,46 @@ const ApplicationsTable = ({
     setShowRejectionReasonDialog(true);
   }, []);
 
+  const handlePrint = useCallback(async (application: AdminApplication) => {
+    const loadingToast = toast.loading("Generating overlay PDF...", {
+      description: "Please wait while we prepare your PDF document.",
+    });
+
+    try {
+      const res = await generateOverlayPDF(application.id);
+
+      toast.dismiss(loadingToast);
+
+      if (res.isSuccess) {
+        const blob = new Blob([new Uint8Array(res.data)], {
+          type: "application/pdf",
+        });
+        const blobUrl = URL.createObjectURL(blob);
+
+        window.open(blobUrl, "_blank", "noopener,noreferrer");
+
+        setTimeout(() => {
+          URL.revokeObjectURL(blobUrl);
+        }, 1000);
+
+        toast.success("PDF Generated Successfully", {
+          description: "The overlay PDF has been opened in a new tab.",
+        });
+      } else {
+        toast.error("PDF Generation Failed", {
+          description:
+            res.error || "Unable to generate overlay PDF. Please try again.",
+        });
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error("Error in handlePrint:", error);
+      toast.error("PDF Generation Failed", {
+        description: "An unexpected error occurred. Please try again.",
+      });
+    }
+  }, []);
+
   const confirmApprove = async (applicationId: string, bookletId: string) => {
     const approvePromise = async () => {
       const result = await approveConcessionWithBooklet(
@@ -611,7 +654,8 @@ const ApplicationsTable = ({
     handleSort,
     handleReject,
     handleApprove,
-    handleViewRejection
+    handleViewRejection,
+    handlePrint
   );
 
   const handleStatusFilter = useCallback(
