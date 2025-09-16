@@ -58,8 +58,8 @@ import {
 import {
   AdminApplication,
   reviewConcessionApplication,
-  getConcessionApplicationDetails,
   approveConcessionWithBooklet,
+  getConcessionApplicationDetails,
 } from "@/actions/concession";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -521,7 +521,8 @@ const ApplicationsTable = ({
       } else {
         toast.error("PDF Generation Failed", {
           description:
-            res.error || "Unable to generate overlay PDF. Please try again.",
+            res.error?.message ||
+            "Unable to generate overlay PDF. Please try again.",
         });
       }
     } catch (error) {
