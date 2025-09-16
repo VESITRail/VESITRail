@@ -122,7 +122,7 @@ export const generateOverlayPDF = async (
 
     const doc = new jsPDF({
       unit: "pt",
-      format: "a4",
+      format: [842, 666.14],
       orientation: "landscape",
     });
 
