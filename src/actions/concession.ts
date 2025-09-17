@@ -837,9 +837,16 @@ export const approveConcessionWithBooklet = async (
       }
 
       const currentApplicationCount = booklet._count.applications;
-      const pageOffset = currentApplicationCount;
+      const damagedPages = Array.isArray(booklet.damagedPages)
+        ? booklet.damagedPages
+        : [];
 
-      if (currentApplicationCount >= booklet.totalPages) {
+      let nextPage = currentApplicationCount;
+      while (damagedPages.includes(nextPage) && nextPage < booklet.totalPages) {
+        nextPage++;
+      }
+
+      if (nextPage >= booklet.totalPages) {
         throw new Error("Booklet is full");
       }
 
@@ -847,9 +854,9 @@ export const approveConcessionWithBooklet = async (
         where: { id: applicationId },
         data: {
           status: "Approved",
+          pageOffset: nextPage,
           reviewedById: adminId,
           reviewedAt: new Date(),
-          pageOffset: pageOffset,
           concessionBookletId: bookletId,
         },
       });
@@ -858,8 +865,12 @@ export const approveConcessionWithBooklet = async (
 
       if (booklet.status === "Available") {
         newBookletStatus = "InUse";
-      } else if (currentApplicationCount + 1 >= booklet.totalPages) {
-        newBookletStatus = "Exhausted";
+      } else {
+        const totalUsedPages =
+          currentApplicationCount + 1 + damagedPages.length;
+        if (totalUsedPages >= booklet.totalPages) {
+          newBookletStatus = "Exhausted";
+        }
       }
 
       await tx.concessionBooklet.update({

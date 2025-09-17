@@ -15,13 +15,17 @@ import {
   TableHead,
   TableHeader,
 } from "@/components/ui/table";
+import {
+  DamagedPageItem,
+  BookletTableItem,
+  BookletApplicationItem,
+} from "@/actions/booklets";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
 import { toTitleCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBooklet } from "@/generated/zod";
-import { BookletApplicationItem } from "@/actions/booklets";
 import { FileText, ChevronLeft, AlertCircle, ChevronRight } from "lucide-react";
 
 type BookletApplicationsTableProps = {
@@ -32,7 +36,7 @@ type BookletApplicationsTableProps = {
   currentPage: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
-  applications: BookletApplicationItem[];
+  applications: BookletTableItem[];
   onPageChange: (page: number) => void;
   booklet: Pick<
     ConcessionBooklet,
@@ -80,7 +84,7 @@ const BookletApplicationsTable = ({
     return derivedCertificateNo;
   };
 
-  const columns: ColumnDef<BookletApplicationItem>[] = useMemo(() => {
+  const columns: ColumnDef<BookletTableItem>[] = useMemo(() => {
     const getCurrentPassNo = (application: BookletApplicationItem): string => {
       if (application.applicationType === "New") {
         return "New";
@@ -91,15 +95,28 @@ const BookletApplicationsTable = ({
       return "N/A";
     };
 
+    const isDamagedPage = (item: BookletTableItem): item is DamagedPageItem => {
+      return "isDamaged" in item && item.isDamaged === true;
+    };
+
     return [
       {
         size: 60,
         id: "serialNo",
         header: () => <div className="text-center px-2">Sr. No.</div>,
-        cell: ({ row, table }) => {
-          const sortedRows = table.getRowModel().rows;
-          const indexInSorted = sortedRows.findIndex((r) => r.id === row.id);
-          const serialNo = (currentPage - 1) * 10 + indexInSorted + 1;
+        cell: ({ row }) => {
+          const item = row.original;
+          let serialNo: number;
+
+          if (isDamagedPage(item)) {
+            const match = item.serialNumber.match(/\d+$/);
+            serialNo = match ? parseInt(match[0], 10) : 0;
+          } else {
+            const certificateNo = generateCertificateNo(item);
+            const match = certificateNo.match(/\d+$/);
+            serialNo = match ? parseInt(match[0], 10) : 0;
+          }
+
           return (
             <div className="font-medium text-foreground text-center">
               {serialNo}
@@ -108,22 +125,19 @@ const BookletApplicationsTable = ({
         },
       },
       {
-        size: 80,
-        id: "date",
-        accessorKey: "createdAt",
-        header: () => <div className="text-center">Date</div>,
-        cell: ({ row }) => (
-          <div className="text-center text-sm">
-            {format(new Date(row.original.createdAt), "dd/MM/yyyy")}
-          </div>
-        ),
-      },
-      {
         size: 100,
         id: "certificateNo",
         header: () => <div className="text-center">Certificate</div>,
         cell: ({ row }) => {
-          const certificateNo = generateCertificateNo(row.original);
+          const item = row.original;
+          if (isDamagedPage(item)) {
+            return (
+              <div className="text-center">
+                <span className="font-mono text-sm">{item.serialNumber}</span>
+              </div>
+            );
+          }
+          const certificateNo = generateCertificateNo(item);
           return (
             <div className="text-center">
               <span
@@ -137,11 +151,36 @@ const BookletApplicationsTable = ({
         },
       },
       {
+        size: 80,
+        id: "date",
+        accessorKey: "createdAt",
+        header: () => <div className="text-center">Date</div>,
+        cell: ({ row }) => {
+          const item = row.original;
+
+          if (isDamagedPage(item)) {
+            return null;
+          }
+
+          return (
+            <div className="text-center text-sm">
+              {format(new Date(item.createdAt), "dd/MM/yyyy")}
+            </div>
+          );
+        },
+      },
+      {
         size: 140,
         id: "studentName",
         header: () => <div className="text-center">Student Name</div>,
         cell: ({ row }) => {
-          const { firstName, lastName } = row.original.student;
+          const item = row.original;
+
+          if (isDamagedPage(item)) {
+            return null;
+          }
+
+          const { firstName, lastName } = item.student;
           const fullName = `${firstName} ${lastName}`;
 
           return (
@@ -162,7 +201,13 @@ const BookletApplicationsTable = ({
         id: "currentPassNo",
         header: () => <div className="text-center">Current Pass</div>,
         cell: ({ row }) => {
-          const currentPassNo = getCurrentPassNo(row.original);
+          const item = row.original;
+
+          if (isDamagedPage(item)) {
+            return null;
+          }
+
+          const currentPassNo = getCurrentPassNo(item);
           return (
             <div className="text-center">
               <span
@@ -179,53 +224,80 @@ const BookletApplicationsTable = ({
         size: 70,
         id: "gender",
         header: () => <div className="text-center">Gender</div>,
-        cell: ({ row }) => (
-          <div className="text-center">
-            <span className="font-medium" title={row.original.student.gender}>
-              {row.original.student.gender}
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original;
+
+          if (isDamagedPage(item)) {
+            return null;
+          }
+
+          return (
+            <div className="text-center">
+              <span className="font-medium" title={item.student.gender}>
+                {item.student.gender}
+              </span>
+            </div>
+          );
+        },
       },
       {
         size: 90,
         id: "dob",
         header: () => <div className="text-center">Date of Birth</div>,
-        cell: ({ row }) => (
-          <div className="text-center">
-            <span
-              className="text-sm"
-              title={format(
-                new Date(row.original.student.dateOfBirth),
-                "dd/MM/yyyy"
-              )}
-            >
-              {format(new Date(row.original.student.dateOfBirth), "dd/MM/yyyy")}
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original;
+
+          if (isDamagedPage(item)) {
+            return null;
+          }
+
+          return (
+            <div className="text-center">
+              <span
+                className="text-sm"
+                title={format(new Date(item.student.dateOfBirth), "dd/MM/yyyy")}
+              >
+                {format(new Date(item.student.dateOfBirth), "dd/MM/yyyy")}
+              </span>
+            </div>
+          );
+        },
       },
       {
         size: 90,
         id: "period",
         header: () => <div className="text-center">Period</div>,
-        cell: ({ row }) => (
-          <div className="text-center">
-            <span
-              className="font-medium block truncate"
-              title={row.original.concessionPeriod.name}
-            >
-              {row.original.concessionPeriod.name}
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original;
+
+          if (isDamagedPage(item)) {
+            return null;
+          }
+
+          return (
+            <div className="text-center">
+              <span
+                className="font-medium block truncate"
+                title={item.concessionPeriod.name}
+              >
+                {item.concessionPeriod.name}
+              </span>
+            </div>
+          );
+        },
       },
       {
         size: 120,
         id: "homeStation",
         header: () => <div className="text-center">Home Station</div>,
         cell: ({ row }) => {
-          const stationText = `${row.original.station.name} (${row.original.station.code})`;
+          const item = row.original;
+
+          if (isDamagedPage(item)) {
+            return null;
+          }
+
+          const stationText = `${item.station.name} (${item.station.code})`;
           return (
             <div className="text-center">
               <span className="font-medium block truncate" title={stationText}>
@@ -236,7 +308,7 @@ const BookletApplicationsTable = ({
         },
       },
     ];
-  }, [currentPage]);
+  }, []);
 
   const table = useReactTable({
     columns,
@@ -322,15 +394,54 @@ const BookletApplicationsTable = ({
 
     return (
       <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id} className="hover:bg-muted/50 border-border/50">
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id} className="p-4 text-center align-middle">
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
+        {table.getRowModel().rows.map((row) => {
+          const item = row.original;
+          const isDamaged = "isDamaged" in item && item.isDamaged === true;
+
+          if (isDamaged) {
+            const damagedItem = item as DamagedPageItem;
+            const match = damagedItem.serialNumber.match(/\d+$/);
+            const serialNo = match ? parseInt(match[0], 10) : 0;
+
+            return (
+              <TableRow
+                key={row.id}
+                className="hover:bg-muted/50 border-border/50"
+              >
+                <TableCell className="p-4 text-center align-middle">
+                  {serialNo}
+                </TableCell>
+                <TableCell className="p-4 text-center align-middle">
+                  <span className="font-mono text-sm">
+                    {damagedItem.serialNumber}
+                  </span>
+                </TableCell>
+                <TableCell
+                  colSpan={7}
+                  className="p-4 text-center align-middle font-medium"
+                >
+                  Damaged
+                </TableCell>
+              </TableRow>
+            );
+          }
+
+          return (
+            <TableRow
+              key={row.id}
+              className="hover:bg-muted/50 border-border/50"
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell
+                  key={cell.id}
+                  className="p-4 text-center align-middle"
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          );
+        })}
       </TableBody>
     );
   };

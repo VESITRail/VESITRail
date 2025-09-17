@@ -30,6 +30,19 @@ const formatDate = (date: Date) => {
   return `${day}/${month}/${year}`;
 };
 
+const formatDateMonthOnly = (date: Date) => {
+  const d = new Date(date);
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+  return `${day}/${month}/`;
+};
+
+const formatYearLastTwoDigits = (date: Date) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  return String(year).slice(-2);
+};
+
 const addMonths = (date: Date, months: number) => {
   const d = new Date(date);
   const originalDay = d.getDate();
@@ -190,11 +203,11 @@ export const generateOverlayPDF = async (
       );
       writeText(
         eff(layout.left.last_season_ticket_held_upto_date),
-        formatDate(prevEnd)
+        formatDateMonthOnly(prevEnd)
       );
       writeText(
         eff(layout.left.last_season_ticket_held_upto_year),
-        String(prevEnd.getFullYear())
+        formatYearLastTwoDigits(prevEnd)
       );
     } else {
       writeText(eff(layout.left.previous_certificate_number), "-");

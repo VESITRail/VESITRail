@@ -243,7 +243,16 @@ const createColumns = (
 
       return (
         <div className="font-medium text-foreground/90">
-          {station.name} ({station.code})
+          {`${station.name} (${station.code})`.length > 20 ? (
+            <>
+              <div>{station.name}</div>
+              <div className="text-sm text-muted-foreground">
+                ({station.code})
+              </div>
+            </>
+          ) : (
+            `${station.name} (${station.code})`
+          )}
         </div>
       );
     },

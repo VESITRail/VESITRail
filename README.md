@@ -41,7 +41,7 @@ _A modern web application for VESIT students to apply and manage railway concess
 - 📱 **Fully Responsive** - Works perfectly on all devices
 - 🌙 **Dark Mode Support** - Toggle between light and dark themes
 - 🔄 **Real-time Updates** - Live status updates and push notifications
-- 📊 **Analytics** - Google Analytics integration for insights
+- 📊 **Analytics** - PostHog integration for insights
 
 ---
 

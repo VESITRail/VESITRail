@@ -264,12 +264,12 @@ const UpdateModal = ({
             >
               {updating ? (
                 <>
-                  <div className="size-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  <div className="size-4 mr-1 animate-spin rounded-full border-2 border-current border-t-transparent" />
                   Updating...
                 </>
               ) : (
                 <>
-                  <Download className="size-4 mr-2" />
+                  <Download className="size-4 mr-1" />
                   Update
                 </>
               )}
