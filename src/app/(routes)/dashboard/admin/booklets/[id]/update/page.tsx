@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
+import DamagedPagesManager from "@/components/admin/damaged-pages-manager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const UpdateBookletPage = () => {
@@ -31,6 +32,7 @@ const UpdateBookletPage = () => {
     anchorX: 0,
     anchorY: 0,
     isDamaged: false,
+    damagedPages: [],
     serialStartNumber: "",
   });
 
@@ -119,6 +121,9 @@ const UpdateBookletPage = () => {
           anchorY: bookletData.anchorY || 0,
           isDamaged: bookletData.status === "Damaged",
           serialStartNumber: bookletData.serialStartNumber,
+          damagedPages: Array.isArray(bookletData.damagedPages)
+            ? bookletData.damagedPages
+            : [],
         });
       } else {
         toast.error("Booklet Not Found", {
@@ -140,6 +145,10 @@ const UpdateBookletPage = () => {
   useEffect(() => {
     fetchBooklet();
   }, [fetchBooklet]);
+
+  const handleDamagedPagesChange = useCallback((damagedPages: number[]) => {
+    setFormData((prev) => ({ ...prev, damagedPages }));
+  }, []);
 
   const handleSubmit = async () => {
     if (!validateForm()) {
@@ -399,6 +408,12 @@ const UpdateBookletPage = () => {
             />
           </div>
 
+          <DamagedPagesManager
+            damagedPages={formData.damagedPages}
+            totalPages={booklet?.totalPages || 50}
+            onDamagedPagesChange={handleDamagedPagesChange}
+          />
+
           <div className="flex justify-end gap-4 py-1">
             <Button
               variant="outline"
@@ -421,12 +436,12 @@ const UpdateBookletPage = () => {
             >
               {isUpdating ? (
                 <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  <Loader2 className="size-4 mr-1 animate-spin" />
                   Updating...
                 </>
               ) : (
                 <>
-                  <BookOpen className="size-4" />
+                  <BookOpen className="size-4 mr-1" />
                   Update Booklet
                 </>
               )}
