@@ -362,6 +362,29 @@ const BookletsTable = ({
         ),
       },
       {
+        size: 100,
+        id: "damagedPages",
+        accessorKey: "damagedPages",
+        meta: { displayName: "Damaged Pages" },
+        header: () => <div className="text-center">Damaged</div>,
+        cell: ({ row }) => {
+          const damagedCount = Array.isArray(row.original.damagedPages)
+            ? row.original.damagedPages.length
+            : 0;
+          return (
+            <div className="text-center">
+              <span
+                className={`font-medium ${
+                  damagedCount > 0 ? "text-destructive" : ""
+                }`}
+              >
+                {damagedCount}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
         id: "createdAt",
         accessorKey: "createdAt",
         meta: { displayName: "Created" },
@@ -462,6 +485,9 @@ const BookletsTable = ({
               </TableCell>
               <TableCell className="text-center">
                 <Skeleton className="h-6 w-24 mx-auto rounded-full" />
+              </TableCell>
+              <TableCell className="text-center">
+                <Skeleton className="h-4 w-8 mx-auto" />
               </TableCell>
               <TableCell className="text-center">
                 <Skeleton className="h-4 w-8 mx-auto" />
