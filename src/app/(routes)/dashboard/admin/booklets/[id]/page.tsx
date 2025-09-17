@@ -100,9 +100,15 @@ const BookletApplicationsPage = () => {
       hasPreviousPage: false,
       booklet: {
         id: "",
+        totalPages: 50,
+        damagedPages: [],
         bookletNumber: 0,
+        status: "Available",
         serialEndNumber: "",
         serialStartNumber: "",
+        _count: {
+          applications: 0,
+        },
       },
     });
 
