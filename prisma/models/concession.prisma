@@ -36,8 +36,9 @@ model ConcessionApplication {
 model ConcessionBooklet {
   id String @id @default(uuid())
 
-  totalPages    Int @default(50)
-  bookletNumber Int @unique @default(autoincrement())
+  totalPages    Int   @default(50)
+  damagedPages  Int[] @default([])
+  bookletNumber Int   @unique @default(autoincrement())
 
   anchorX           Float
   anchorY           Float
