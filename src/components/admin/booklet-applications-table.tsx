@@ -308,7 +308,7 @@ const BookletApplicationsTable = ({
         },
       },
     ];
-  }, [currentPage]);
+  }, []);
 
   const table = useReactTable({
     columns,
