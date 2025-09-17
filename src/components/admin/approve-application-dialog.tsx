@@ -7,9 +7,13 @@ import {
   DialogHeader,
   DialogContent,
 } from "@/components/ui/dialog";
+import {
+  AvailableBooklet,
+  getAvailableBooklets,
+  updateBookletDamagedPages,
+} from "@/actions/booklets";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +22,7 @@ import { Combobox } from "@/components/ui/combobox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminApplication } from "@/actions/concession";
 import { useState, useEffect, useCallback } from "react";
-import { AvailableBooklet, getAvailableBooklets } from "@/actions/booklets";
+import { ExternalLink, AlertTriangle } from "lucide-react";
 
 type ApproveApplicationDialogProps = {
   isOpen: boolean;
@@ -38,6 +42,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [nextSerialNumber, setNextSerialNumber] = useState<string>("");
   const [selectedBookletId, setSelectedBookletId] = useState<string>("");
+  const [isMarkingDamaged, setIsMarkingDamaged] = useState<boolean>(false);
   const [availableBooklets, setAvailableBooklets] = useState<
     AvailableBooklet[]
   >([]);
@@ -73,13 +78,23 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
     const serialStart = booklet.serialStartNumber;
     const prefix = serialStart.replace(/\d+$/, "");
     const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-    const nextNum = startNum + booklet._count.applications;
+    const damagedPages = Array.isArray(booklet.damagedPages)
+      ? booklet.damagedPages
+      : [];
+
+    let nextPage = booklet._count.applications;
+    while (damagedPages.includes(nextPage) && nextPage < booklet.totalPages) {
+      nextPage++;
+    }
+
+    const nextNum = startNum + nextPage;
     const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 3;
 
     const nextSerial = `${prefix}${nextNum
       .toString()
       .padStart(paddingLength, "0")}`;
     setNextSerialNumber(nextSerial);
+    return nextPage;
   };
 
   const generateBookletSearchTerms = (booklet: AvailableBooklet) => {
@@ -93,13 +108,19 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
       .padStart(paddingLength, "0")}`;
 
     const statusText = booklet.status === "InUse" ? "in use" : "available";
+    const damagedCount = Array.isArray(booklet.damagedPages)
+      ? booklet.damagedPages.length
+      : 0;
     const usageText = `${booklet._count.applications}/${booklet.totalPages} used`;
+    const damageText =
+      damagedCount > 0 ? `${damagedCount} damaged` : "no damage";
 
     const searchTerms = [
       prefix,
       usageText,
       serialEnd,
       statusText,
+      damageText,
       serialStart,
       `#${booklet.bookletNumber}`,
       booklet.status.toLowerCase(),
@@ -107,7 +128,10 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
       booklet.bookletNumber.toString(),
       `booklet ${booklet.bookletNumber}`,
       `${booklet._count.applications} used`,
-      `${booklet.totalPages - booklet._count.applications} remaining`,
+      `${damagedCount} damaged pages`,
+      `${
+        booklet.totalPages - booklet._count.applications - damagedCount
+      } remaining`,
     ].join(" ");
 
     return searchTerms;
@@ -148,6 +172,70 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
     onClose();
   };
 
+  const handleMarkCurrentPageAsDamaged = async () => {
+    const selectedBooklet = availableBooklets.find(
+      (b) => b.id === selectedBookletId
+    );
+    if (!selectedBooklet) return;
+
+    setIsMarkingDamaged(true);
+    try {
+      const damagedPages = Array.isArray(selectedBooklet.damagedPages)
+        ? selectedBooklet.damagedPages
+        : [];
+
+      const currentPageOffset = calculateNextSerialNumber(selectedBooklet);
+
+      if (damagedPages.includes(currentPageOffset)) {
+        toast.error("Page Already Marked", {
+          description: "This page is already marked as damaged.",
+        });
+        return;
+      }
+
+      const updatedDamagedPages = [...damagedPages, currentPageOffset].sort(
+        (a, b) => a - b
+      );
+
+      const result = await updateBookletDamagedPages(
+        selectedBookletId,
+        updatedDamagedPages
+      );
+
+      if (result.isSuccess) {
+        const updatedBooklet = result.data;
+        setAvailableBooklets((prev) =>
+          prev.map((b) =>
+            b.id === selectedBookletId
+              ? { ...b, damagedPages: updatedBooklet.damagedPages }
+              : b
+          )
+        );
+
+        calculateNextSerialNumber({
+          ...selectedBooklet,
+          damagedPages: updatedBooklet.damagedPages,
+        });
+
+        const humanPageNumber = currentPageOffset + 1;
+        toast.success("Page Marked as Damaged", {
+          description: `Page ${humanPageNumber} has been marked as damaged.`,
+        });
+      } else {
+        toast.error("Failed to Mark as Damaged", {
+          description: "Could not mark the page as damaged. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Error marking page as damaged:", error);
+      toast.error("Error", {
+        description: "An unexpected error occurred.",
+      });
+    } finally {
+      setIsMarkingDamaged(false);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && application) {
       loadAvailableBooklets();
@@ -169,21 +257,33 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
           {application && (
             <div className="space-y-2">
               <div className="text-sm font-medium">Application Details</div>
-              <div className="p-3 bg-muted/50 rounded-lg space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">ID:</span>
-                  <span className="font-mono">#{application.shortId}</span>
+              <div className="p-4 bg-muted/30 rounded-lg border space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Application ID
+                    </div>
+                    <div className="font-mono text-sm">
+                      #{application.shortId}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      Type
+                    </div>
+                    <div className="text-sm font-medium">
+                      {application.applicationType}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Type:</span>
-                  <span>{application.applicationType}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Student:</span>
-                  <span>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Student
+                  </div>
+                  <div className="text-sm font-medium">
                     {application.student.firstName}{" "}
                     {application.student.lastName}
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -230,6 +330,9 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
                   searchPlaceholder="Search by booklet number, serial, status..."
                   renderOption={(option) => {
                     const booklet = option.data as AvailableBooklet;
+                    const damagedCount = Array.isArray(booklet.damagedPages)
+                      ? booklet.damagedPages.length
+                      : 0;
 
                     return (
                       <div className="flex items-center justify-between w-full min-w-0">
@@ -240,16 +343,17 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
                           <span className="text-xs text-muted-foreground whitespace-nowrap">
                             {booklet._count.applications}/{booklet.totalPages}{" "}
                             used
+                            {damagedCount > 0 && (
+                              <span className="text-destructive ml-1">
+                                • {damagedCount} damaged
+                              </span>
+                            )}
                           </span>
                           <Badge
+                            className="text-xs whitespace-nowrap"
                             variant={
                               booklet.status === "InUse" ? "default" : "outline"
                             }
-                            className={`text-xs whitespace-nowrap ${
-                              booklet.status === "InUse"
-                                ? ""
-                                : "bg-green-600 text-white border-green-600"
-                            }`}
                           >
                             {booklet.status === "InUse"
                               ? "In Use"
@@ -265,30 +369,69 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
             {selectedBooklet && (
               <div className="space-y-2">
-                <Label htmlFor="serial-number" className="text-sm font-medium">
-                  Next Serial Number
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor="serial-number"
+                    className="text-sm font-medium"
+                  >
+                    Next Serial Number
+                  </Label>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={isMarkingDamaged}
+                    className="h-7 px-3 text-xs"
+                    onClick={handleMarkCurrentPageAsDamaged}
+                  >
+                    <AlertTriangle className="size-3 mr-1" />
+                    {isMarkingDamaged ? "Marking..." : "Mark as Damaged"}
+                  </Button>
+                </div>
                 <Input
                   readOnly
                   id="serial-number"
                   value={nextSerialNumber}
-                  className="font-mono bg-muted/50"
+                  className="font-mono bg-muted/50 text-center text-lg font-semibold"
                 />
-                <div className="text-xs text-muted-foreground">
-                  Serial range: {selectedBooklet.serialStartNumber} -{" "}
-                  {selectedBooklet.serialStartNumber.replace(/\d+$/, "") +
-                    (
-                      parseInt(
-                        selectedBooklet.serialStartNumber.match(/\d+$/)?.[0] ||
-                          "0"
-                      ) + 49
-                    )
-                      .toString()
-                      .padStart(
-                        selectedBooklet.serialStartNumber.match(/\d+$/)?.[0]
-                          ?.length || 3,
-                        "0"
-                      )}
+                <div className="bg-muted/30 rounded-lg p-3 space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Serial Range:</span>
+                    <span className="font-mono">
+                      {selectedBooklet.serialStartNumber} -{" "}
+                      {selectedBooklet.serialStartNumber.replace(/\d+$/, "") +
+                        (
+                          parseInt(
+                            selectedBooklet.serialStartNumber.match(
+                              /\d+$/
+                            )?.[0] || "0"
+                          ) + 49
+                        )
+                          .toString()
+                          .padStart(
+                            selectedBooklet.serialStartNumber.match(/\d+$/)?.[0]
+                              ?.length || 3,
+                            "0"
+                          )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Usage:</span>
+                    <span>
+                      {selectedBooklet._count.applications}/
+                      {selectedBooklet.totalPages} pages used
+                    </span>
+                  </div>
+                  {Array.isArray(selectedBooklet.damagedPages) &&
+                    selectedBooklet.damagedPages.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Damaged:</span>
+                        <span className="text-destructive font-medium">
+                          {selectedBooklet.damagedPages
+                            .map((page) => page + 1)
+                            .join(", ")}
+                        </span>
+                      </div>
+                    )}
                 </div>
               </div>
             )}
