@@ -7,12 +7,17 @@ import {
   validationError,
   ValidationError,
 } from "@/lib/result";
+import {
+  DamagedPageItem,
+  BookletTableItem,
+  getBookletApplications,
+  BookletApplicationItem,
+} from "./booklets";
 import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { PDFDocument, degrees } from "pdf-lib";
 import { format, toZonedTime } from "date-fns-tz";
 import autoTable, { UserOptions } from "jspdf-autotable";
-import { getBookletApplications, BookletApplicationItem } from "./booklets";
 
 declare module "jspdf" {
   interface jsPDF {
@@ -33,11 +38,22 @@ export const generateBookletPDF = async (
       return failure(validationError("Failed to fetch applications"));
     }
 
-    const { data: applications, booklet } = result.data;
+    const { data: allItems, booklet } = result.data;
 
-    if (applications.length === 0) {
+    if (allItems.length === 0) {
       return failure(validationError("No applications found for this booklet"));
     }
+
+    const isDamagedPage = (item: BookletTableItem): item is DamagedPageItem => {
+      return "isDamaged" in item && item.isDamaged === true;
+    };
+
+    const applications = allItems.filter(
+      (item): item is BookletApplicationItem => !isDamagedPage(item)
+    );
+    const damagedPages = allItems.filter((item): item is DamagedPageItem =>
+      isDamagedPage(item)
+    );
 
     const doc = new jsPDF({
       unit: "mm",
@@ -88,7 +104,7 @@ export const generateBookletPDF = async (
     ).length;
     const renewalCount = applications.length - newApplicationsCount;
     doc.text(
-      `New: ${newApplicationsCount} | Renewal: ${renewalCount}`,
+      `New: ${newApplicationsCount} | Renewal: ${renewalCount} | Cancelled: ${damagedPages.length}`,
       pageWidth - 15,
       60,
       { align: "right" }
@@ -148,50 +164,82 @@ export const generateBookletPDF = async (
       return "Not Available";
     };
 
-    const tableDataPromises = applications.map(async (app, index) => {
-      const currentPassNo = await getCurrentPassNo(app);
+    const tableDataPromises = allItems.map(async (item, index) => {
+      if (isDamagedPage(item)) {
+        const match = item.serialNumber.match(/\d+$/);
+        const serialNo = match ? parseInt(match[0], 10) : index + 1;
 
-      const fullName = `${app.student.firstName}${
-        app.student.middleName ? ` ${app.student.middleName}` : ""
-      } ${app.student.lastName}`;
+        return [
+          serialNo,
+          item.serialNumber,
+          {
+            colSpan: 8,
+            content: "Cancelled",
+            styles: { halign: "center" as const, fontStyle: "bold" as const },
+          },
+        ];
+      } else {
+        const currentPassNo = await getCurrentPassNo(item);
+        const certificateNo = item.derivedCertificateNo || "Pending";
+        const match = certificateNo.match(/\d+$/);
+        const serialNo = match ? parseInt(match[0], 10) : index + 1;
 
-      const fullAddress = app.student.address || "Address not provided";
+        const fullName = `${item.student.firstName}${
+          item.student.middleName ? ` ${item.student.middleName}` : ""
+        } ${item.student.lastName}`;
 
-      return [
-        index + 1,
-        format(new Date(app.createdAt), "dd/MM/yyyy"),
-        app.derivedCertificateNo || "Pending",
-        fullName,
-        currentPassNo,
-        app.student.gender || "N/A",
-        format(new Date(app.student.dateOfBirth), "dd/MM/yyyy"),
-        app.concessionPeriod.name || "N/A",
-        `${app.station.name} (${app.station.code})`,
-        "Kurla (CLA)",
-        fullAddress,
-      ];
+        const fullAddress = item.student.address || "Address not provided";
+
+        return [
+          serialNo,
+          certificateNo,
+          format(new Date(item.createdAt), "dd/MM/yyyy"),
+          fullName,
+          currentPassNo,
+          item.student.gender || "N/A",
+          format(new Date(item.student.dateOfBirth), "dd/MM/yyyy"),
+          item.concessionPeriod.name || "N/A",
+          `${item.station.name} (${item.station.code})`,
+          fullAddress,
+        ];
+      }
     });
 
     const tableData = await Promise.all(tableDataPromises);
+    tableData.sort((a, b) => Number(a[0]) - Number(b[0]));
 
     autoTable(doc, {
       head: [
         [
           "Sr. No.",
-          "Application Date",
-          "Certificate No.",
+          "Certificate",
+          "Date",
           "Student Name",
-          "Previous Pass No.",
+          "Current Pass",
           "Gender",
           "Date of Birth",
-          "Pass Type",
-          "From Station",
-          "To Station",
-          "Residential Address",
+          "Period",
+          "Home Station",
+          "Address",
         ],
       ],
       startY: 79,
       body: tableData,
+      headStyles: {
+        fontSize: 9,
+        halign: "center",
+        valign: "middle",
+        fontStyle: "bold",
+        textColor: [0, 0, 0],
+        fillColor: [220, 220, 220],
+        cellPadding: { top: 5, right: 3, bottom: 5, left: 3 },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      bodyStyles: {
+        fillColor: [255, 255, 255],
+      },
       styles: {
         fontSize: 8.5,
         valign: "top",
@@ -203,15 +251,6 @@ export const generateBookletPDF = async (
         overflow: "linebreak",
         cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
       },
-      headStyles: {
-        fontSize: 9,
-        halign: "center",
-        valign: "middle",
-        fontStyle: "bold",
-        textColor: [0, 0, 0],
-        fillColor: [248, 248, 248],
-        cellPadding: { top: 5, right: 3, bottom: 5, left: 3 },
-      },
       columnStyles: {
         0: { halign: "center", cellWidth: 15 },
         1: { halign: "center", cellWidth: 23 },
@@ -222,8 +261,7 @@ export const generateBookletPDF = async (
         6: { halign: "center", cellWidth: 22 },
         7: { halign: "center", cellWidth: 23 },
         8: { halign: "center", cellWidth: 33 },
-        9: { halign: "center", cellWidth: 23 },
-        10: { halign: "left", overflow: "linebreak" },
+        9: { halign: "left", overflow: "linebreak" },
       },
       tableLineWidth: 0.3,
       showHead: "everyPage",
