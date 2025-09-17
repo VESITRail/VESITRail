@@ -99,22 +99,22 @@ export const generateBookletPDF = async (
       67
     );
 
+    const istTime = toZonedTime(new Date(), "Asia/Kolkata");
+    doc.text(
+      `Generated: ${format(istTime, "dd/MM/yyyy 'at' HH:mm", {
+        timeZone: "Asia/Kolkata",
+      })}`,
+      pageWidth - 15,
+      60,
+      { align: "right" }
+    );
+
     const newApplicationsCount = applications.filter(
       (app) => app.applicationType === "New"
     ).length;
     const renewalCount = applications.length - newApplicationsCount;
     doc.text(
       `New: ${newApplicationsCount} | Renewal: ${renewalCount} | Cancelled: ${damagedPages.length}`,
-      pageWidth - 15,
-      60,
-      { align: "right" }
-    );
-
-    const istTime = toZonedTime(new Date(), "Asia/Kolkata");
-    doc.text(
-      `Generated: ${format(istTime, "dd/MM/yyyy 'at' HH:mm", {
-        timeZone: "Asia/Kolkata",
-      })}`,
       pageWidth - 15,
       67,
       { align: "right" }
