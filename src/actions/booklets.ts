@@ -33,6 +33,7 @@ export type UpdateBookletInput = {
   anchorX: number;
   anchorY: number;
   isDamaged: boolean;
+  damagedPages: number[];
   serialStartNumber: string;
 };
 
@@ -82,17 +83,36 @@ export type BookletApplicationItem = Pick<
     | null;
 };
 
+export type DamagedPageItem = {
+  id: string;
+  isDamaged: true;
+  pageNumber: number;
+  serialNumber: string;
+};
+
+export type BookletTableItem = BookletApplicationItem | DamagedPageItem;
+
 export type PaginatedBookletApplicationsResult = {
   totalCount: number;
   totalPages: number;
   currentPage: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
-  data: BookletApplicationItem[];
+  data: BookletTableItem[];
   booklet: Pick<
     ConcessionBooklet,
-    "id" | "bookletNumber" | "serialStartNumber" | "serialEndNumber"
-  >;
+    | "id"
+    | "status"
+    | "totalPages"
+    | "damagedPages"
+    | "bookletNumber"
+    | "serialEndNumber"
+    | "serialStartNumber"
+  > & {
+    _count: {
+      applications: number;
+    };
+  };
 };
 
 export type BookletApplicationPaginationParams = {
@@ -102,7 +122,12 @@ export type BookletApplicationPaginationParams = {
 
 export type AvailableBooklet = Pick<
   ConcessionBooklet,
-  "id" | "status" | "totalPages" | "bookletNumber" | "serialStartNumber"
+  | "id"
+  | "status"
+  | "totalPages"
+  | "damagedPages"
+  | "bookletNumber"
+  | "serialStartNumber"
 > & {
   _count: {
     applications: number;
@@ -375,6 +400,7 @@ export const updateBooklet = async (
       status: newStatus,
       anchorX: data.anchorX,
       anchorY: data.anchorY,
+      damagedPages: data.damagedPages,
       serialEndNumber: serialEndNumber,
       serialStartNumber: data.serialStartNumber,
     };
@@ -436,9 +462,17 @@ export const getBookletApplications = async (
       where: { id: bookletId },
       select: {
         id: true,
+        status: true,
+        totalPages: true,
+        damagedPages: true,
         bookletNumber: true,
         serialEndNumber: true,
         serialStartNumber: true,
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
       },
     });
 
@@ -534,14 +568,62 @@ export const getBookletApplications = async (
         };
       });
 
+    const damagedPages = Array.isArray(booklet.damagedPages)
+      ? booklet.damagedPages
+      : [];
+
+    const damagedPageItems: DamagedPageItem[] = damagedPages.map(
+      (pageOffset) => {
+        const serialStart = booklet.serialStartNumber;
+        const prefix = serialStart.replace(/\d+$/, "");
+        const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
+        const certificateNum = startNum + pageOffset;
+        const serialNumber = `${prefix}${certificateNum
+          .toString()
+          .padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+
+        return {
+          serialNumber,
+          isDamaged: true as const,
+          pageNumber: pageOffset + 1,
+          id: `damaged-${booklet.id}-${pageOffset}`,
+        };
+      }
+    );
+
+    const damagedPageOffsets = new Set(damagedPages);
+    const filteredApplications = applicationsWithDerivedData.filter((app) => {
+      const appPageOffset = app.pageOffset ?? 0;
+      return !damagedPageOffsets.has(appPageOffset);
+    });
+
+    const allItems: BookletTableItem[] = [
+      ...filteredApplications,
+      ...damagedPageItems,
+    ].sort((a, b) => {
+      const pageA =
+        "derivedSerialNumber" in a
+          ? a.derivedSerialNumber || 0
+          : "pageNumber" in a
+          ? a.pageNumber
+          : 0;
+      const pageB =
+        "derivedSerialNumber" in b
+          ? b.derivedSerialNumber || 0
+          : "pageNumber" in b
+          ? b.pageNumber
+          : 0;
+      return pageA - pageB;
+    });
+
     return success({
       booklet,
       totalCount,
       totalPages,
       hasNextPage,
+      data: allItems,
       hasPreviousPage,
       currentPage: params.page,
-      data: applicationsWithDerivedData,
     });
   } catch (error) {
     console.error("Error fetching booklet applications:", error);
@@ -563,6 +645,7 @@ export const getAvailableBooklets = async (): Promise<
         id: true,
         status: true,
         totalPages: true,
+        damagedPages: true,
         bookletNumber: true,
         serialStartNumber: true,
         _count: {
@@ -599,6 +682,7 @@ export const getAvailableBooklets = async (): Promise<
         status: booklet.status,
         _count: booklet._count,
         totalPages: booklet.totalPages,
+        damagedPages: booklet.damagedPages,
         bookletNumber: booklet.bookletNumber,
         serialStartNumber: booklet.serialStartNumber,
         lastUsedAt: booklet.applications[0]?.createdAt || null,
@@ -609,5 +693,57 @@ export const getAvailableBooklets = async (): Promise<
   } catch (error) {
     console.error("Error fetching available booklets:", error);
     return failure(databaseError("Failed to fetch available booklets"));
+  }
+};
+
+export const updateBookletDamagedPages = async (
+  bookletId: string,
+  damagedPages: number[]
+): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+  try {
+    const booklet = await prisma.concessionBooklet.findUnique({
+      where: { id: bookletId },
+      include: {
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    });
+
+    if (!booklet) {
+      return failure(validationError("Booklet not found"));
+    }
+
+    const validPages = damagedPages.filter(
+      (page) => page >= 0 && page < booklet.totalPages
+    );
+
+    if (validPages.length !== damagedPages.length) {
+      return failure(validationError("Invalid page numbers provided"));
+    }
+
+    const uniquePages = [...new Set(validPages)].sort((a, b) => a - b);
+
+    const updatedBooklet = await prisma.concessionBooklet.update({
+      where: { id: bookletId },
+      data: {
+        damagedPages: uniquePages,
+      },
+      include: {
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    });
+
+    revalidatePath("/dashboard/admin/booklets");
+    return success(updatedBooklet);
+  } catch (error) {
+    console.error("Error updating damaged pages:", error);
+    return failure(databaseError("Failed to update damaged pages"));
   }
 };
