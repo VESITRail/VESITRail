@@ -210,7 +210,8 @@ const PrivacyPolicy = () => {
                     us operate our service:
                   </Paragraph>
                   <List className="space-y-2 text-muted-foreground">
-                    <li>Google (Authentication and Analytics)</li>
+                    <li>Google (Authentication)</li>
+                    <li>PostHog (Analytics)</li>
                     <li>Cloudinary (Document storage and management)</li>
                     <li>Firebase (Push notifications)</li>
                   </List>
@@ -278,9 +279,9 @@ const PrivacyPolicy = () => {
                 <div>
                   <Heading3 className="mb-3">Analytics</Heading3>
                   <Paragraph className="text-muted-foreground">
-                    We use Google Analytics to understand how users interact
-                    with our service. This helps us improve the user experience
-                    and optimize our features.
+                    We use PostHog to understand how users interact with our
+                    service. This helps us improve the user experience and
+                    optimize our features.
                   </Paragraph>
                 </div>
               </div>
@@ -379,7 +380,6 @@ const PrivacyPolicy = () => {
                   Document uploads: Until account deletion or graduation + 1
                   year
                 </li>
-                <li>Analytics data: 26 months (Google Analytics default)</li>
               </List>
             </div>
 
