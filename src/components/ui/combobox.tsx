@@ -79,7 +79,7 @@ export function Combobox({
   const selectedOption = options.find((option) => option.value === value);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <Button
           ref={triggerRef}
@@ -125,10 +125,13 @@ export function Combobox({
                   key={option.value}
                   value={option.searchTerms || option.label}
                   onSelect={() => {
-                    onValueChange?.(option.value === value ? "" : option.value);
+                    onValueChange?.(option.value);
                     setOpen(false);
                   }}
-                  className="w-full px-2 py-2"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                  }}
+                  className="w-full px-2 py-2 cursor-pointer hover:bg-accent hover:text-accent-foreground"
                 >
                   <Check
                     className={cn(

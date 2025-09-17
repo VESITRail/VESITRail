@@ -295,7 +295,30 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
                 Select Booklet
               </Label>
               {isLoading ? (
-                <Skeleton className="h-10 w-full" />
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-7 w-24" />
+                    </div>
+                    <Skeleton className="h-12 w-full" />
+                    <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                      <div className="flex justify-between">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-40" />
+                      </div>
+                      <div className="flex justify-between">
+                        <Skeleton className="h-3 w-16" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <div className="flex justify-between">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ) : availableBooklets.length === 0 ? (
                 <div className="space-y-3">
                   <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
@@ -336,10 +359,10 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
                     return (
                       <div className="flex items-center justify-between w-full min-w-0">
-                        <span className="font-medium">
+                        <span className="font-medium pointer-events-none">
                           Booklet #{booklet.bookletNumber}
                         </span>
-                        <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                        <div className="flex items-center gap-2 ml-3 flex-shrink-0 pointer-events-none">
                           <span className="text-xs text-muted-foreground whitespace-nowrap">
                             {booklet._count.applications}/{booklet.totalPages}{" "}
                             used
@@ -350,7 +373,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
                             )}
                           </span>
                           <Badge
-                            className="text-xs whitespace-nowrap"
+                            className="text-xs whitespace-nowrap pointer-events-none"
                             variant={
                               booklet.status === "InUse" ? "default" : "outline"
                             }
