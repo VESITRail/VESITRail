@@ -78,12 +78,12 @@ const PREDEFINED_REJECTION_REASONS = [
   {
     label: "Monthly Period Only",
     reason:
-      "Currently, only monthly concessions are being issued. Please reapply by selecting 'Monthly' in the concession period.",
+      "Only monthly concessions are available. Please reapply with 'Monthly'.",
   },
   {
     label: "Quarterly Period Only",
     reason:
-      "Currently, only quarterly concessions are being issued. Please reapply by selecting 'Quarterly' in the concession period.",
+      "Only quarterly concessions are available. Please reapply with 'Quarterly'.",
   },
 ];
 
