@@ -95,6 +95,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { deleteCloudinaryFile } from "@/actions/cloudinary";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { DocumentRequirements } from "@/components/ui/document-requirements";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
 
 const AddressChangeSchema = z.object({
@@ -773,7 +774,33 @@ const AddressChangePage = () => {
                     <Skeleton className="h-3 w-24" />
                   </div>
                 </div>
-                <Skeleton className="h-3 w-80 mx-auto" />
+
+                <div className="mt-4 space-y-3">
+                  <Skeleton className="h-4 w-64" />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[1, 2, 3].map((item) => (
+                      <div
+                        key={item}
+                        className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20"
+                      >
+                        <div className="flex-shrink-0">
+                          <Skeleton className="size-8 rounded-md" />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <Skeleton className="h-4 w-20" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-5 w-12 rounded-full" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end pt-4">
@@ -829,10 +856,7 @@ const AddressChangePage = () => {
           >
             <p className="font-medium mb-4">Important Information</p>
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>
-                Upload a clear document showing both front and back of your
-                Aadhar card
-              </li>
+              <li>Upload any one of the accepted verification documents</li>
               <li>Ensure new address details are accurate</li>
               <li>Changes require admin approval</li>
             </ul>
@@ -1412,10 +1436,9 @@ const AddressChangePage = () => {
                         </FormControl>
 
                         {!watchedUrl && (
-                          <FormDescription className="text-xs text-center mt-2">
-                            Upload a valid Aadhaar Card. Make sure both the
-                            front and back sides are included.
-                          </FormDescription>
+                          <div className="mt-4">
+                            <DocumentRequirements />
+                          </div>
                         )}
 
                         <FormMessage />
