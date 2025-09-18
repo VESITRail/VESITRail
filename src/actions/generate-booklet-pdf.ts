@@ -78,7 +78,12 @@ export const generateBookletPDF = async (
       { align: "center" }
     );
 
-    doc.text("Chembur, Mumbai - 400074", centerX, 32, { align: "center" });
+    doc.text(
+      "Hashu Adwani Memorial Complex, Collector's Colony, Chembur, Mumbai, Maharashtra 400071",
+      centerX,
+      32,
+      { align: "center" }
+    );
 
     doc.setLineWidth(1.2);
     doc.line(15, 40, pageWidth - 15, 40);
@@ -173,7 +178,7 @@ export const generateBookletPDF = async (
           serialNo,
           item.serialNumber,
           {
-            colSpan: 8,
+            colSpan: 9,
             content: "Cancelled",
             styles: { halign: "center" as const, fontStyle: "bold" as const },
           },
@@ -200,6 +205,7 @@ export const generateBookletPDF = async (
           format(new Date(item.student.dateOfBirth), "dd/MM/yyyy"),
           item.concessionPeriod.name || "N/A",
           `${item.station.name} (${item.station.code})`,
+          "Kurla (C)",
           fullAddress,
         ];
       }
@@ -219,7 +225,8 @@ export const generateBookletPDF = async (
           "Gender",
           "Date of Birth",
           "Period",
-          "Home Station",
+          "From Station",
+          "To Station",
           "Address",
         ],
       ],
@@ -260,8 +267,9 @@ export const generateBookletPDF = async (
         5: { halign: "center", cellWidth: 20 },
         6: { halign: "center", cellWidth: 22 },
         7: { halign: "center", cellWidth: 23 },
-        8: { halign: "center", cellWidth: 33 },
-        9: { halign: "left", overflow: "linebreak" },
+        8: { halign: "center", cellWidth: 30 },
+        9: { halign: "center", cellWidth: 30 },
+        10: { halign: "left", overflow: "linebreak" },
       },
       tableLineWidth: 0.3,
       showHead: "everyPage",

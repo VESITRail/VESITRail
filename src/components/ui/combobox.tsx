@@ -66,12 +66,10 @@ export function Combobox({
 
     updateWidth();
 
-    // Update width when the popover opens
     if (open) {
       updateWidth();
     }
 
-    // Also update on window resize
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
   }, [open]);
@@ -79,7 +77,7 @@ export function Combobox({
   const selectedOption = options.find((option) => option.value === value);
 
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={false}>
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
           ref={triggerRef}
@@ -127,9 +125,6 @@ export function Combobox({
                   onSelect={() => {
                     onValueChange?.(option.value);
                     setOpen(false);
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
                   }}
                   className="w-full px-2 py-2 cursor-pointer hover:bg-accent hover:text-accent-foreground"
                 >

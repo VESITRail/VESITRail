@@ -297,12 +297,18 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
               {isLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-10 w-full" />
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-3">
+                    <div className="space-y-2">
                       <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-7 w-24" />
+                      <div className="grid grid-cols-5 gap-3 items-end">
+                        <div className="col-span-3">
+                          <Skeleton className="h-12 w-full" />
+                        </div>
+                        <div className="col-span-2">
+                          <Skeleton className="h-12 w-full" />
+                        </div>
+                      </div>
                     </div>
-                    <Skeleton className="h-12 w-full" />
                     <div className="bg-muted/30 rounded-lg p-3 space-y-2">
                       <div className="flex justify-between">
                         <Skeleton className="h-3 w-20" />
@@ -359,10 +365,10 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
                     return (
                       <div className="flex items-center justify-between w-full min-w-0">
-                        <span className="font-medium pointer-events-none">
+                        <span className="font-medium">
                           Booklet #{booklet.bookletNumber}
                         </span>
-                        <div className="flex items-center gap-2 ml-3 flex-shrink-0 pointer-events-none">
+                        <div className="flex items-center gap-2 ml-3 flex-shrink-0">
                           <span className="text-xs text-muted-foreground whitespace-nowrap">
                             {booklet._count.applications}/{booklet.totalPages}{" "}
                             used
@@ -373,7 +379,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
                             )}
                           </span>
                           <Badge
-                            className="text-xs whitespace-nowrap pointer-events-none"
+                            className="text-xs whitespace-nowrap"
                             variant={
                               booklet.status === "InUse" ? "default" : "outline"
                             }
@@ -391,31 +397,32 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
             </div>
 
             {selectedBooklet && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
+              <div className="space-y-3">
+                <div className="space-y-2">
                   <Label
                     htmlFor="serial-number"
                     className="text-sm font-medium"
                   >
                     Next Serial Number
                   </Label>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    disabled={isMarkingDamaged}
-                    className="h-7 px-3 text-xs"
-                    onClick={handleMarkCurrentPageAsDamaged}
-                  >
-                    <AlertTriangle className="size-3 mr-1" />
-                    {isMarkingDamaged ? "Marking..." : "Mark as Damaged"}
-                  </Button>
+                  <div className="flex gap-4">
+                    <Input
+                      readOnly
+                      id="serial-number"
+                      value={nextSerialNumber}
+                      className="font-mono bg-muted/50 text-center text-lg font-semibold"
+                    />
+
+                    <Button
+                      variant="destructive"
+                      disabled={isMarkingDamaged}
+                      onClick={handleMarkCurrentPageAsDamaged}
+                    >
+                      <AlertTriangle className="size-3 mr-1" />
+                      {isMarkingDamaged ? "Marking..." : "Mark as Damaged"}
+                    </Button>
+                  </div>
                 </div>
-                <Input
-                  readOnly
-                  id="serial-number"
-                  value={nextSerialNumber}
-                  className="font-mono bg-muted/50 text-center text-lg font-semibold"
-                />
                 <div className="bg-muted/30 rounded-lg p-3 space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Serial Range:</span>
@@ -461,7 +468,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
           </div>
         </div>
 
-        <DialogFooter className="gap-4">
+        <DialogFooter className="gap-4 pt-2">
           <Button
             variant="outline"
             onClick={handleClose}
