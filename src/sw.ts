@@ -77,7 +77,7 @@ const getAppVersion = (): string => {
 const APP_VERSION = getAppVersion();
 
 const serwist = new Serwist({
-  skipWaiting: true,
+  skipWaiting: false,
   clientsClaim: true,
   navigationPreload: true,
   precacheEntries: self.__SW_MANIFEST,
@@ -323,7 +323,6 @@ self.addEventListener("install", (event: ExtendableEvent) => {
   event.waitUntil(
     (async () => {
       await cleanupOldCaches();
-      await self.skipWaiting();
     })()
   );
 });
