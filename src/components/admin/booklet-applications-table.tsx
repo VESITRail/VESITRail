@@ -110,11 +110,13 @@ const BookletApplicationsTable = ({
 
           if (isDamagedPage(item)) {
             const match = item.serialNumber.match(/\d+$/);
-            serialNo = match ? parseInt(match[0], 10) : 0;
+            const certNumber = match ? parseInt(match[0], 10) : 0;
+            serialNo = ((certNumber - 1) % 50) + 1;
           } else {
             const certificateNo = generateCertificateNo(item);
             const match = certificateNo.match(/\d+$/);
-            serialNo = match ? parseInt(match[0], 10) : 0;
+            const certNumber = match ? parseInt(match[0], 10) : 0;
+            serialNo = ((certNumber - 1) % 50) + 1;
           }
 
           return (
@@ -401,7 +403,6 @@ const BookletApplicationsTable = ({
           if (isDamaged) {
             const damagedItem = item as DamagedPageItem;
             const match = damagedItem.serialNumber.match(/\d+$/);
-            const serialNo = match ? parseInt(match[0], 10) : 0;
 
             return (
               <TableRow
@@ -409,7 +410,7 @@ const BookletApplicationsTable = ({
                 className="hover:bg-muted/50 border-border/50"
               >
                 <TableCell className="p-4 text-center align-middle">
-                  {serialNo}
+                  {match ? ((parseInt(match[0], 10) - 1) % 50) + 1 : 1}
                 </TableCell>
                 <TableCell className="p-4 text-center align-middle">
                   <span className="font-mono text-sm">

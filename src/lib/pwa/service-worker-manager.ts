@@ -69,8 +69,7 @@ export class ServiceWorkerManager {
     });
 
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      console.log("Service worker controller changed, reloading page");
-      window.location.reload();
+      console.log("Service worker controller changed");
     });
 
     navigator.serviceWorker.addEventListener("message", (event) => {
@@ -104,7 +103,22 @@ export class ServiceWorkerManager {
 
       if (this.registration.waiting) {
         this.registration.waiting.postMessage({ type: "SKIP_WAITING" });
-        return;
+
+        return new Promise<void>((resolve) => {
+          const handleControllerChange = () => {
+            navigator.serviceWorker.removeEventListener(
+              "controllerchange",
+              handleControllerChange
+            );
+            window.location.reload();
+            resolve();
+          };
+
+          navigator.serviceWorker.addEventListener(
+            "controllerchange",
+            handleControllerChange
+          );
+        });
       }
 
       if (this.registration.installing) {
@@ -118,7 +132,20 @@ export class ServiceWorkerManager {
             if (newWorker.state === "installed") {
               clearTimeout(timeout);
               newWorker.postMessage({ type: "SKIP_WAITING" });
-              resolve();
+
+              const handleControllerChange = () => {
+                navigator.serviceWorker.removeEventListener(
+                  "controllerchange",
+                  handleControllerChange
+                );
+                window.location.reload();
+                resolve();
+              };
+
+              navigator.serviceWorker.addEventListener(
+                "controllerchange",
+                handleControllerChange
+              );
             } else if (newWorker.state === "redundant") {
               clearTimeout(timeout);
               reject(new Error("Service worker became redundant"));

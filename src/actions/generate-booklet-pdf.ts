@@ -169,10 +169,11 @@ export const generateBookletPDF = async (
       return "Not Available";
     };
 
-    const tableDataPromises = allItems.map(async (item, index) => {
+    const tableDataPromises = allItems.map(async (item) => {
       if (isDamagedPage(item)) {
         const match = item.serialNumber.match(/\d+$/);
-        const serialNo = match ? parseInt(match[0], 10) : index + 1;
+        const certNumber = match ? parseInt(match[0], 10) : 0;
+        const serialNo = ((certNumber - 1) % 50) + 1;
 
         return [
           serialNo,
@@ -187,7 +188,8 @@ export const generateBookletPDF = async (
         const currentPassNo = await getCurrentPassNo(item);
         const certificateNo = item.derivedCertificateNo || "Pending";
         const match = certificateNo.match(/\d+$/);
-        const serialNo = match ? parseInt(match[0], 10) : index + 1;
+        const certNumber = match ? parseInt(match[0], 10) : 0;
+        const serialNo = ((certNumber - 1) % 50) + 1;
 
         const fullName = `${item.student.firstName}${
           item.student.middleName ? ` ${item.student.middleName}` : ""
