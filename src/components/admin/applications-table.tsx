@@ -1406,11 +1406,11 @@ const ApplicationsTable = ({
               <label className="block text-sm font-medium text-foreground">
                 Rejection Reason
               </label>
-
               {applicationDetails ? (
                 <div className="mt-2 p-4 rounded-lg bg-destructive/5 border border-destructive/20">
                   <p className="text-sm text-destructive leading-relaxed break-words whitespace-pre-wrap">
-                    {applicationDetails.rejectionReason}
+                    {applicationDetails.rejectionReason ||
+                      "No rejection reason provided."}
                   </p>
                 </div>
               ) : (
