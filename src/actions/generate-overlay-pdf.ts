@@ -153,7 +153,7 @@ export const generateOverlayPDF = async (
     const writeMultilineText = (
       pt: { x: number; y: number } | undefined,
       text: string,
-      maxWidth: number = 150
+      maxWidth: number = 50
     ) => {
       if (!pt || !text) return;
       const lines = doc.splitTextToSize(text, maxWidth);
@@ -171,7 +171,7 @@ export const generateOverlayPDF = async (
       eff(layout.left.from_station_left),
       student.station.name
     );
-    writeMultilineText(eff(layout.left.to_station_left), "Kurla");
+    writeText(eff(layout.left.to_station_left), "Kurla");
 
     if (
       application.applicationType === "Renewal" &&
@@ -233,7 +233,7 @@ export const generateOverlayPDF = async (
       eff(layout.right.from_station_right),
       student.station.name
     );
-    writeMultilineText(eff(layout.right.to_station_right), "Kurla");
+    writeText(eff(layout.right.to_station_right), "Kurla");
 
     if (
       application.applicationType === "Renewal" &&
@@ -246,7 +246,7 @@ export const generateOverlayPDF = async (
 
       writeText(
         eff(layout.right.current_pass_class),
-        application.previousApplication.concessionClass?.name || "-"
+        application.previousApplication.concessionClass?.code || "-"
       );
 
       if (serialStartParts) {
@@ -264,12 +264,12 @@ export const generateOverlayPDF = async (
         writeText(eff(layout.right.current_pass_season_ticket_number), "-");
       }
 
-      writeMultilineText(
+      writeText(
         eff(layout.right.current_pass_from_station),
         application.previousApplication.student?.station?.name ||
           student.station.name
       );
-      writeMultilineText(eff(layout.right.current_pass_to_station), "Kurla");
+      writeText(eff(layout.right.current_pass_to_station), "Kurla");
 
       const prevStart = new Date(application.previousApplication.createdAt);
       const prevEnd = addMonths(
