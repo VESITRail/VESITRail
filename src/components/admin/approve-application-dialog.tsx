@@ -248,7 +248,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Approve Application</DialogTitle>
         </DialogHeader>
