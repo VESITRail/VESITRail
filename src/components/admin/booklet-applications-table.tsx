@@ -403,7 +403,6 @@ const BookletApplicationsTable = ({
           if (isDamaged) {
             const damagedItem = item as DamagedPageItem;
             const match = damagedItem.serialNumber.match(/\d+$/);
-            const serialNo = match ? parseInt(match[0], 10) : 0;
 
             return (
               <TableRow

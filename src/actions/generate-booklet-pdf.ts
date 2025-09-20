@@ -169,7 +169,7 @@ export const generateBookletPDF = async (
       return "Not Available";
     };
 
-    const tableDataPromises = allItems.map(async (item, index) => {
+    const tableDataPromises = allItems.map(async (item) => {
       if (isDamagedPage(item)) {
         const match = item.serialNumber.match(/\d+$/);
         const certNumber = match ? parseInt(match[0], 10) : 0;
