@@ -421,6 +421,34 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
+              <div className="space-y-4 py-6">
+                <Skeleton className="h-4 w-32" />
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 pt-6">
                 <Skeleton className="h-10 w-38 rounded-md" />
                 <Skeleton className="h-10 w-42 rounded-md" />
@@ -667,21 +695,78 @@ const AddressChangeRequestDetailsDialog = ({
                 </div>
               )}
 
-              {requestDetails.rejectionReason && (
-                <>
-                  <Separator />
-                  <div className="py-6">
-                    <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+              <Separator />
+
+              <div className="space-y-6 py-6">
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                  Application Status
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Submissions
+                      </span>
+                      <span className="text-sm font-medium text-foreground">
+                        {requestDetails.submissionCount}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Applied Date
+                      </span>
+                      <span className="text-sm font-medium text-foreground">
+                        {format(
+                          new Date(requestDetails.createdAt),
+                          "MMM dd, yyyy"
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {requestDetails.reviewedAt && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Reviewed Date
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {format(
+                            new Date(requestDetails.reviewedAt),
+                            "MMM dd, yyyy"
+                          )}
+                        </span>
+                      </div>
+                    )}
+
+                    {requestDetails.reviewedBy && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Reviewed By
+                        </span>
+                        <span className="text-sm text-right">
+                          {toTitleCase(requestDetails.reviewedBy.user.name)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {requestDetails.rejectionReason && (
+                  <div className="mt-6">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">
                       Rejection Reason
-                    </h4>
-                    <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    </p>
+                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                       <p className="text-sm text-destructive">
                         {requestDetails.rejectionReason}
                       </p>
                     </div>
                   </div>
-                </>
-              )}
+                )}
+              </div>
 
               {requestDetails.status === "Pending" && (
                 <>
@@ -704,20 +789,6 @@ const AddressChangeRequestDetailsDialog = ({
                       <Check className="size-4 mr-1" />
                       Approve Request
                     </Button>
-                  </div>
-                </>
-              )}
-
-              {requestDetails.reviewedBy && (
-                <>
-                  <Separator />
-                  <div className="pt-6">
-                    <p className="text-sm text-muted-foreground">
-                      Reviewed by{" "}
-                      <span className="font-medium text-foreground">
-                        {toTitleCase(requestDetails.reviewedBy.user.name)}
-                      </span>
-                    </p>
                   </div>
                 </>
               )}
