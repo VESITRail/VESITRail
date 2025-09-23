@@ -421,9 +421,9 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
-              <div className="flex gap-4 pt-6">
-                <Skeleton className="h-10 flex-1" />
-                <Skeleton className="h-10 flex-1" />
+              <div className="flex justify-end gap-3 pt-6">
+                <Skeleton className="h-10 w-38 rounded-md" />
+                <Skeleton className="h-10 w-42 rounded-md" />
               </div>
             </div>
           ) : hasError ? (
@@ -686,22 +686,22 @@ const AddressChangeRequestDetailsDialog = ({
               {requestDetails.status === "Pending" && (
                 <>
                   <Separator />
-                  <div className="flex gap-4 pt-6">
+                  <div className="flex justify-end gap-4 pt-6">
                     <Button
-                      className="flex-1"
                       variant="destructive"
+                      className="w-38 h-10"
                       disabled={isApproving || isRejecting}
                       onClick={() => setShowRejectDialog(true)}
                     >
-                      <XCircle className="size-4 mr-2" />
+                      <XCircle className="size-4 mr-1" />
                       Reject Request
                     </Button>
                     <Button
                       onClick={() => setShowApproveDialog(true)}
-                      className="flex-1"
                       disabled={isApproving || isRejecting}
+                      className="w-42 h-10"
                     >
-                      <Check className="size-4 mr-2" />
+                      <Check className="size-4 mr-1" />
                       Approve Request
                     </Button>
                   </div>
@@ -1240,8 +1240,8 @@ const AddressChangeRequestsTable = ({
           <TableCell colSpan={columns.length} className="h-64">
             <div className="flex flex-col items-center justify-center space-y-6 py-8">
               <div className="flex flex-col items-center space-y-4">
-                <div className="p-4 rounded-full bg-muted/50">
-                  <MapPin className="size-8 text-muted-foreground" />
+                <div className="p-4 rounded-full bg-primary">
+                  <MapPin className="size-8 text-white" />
                 </div>
 
                 <div className="space-y-2 text-center">
