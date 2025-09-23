@@ -380,7 +380,9 @@ const BookletApplicationsTable = ({
               colSpan={table.getHeaderGroups()[0].headers.length}
             >
               <div className="flex flex-col items-center gap-2">
-                <FileText className="size-8 text-muted-foreground" />
+                <div className="p-4 rounded-full bg-primary">
+                  <FileText className="size-8 text-white" />
+                </div>
                 <span className="text-lg font-medium">
                   No Applications Found
                 </span>
