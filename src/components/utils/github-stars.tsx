@@ -44,7 +44,7 @@ const GitHubStars = ({ className }: GitHubStarsProps) => {
   if (loading) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <Skeleton className="h-7.25 w-20 rounded-full" />
+        <Skeleton className="h-[29.6px] w-20 rounded-full" />
       </div>
     );
   }
@@ -56,7 +56,7 @@ const GitHubStars = ({ className }: GitHubStarsProps) => {
   return (
     <button
       onClick={handleClick}
-      className={`inline-flex cursor-pointer items-center gap-2 px-3 py-1 rounded-full bg-primary text-white ${className}`}
+      className={`inline-flex cursor-pointer items-center gap-2 px-3 py-[4.81px] rounded-full bg-primary text-white ${className}`}
     >
       <Github className="size-4" />
 
