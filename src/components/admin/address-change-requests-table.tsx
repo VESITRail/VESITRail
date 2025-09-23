@@ -55,16 +55,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogTitle,
-  AlertDialogCancel,
-  AlertDialogAction,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -140,7 +130,6 @@ const AddressChangeRequestDetailsDialog = ({
   const [selectedPredefinedReason, setSelectedPredefinedReason] =
     useState<string>("");
   const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
-  const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
 
   const loadRequestDetails = useCallback(async () => {
     if (!request.id) return;
@@ -192,7 +181,6 @@ const AddressChangeRequestDetailsDialog = ({
 
         setRequestDetails(updatedRequest);
         onRequestUpdate?.(updatedRequest);
-        setShowApproveDialog(false);
         setIsOpen(false);
         return updatedRequest;
       } else {
@@ -782,9 +770,9 @@ const AddressChangeRequestDetailsDialog = ({
                       Reject Request
                     </Button>
                     <Button
-                      onClick={() => setShowApproveDialog(true)}
-                      disabled={isApproving || isRejecting}
                       className="w-42 h-10"
+                      onClick={handleApprove}
+                      disabled={isApproving || isRejecting}
                     >
                       <Check className="size-4 mr-1" />
                       Approve Request
@@ -796,25 +784,6 @@ const AddressChangeRequestDetailsDialog = ({
           ) : null}
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Approve Address Change Request</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to approve this address change request? This
-              will update the student&apos;s address and station information
-              permanently.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-4">
-            <AlertDialogCancel disabled={isApproving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={isApproving} onClick={handleApprove}>
-              {isApproving ? "Approving..." : "Approve Request"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent className="sm:max-w-lg">
