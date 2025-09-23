@@ -55,16 +55,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogTitle,
-  AlertDialogCancel,
-  AlertDialogAction,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -140,7 +130,6 @@ const AddressChangeRequestDetailsDialog = ({
   const [selectedPredefinedReason, setSelectedPredefinedReason] =
     useState<string>("");
   const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
-  const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
 
   const loadRequestDetails = useCallback(async () => {
     if (!request.id) return;
@@ -192,7 +181,6 @@ const AddressChangeRequestDetailsDialog = ({
 
         setRequestDetails(updatedRequest);
         onRequestUpdate?.(updatedRequest);
-        setShowApproveDialog(false);
         setIsOpen(false);
         return updatedRequest;
       } else {
@@ -421,9 +409,37 @@ const AddressChangeRequestDetailsDialog = ({
 
               <Skeleton className="h-px w-full" />
 
-              <div className="flex gap-4 pt-6">
-                <Skeleton className="h-10 flex-1" />
-                <Skeleton className="h-10 flex-1" />
+              <div className="space-y-4 py-6">
+                <Skeleton className="h-4 w-32" />
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-6">
+                <Skeleton className="h-10 w-38 rounded-md" />
+                <Skeleton className="h-10 w-42 rounded-md" />
               </div>
             </div>
           ) : hasError ? (
@@ -667,57 +683,100 @@ const AddressChangeRequestDetailsDialog = ({
                 </div>
               )}
 
-              {requestDetails.rejectionReason && (
-                <>
-                  <Separator />
-                  <div className="py-6">
-                    <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+              <Separator />
+
+              <div className="space-y-6 py-6">
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                  Application Status
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Submissions
+                      </span>
+                      <span className="text-sm font-medium text-foreground">
+                        {requestDetails.submissionCount}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Applied Date
+                      </span>
+                      <span className="text-sm font-medium text-foreground">
+                        {format(
+                          new Date(requestDetails.createdAt),
+                          "MMM dd, yyyy"
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {requestDetails.reviewedAt && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Reviewed Date
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {format(
+                            new Date(requestDetails.reviewedAt),
+                            "MMM dd, yyyy"
+                          )}
+                        </span>
+                      </div>
+                    )}
+
+                    {requestDetails.reviewedBy && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Reviewed By
+                        </span>
+                        <span className="text-sm text-right">
+                          {toTitleCase(requestDetails.reviewedBy.user.name)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {requestDetails.rejectionReason && (
+                  <div className="mt-6">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">
                       Rejection Reason
-                    </h4>
-                    <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    </p>
+                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                       <p className="text-sm text-destructive">
                         {requestDetails.rejectionReason}
                       </p>
                     </div>
                   </div>
-                </>
-              )}
+                )}
+              </div>
 
               {requestDetails.status === "Pending" && (
                 <>
                   <Separator />
-                  <div className="flex gap-4 pt-6">
+                  <div className="flex justify-end gap-4 pt-6">
                     <Button
-                      className="flex-1"
                       variant="destructive"
+                      className="w-38 h-10"
                       disabled={isApproving || isRejecting}
                       onClick={() => setShowRejectDialog(true)}
                     >
-                      <XCircle className="size-4 mr-2" />
+                      <XCircle className="size-4 mr-1" />
                       Reject Request
                     </Button>
                     <Button
-                      onClick={() => setShowApproveDialog(true)}
-                      className="flex-1"
+                      className="w-42 h-10"
+                      onClick={handleApprove}
                       disabled={isApproving || isRejecting}
                     >
-                      <Check className="size-4 mr-2" />
+                      <Check className="size-4 mr-1" />
                       Approve Request
                     </Button>
-                  </div>
-                </>
-              )}
-
-              {requestDetails.reviewedBy && (
-                <>
-                  <Separator />
-                  <div className="pt-6">
-                    <p className="text-sm text-muted-foreground">
-                      Reviewed by{" "}
-                      <span className="font-medium text-foreground">
-                        {toTitleCase(requestDetails.reviewedBy.user.name)}
-                      </span>
-                    </p>
                   </div>
                 </>
               )}
@@ -725,25 +784,6 @@ const AddressChangeRequestDetailsDialog = ({
           ) : null}
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Approve Address Change Request</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to approve this address change request? This
-              will update the student&apos;s address and station information
-              permanently.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-4">
-            <AlertDialogCancel disabled={isApproving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={isApproving} onClick={handleApprove}>
-              {isApproving ? "Approving..." : "Approve Request"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent className="sm:max-w-lg">
@@ -1240,8 +1280,8 @@ const AddressChangeRequestsTable = ({
           <TableCell colSpan={columns.length} className="h-64">
             <div className="flex flex-col items-center justify-center space-y-6 py-8">
               <div className="flex flex-col items-center space-y-4">
-                <div className="p-4 rounded-full bg-muted/50">
-                  <MapPin className="size-8 text-muted-foreground" />
+                <div className="p-4 rounded-full bg-primary">
+                  <MapPin className="size-8 text-white" />
                 </div>
 
                 <div className="space-y-2 text-center">

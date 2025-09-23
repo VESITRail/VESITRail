@@ -537,7 +537,9 @@ const BookletsTable = ({
               className="text-center py-8"
             >
               <div className="flex flex-col items-center gap-2">
-                <BookOpen className="size-8 text-muted-foreground" />
+                <div className="p-4 rounded-full bg-primary">
+                  <BookOpen className="size-8 text-white" />
+                </div>
                 <span className="text-lg font-medium">No Booklets Found</span>
                 <span className="text-sm text-muted-foreground">
                   {searchQuery || selectedStatus !== "all"

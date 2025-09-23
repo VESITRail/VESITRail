@@ -28,8 +28,8 @@ const AuthErrorLoading = () => (
     <Header />
     <Status
       icon={Loader2}
-      iconBg="bg-muted"
-      iconColor="text-foreground"
+      iconBg="bg-primary"
+      iconColor="text-white"
       iconClassName="animate-spin"
       containerClassName="min-h-[73vh]"
       title="Verifying Authentication Status"

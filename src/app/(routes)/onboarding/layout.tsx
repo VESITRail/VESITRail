@@ -78,9 +78,9 @@ const OnboardingLayoutContent = ({
     return (
       <Status
         icon={Loader2}
-        iconBg="bg-muted"
+        iconBg="bg-primary"
         title="Almost There!"
-        iconColor="text-foreground"
+        iconColor="text-white"
         iconClassName="animate-spin"
         description="Please wait while we verify your account..."
       />

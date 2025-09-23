@@ -742,8 +742,8 @@ const ApplicationsTable = ({
                 <TableCell colSpan={columns.length} className="h-64">
                   <div className="flex flex-col items-center justify-center space-y-6 py-8">
                     <div className="flex flex-col items-center space-y-4">
-                      <div className="p-4 rounded-full bg-muted/50">
-                        <Inbox className="size-8 text-muted-foreground" />
+                      <div className="p-4 rounded-full bg-primary">
+                        <Inbox className="size-8 text-white" />
                       </div>
 
                       <div className="space-y-2 text-center">

@@ -300,9 +300,9 @@ const StudentDetailsDialog = ({
 
               <Skeleton className="h-16 w-full rounded-lg" />
 
-              <div className="flex gap-4 pt-4 border-t">
-                <Skeleton className="h-10 flex-1" />
-                <Skeleton className="h-10 flex-1" />
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Skeleton className="h-10 w-38 rounded-md" />
+                <Skeleton className="h-10 w-42 rounded-md" />
               </div>
             </div>
           ) : hasError ? (
@@ -601,23 +601,23 @@ const StudentDetailsDialog = ({
               </div>
 
               {studentDetails.status === "Pending" && (
-                <div className="flex gap-4 pt-4 border-t">
+                <div className="flex justify-end gap-4 pt-6 border-t">
                   <Button
-                    className="flex-1"
                     variant="destructive"
+                    className="w-38 h-10"
                     disabled={isProcessing}
                     onClick={() => setShowRejectDialog(true)}
                   >
-                    <UserX className="size-4 mr-2" />
+                    <UserX className="size-4 mr-1" />
                     Reject Student
                   </Button>
 
                   <Button
-                    className="flex-1"
+                    className="w-42 h-10"
                     onClick={handleApprove}
                     disabled={isProcessing}
                   >
-                    <Check className="size-4 mr-2" />
+                    <Check className="size-4 mr-1" />
                     Approve Student
                   </Button>
                 </div>
@@ -1338,8 +1338,8 @@ const StudentsTable = ({
                 <TableCell colSpan={columns.length} className="h-64">
                   <div className="flex flex-col items-center justify-center space-y-6 py-8">
                     <div className="flex flex-col items-center space-y-4">
-                      <div className="p-4 rounded-full bg-muted/50">
-                        <Inbox className="size-8 text-muted-foreground" />
+                      <div className="p-4 rounded-full bg-primary">
+                        <Inbox className="size-8 text-white" />
                       </div>
 
                       <div className="space-y-2 text-center">

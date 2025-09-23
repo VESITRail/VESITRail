@@ -5,8 +5,8 @@ const Dashboard = () => {
   return (
     <Status
       icon={Loader2}
-      iconBg="bg-muted"
-      iconColor="text-foreground"
+      iconBg="bg-primary"
+      iconColor="text-white"
       iconClassName="animate-spin"
       title="Setting Up Your Dashboard"
       description="Please wait while we verify your account..."
