@@ -515,14 +515,8 @@ const ApplicationsTable = ({
   }, []);
 
   const handlePrint = useCallback(async (application: AdminApplication) => {
-    const loadingToast = toast.loading("Generating overlay PDF...", {
-      description: "Please wait while we prepare your PDF document.",
-    });
-
-    try {
+    const generatePDFPromise = async () => {
       const res = await generateOverlayPDF(application.id);
-
-      toast.dismiss(loadingToast);
 
       if (res.isSuccess) {
         const blob = new Blob([new Uint8Array(res.data)], {
@@ -536,23 +530,23 @@ const ApplicationsTable = ({
           URL.revokeObjectURL(blobUrl);
         }, 1000);
 
-        toast.success("PDF Generated Successfully", {
-          description: "The overlay PDF has been opened in a new tab.",
-        });
+        return res.data;
       } else {
-        toast.error("PDF Generation Failed", {
-          description:
-            res.error?.message ||
-            "Unable to generate overlay PDF. Please try again.",
-        });
+        throw new Error(
+          res.error?.message ||
+            "Unable to generate overlay PDF. Please try again."
+        );
       }
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      console.error("Error in handlePrint:", error);
-      toast.error("PDF Generation Failed", {
-        description: "An unexpected error occurred. Please try again.",
-      });
-    }
+    };
+
+    toast.promise(generatePDFPromise, {
+      loading: "Generating PDF...",
+      success: "PDF Generated Successfully",
+      error: (error) => {
+        console.error("PDF Generation Error:", error);
+        return "Failed to generate PDF";
+      },
+    });
   }, []);
 
   const confirmApprove = async (applicationId: string, bookletId: string) => {
