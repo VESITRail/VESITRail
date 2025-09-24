@@ -147,7 +147,8 @@ export const generateOverlayPDF = async (
       text: string
     ) => {
       if (!pt || !text) return;
-      doc.text(text, pt.x, pt.y);
+      const yOffset = text === "-" ? pt.y - 5 : pt.y;
+      doc.text(text, pt.x, yOffset);
     };
 
     const writeMultilineText = (
