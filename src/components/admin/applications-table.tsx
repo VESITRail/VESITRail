@@ -476,6 +476,18 @@ const ApplicationsTable = ({
     });
   }, [localSearchQuery, onFilterChange]);
 
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setLocalSearchQuery(value);
+      if (value === "") {
+        onFilterChange({
+          searchQuery: "",
+        });
+      }
+    },
+    [onFilterChange]
+  );
+
   const handleSearchKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
@@ -779,7 +791,7 @@ const ApplicationsTable = ({
               onKeyPress={handleSearchKeyPress}
               className="pl-10 pr-20 h-10 w-full"
               placeholder="Search by Application ID..."
-              onChange={(e) => setLocalSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
             <Button
               size="sm"
@@ -804,7 +816,7 @@ const ApplicationsTable = ({
                 className="pl-10 pr-20 h-10"
                 onKeyPress={handleSearchKeyPress}
                 placeholder="Search by Application ID..."
-                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
               <Button
                 size="sm"

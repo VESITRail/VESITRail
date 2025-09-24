@@ -994,6 +994,16 @@ const AddressChangeRequestsTable = ({
     onSearchChange(localSearchQuery);
   }, [localSearchQuery, onSearchChange]);
 
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setLocalSearchQuery(value);
+      if (value === "") {
+        onSearchChange("");
+      }
+    },
+    [onSearchChange]
+  );
+
   const handleStatusFilter = useCallback(
     (value: string) => {
       setSelectedStatus(value);
@@ -1330,7 +1340,7 @@ const AddressChangeRequestsTable = ({
                 className="pl-10 pr-20 h-10"
                 placeholder="Search requests..."
                 onKeyPress={handleSearchKeyPress}
-                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
               <Button
                 size="sm"
