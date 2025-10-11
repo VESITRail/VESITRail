@@ -1,0 +1,101 @@
+name: Welcome Contributors
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if user is maintainer
+        id: check_maintainer
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const author = context.payload.sender.login;
+
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: author
+              });
+              
+              const isMaintainer = ['admin', 'maintain', 'write'].includes(permission.permission);
+              core.setOutput('is_maintainer', isMaintainer);
+              return isMaintainer;
+            } catch (error) {
+              core.setOutput('is_maintainer', false);
+              return false;
+            }
+
+      - name: Welcome contributor on Issue
+        if: |
+          steps.check_maintainer.outputs.is_maintainer == 'false' &&
+          github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const author = context.payload.sender.login;
+
+            const message = `👋 Hello @${author}, thank you for opening this issue!
+
+            We appreciate you taking the time to report this. A maintainer will review your issue and respond as soon as possible.
+
+            **Please make sure you've:**
+
+            - Provided a clear description of the issue
+            - Included steps to reproduce (if applicable)
+            - Added any relevant screenshots or error messages
+            - Checked if a similar issue already exists
+
+            Feel free to add any additional context that might help us resolve this faster.
+
+            Thank you for contributing to VESITRail! 🚀`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: message
+            });
+
+      - name: Welcome contributor on PR
+        if: |
+          steps.check_maintainer.outputs.is_maintainer == 'false' &&
+          github.event_name == 'pull_request_target'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const author = context.payload.sender.login;
+
+            const message = `🎉 Thank you for your contribution, @${author}!
+
+            We appreciate you taking the time to submit this pull request. A maintainer will review your changes shortly.
+
+            **Checklist:**
+
+            - ✅ Ensure all tests pass
+            - ✅ Follow the project's coding standards
+            - ✅ Update documentation if necessary
+            - ✅ Provide a clear description of your changes
+
+            If you have any questions or need assistance, feel free to ask in the comments.
+
+            Thank you for helping make VESITRail better! 🚀`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message
+            });
