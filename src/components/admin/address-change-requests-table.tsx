@@ -377,28 +377,6 @@ const AddressChangeRequestDetailsDialog = ({
               <Skeleton className="h-px w-full" />
 
               <div className="py-6">
-                <Skeleton className="h-4 w-28 mb-4" />
-                <div className="space-y-3 flex flex-col md:flex-row gap-3 md:gap-6 items-start">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="size-4" />
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-3 w-32" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="size-4" />
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-3 w-32" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Skeleton className="h-px w-full" />
-
-              <div className="py-6">
                 <Skeleton className="h-4 w-36 mb-4" />
                 <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
                   <Skeleton className="size-4" />
@@ -528,19 +506,6 @@ const AddressChangeRequestDetailsDialog = ({
                       </p>
                     </div>
                   </div>
-                  {requestDetails.submissionCount > 1 && (
-                    <div className="flex items-center gap-3">
-                      <RefreshCw className="size-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">
-                          Submission #{requestDetails.submissionCount}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          This is a resubmission after rejection
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -613,42 +578,6 @@ const AddressChangeRequestDetailsDialog = ({
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="py-6">
-                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-                  Request Timeline
-                </h4>
-                <div className="space-y-3 flex flex-col md:flex-row gap-3 md:gap-6 items-start">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="size-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Submitted</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(
-                          new Date(requestDetails.createdAt),
-                          "MMM dd, yyyy 'at' h:mm a"
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  {requestDetails.reviewedAt && (
-                    <div className="flex items-center gap-3">
-                      <Calendar className="size-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Reviewed</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(
-                            new Date(requestDetails.reviewedAt),
-                            "MMM dd, yyyy 'at' h:mm a"
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
 
