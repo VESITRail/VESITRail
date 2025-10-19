@@ -4,8 +4,6 @@
 
 Active development occurs on the `main` branch. Only the latest commit on `main` receives security updates.
 
-**Note:** The project is currently in active development (version `1.0.0`) and not yet production-ready. Security practices are applied, but features may evolve significantly before stable release.
-
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please DO NOT open a public issue.
