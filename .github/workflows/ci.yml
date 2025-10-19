@@ -10,14 +10,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 'lts/*'
           cache: npm
 
       - name: Install dependencies
@@ -27,11 +27,13 @@ jobs:
         run: npm run lint
 
       - name: Prisma Validate
+        if: ${{ github.actor != 'dependabot[bot]' }}
         run: npx prisma validate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: GitGuardian Scan
+        if: ${{ github.actor != 'dependabot[bot]' }}
         uses: GitGuardian/ggshield/actions/secret@v1.43.0
         env:
           GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
