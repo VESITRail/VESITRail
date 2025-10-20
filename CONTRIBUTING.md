@@ -8,8 +8,8 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 
 ## Prerequisites
 
-- Node.js 18+ and npm/yarn/pnpm
 - PostgreSQL database
+- Node.js 18+ and pnpm
 - Google OAuth credentials (@ves.ac.in usage preferred)
 - Cloudinary & Firebase credentials (if working on related features)
 
@@ -18,11 +18,11 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 1. Fork the repository
 2. Clone your fork
 3. Create a feature branch: `git checkout -b feature/your-feature`
-4. Install dependencies: `npm install`
+4. Install dependencies: `pnpm install --frozen-lockfile`
 5. Copy env file: `cp .env.example .env`
 6. Fill in required environment variables
-7. Generate Prisma client: `npx prisma generate`
-8. Start dev server: `npm run dev`
+7. Generate Prisma client: `pnpm prisma generate`
+8. Start dev server: `pnpm run dev`
 
 ## Code Guidelines
 
@@ -44,7 +44,7 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 
 Before opening a PR:
 
-- [ ] Ran `npm run build` locally without errors
+- [ ] Ran `pnpm run build` locally without errors
 - [ ] Updated or added types/schemas if models changed
 - [ ] Added migrations if Prisma schema changed
 - [ ] Updated docs (`README.md` or relevant .md files) if behavior changed
@@ -53,7 +53,7 @@ Before opening a PR:
 ## Database & Prisma
 
 - Edit models in `prisma/schema.prisma` only
-- Run `npx prisma migrate dev --name meaningful_name` (if schema changes)
+- Run `pnpm prisma migrate dev --name meaningful_name` (if schema changes)
 - Do NOT manually edit generated files in `src/generated/`
 
 ## Security & Privacy
