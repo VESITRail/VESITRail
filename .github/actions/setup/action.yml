@@ -1,20 +1,9 @@
 name: Setup Node.js with pnpm
 description: Setup Node.js, pnpm and install dependencies
 
-inputs:
-  fetch-depth:
-    description: Number of commits to fetch. 0 indicates all history for all branches and tags
-    required: false
-    default: "1"
-
 runs:
   using: composite
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-      with:
-        fetch-depth: ${{ inputs.fetch-depth }}
-
     - name: Setup pnpm
       uses: pnpm/action-setup@v4
       with:
