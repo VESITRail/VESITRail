@@ -5,9 +5,6 @@
   "version": "0.0.0-semantically-released",
   "homepage": "https://vesitrail.ves.ac.in",
   "description": "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
-  "prisma": {
-    "schema": "./prisma"
-  },
   "release": {
     "branches": [
       "main"
