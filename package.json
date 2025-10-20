@@ -22,7 +22,7 @@
     "build": "next build",
     "start": "next start",
     "dev": "next dev --turbopack",
-    "postinstall": "npx prisma generate",
+    "postinstall": "pnpm prisma generate",
     "semantic-release": "semantic-release"
   },
   "dependencies": {
