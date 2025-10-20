@@ -30,7 +30,7 @@ Steps to reproduce / verify:
 ## Checklist
 
 - [ ] Closes linked issue number
-- [ ] Ran `npm run build` locally without errors
+- [ ] Ran `pnpm run build` locally without errors
 - [ ] Database changes (if any) have associated Prisma migration
 - [ ] Updated documentation (README / comments / md files)
 - [ ] No sensitive info committed
