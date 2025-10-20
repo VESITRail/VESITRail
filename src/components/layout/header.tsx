@@ -8,15 +8,13 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/app/icon.svg";
-import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Large } from "@/components/ui/typography";
 import { navigationItems } from "@/config/navigation";
 import PWAInstallButton from "@/components/utils/pwa-install-button";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 
 const Header = () => {
-  const { theme, setTheme } = useTheme();
+  
 
   return (
     <>
@@ -45,15 +43,7 @@ const Header = () => {
           <div className="flex gap-4 items-center">
             <PWAInstallButton />
 
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            >
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
+              <AnimatedThemeToggler />
           </div>
         </div>
       </header>
