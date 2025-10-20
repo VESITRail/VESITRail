@@ -4,26 +4,30 @@
   "author": "VESITRail",
   "version": "0.0.0-semantically-released",
   "homepage": "https://vesitrail.ves.ac.in",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/VESITRail/VESITRail.git"
-  },
   "description": "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
+  "prisma": {
+    "schema": "./prisma"
+  },
   "release": {
     "branches": [
       "main"
     ]
   },
-  "prisma": {
-    "schema": "./prisma"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VESITRail/VESITRail.git"
   },
   "scripts": {
-    "lint": "next lint",
+    "ci": "biome ci .",
     "build": "next build",
     "start": "next start",
+    "lint": "biome check .",
     "dev": "next dev --turbopack",
+    "format": "biome format --write .",
+    "lint:fix": "biome check --write .",
     "postinstall": "pnpm prisma generate",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "lint:unsafe": "biome check --write --unsafe ."
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -86,7 +90,7 @@
     "zod-prisma-types": "^3.2.4"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@biomejs/biome": "^1.9.4",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@tailwindcss/postcss": "^4",
@@ -94,8 +98,6 @@
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.6",
     "prisma": "^6.17.1",
     "semantic-release": "^25.0.0",
     "tailwindcss": "^4",
