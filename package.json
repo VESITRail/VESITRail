@@ -15,16 +15,12 @@
     "url": "https://github.com/VESITRail/VESITRail.git"
   },
   "scripts": {
-    "ci": "biome ci .",
+    "lint": "next lint",
     "build": "next build",
     "start": "next start",
-    "lint": "biome check .",
     "dev": "next dev --turbopack",
-    "format": "biome format --write .",
-    "lint:fix": "biome check --write .",
     "postinstall": "pnpm prisma generate",
-    "semantic-release": "semantic-release",
-    "lint:unsafe": "biome check --write --unsafe ."
+    "semantic-release": "semantic-release"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -87,7 +83,7 @@
     "zod-prisma-types": "^3.2.4"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.6",
+    "@eslint/eslintrc": "^3.3.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@tailwindcss/postcss": "^4",
@@ -95,6 +91,8 @@
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "^15.5.6",
     "prisma": "^6.17.1",
     "semantic-release": "^25.0.0",
     "tailwindcss": "^4",
