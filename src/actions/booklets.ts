@@ -594,7 +594,10 @@ export const getBookletApplications = async (
     const damagedPageOffsets = new Set(damagedPages);
     const filteredApplications = applicationsWithDerivedData.filter((app) => {
       const appPageOffset = app.pageOffset ?? 0;
-      return !damagedPageOffsets.has(appPageOffset);
+      return (
+        typeof appPageOffset === "number" &&
+        !damagedPageOffsets.has(appPageOffset)
+      );
     });
 
     const allItems: BookletTableItem[] = [
