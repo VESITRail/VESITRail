@@ -1,4 +1,5 @@
 "use client";
+
 import {
   SidebarInset,
   SidebarTrigger,
@@ -12,11 +13,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
 import { toTitleCase } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "../ui/theme-toggle";
 import { Separator } from "@/components/ui/separator";
 import AdminAppSidebar from "@/components/app-sidebar/admin/app-sidebar";
 
@@ -26,7 +25,6 @@ const AdminDashboardLayoutContent = ({
   children: React.ReactNode;
 }) => {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
 
   const generateBreadcrumbs = () => {
     let currentPath = "";
@@ -120,16 +118,7 @@ const AdminDashboardLayoutContent = ({
             </div>
           </div>
 
-          <Button
-            size="icon"
-            variant="outline"
-            className="mr-5 flex-shrink-0"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            <Sun className="size-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute size-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
+          <ThemeToggle className="mr-5 flex-shrink-0" />
         </header>
 
         {children}
