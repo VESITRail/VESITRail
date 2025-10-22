@@ -13,9 +13,16 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [
-      "src/generated/**/*",
-    ]
-  }
+      "out/**",
+      "build/**",
+      ".next/**",
+      "public/**",
+      "next-env.d.ts",
+      "next.config.ts",
+      "node_modules/**",
+      "src/generated/**",
+    ],
+  },
 ];
 
 export default eslintConfig;
