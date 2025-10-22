@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
     if (isServer) {
       const {
         PrismaPlugin,
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
       } = require("@prisma/nextjs-monorepo-workaround-plugin");
       config.plugins = [...config.plugins, new PrismaPlugin()];
     }

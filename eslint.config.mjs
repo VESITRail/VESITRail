@@ -13,9 +13,6 @@ const compat = new FlatCompat({
 const eslintConfig = [
   gitignore(),
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
-    ignores: ["next.config.ts"],
-  },
 ];
 
 export default eslintConfig;
