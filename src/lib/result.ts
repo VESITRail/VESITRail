@@ -1,233 +1,199 @@
 export type Result<TData, TError = string> =
-  | { readonly isSuccess: true; readonly data: TData; readonly error?: never }
-  | {
-      readonly data?: never;
-      readonly error: TError;
-      readonly isSuccess: false;
-    };
+	| { readonly isSuccess: true; readonly data: TData; readonly error?: never }
+	| {
+			readonly data?: never;
+			readonly error: TError;
+			readonly isSuccess: false;
+	  };
 
 export const success = <TData>(data: TData): Result<TData, never> =>
-  ({
-    data,
-    isSuccess: true,
-  } as const);
+	({
+		data,
+		isSuccess: true
+	}) as const;
 
-export const failure = <TError = string>(
-  error: TError
-): Result<never, TError> =>
-  ({
-    error,
-    isSuccess: false,
-  } as const);
+export const failure = <TError = string>(error: TError): Result<never, TError> =>
+	({
+		error,
+		isSuccess: false
+	}) as const;
 
 export const isSuccess = <TData, TError>(
-  result: Result<TData, TError>
-): result is { readonly isSuccess: true; readonly data: TData } =>
-  result.isSuccess;
+	result: Result<TData, TError>
+): result is { readonly isSuccess: true; readonly data: TData } => result.isSuccess;
 
 export const isFailure = <TData, TError>(
-  result: Result<TData, TError>
-): result is { readonly isSuccess: false; readonly error: TError } =>
-  !result.isSuccess;
+	result: Result<TData, TError>
+): result is { readonly isSuccess: false; readonly error: TError } => !result.isSuccess;
 
 export const unwrap = <TData, TError>(result: Result<TData, TError>): TData => {
-  if (isSuccess(result)) {
-    return result.data;
-  }
-  throw new Error(`Failed to unwrap result: ${String(result.error)}`);
+	if (isSuccess(result)) {
+		return result.data;
+	}
+	throw new Error(`Failed to unwrap result: ${String(result.error)}`);
 };
 
 export const unwrapOr = <TData, TError, TDefault>(
-  result: Result<TData, TError>,
-  defaultValue: TDefault
+	result: Result<TData, TError>,
+	defaultValue: TDefault
 ): TData | TDefault => {
-  return isSuccess(result) ? result.data : defaultValue;
+	return isSuccess(result) ? result.data : defaultValue;
 };
 
 export const map = <TData, TError, TMapped>(
-  result: Result<TData, TError>,
-  mapper: (data: TData) => TMapped
+	result: Result<TData, TError>,
+	mapper: (data: TData) => TMapped
 ): Result<TMapped, TError> => {
-  return isSuccess(result)
-    ? success(mapper(result.data))
-    : failure(result.error);
+	return isSuccess(result) ? success(mapper(result.data)) : failure(result.error);
 };
 
 export const mapError = <TData, TError, TMappedError>(
-  result: Result<TData, TError>,
-  mapper: (error: TError) => TMappedError
+	result: Result<TData, TError>,
+	mapper: (error: TError) => TMappedError
 ): Result<TData, TMappedError> => {
-  return isFailure(result)
-    ? failure(mapper(result.error))
-    : success(result.data);
+	return isFailure(result) ? failure(mapper(result.error)) : success(result.data);
 };
 
 export const chain = <TData, TError, TMapped>(
-  result: Result<TData, TError>,
-  mapper: (data: TData) => Result<TMapped, TError>
+	result: Result<TData, TError>,
+	mapper: (data: TData) => Result<TMapped, TError>
 ): Result<TMapped, TError> => {
-  return isSuccess(result) ? mapper(result.data) : failure(result.error);
+	return isSuccess(result) ? mapper(result.data) : failure(result.error);
 };
 
 export const match = <TData, TError, TReturn>(
-  result: Result<TData, TError>,
-  handlers: {
-    onSuccess: (data: TData) => TReturn;
-    onFailure: (error: TError) => TReturn;
-  }
+	result: Result<TData, TError>,
+	handlers: {
+		onSuccess: (data: TData) => TReturn;
+		onFailure: (error: TError) => TReturn;
+	}
 ): TReturn => {
-  return isSuccess(result)
-    ? handlers.onSuccess(result.data)
-    : handlers.onFailure(result.error);
+	return isSuccess(result) ? handlers.onSuccess(result.data) : handlers.onFailure(result.error);
 };
 
 export const mapAsync = async <TData, TError, TMapped>(
-  result: Result<TData, TError>,
-  mapper: (data: TData) => Promise<TMapped>
+	result: Result<TData, TError>,
+	mapper: (data: TData) => Promise<TMapped>
 ): Promise<Result<TMapped, TError>> => {
-  if (isSuccess(result)) {
-    try {
-      const mapped = await mapper(result.data);
-      return success(mapped);
-    } catch (error) {
-      return failure(
-        error instanceof Error ? error.message : String(error)
-      ) as Result<TMapped, TError>;
-    }
-  }
-  return failure(result.error);
+	if (isSuccess(result)) {
+		try {
+			const mapped = await mapper(result.data);
+			return success(mapped);
+		} catch (error) {
+			return failure(error instanceof Error ? error.message : String(error)) as Result<TMapped, TError>;
+		}
+	}
+	return failure(result.error);
 };
 
 export const chainAsync = async <TData, TError, TMapped>(
-  result: Result<TData, TError>,
-  mapper: (data: TData) => Promise<Result<TMapped, TError>>
+	result: Result<TData, TError>,
+	mapper: (data: TData) => Promise<Result<TMapped, TError>>
 ): Promise<Result<TMapped, TError>> => {
-  return isSuccess(result) ? await mapper(result.data) : failure(result.error);
+	return isSuccess(result) ? await mapper(result.data) : failure(result.error);
 };
 
 export const combine = <TResults extends readonly Result<unknown, unknown>[]>(
-  results: TResults
+	results: TResults
 ): Result<
-  {
-    [K in keyof TResults]: TResults[K] extends Result<infer U, unknown>
-      ? U
-      : never;
-  },
-  TResults[number] extends Result<unknown, infer E> ? E : never
+	{
+		[K in keyof TResults]: TResults[K] extends Result<infer U, unknown> ? U : never;
+	},
+	TResults[number] extends Result<unknown, infer E> ? E : never
 > => {
-  const data: unknown[] = [];
+	const data: unknown[] = [];
 
-  for (const result of results) {
-    if (isFailure(result)) {
-      return failure(result.error) as Result<
-        {
-          [K in keyof TResults]: TResults[K] extends Result<infer U, unknown>
-            ? U
-            : never;
-        },
-        TResults[number] extends Result<unknown, infer E> ? E : never
-      >;
-    }
-    data.push(result.data);
-  }
+	for (const result of results) {
+		if (isFailure(result)) {
+			return failure(result.error) as Result<
+				{
+					[K in keyof TResults]: TResults[K] extends Result<infer U, unknown> ? U : never;
+				},
+				TResults[number] extends Result<unknown, infer E> ? E : never
+			>;
+		}
+		data.push(result.data);
+	}
 
-  return success(
-    data as {
-      [K in keyof TResults]: TResults[K] extends Result<infer U, unknown>
-        ? U
-        : never;
-    }
-  );
+	return success(
+		data as {
+			[K in keyof TResults]: TResults[K] extends Result<infer U, unknown> ? U : never;
+		}
+	);
 };
 
 export const attempt = <TData, TArgs extends readonly unknown[]>(
-  fn: (...args: TArgs) => TData,
-  ...args: TArgs
+	fn: (...args: TArgs) => TData,
+	...args: TArgs
 ): Result<TData, string> => {
-  try {
-    return success(fn(...args));
-  } catch (error) {
-    return failure(error instanceof Error ? error.message : String(error));
-  }
+	try {
+		return success(fn(...args));
+	} catch (error) {
+		return failure(error instanceof Error ? error.message : String(error));
+	}
 };
 
 export const attemptAsync = async <TData, TArgs extends readonly unknown[]>(
-  fn: (...args: TArgs) => Promise<TData>,
-  ...args: TArgs
+	fn: (...args: TArgs) => Promise<TData>,
+	...args: TArgs
 ): Promise<Result<TData, string>> => {
-  try {
-    const data = await fn(...args);
-    return success(data);
-  } catch (error) {
-    return failure(error instanceof Error ? error.message : String(error));
-  }
+	try {
+		const data = await fn(...args);
+		return success(data);
+	} catch (error) {
+		return failure(error instanceof Error ? error.message : String(error));
+	}
 };
 
 export type ResultData<T> = T extends Result<infer U, unknown> ? U : never;
 export type ResultError<T> = T extends Result<unknown, infer E> ? E : never;
 
 export type DatabaseError = {
-  readonly message: string;
-  readonly code?: string;
-  readonly type: "DATABASE_ERROR";
+	readonly message: string;
+	readonly code?: string;
+	readonly type: "DATABASE_ERROR";
 };
 
 export type ValidationError = {
-  readonly message: string;
-  readonly field?: string;
-  readonly type: "VALIDATION_ERROR";
+	readonly message: string;
+	readonly field?: string;
+	readonly type: "VALIDATION_ERROR";
 };
 
 export type AuthError = {
-  readonly message: string;
-  readonly type: "AUTH_ERROR";
-  readonly code?: "UNAUTHORIZED" | "FORBIDDEN" | "EXPIRED";
+	readonly message: string;
+	readonly type: "AUTH_ERROR";
+	readonly code?: "UNAUTHORIZED" | "FORBIDDEN" | "EXPIRED";
 };
 
 export type NetworkError = {
-  readonly message: string;
-  readonly status?: number;
-  readonly type: "NETWORK_ERROR";
+	readonly message: string;
+	readonly status?: number;
+	readonly type: "NETWORK_ERROR";
 };
 
-export type AppError =
-  | AuthError
-  | NetworkError
-  | DatabaseError
-  | ValidationError;
+export type AppError = AuthError | NetworkError | DatabaseError | ValidationError;
 
-export const databaseError = (
-  message: string,
-  code?: string
-): DatabaseError => ({
-  code,
-  message,
-  type: "DATABASE_ERROR",
+export const databaseError = (message: string, code?: string): DatabaseError => ({
+	code,
+	message,
+	type: "DATABASE_ERROR"
 });
 
-export const validationError = (
-  message: string,
-  field?: string
-): ValidationError => ({
-  field,
-  message,
-  type: "VALIDATION_ERROR",
+export const validationError = (message: string, field?: string): ValidationError => ({
+	field,
+	message,
+	type: "VALIDATION_ERROR"
 });
 
-export const authError = (
-  message: string,
-  code?: "UNAUTHORIZED" | "FORBIDDEN" | "EXPIRED"
-): AuthError => ({
-  code,
-  message,
-  type: "AUTH_ERROR",
+export const authError = (message: string, code?: "UNAUTHORIZED" | "FORBIDDEN" | "EXPIRED"): AuthError => ({
+	code,
+	message,
+	type: "AUTH_ERROR"
 });
 
-export const networkError = (
-  message: string,
-  status?: number
-): NetworkError => ({
-  type: "NETWORK_ERROR",
-  status,
-  message,
+export const networkError = (message: string, status?: number): NetworkError => ({
+	type: "NETWORK_ERROR",
+	status,
+	message
 });

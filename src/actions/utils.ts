@@ -1,193 +1,168 @@
 "use server";
 
-import {
-  Result,
-  success,
-  failure,
-  databaseError,
-  DatabaseError,
-} from "@/lib/result";
-import {
-  Year,
-  Class,
-  Branch,
-  Station,
-  ConcessionClass,
-  ConcessionPeriod,
-} from "@/generated/zod";
+import { Result, success, failure, databaseError, DatabaseError } from "@/lib/result";
+import { Year, Class, Branch, Station, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
 import prisma from "@/lib/prisma";
 import { sortByRomanKey } from "@/lib/utils";
 
 export type StudentStation = Pick<Station, "id" | "code" | "name">;
 
 export type StudentPreferences = {
-  preferredConcessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
-  preferredConcessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+	preferredConcessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
+	preferredConcessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
 };
 
-export const getStudentPreferences = async (
-  studentId: string
-): Promise<Result<StudentPreferences, DatabaseError>> => {
-  try {
-    const student = await prisma.student.findUnique({
-      where: { userId: studentId },
-      select: {
-        status: true,
-        preferredConcessionClass: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
-          },
-        },
-        preferredConcessionPeriod: {
-          select: {
-            id: true,
-            name: true,
-            duration: true,
-          },
-        },
-      },
-    });
+export const getStudentPreferences = async (studentId: string): Promise<Result<StudentPreferences, DatabaseError>> => {
+	try {
+		const student = await prisma.student.findUnique({
+			where: { userId: studentId },
+			select: {
+				status: true,
+				preferredConcessionClass: {
+					select: {
+						id: true,
+						code: true,
+						name: true
+					}
+				},
+				preferredConcessionPeriod: {
+					select: {
+						id: true,
+						name: true,
+						duration: true
+					}
+				}
+			}
+		});
 
-    if (!student) {
-      return failure(databaseError("Student not found"));
-    }
+		if (!student) {
+			return failure(databaseError("Student not found"));
+		}
 
-    if (student.status !== "Approved") {
-      return failure(databaseError("Student is not approved"));
-    }
+		if (student.status !== "Approved") {
+			return failure(databaseError("Student is not approved"));
+		}
 
-    const { preferredConcessionClass, preferredConcessionPeriod } = student;
+		const { preferredConcessionClass, preferredConcessionPeriod } = student;
 
-    return success({
-      preferredConcessionClass,
-      preferredConcessionPeriod,
-    });
-  } catch (error) {
-    console.error("Error while fetching preferences:", error);
-    return failure(databaseError("Failed to fetch preferences"));
-  }
+		return success({
+			preferredConcessionClass,
+			preferredConcessionPeriod
+		});
+	} catch (error) {
+		console.error("Error while fetching preferences:", error);
+		return failure(databaseError("Failed to fetch preferences"));
+	}
 };
 
 export const getYears = async (): Promise<Result<Year[], DatabaseError>> => {
-  try {
-    const years = await prisma.year.findMany({
-      where: { isActive: true },
-    });
+	try {
+		const years = await prisma.year.findMany({
+			where: { isActive: true }
+		});
 
-    return success(years);
-  } catch (error) {
-    console.error("Error while fetching years:", error);
-    return failure(databaseError("Failed to fetch years"));
-  }
+		return success(years);
+	} catch (error) {
+		console.error("Error while fetching years:", error);
+		return failure(databaseError("Failed to fetch years"));
+	}
 };
 
-export const getBranches = async (): Promise<
-  Result<Branch[], DatabaseError>
-> => {
-  try {
-    const branches = await prisma.branch.findMany({
-      where: { isActive: true },
-    });
+export const getBranches = async (): Promise<Result<Branch[], DatabaseError>> => {
+	try {
+		const branches = await prisma.branch.findMany({
+			where: { isActive: true }
+		});
 
-    return success(branches);
-  } catch (error) {
-    console.error("Error while fetching branches:", error);
-    return failure(databaseError("Failed to fetch branches"));
-  }
+		return success(branches);
+	} catch (error) {
+		console.error("Error while fetching branches:", error);
+		return failure(databaseError("Failed to fetch branches"));
+	}
 };
 
 export const getClasses = async (): Promise<Result<Class[], DatabaseError>> => {
-  try {
-    const classes = await prisma.class.findMany({
-      orderBy: { code: "asc" },
-      where: { isActive: true },
-    });
+	try {
+		const classes = await prisma.class.findMany({
+			orderBy: { code: "asc" },
+			where: { isActive: true }
+		});
 
-    return success(classes);
-  } catch (error) {
-    console.error("Error while fetching classes:", error);
-    return failure(databaseError("Failed to fetch classes"));
-  }
+		return success(classes);
+	} catch (error) {
+		console.error("Error while fetching classes:", error);
+		return failure(databaseError("Failed to fetch classes"));
+	}
 };
 
-export const getStations = async (): Promise<
-  Result<Station[], DatabaseError>
-> => {
-  try {
-    const stations = await prisma.station.findMany({
-      orderBy: { name: "asc" },
-      where: { isActive: true },
-    });
+export const getStations = async (): Promise<Result<Station[], DatabaseError>> => {
+	try {
+		const stations = await prisma.station.findMany({
+			orderBy: { name: "asc" },
+			where: { isActive: true }
+		});
 
-    return success(stations);
-  } catch (error) {
-    console.error("Error while fetching stations:", error);
-    return failure(databaseError("Failed to fetch stations"));
-  }
+		return success(stations);
+	} catch (error) {
+		console.error("Error while fetching stations:", error);
+		return failure(databaseError("Failed to fetch stations"));
+	}
 };
 
-export const getConcessionClasses = async (): Promise<
-  Result<ConcessionClass[], DatabaseError>
-> => {
-  try {
-    const classes = await prisma.concessionClass.findMany({
-      where: { isActive: true },
-    });
+export const getConcessionClasses = async (): Promise<Result<ConcessionClass[], DatabaseError>> => {
+	try {
+		const classes = await prisma.concessionClass.findMany({
+			where: { isActive: true }
+		});
 
-    return success(sortByRomanKey(classes, "code"));
-  } catch (error) {
-    console.error("Error while fetching concession classes:", error);
-    return failure(databaseError("Failed to fetch concession classes"));
-  }
+		return success(sortByRomanKey(classes, "code"));
+	} catch (error) {
+		console.error("Error while fetching concession classes:", error);
+		return failure(databaseError("Failed to fetch concession classes"));
+	}
 };
 
-export const getConcessionPeriods = async (): Promise<
-  Result<ConcessionPeriod[], DatabaseError>
-> => {
-  try {
-    const periods = await prisma.concessionPeriod.findMany({
-      where: { isActive: true },
-      orderBy: { duration: "asc" },
-    });
+export const getConcessionPeriods = async (): Promise<Result<ConcessionPeriod[], DatabaseError>> => {
+	try {
+		const periods = await prisma.concessionPeriod.findMany({
+			where: { isActive: true },
+			orderBy: { duration: "asc" }
+		});
 
-    return success(periods);
-  } catch (error) {
-    console.error("Error while fetching concession periods:", error);
-    return failure(databaseError("Failed to fetch concession periods"));
-  }
+		return success(periods);
+	} catch (error) {
+		console.error("Error while fetching concession periods:", error);
+		return failure(databaseError("Failed to fetch concession periods"));
+	}
 };
 
-export const getStudentStation = async (
-  studentId: string
-): Promise<Result<StudentStation, DatabaseError>> => {
-  try {
-    const student = await prisma.student.findUnique({
-      where: { userId: studentId },
-      select: {
-        status: true,
-        station: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
-          },
-        },
-      },
-    });
+export const getStudentStation = async (studentId: string): Promise<Result<StudentStation, DatabaseError>> => {
+	try {
+		const student = await prisma.student.findUnique({
+			where: { userId: studentId },
+			select: {
+				status: true,
+				station: {
+					select: {
+						id: true,
+						code: true,
+						name: true
+					}
+				}
+			}
+		});
 
-    if (!student) {
-      return failure(databaseError("Student not found"));
-    }
+		if (!student) {
+			return failure(databaseError("Student not found"));
+		}
 
-    if (student.status !== "Approved") {
-      return failure(databaseError("Student is not approved"));
-    }
+		if (student.status !== "Approved") {
+			return failure(databaseError("Student is not approved"));
+		}
 
-    return success(student.station);
-  } catch (error) {
-    console.error("Error while fetching student's station:", error);
-    return failure(databaseError("Failed to fetch student's station"));
-  }
+		return success(student.station);
+	} catch (error) {
+		console.error("Error while fetching student's station:", error);
+		return failure(databaseError("Failed to fetch student's station"));
+	}
 };

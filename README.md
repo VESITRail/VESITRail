@@ -264,9 +264,7 @@ VESITRail uses a comprehensive design system built with:
 const { theme, setTheme } = useTheme();
 
 // Toggle theme
-<Button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-  {theme === "dark" ? <Sun /> : <Moon />}
-</Button>;
+<Button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun /> : <Moon />}</Button>;
 ```
 
 ---

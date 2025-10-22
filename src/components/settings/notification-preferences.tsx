@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  getNotificationPreferences,
-  updateNotificationPreferences,
-} from "@/actions/settings";
+import { getNotificationPreferences, updateNotificationPreferences } from "@/actions/settings";
 import { toast } from "sonner";
 import { Switch } from "../ui/switch";
 import { useState, useEffect } from "react";
@@ -13,184 +10,161 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 
 const NotificationPreferences = () => {
-  const { data, isPending } = authClient.useSession();
+	const { data, isPending } = authClient.useSession();
 
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [pushNotificationsEnabled, setPushNotificationsEnabled] =
-    useState<boolean>(true);
-  const [emailNotificationsEnabled, setEmailNotificationsEnabled] =
-    useState<boolean>(true);
+	const [loading, setLoading] = useState<boolean>(true);
+	const [isUpdating, setIsUpdating] = useState<boolean>(false);
+	const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState<boolean>(true);
+	const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState<boolean>(true);
 
-  useEffect(() => {
-    const fetchPreferences = async () => {
-      if (!data?.user?.id) {
-        setLoading(false);
-        return;
-      }
+	useEffect(() => {
+		const fetchPreferences = async () => {
+			if (!data?.user?.id) {
+				setLoading(false);
+				return;
+			}
 
-      try {
-        const result = await getNotificationPreferences(data.user.id);
+			try {
+				const result = await getNotificationPreferences(data.user.id);
 
-        if (result.isSuccess) {
-          setPushNotificationsEnabled(result.data.pushEnabled);
-          setEmailNotificationsEnabled(result.data.emailEnabled);
-        }
-      } catch (error) {
-        console.error("Error fetching notification preferences:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+				if (result.isSuccess) {
+					setPushNotificationsEnabled(result.data.pushEnabled);
+					setEmailNotificationsEnabled(result.data.emailEnabled);
+				}
+			} catch (error) {
+				console.error("Error fetching notification preferences:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
 
-    if (!isPending) {
-      fetchPreferences();
-    }
-  }, [data?.user?.id, isPending]);
+		if (!isPending) {
+			fetchPreferences();
+		}
+	}, [data?.user?.id, isPending]);
 
-  const handleToggle = async (type: "push" | "email", enabled: boolean) => {
-    if (!data?.user?.id || isUpdating) return;
+	const handleToggle = async (type: "push" | "email", enabled: boolean) => {
+		if (!data?.user?.id || isUpdating) return;
 
-    setIsUpdating(true);
+		setIsUpdating(true);
 
-    const preferences =
-      type === "push" ? { pushEnabled: enabled } : { emailEnabled: enabled };
+		const preferences = type === "push" ? { pushEnabled: enabled } : { emailEnabled: enabled };
 
-    const updatePromise = updateNotificationPreferences(
-      data.user.id,
-      preferences
-    );
+		const updatePromise = updateNotificationPreferences(data.user.id, preferences);
 
-    toast.promise(updatePromise, {
-      loading: `Updating ${type} notification preferences...`,
-      success: `${
-        type.charAt(0).toUpperCase() + type.slice(1)
-      } notification preferences updated successfully!`,
-      error: (error) =>
-        error.error || `Failed to update ${type} notification preferences`,
-    });
+		toast.promise(updatePromise, {
+			loading: `Updating ${type} notification preferences...`,
+			success: `${type.charAt(0).toUpperCase() + type.slice(1)} notification preferences updated successfully!`,
+			error: (error) => error.error || `Failed to update ${type} notification preferences`
+		});
 
-    try {
-      const result = await updatePromise;
+		try {
+			const result = await updatePromise;
 
-      if (result.isSuccess) {
-        if (type === "push") {
-          setPushNotificationsEnabled(enabled);
-        } else {
-          setEmailNotificationsEnabled(enabled);
-        }
-      }
-    } catch (error) {
-      console.error(`${type} notification preference update error:`, error);
-      toast.error("Update Failed", {
-        description: `Unable to update your ${type} notification preferences. Please try again.`,
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+			if (result.isSuccess) {
+				if (type === "push") {
+					setPushNotificationsEnabled(enabled);
+				} else {
+					setEmailNotificationsEnabled(enabled);
+				}
+			}
+		} catch (error) {
+			console.error(`${type} notification preference update error:`, error);
+			toast.error("Update Failed", {
+				description: `Unable to update your ${type} notification preferences. Please try again.`
+			});
+		} finally {
+			setIsUpdating(false);
+		}
+	};
 
-  if (isPending || loading) {
-    return (
-      <div className="space-y-6 mb-6">
-        <div>
-          <h2 className="text-lg font-semibold mb-2">
-            Notification Preferences
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Manage your push notification settings and preferences.
-          </p>
-        </div>
+	if (isPending || loading) {
+		return (
+			<div className="space-y-6 mb-6">
+				<div>
+					<h2 className="text-lg font-semibold mb-2">Notification Preferences</h2>
+					<p className="text-sm text-muted-foreground">Manage your push notification settings and preferences.</p>
+				</div>
 
-        <Card>
-          <CardContent className="py-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-48" />
-                </div>
-                <Skeleton className="h-6 w-11 rounded-full" />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-48" />
-                </div>
-                <Skeleton className="h-6 w-11 rounded-full" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+				<Card>
+					<CardContent className="py-4">
+						<div className="space-y-4">
+							<div className="flex items-center justify-between">
+								<div className="space-y-1">
+									<Skeleton className="h-4 w-32" />
+									<Skeleton className="h-3 w-48" />
+								</div>
+								<Skeleton className="h-6 w-11 rounded-full" />
+							</div>
+							<div className="flex items-center justify-between">
+								<div className="space-y-1">
+									<Skeleton className="h-4 w-32" />
+									<Skeleton className="h-3 w-48" />
+								</div>
+								<Skeleton className="h-6 w-11 rounded-full" />
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
 
-  return (
-    <div className="space-y-6 mb-6">
-      <div>
-        <h2 className="text-lg font-semibold mb-2">Notification Preferences</h2>
-        <p className="text-sm text-muted-foreground">
-          Manage your push notification settings and preferences.
-        </p>
-      </div>
+	return (
+		<div className="space-y-6 mb-6">
+			<div>
+				<h2 className="text-lg font-semibold mb-2">Notification Preferences</h2>
+				<p className="text-sm text-muted-foreground">Manage your push notification settings and preferences.</p>
+			</div>
 
-      <Card>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Label
-                    htmlFor="push-notifications-toggle"
-                    className="text-sm font-medium"
-                  >
-                    Push Notifications
-                  </Label>
-                </div>
+			<Card>
+				<CardContent>
+					<div className="space-y-6">
+						<div className="flex items-center justify-between">
+							<div className="space-y-1">
+								<div className="flex items-center gap-2">
+									<Label htmlFor="push-notifications-toggle" className="text-sm font-medium">
+										Push Notifications
+									</Label>
+								</div>
 
-                <p className="text-xs text-muted-foreground">
-                  Receive push notifications about concession status updates and
-                  important announcements
-                </p>
-              </div>
-              <Switch
-                disabled={isUpdating}
-                id="push-notifications-toggle"
-                checked={pushNotificationsEnabled}
-                onCheckedChange={(enabled) => handleToggle("push", enabled)}
-              />
-            </div>
+								<p className="text-xs text-muted-foreground">
+									Receive push notifications about concession status updates and important announcements
+								</p>
+							</div>
+							<Switch
+								disabled={isUpdating}
+								id="push-notifications-toggle"
+								checked={pushNotificationsEnabled}
+								onCheckedChange={(enabled) => handleToggle("push", enabled)}
+							/>
+						</div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Label
-                    htmlFor="email-notifications-toggle"
-                    className="text-sm font-medium"
-                  >
-                    Email Notifications
-                  </Label>
-                </div>
+						<div className="flex items-center justify-between">
+							<div className="space-y-1">
+								<div className="flex items-center gap-2">
+									<Label htmlFor="email-notifications-toggle" className="text-sm font-medium">
+										Email Notifications
+									</Label>
+								</div>
 
-                <p className="text-xs text-muted-foreground">
-                  Receive email notifications about concession status updates
-                  and important announcements
-                </p>
-              </div>
+								<p className="text-xs text-muted-foreground">
+									Receive email notifications about concession status updates and important announcements
+								</p>
+							</div>
 
-              <Switch
-                disabled={isUpdating}
-                id="email-notifications-toggle"
-                checked={emailNotificationsEnabled}
-                onCheckedChange={(enabled) => handleToggle("email", enabled)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+							<Switch
+								disabled={isUpdating}
+								id="email-notifications-toggle"
+								checked={emailNotificationsEnabled}
+								onCheckedChange={(enabled) => handleToggle("email", enabled)}
+							/>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+	);
 };
 
 export default NotificationPreferences;

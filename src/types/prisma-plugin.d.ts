@@ -1,5 +1,5 @@
 declare module "@prisma/nextjs-monorepo-workaround-plugin" {
-  export class PrismaPlugin {
-    constructor();
-  }
+	export class PrismaPlugin {
+		constructor();
+	}
 }
