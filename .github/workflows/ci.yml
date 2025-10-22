@@ -32,19 +32,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Check Prettier formatting
-        id: prettier-check
         run: npm run format:check
-        continue-on-error: true
-
-      - name: Apply Prettier format
-        if: steps.prettier-check.outcome == 'failure'
-        run: npm run format
-
-      - name: Auto-fix formatting
-        if: steps.prettier-check.outcome == 'failure'
-        uses: autofix-ci/action@v1
-        with:
-          commit-message: "style: apply prettier formatting"
 
   build:
     name: Next.js Build
