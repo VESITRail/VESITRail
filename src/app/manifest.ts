@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 const manifest = (): MetadataRoute.Manifest => {
 	return {
 		id: "/",
-		scope: "/",
+scope: "/",
 		lang: "en-IN",
 		start_url: "/",
 		name: "VESITRail",
