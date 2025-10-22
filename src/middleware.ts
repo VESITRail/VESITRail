@@ -4,23 +4,23 @@ import { NextRequest, NextResponse } from "next/server";
 const PUBLIC_ROUTES = ["/", "/auth-error"];
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+	const { pathname } = request.nextUrl;
 
-  if (PUBLIC_ROUTES.includes(pathname)) {
-    return NextResponse.next();
-  }
+	if (PUBLIC_ROUTES.includes(pathname)) {
+		return NextResponse.next();
+	}
 
-  const sessionCookie = getSessionCookie(request);
+	const sessionCookie = getSessionCookie(request);
 
-  if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+	if (!sessionCookie) {
+		return NextResponse.redirect(new URL("/", request.url));
+	}
 
-  return NextResponse.next();
+	return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|twitter-image.png|opengraph-image.png|manifest.webmanifest|icons|privacy-policy|terms-of-service).*)",
-  ],
+	matcher: [
+		"/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|twitter-image.png|opengraph-image.png|manifest.webmanifest|icons|privacy-policy|terms-of-service).*)"
+	]
 };

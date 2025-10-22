@@ -1,11 +1,4 @@
-export {
-  Table,
-  TableRow,
-  TableHead,
-  TableCell,
-  TableBody,
-  TableHeader,
-} from "./table";
+export { Table, TableRow, TableHead, TableCell, TableBody, TableHeader } from "./table";
 export { List } from "./list";
 export { Lead } from "./lead";
 export { Large } from "./large";

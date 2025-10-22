@@ -20,21 +20,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 'lts/*'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Prisma Generate
-        run: npx prisma generate
+      - name: Setup
+        uses: ./.github/actions/setup
 
       - name: Release
         env:

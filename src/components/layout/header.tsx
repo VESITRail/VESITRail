@@ -3,11 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Logo from "@/app/icon.svg";
-import {
-	NavigationMenu,
-	NavigationMenuItem,
-	NavigationMenuList,
-} from "@/components/ui/navigation-menu";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Large } from "@/components/ui/typography";
 import PWAInstallButton from "@/components/utils/pwa-install-button";

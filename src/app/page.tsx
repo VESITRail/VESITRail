@@ -8,18 +8,18 @@ import ScrollToTop from "@/components/utils/scroll-to-top";
 import FloatingGithubButton from "@/components/utils/floating-github-button";
 
 const Home = () => {
-  return (
-    <main>
-      <Header />
-      <Hero />
-      <Guide />
-      <Developers />
-      <Contact />
-      <Footer />
-      <FloatingGithubButton />
-      <ScrollToTop />
-    </main>
-  );
+	return (
+		<main>
+			<Header />
+			<Hero />
+			<Guide />
+			<Developers />
+			<Contact />
+			<Footer />
+			<FloatingGithubButton />
+			<ScrollToTop />
+		</main>
+	);
 };
 
 export default Home;

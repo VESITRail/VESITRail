@@ -1,54 +1,45 @@
 import { NotificationScenario } from "./scenarios";
 
 export type EmailTemplateParams = {
-  userName: string;
-  shortId?: number;
-  studentId?: string;
-  toStation?: string;
-  newStation?: string;
-  fromStation?: string;
-  applicationId?: string;
-  concessionType?: string;
-  additionalInfo?: string;
-  rejectionReason?: string;
-  submissionCount?: number;
+	userName: string;
+	shortId?: number;
+	studentId?: string;
+	toStation?: string;
+	newStation?: string;
+	fromStation?: string;
+	applicationId?: string;
+	concessionType?: string;
+	additionalInfo?: string;
+	rejectionReason?: string;
+	submissionCount?: number;
 };
 
 export type EmailTemplate = {
-  html: string;
-  subject: string;
+	html: string;
+	subject: string;
 };
 
-export const generateEmailTemplate = (
-  scenario: NotificationScenario,
-  params: EmailTemplateParams
-): EmailTemplate => {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  const logoUrl = `${baseUrl}/icons/ios/256.png`;
+export const generateEmailTemplate = (scenario: NotificationScenario, params: EmailTemplateParams): EmailTemplate => {
+	const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+	const logoUrl = `${baseUrl}/icons/ios/256.png`;
 
-  const subject = scenario.email.subject;
-  const heading = scenario.email.heading;
-  let description = scenario.email.description;
+	const subject = scenario.email.subject;
+	const heading = scenario.email.heading;
+	let description = scenario.email.description;
 
-  if (
-    scenario.category === "address_change" &&
-    params.fromStation &&
-    params.toStation
-  ) {
-    description += ` Your journey details have been updated from ${params.fromStation} to ${params.toStation}.`;
-  }
+	if (scenario.category === "address_change" && params.fromStation && params.toStation) {
+		description += ` Your journey details have been updated from ${params.fromStation} to ${params.toStation}.`;
+	}
 
-  if (scenario.type === "rejection" && params.rejectionReason) {
-    description += ` Reason: ${params.rejectionReason}`;
-  }
+	if (scenario.type === "rejection" && params.rejectionReason) {
+		description += ` Reason: ${params.rejectionReason}`;
+	}
 
-  if (params.submissionCount && params.submissionCount > 1) {
-    description += ` This is your ${getOrdinalNumber(
-      params.submissionCount
-    )} submission.`;
-  }
+	if (params.submissionCount && params.submissionCount > 1) {
+		description += ` This is your ${getOrdinalNumber(params.submissionCount)} submission.`;
+	}
 
-  const html = `
+	const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,53 +80,53 @@ export const generateEmailTemplate = (
         
         <div style="padding: 24px 20px;" class="mobile-padding">
             <div style="display: inline-flex; align-items: center; vertical-align: middle; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-bottom: 22px; ${
-              scenario.type === "approval"
-                ? "background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0;"
-                : "background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;"
-            }" class="mobile-badge">
+							scenario.type === "approval"
+								? "background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0;"
+								: "background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;"
+						}" class="mobile-badge">
                 <span style="display: inline-flex; align-items: center; height: 16px; line-height: 16px; margin-right: 8px;">${
-                  scenario.type === "approval" ? "✅" : "⚠️"
-                }</span>
+									scenario.type === "approval" ? "✅" : "⚠️"
+								}</span>
                 <span style="display: inline-flex; align-items: center; height: 16px; line-height: 16px;">${
-                  scenario.type === "approval" ? "Approved" : "Action Required"
-                }</span>
+									scenario.type === "approval" ? "Approved" : "Action Required"
+								}</span>
             </div>
             
             <div style="font-size: 17px; font-weight: 500; color: #374151; margin-bottom: 6px;" class="mobile-greeting">Hello ${
-              params.userName
-            }!</div>
+							params.userName
+						}!</div>
             <div style="font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 18px; line-height: 1.3;" class="mobile-title">${heading}</div>
             
             <div style="font-size: 16px; color: #4b5563; margin-bottom: 22px; line-height: 1.5;" class="mobile-text">${
-              scenario.type === "rejection" && params.rejectionReason
-                ? description.replace(` Reason: ${params.rejectionReason}`, "")
-                : description
-            }</div>
+							scenario.type === "rejection" && params.rejectionReason
+								? description.replace(` Reason: ${params.rejectionReason}`, "")
+								: description
+						}</div>
             
             ${generateInfoBox(scenario, params)}
             
             ${
-              scenario.type === "rejection" && params.rejectionReason
-                ? `
+							scenario.type === "rejection" && params.rejectionReason
+								? `
                 <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 14px; margin: 16px 0;" class="mobile-info-box">
                     <div style="font-weight: 600; color: #dc2626; font-size: 13px; margin-bottom: 4px;">Rejection Reason:</div>
                     <div style="color: #374151; font-size: 14px; line-height: 1.4;">${params.rejectionReason}</div>
                 </div>
             `
-                : ""
-            }
+								: ""
+						}
             
             ${
-              scenario.email.cta
-                ? `
+							scenario.email.cta
+								? `
                 <div style="text-align: center; margin: 26px 0;" class="mobile-cta-padding">
                     <a href="${baseUrl}${scenario.email.cta.url}" style="display: inline-block; background: #7c3aed; color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600; font-size: 15px; text-align: center;" class="mobile-button">
                         ${scenario.email.cta.text}
                     </a>
                 </div>
             `
-                : ""
-            }
+								: ""
+						}
             
             <div style="width: 100%; height: 1px; background-color: #e5e7eb; margin: 20px 0;"></div>
             
@@ -160,74 +151,69 @@ export const generateEmailTemplate = (
 </body>
 </html>`;
 
-  return {
-    html,
-    subject,
-  };
+	return {
+		html,
+		subject
+	};
 };
 
-const generateInfoBox = (
-  scenario: NotificationScenario,
-  params: EmailTemplateParams
-): string => {
-  const infoItems: { label: string; value: string }[] = [];
+const generateInfoBox = (scenario: NotificationScenario, params: EmailTemplateParams): string => {
+	const infoItems: { label: string; value: string }[] = [];
 
-  if (params.shortId) {
-    infoItems.push({ label: "Application ID", value: `#${params.shortId}` });
-  } else if (params.applicationId) {
-    infoItems.push({ label: "Application ID", value: params.applicationId });
-  }
+	if (params.shortId) {
+		infoItems.push({ label: "Application ID", value: `#${params.shortId}` });
+	} else if (params.applicationId) {
+		infoItems.push({ label: "Application ID", value: params.applicationId });
+	}
 
-  if (scenario.category === "concession" && params.concessionType) {
-    infoItems.push({ label: "Concession Type", value: params.concessionType });
-  }
+	if (scenario.category === "concession" && params.concessionType) {
+		infoItems.push({ label: "Concession Type", value: params.concessionType });
+	}
 
-  if (scenario.category === "address_change") {
-    if (params.fromStation) {
-      infoItems.push({ label: "From Station", value: params.fromStation });
-    }
-    if (params.toStation) {
-      infoItems.push({ label: "To Station", value: params.toStation });
-    }
-  }
+	if (scenario.category === "address_change") {
+		if (params.fromStation) {
+			infoItems.push({ label: "From Station", value: params.fromStation });
+		}
+		if (params.toStation) {
+			infoItems.push({ label: "To Station", value: params.toStation });
+		}
+	}
 
-  if (params.submissionCount && params.submissionCount > 1) {
-    infoItems.push({
-      label: "Submission Count",
-      value: getOrdinalNumber(params.submissionCount),
-    });
-  }
+	if (params.submissionCount && params.submissionCount > 1) {
+		infoItems.push({
+			label: "Submission Count",
+			value: getOrdinalNumber(params.submissionCount)
+		});
+	}
 
-  if (infoItems.length === 0) return "";
+	if (infoItems.length === 0) return "";
 
-  return `
+	return `
     <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 18px; margin: 18px 0;" class="mobile-info-box">
       ${infoItems
-        .map(
-          (item, index) => `
+				.map(
+					(item, index) => `
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: ${
-          index === infoItems.length - 1 ? "0" : "12px"
-        }; padding: 6px 0; ${
-            index === infoItems.length - 1
-              ? ""
-              : "border-bottom: 1px solid #e5e7eb;"
-          }" class="mobile-info-row">
+					index === infoItems.length - 1 ? "0" : "12px"
+				}; padding: 6px 0; ${
+					index === infoItems.length - 1 ? "" : "border-bottom: 1px solid #e5e7eb;"
+				}" class="mobile-info-row">
           <span style="font-weight: 500; color: #6b7280; font-size: 14px; flex-shrink: 0;" class="mobile-info-label">${
-            item.label
-          }:</span>
+						item.label
+					}:</span>
           <span style="font-weight: 600; color: #111827; font-size: 14px; text-align: right; margin-left: 12px; word-break: break-word;" class="mobile-info-value">${
-            item.value
-          }</span>
+						item.value
+					}</span>
         </div>
       `
-        )
-        .join("")}
+				)
+				.join("")}
     </div>
   `;
 };
 
 const getOrdinalNumber = (num: number): string => {
-  const suffixes = ["th", "st", "nd", "rd"];
-  const v = num % 100;
-  return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+	const suffixes = ["th", "st", "nd", "rd"];
+	const v = num % 100;
+	return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
 };
