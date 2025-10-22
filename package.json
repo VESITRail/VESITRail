@@ -19,6 +19,8 @@
 		"build": "next build",
 		"start": "next start",
 		"dev": "next dev --turbopack",
+		"format": "prettier . --write",
+		"format:check": "prettier . --check",
 		"postinstall": "npx prisma generate",
 		"semantic-release": "semantic-release"
 	},
