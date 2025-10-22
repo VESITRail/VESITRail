@@ -5,42 +5,25 @@ on:
     branches: [main]
 
 jobs:
-  ci:
+  lint:
+    name: ESLint Check
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
+      - name: Setup
+        uses: ./.github/actions/setup
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 'lts/*'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
+      - name: Run ESLint
         run: npm run lint
 
-      - name: Prisma Validate
-        if: ${{ github.actor != 'dependabot[bot]' }}
-        run: npx prisma validate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  build:
+    name: Next.js Build
+    runs-on: ubuntu-latest
+    needs: lint
 
-      - name: GitGuardian Scan
-        if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: GitGuardian/ggshield/actions/secret@v1.43.0
-        env:
-          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
-          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
-          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
-          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Setup
+        uses: ./.github/actions/setup
 
-      - name: Build
+      - name: Build application
         run: npm run build
