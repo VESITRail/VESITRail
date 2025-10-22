@@ -4,9 +4,6 @@ description: Common setup for Node.js environment and npm dependencies
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v5
-
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
