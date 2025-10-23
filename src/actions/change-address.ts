@@ -1,9 +1,9 @@
 "use server";
 
-import { Result, failure, success, AppError, authError, databaseError, validationError } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Student, Station, AddressChange } from "@/generated/zod";
+import { Result, failure, success, AppError, authError, databaseError, validationError } from "@/lib/result";
 
 export type AddressChangeData = Pick<
 	AddressChange,
