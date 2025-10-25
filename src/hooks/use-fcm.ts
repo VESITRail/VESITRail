@@ -43,8 +43,8 @@ export const useFcm = (userId?: string) => {
 	const [hasShownToasts, setHasShownToasts] = useState<boolean>(false);
 
 	const saveTokenToDb = useCallback(
-		async (token: string): Promise<void> => {
-			if (!userId) return;
+		async (token: string): Promise<boolean> => {
+			if (!userId) return false;
 
 			try {
 				const deviceId = generateDeviceId();
@@ -57,13 +57,16 @@ export const useFcm = (userId?: string) => {
 				});
 
 				if (!result.isSuccess) {
+					console.error("Failed to save FCM token:", result.error);
 					if (!hasShownToasts) {
 						setHasShownToasts(true);
 						toast.error("Notification Setup Failed", {
 							description: "Could not enable notifications. Please try again later"
 						});
 					}
+					return false;
 				}
+				return true;
 			} catch (error) {
 				console.error("Notification Setup Failed:", error);
 				if (!hasShownToasts) {
@@ -72,6 +75,7 @@ export const useFcm = (userId?: string) => {
 						description: "An unexpected error occurred while setting up notifications"
 					});
 				}
+				return false;
 			}
 		},
 		[userId, hasShownToasts]
@@ -185,7 +189,7 @@ export const useFcm = (userId?: string) => {
 		}
 	}, []);
 
-	const generateToken = useCallback(async (): Promise<void> => {
+	const generateToken = useCallback(async (): Promise<boolean> => {
 		try {
 			const messagingInstance = await messaging();
 
@@ -196,7 +200,7 @@ export const useFcm = (userId?: string) => {
 					error: "Firebase messaging not supported in this browser"
 				}));
 
-				return;
+				return false;
 			}
 
 			const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
@@ -208,7 +212,7 @@ export const useFcm = (userId?: string) => {
 					error: "VAPID key not configured. Please check environment variables."
 				}));
 
-				return;
+				return false;
 			}
 
 			const serviceWorkerRegistration = await navigator.serviceWorker.ready;
@@ -219,6 +223,17 @@ export const useFcm = (userId?: string) => {
 			});
 
 			if (currentToken) {
+				const saved = await saveTokenToDb(currentToken);
+
+				if (!saved) {
+					setState((prev) => ({
+						...prev,
+						loading: false,
+						error: "Failed to save FCM token to database"
+					}));
+					return false;
+				}
+
 				setState((prev) => ({
 					...prev,
 					error: null,
@@ -226,21 +241,24 @@ export const useFcm = (userId?: string) => {
 					token: currentToken
 				}));
 
-				await saveTokenToDb(currentToken);
 				await setupInAppNotifications(messagingInstance);
+				return true;
 			} else {
 				setState((prev) => ({
 					...prev,
 					loading: false,
 					error: "Failed to generate FCM token. Please ensure service worker is registered."
 				}));
+				return false;
 			}
 		} catch (error) {
+			console.error("Error generating token:", error);
 			setState((prev) => ({
 				...prev,
 				loading: false,
 				error: error instanceof Error ? error.message : "Failed to generate FCM token"
 			}));
+			return false;
 		}
 	}, [saveTokenToDb, setupInAppNotifications]);
 
@@ -333,6 +351,12 @@ export const useFcm = (userId?: string) => {
 	const enablePushNotifications = useCallback(async (): Promise<{ success: boolean; needsPermission: boolean }> => {
 		try {
 			if (!userId) {
+				console.error("No userId provided for enabling push notifications");
+				return { success: false, needsPermission: false };
+			}
+
+			if (typeof window === "undefined" || !("Notification" in window)) {
+				console.error("Notifications not supported in this environment");
 				return { success: false, needsPermission: false };
 			}
 
@@ -349,8 +373,8 @@ export const useFcm = (userId?: string) => {
 				}
 			}
 
-			await generateToken();
-			return { success: true, needsPermission: false };
+			const tokenGenerated = await generateToken();
+			return { success: tokenGenerated, needsPermission: false };
 		} catch (error) {
 			console.error("Error enabling push notifications:", error);
 			return { success: false, needsPermission: false };
