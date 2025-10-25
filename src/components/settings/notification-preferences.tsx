@@ -1,19 +1,32 @@
 "use client";
 
-import { getNotificationPreferences, updateNotificationPreferences } from "@/actions/settings";
+import {
+	Dialog,
+	DialogTitle,
+	DialogFooter,
+	DialogHeader,
+	DialogContent,
+	DialogDescription
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Switch } from "../ui/switch";
+import { useFcm } from "@/hooks/use-fcm";
+import { Info, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { getNotificationPreferences, updateNotificationPreferences } from "@/actions/settings";
 
 const NotificationPreferences = () => {
 	const { data, isPending } = authClient.useSession();
+	const { cleanupFcmToken, enablePushNotifications } = useFcm(data?.user?.id);
 
 	const [loading, setLoading] = useState<boolean>(true);
 	const [isUpdating, setIsUpdating] = useState<boolean>(false);
+	const [showPermissionDialog, setShowPermissionDialog] = useState<boolean>(false);
 	const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState<boolean>(true);
 	const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState<boolean>(true);
 
@@ -47,61 +60,104 @@ const NotificationPreferences = () => {
 		if (!data?.user?.id || isUpdating) return;
 
 		setIsUpdating(true);
+		setShowPermissionDialog(false);
 
-		const preferences = type === "push" ? { pushEnabled: enabled } : { emailEnabled: enabled };
+		if (type === "push") {
+			if (!enabled) {
+				toast.promise(
+					cleanupFcmToken().then((success) => {
+						if (!success) {
+							throw new Error("Failed to cleanup FCM token");
+						}
+						setPushNotificationsEnabled(false);
+					}),
+					{
+						loading: "Disabling push notifications...",
+						success: "Push notifications disabled successfully!",
+						error: "Failed to disable push notifications. Please try again.",
+						finally: () => setIsUpdating(false)
+					}
+				);
+			} else {
+				if (typeof window !== "undefined" && "Notification" in window) {
+					const permission = Notification.permission;
 
-		const updatePromise = updateNotificationPreferences(data.user.id, preferences);
-
-		toast.promise(updatePromise, {
-			loading: `Updating ${type} notification preferences...`,
-			success: `${type.charAt(0).toUpperCase() + type.slice(1)} notification preferences updated successfully!`,
-			error: (error) => error.error || `Failed to update ${type} notification preferences`
-		});
-
-		try {
-			const result = await updatePromise;
-
-			if (result.isSuccess) {
-				if (type === "push") {
-					setPushNotificationsEnabled(enabled);
-				} else {
-					setEmailNotificationsEnabled(enabled);
+					if (permission === "denied") {
+						setShowPermissionDialog(true);
+						setIsUpdating(false);
+						return;
+					}
 				}
+
+				let needsPermission = false;
+
+				toast.promise(
+					enablePushNotifications().then((result) => {
+						if (result.needsPermission) {
+							needsPermission = true;
+							setShowPermissionDialog(true);
+							setIsUpdating(false);
+							return Promise.resolve();
+						}
+						if (!result.success) {
+							throw new Error("Failed to enable push notifications");
+						}
+						setPushNotificationsEnabled(true);
+						setIsUpdating(false);
+					}),
+					{
+						loading: "Enabling push notifications...",
+						success: () => {
+							if (needsPermission) return null;
+							return "Push notifications enabled successfully!";
+						},
+						error: "Failed to enable push notifications. Please try again."
+					}
+				);
 			}
-		} catch (error) {
-			console.error(`${type} notification preference update error:`, error);
-			toast.error("Update Failed", {
-				description: `Unable to update your ${type} notification preferences. Please try again.`
-			});
-		} finally {
-			setIsUpdating(false);
+		} else {
+			toast.promise(
+				updateNotificationPreferences(data.user.id, { emailEnabled: enabled }).then((result) => {
+					if (!result.isSuccess) {
+						throw new Error("Failed to update preferences");
+					}
+					setEmailNotificationsEnabled(enabled);
+				}),
+				{
+					finally: () => setIsUpdating(false),
+					error: "Failed to update email notification preferences",
+					loading: `${enabled ? "Enabling" : "Disabling"} email notifications...`,
+					success: `Email notifications ${enabled ? "enabled" : "disabled"} successfully!`
+				}
+			);
 		}
 	};
 
 	if (isPending || loading) {
 		return (
-			<div className="space-y-6 mb-6">
+			<div id="notification-preferences" className="mb-6 space-y-6">
 				<div>
 					<h2 className="text-lg font-semibold mb-2">Notification Preferences</h2>
-					<p className="text-sm text-muted-foreground">Manage your push notification settings and preferences.</p>
+					<p className="text-sm text-muted-foreground">Manage how you receive updates and announcements.</p>
 				</div>
 
 				<Card>
-					<CardContent className="py-4">
-						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<div className="space-y-1">
-									<Skeleton className="h-4 w-32" />
-									<Skeleton className="h-3 w-48" />
+					<CardContent className="py-2.5">
+						<div className="grid grid-cols-1 gap-6">
+							<div className="flex items-center justify-between gap-4">
+								<div className="space-y-1 flex-1 min-w-0">
+									<Skeleton className="h-[14px] w-32" />
+									<Skeleton className="h-[12px] w-3/4" />
 								</div>
-								<Skeleton className="h-6 w-11 rounded-full" />
+								<Skeleton className="h-6 w-11 rounded-full shrink-0" />
 							</div>
-							<div className="flex items-center justify-between">
-								<div className="space-y-1">
-									<Skeleton className="h-4 w-32" />
-									<Skeleton className="h-3 w-48" />
+
+							<div className="flex items-center justify-between gap-4">
+								<div className="space-y-1 flex-1 min-w-0">
+									<Skeleton className="h-[14px] w-32" />
+									<Skeleton className="h-[12px] w-3/4" />
 								</div>
-								<Skeleton className="h-6 w-11 rounded-full" />
+								<Skeleton className="h-6 w-11 rounded-full shrink-0" />
 							</div>
 						</div>
 					</CardContent>
@@ -111,28 +167,90 @@ const NotificationPreferences = () => {
 	}
 
 	return (
-		<div className="space-y-6 mb-6">
+		<div id="notification-preferences" className="mb-6 space-y-6">
 			<div>
 				<h2 className="text-lg font-semibold mb-2">Notification Preferences</h2>
-				<p className="text-sm text-muted-foreground">Manage your push notification settings and preferences.</p>
+				<p className="text-sm text-muted-foreground">Manage how you receive updates and announcements.</p>
 			</div>
 
-			<Card>
-				<CardContent>
-					<div className="space-y-6">
-						<div className="flex items-center justify-between">
-							<div className="space-y-1">
-								<div className="flex items-center gap-2">
-									<Label htmlFor="push-notifications-toggle" className="text-sm font-medium">
-										Push Notifications
-									</Label>
-								</div>
+			<Dialog open={showPermissionDialog} onOpenChange={setShowPermissionDialog}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<Info className="h-5 w-5" />
+							Browser Permission Required
+						</DialogTitle>
+						<DialogDescription>
+							To enable push notifications, you need to grant permission in your browser settings.
+						</DialogDescription>
+					</DialogHeader>
 
+					<div className="space-y-3 py-4">
+						<div className="flex items-start gap-3 p-3 rounded-md border bg-muted/50">
+							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border bg-background text-xs font-medium">
+								1
+							</div>
+							<div className="flex-1 space-y-1">
+								<p className="text-sm font-medium">Access Site Settings</p>
 								<p className="text-xs text-muted-foreground">
+									Click the <Lock className="inline h-3 w-3 mx-1" /> lock or info icon in your browser's address bar
+								</p>
+							</div>
+						</div>
+
+						<div className="flex items-start gap-3 p-3 rounded-md border bg-muted/50">
+							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border bg-background text-xs font-medium">
+								2
+							</div>
+							<div className="flex-1 space-y-1">
+								<p className="text-sm font-medium">Find Notifications</p>
+								<p className="text-xs text-muted-foreground">Locate "Notifications" in the permissions list</p>
+							</div>
+						</div>
+
+						<div className="flex items-start gap-3 p-3 rounded-md border bg-muted/50">
+							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border bg-background text-xs font-medium">
+								3
+							</div>
+							<div className="flex-1 space-y-1">
+								<p className="text-sm font-medium">Allow Notifications</p>
+								<p className="text-xs text-muted-foreground">Change the setting from "Block" to "Allow"</p>
+							</div>
+						</div>
+
+						<div className="flex items-start gap-3 p-3 rounded-md border bg-muted/50">
+							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border bg-background text-xs font-medium">
+								4
+							</div>
+							<div className="flex-1 space-y-1">
+								<p className="text-sm font-medium">Refresh & Retry</p>
+								<p className="text-xs text-muted-foreground">Reload this page and toggle push notifications again</p>
+							</div>
+						</div>
+					</div>
+
+					<DialogFooter>
+						<Button onClick={() => setShowPermissionDialog(false)} className="w-full sm:w-auto">
+							Got it
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			<Card>
+				<CardContent className="py-2.5">
+					<div className="grid grid-cols-1 gap-6">
+						<div className="flex items-center justify-between gap-4">
+							<div className="space-y-1 flex-1 min-w-0">
+								<Label htmlFor="push-notifications-toggle" className="text-sm font-medium cursor-pointer">
+									Push Notifications
+								</Label>
+								<p className="text-xs text-muted-foreground leading-relaxed">
 									Receive push notifications about concession status updates and important announcements
 								</p>
 							</div>
 							<Switch
+								className="shrink-0"
 								disabled={isUpdating}
 								id="push-notifications-toggle"
 								checked={pushNotificationsEnabled}
@@ -140,20 +258,17 @@ const NotificationPreferences = () => {
 							/>
 						</div>
 
-						<div className="flex items-center justify-between">
-							<div className="space-y-1">
-								<div className="flex items-center gap-2">
-									<Label htmlFor="email-notifications-toggle" className="text-sm font-medium">
-										Email Notifications
-									</Label>
-								</div>
-
-								<p className="text-xs text-muted-foreground">
+						<div className="flex items-center justify-between gap-4">
+							<div className="space-y-1 flex-1 min-w-0">
+								<Label htmlFor="email-notifications-toggle" className="text-sm font-medium cursor-pointer">
+									Email Notifications
+								</Label>
+								<p className="text-xs text-muted-foreground leading-relaxed">
 									Receive email notifications about concession status updates and important announcements
 								</p>
 							</div>
-
 							<Switch
+								className="shrink-0"
 								disabled={isUpdating}
 								id="email-notifications-toggle"
 								checked={emailNotificationsEnabled}
