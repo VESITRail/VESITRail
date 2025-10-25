@@ -121,8 +121,12 @@ export const useFcm = (userId?: string) => {
 				return true;
 			} else if (permission === "denied") {
 				if (userId) {
-					const deviceId = generateDeviceId();
-					await removeFcmToken(userId, deviceId);
+					await removeFcmToken(userId);
+				}
+
+				const storedDeviceId = localStorage.getItem("fcm_device_id");
+				if (storedDeviceId) {
+					localStorage.removeItem("fcm_device_id");
 				}
 
 				if (!hasShownToasts) {
@@ -257,8 +261,7 @@ export const useFcm = (userId?: string) => {
 				}
 			} else {
 				if (userId) {
-					const deviceId = generateDeviceId();
-					await removeFcmToken(userId, deviceId);
+					await removeFcmToken(userId);
 				}
 
 				setState((prev) => ({
@@ -286,9 +289,79 @@ export const useFcm = (userId?: string) => {
 		}
 	}, [initializeFcm, userId, isInitialized]);
 
+	const cleanupFcmToken = useCallback(async (): Promise<boolean> => {
+		try {
+			if (!userId) {
+				return false;
+			}
+
+			const messagingInstance = await messaging();
+
+			if (messagingInstance) {
+				try {
+					const { deleteToken } = await import("firebase/messaging");
+					await deleteToken(messagingInstance);
+				} catch (error) {
+					console.error("Error deleting FCM token from browser:", error);
+				}
+			}
+
+			const result = await removeFcmToken(userId);
+
+			if (result.isSuccess) {
+				setState((prev) => ({
+					...prev,
+					token: null,
+					error: null
+				}));
+
+				const storedDeviceId = localStorage.getItem("fcm_device_id");
+				if (storedDeviceId) {
+					localStorage.removeItem("fcm_device_id");
+				}
+
+				return true;
+			}
+
+			return false;
+		} catch (error) {
+			console.error("Error cleaning up FCM token:", error);
+			return false;
+		}
+	}, [userId]);
+
+	const enablePushNotifications = useCallback(async (): Promise<{ success: boolean; needsPermission: boolean }> => {
+		try {
+			if (!userId) {
+				return { success: false, needsPermission: false };
+			}
+
+			const currentPermission = Notification.permission;
+
+			if (currentPermission === "denied") {
+				return { success: false, needsPermission: true };
+			}
+
+			if (currentPermission === "default") {
+				const permissionGranted = await requestPermission();
+				if (!permissionGranted) {
+					return { success: false, needsPermission: true };
+				}
+			}
+
+			await generateToken();
+			return { success: true, needsPermission: false };
+		} catch (error) {
+			console.error("Error enabling push notifications:", error);
+			return { success: false, needsPermission: false };
+		}
+	}, [userId, requestPermission, generateToken]);
+
 	return {
 		...state,
 		initializeFcm,
-		requestPermission
+		cleanupFcmToken,
+		requestPermission,
+		enablePushNotifications
 	};
 };
