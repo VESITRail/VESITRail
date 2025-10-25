@@ -193,7 +193,8 @@ const NotificationPreferences = () => {
 							<div className="flex-1 space-y-1">
 								<p className="text-sm font-medium">Access Site Settings</p>
 								<p className="text-xs text-muted-foreground">
-									Click the <Lock className="inline h-3 w-3 mx-1" /> lock or info icon in your browser's address bar
+									Click the <Lock className="inline h-3 w-3 mx-1" /> lock or info icon in your browser&apos;s address
+									bar
 								</p>
 							</div>
 						</div>
@@ -204,7 +205,9 @@ const NotificationPreferences = () => {
 							</div>
 							<div className="flex-1 space-y-1">
 								<p className="text-sm font-medium">Find Notifications</p>
-								<p className="text-xs text-muted-foreground">Locate "Notifications" in the permissions list</p>
+								<p className="text-xs text-muted-foreground">
+									Locate &quot;Notifications&quot; in the permissions list
+								</p>
 							</div>
 						</div>
 
@@ -214,7 +217,9 @@ const NotificationPreferences = () => {
 							</div>
 							<div className="flex-1 space-y-1">
 								<p className="text-sm font-medium">Allow Notifications</p>
-								<p className="text-xs text-muted-foreground">Change the setting from "Block" to "Allow"</p>
+								<p className="text-xs text-muted-foreground">
+									Change the setting from &quot;Block&quot; to &quot;Allow&quot;
+								</p>
 							</div>
 						</div>
 
