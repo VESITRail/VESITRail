@@ -1,11 +1,11 @@
 "use client";
 
 import { toast } from "sonner";
-import { saveFcmToken } from "@/actions/fcm";
 import { messaging } from "@/config/firebase";
 import { FcmPlatformType } from "@/generated/zod";
 import { useCallback, useEffect, useState } from "react";
 import { getToken, onMessage, type Messaging } from "firebase/messaging";
+import { saveFcmToken, removeFcmToken, updatePushNotificationStatus } from "@/actions/fcm";
 
 type FcmState = {
 	loading: boolean;
@@ -120,6 +120,11 @@ export const useFcm = (userId?: string) => {
 				}
 				return true;
 			} else if (permission === "denied") {
+				if (userId) {
+					const deviceId = generateDeviceId();
+					await removeFcmToken(userId, deviceId);
+				}
+
 				if (!hasShownToasts) {
 					setHasShownToasts(true);
 					toast.error("Notifications Blocked", {
@@ -133,6 +138,10 @@ export const useFcm = (userId?: string) => {
 				}));
 
 				return false;
+			}
+
+			if (userId) {
+				await updatePushNotificationStatus(userId, false);
 			}
 
 			setState((prev) => ({
@@ -150,7 +159,7 @@ export const useFcm = (userId?: string) => {
 			}));
 			return false;
 		}
-	}, [hasShownToasts]);
+	}, [hasShownToasts, userId]);
 
 	const setupInAppNotifications = useCallback(async (messagingInstance: Messaging) => {
 		try {
@@ -247,6 +256,11 @@ export const useFcm = (userId?: string) => {
 					await generateToken();
 				}
 			} else {
+				if (userId) {
+					const deviceId = generateDeviceId();
+					await removeFcmToken(userId, deviceId);
+				}
+
 				setState((prev) => ({
 					...prev,
 					loading: false,
@@ -260,7 +274,7 @@ export const useFcm = (userId?: string) => {
 				error: error instanceof Error ? error.message : "Failed to initialize FCM"
 			}));
 		}
-	}, [generateToken, requestPermission, isInitialized]);
+	}, [generateToken, requestPermission, isInitialized, userId]);
 
 	useEffect(() => {
 		if (typeof window !== "undefined" && userId && !isInitialized) {
