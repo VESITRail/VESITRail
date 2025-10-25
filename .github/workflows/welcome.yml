@@ -20,7 +20,7 @@ jobs:
         with:
           script: |
             const author = context.payload.sender.login;
-            const isBot = ['dependabot[bot]', 'dependabot', 'github-actions[bot]'].includes(author);
+            const isBot = ['dependabot[bot]', 'dependabot', 'github-actions[bot]', 'posthog-eu[bot]'].includes(author);
 
             if (isBot) {
               core.setOutput('should_skip', true);
