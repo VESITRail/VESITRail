@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://vesitrail.vercel.app/icons/ios/512.png" alt="VESITRail - Streamlined Railway Concessions" width="256" style="border-radius: 8px; margin-bottom: 20px;">
+<img src="https://vesitrail.vercel.app/opengraph-image.png" alt="VESITRail - Streamlined Railway Concessions" width="512" style="border-radius: 8px; margin-bottom: 20px;">
 
 # VESITRail
 

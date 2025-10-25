@@ -69,8 +69,7 @@ export const saveFcmToken = async (
 };
 
 export const removeFcmToken = async (
-	userId: string,
-	deviceId?: string
+	userId: string
 ): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
 	try {
 		if (!userId?.trim()) {
@@ -80,8 +79,7 @@ export const removeFcmToken = async (
 		await prisma.$transaction([
 			prisma.fcmToken.deleteMany({
 				where: {
-					userId,
-					deviceId: deviceId ?? null
+					userId
 				}
 			}),
 			prisma.user.update({
