@@ -37,6 +37,12 @@ class VersionManager {
 			console.error("Failed to parse stored version:", error);
 		}
 
+		const latest = await this.getLatestRelease();
+		if (latest) {
+			await this.storeNewVersion(latest.version, latest.tagName);
+			return latest;
+		}
+
 		return this.getFallbackVersion();
 	}
 
