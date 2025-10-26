@@ -8,9 +8,6 @@ import ScrollToTop from "@/components/utils/scroll-to-top";
 import FloatingGithubButton from "@/components/utils/floating-github-button";
 
 const Home = () => {
-	const a = "a";
-	console.log(a);
-
 	return (
 		<main>
 			<Header />
