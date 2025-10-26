@@ -14,8 +14,25 @@
 			"main"
 		]
 	},
+	"lint-staged": {
+		"package.json": [
+			"prettier --write"
+		],
+		"*.prisma": [
+			"npx prisma format",
+			"prettier --write"
+		],
+		"*.{js,jsx,ts,tsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{json,md,yml,yaml,css}": [
+			"prettier --write"
+		]
+	},
 	"scripts": {
 		"lint": "eslint .",
+		"prepare": "husky",
 		"build": "next build",
 		"start": "next start",
 		"dev": "next dev --turbopack",
@@ -82,7 +99,7 @@
 		"sonner": "^2.0.7",
 		"tailwind-merge": "^3.3.1",
 		"vaul": "^1.1.2",
-		"zod": "^3.25.50",
+		"zod": "^4.1.12",
 		"zod-prisma-types": "^3.2.4"
 	},
 	"devDependencies": {
@@ -98,7 +115,9 @@
 		"eslint": "^9.38.0",
 		"eslint-config-flat-gitignore": "^2.1.0",
 		"eslint-config-next": "^15.5.6",
-		"prettier": "3.6.2",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.6",
+		"prettier": "^3.6.2",
 		"prisma": "^6.17.1",
 		"semantic-release": "^25.0.1",
 		"tailwindcss": "^4",
