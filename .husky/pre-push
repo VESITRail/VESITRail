@@ -1,0 +1,2 @@
+echo "Running pre-push checks..."
+npm run format:check && npm run build
