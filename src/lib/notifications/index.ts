@@ -8,15 +8,15 @@ export type { NotificationResult, NotificationPayload } from "./handler";
 export type { EmailTemplate, EmailTemplateParams } from "./email-templates";
 
 export {
-  getScenariosByType,
-  notificationScenarios,
-  getScenariosByCategory,
-  getNotificationScenario,
+	getScenariosByType,
+	notificationScenarios,
+	getScenariosByCategory,
+	getNotificationScenario
 } from "./scenarios";
 
 export {
-  sendNotification,
-  sendConcessionNotification,
-  sendAddressChangeNotification,
-  sendStudentAccountNotification,
+	sendNotification,
+	sendConcessionNotification,
+	sendAddressChangeNotification,
+	sendStudentAccountNotification
 } from "./handler";

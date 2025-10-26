@@ -1,154 +1,143 @@
 "use server";
 
-import {
-  Result,
-  success,
-  failure,
-  authError,
-  AuthError,
-  DatabaseError,
-  databaseError,
-} from "@/lib/result";
+import { Result, success, failure, authError, AuthError, DatabaseError, databaseError } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import type { Notification } from "@/generated/zod";
 
-export type NotificationItem = Pick<
-  Notification,
-  "id" | "title" | "body" | "url" | "isRead" | "createdAt"
->;
+export type NotificationItem = Pick<Notification, "id" | "title" | "body" | "url" | "isRead" | "createdAt">;
 
 export type PaginatedNotificationsResult = {
-  totalCount: number;
-  totalPages: number;
-  currentPage: number;
-  unreadCount: number;
-  hasNextPage: boolean;
-  data: NotificationItem[];
-  hasPreviousPage: boolean;
+	totalCount: number;
+	totalPages: number;
+	currentPage: number;
+	unreadCount: number;
+	hasNextPage: boolean;
+	data: NotificationItem[];
+	hasPreviousPage: boolean;
 };
 
 export type NotificationPaginationParams = {
-  page: number;
-  pageSize: number;
+	page: number;
+	pageSize: number;
 };
 
 export const getNotifications = async (
-  userId: string,
-  params: NotificationPaginationParams
+	userId: string,
+	params: NotificationPaginationParams
 ): Promise<Result<PaginatedNotificationsResult, DatabaseError | AuthError>> => {
-  try {
-    const { page, pageSize } = params;
-    const skip = (page - 1) * pageSize;
+	try {
+		const { page, pageSize } = params;
+		const skip = (page - 1) * pageSize;
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+		const user = await prisma.user.findUnique({
+			where: { id: userId }
+		});
 
-    if (!user) {
-      return failure(authError("User not found"));
-    }
+		if (!user) {
+			return failure(authError("User not found"));
+		}
 
-    const whereClause = {
-      userId: userId,
-    };
+		const whereClause = {
+			userId: userId
+		};
 
-    const [notifications, totalCount, unreadCount] = await Promise.all([
-      prisma.notification.findMany({
-        skip,
-        take: pageSize,
-        where: whereClause,
-        orderBy: {
-          createdAt: "desc",
-        },
-        select: {
-          id: true,
-          url: true,
-          body: true,
-          title: true,
-          isRead: true,
-          createdAt: true,
-        },
-      }),
-      prisma.notification.count({
-        where: whereClause,
-      }),
-      prisma.notification.count({
-        where: {
-          isRead: false,
-          userId: userId,
-        },
-      }),
-    ]);
+		const [notifications, totalCount, unreadCount] = await Promise.all([
+			prisma.notification.findMany({
+				skip,
+				take: pageSize,
+				where: whereClause,
+				orderBy: {
+					createdAt: "desc"
+				},
+				select: {
+					id: true,
+					url: true,
+					body: true,
+					title: true,
+					isRead: true,
+					createdAt: true
+				}
+			}),
+			prisma.notification.count({
+				where: whereClause
+			}),
+			prisma.notification.count({
+				where: {
+					isRead: false,
+					userId: userId
+				}
+			})
+		]);
 
-    const totalPages = Math.ceil(totalCount / pageSize);
-    const hasNextPage = page < totalPages;
-    const hasPreviousPage = page > 1;
+		const totalPages = Math.ceil(totalCount / pageSize);
+		const hasNextPage = page < totalPages;
+		const hasPreviousPage = page > 1;
 
-    return success({
-      totalCount,
-      totalPages,
-      hasNextPage,
-      unreadCount,
-      hasPreviousPage,
-      currentPage: page,
-      data: notifications,
-    });
-  } catch (error) {
-    console.error("Error while fetching notifications:", error);
-    return failure(databaseError("Failed to fetch notifications"));
-  }
+		return success({
+			totalCount,
+			totalPages,
+			hasNextPage,
+			unreadCount,
+			hasPreviousPage,
+			currentPage: page,
+			data: notifications
+		});
+	} catch (error) {
+		console.error("Error while fetching notifications:", error);
+		return failure(databaseError("Failed to fetch notifications"));
+	}
 };
 
 export const markNotificationAsRead = async (
-  userId: string,
-  notificationId: string
+	userId: string,
+	notificationId: string
 ): Promise<Result<{ success: boolean }, DatabaseError | AuthError>> => {
-  try {
-    const notification = await prisma.notification.findFirst({
-      where: {
-        userId: userId,
-        id: notificationId,
-      },
-    });
+	try {
+		const notification = await prisma.notification.findFirst({
+			where: {
+				userId: userId,
+				id: notificationId
+			}
+		});
 
-    if (!notification) {
-      return failure(authError("Notification not found"));
-    }
+		if (!notification) {
+			return failure(authError("Notification not found"));
+		}
 
-    await prisma.notification.update({
-      data: { isRead: true },
-      where: { id: notificationId },
-    });
+		await prisma.notification.update({
+			data: { isRead: true },
+			where: { id: notificationId }
+		});
 
-    return success({ success: true });
-  } catch (error) {
-    console.error("Error while marking notification as read:", error);
-    return failure(databaseError("Failed to mark notification as read"));
-  }
+		return success({ success: true });
+	} catch (error) {
+		console.error("Error while marking notification as read:", error);
+		return failure(databaseError("Failed to mark notification as read"));
+	}
 };
 
 export const getUnreadNotificationCount = async (
-  userId: string
+	userId: string
 ): Promise<Result<{ count: number }, DatabaseError | AuthError>> => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+	try {
+		const user = await prisma.user.findUnique({
+			where: { id: userId }
+		});
 
-    if (!user) {
-      return failure(authError("User not found"));
-    }
+		if (!user) {
+			return failure(authError("User not found"));
+		}
 
-    const count = await prisma.notification.count({
-      where: {
-        isRead: false,
-        userId: userId,
-      },
-    });
+		const count = await prisma.notification.count({
+			where: {
+				isRead: false,
+				userId: userId
+			}
+		});
 
-    return success({ count });
-  } catch (error) {
-    console.error("Error while fetching unread notification count:", error);
-    return failure(databaseError("Failed to fetch unread notification count"));
-  }
+		return success({ count });
+	} catch (error) {
+		console.error("Error while fetching unread notification count:", error);
+		return failure(databaseError("Failed to fetch unread notification count"));
+	}
 };

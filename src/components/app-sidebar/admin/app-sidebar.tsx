@@ -1,21 +1,13 @@
+import { User, Users, MapPin, Github, BookOpen, FileText, MessageSquare } from "lucide-react";
 import {
-  User,
-  Users,
-  MapPin,
-  Github,
-  BookOpen,
-  FileText,
-  MessageSquare,
-} from "lucide-react";
-import {
-  Sidebar,
-  useSidebar,
-  SidebarMenu,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarContent,
-  SidebarMenuItem,
-  SidebarMenuButton,
+	Sidebar,
+	useSidebar,
+	SidebarMenu,
+	SidebarHeader,
+	SidebarFooter,
+	SidebarContent,
+	SidebarMenuItem,
+	SidebarMenuButton
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,105 +16,97 @@ import NavSecondary from "@/components/nav-secondary";
 import NavUser from "@/components/app-sidebar/admin/nav-user";
 
 const data = {
-  navSecondary: [
-    {
-      icon: User,
-      title: "Profile",
-      url: "/dashboard/admin/profile",
-    },
-    {
-      icon: Github,
-      title: "GitHub",
-      url: "https://github.com/VESITRail/VESITRail",
-    },
-    {
-      icon: MessageSquare,
-      title: "Feedback Responses",
-      url: "https://docs.google.com/spreadsheets/d/1260EnvlbUiM1U6h63-u8MMFAfbmekcp7pabsW_QJOLc/edit",
-    },
-  ],
-  navMain: [
-    {
-      label: "Applications",
-      items: [
-        {
-          icon: FileText,
-          url: "/dashboard/admin",
-          name: "Concession Requests",
-        },
-        {
-          icon: MapPin,
-          name: "Address Change Requests",
-          url: "/dashboard/admin/address-change-requests",
-        },
-      ],
-    },
-    {
-      label: "Management",
-      items: [
-        {
-          icon: Users,
-          name: "Students",
-          url: "/dashboard/admin/students",
-        },
-        {
-          icon: BookOpen,
-          name: "Booklets",
-          url: "/dashboard/admin/booklets",
-        },
-      ],
-    },
-  ],
+	navSecondary: [
+		{
+			icon: User,
+			title: "Profile",
+			url: "/dashboard/admin/profile"
+		},
+		{
+			icon: Github,
+			title: "GitHub",
+			url: "https://github.com/VESITRail/VESITRail"
+		},
+		{
+			icon: MessageSquare,
+			title: "Feedback Responses",
+			url: "https://docs.google.com/spreadsheets/d/1260EnvlbUiM1U6h63-u8MMFAfbmekcp7pabsW_QJOLc/edit"
+		}
+	],
+	navMain: [
+		{
+			label: "Applications",
+			items: [
+				{
+					icon: FileText,
+					url: "/dashboard/admin",
+					name: "Concession Requests"
+				},
+				{
+					icon: MapPin,
+					name: "Address Change Requests",
+					url: "/dashboard/admin/address-change-requests"
+				}
+			]
+		},
+		{
+			label: "Management",
+			items: [
+				{
+					icon: Users,
+					name: "Students",
+					url: "/dashboard/admin/students"
+				},
+				{
+					icon: BookOpen,
+					name: "Booklets",
+					url: "/dashboard/admin/booklets"
+				}
+			]
+		}
+	]
 };
 
-const AdminAppSidebar = ({
-  ...props
-}: React.ComponentProps<typeof Sidebar>) => {
-  const { isMobile, setOpenMobile } = useSidebar();
+const AdminAppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+	const { isMobile, setOpenMobile } = useSidebar();
 
-  const handleHeaderClick = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  };
+	const handleHeaderClick = () => {
+		if (isMobile) {
+			setOpenMobile(false);
+		}
+	};
 
-  return (
-    <Sidebar {...props} variant="inset">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard/admin" onClick={handleHeaderClick}>
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Image
-                    width={0}
-                    height={0}
-                    src="/icon.svg"
-                    alt="VESITRail"
-                    className="size-8.25 rounded-lg"
-                  />
-                </div>
+	return (
+		<Sidebar {...props} variant="inset">
+			<SidebarHeader>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<SidebarMenuButton size="lg" asChild>
+							<Link href="/dashboard/admin" onClick={handleHeaderClick}>
+								<div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+									<Image width={0} height={0} src="/icon.svg" alt="VESITRail" className="size-8.25 rounded-lg" />
+								</div>
 
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">VESITRail</span>
-                  <span className="truncate text-xs">Admin Dashboard</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+								<div className="grid flex-1 text-left text-sm leading-tight">
+									<span className="truncate font-medium">VESITRail</span>
+									<span className="truncate text-xs">Admin Dashboard</span>
+								</div>
+							</Link>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarHeader>
 
-      <SidebarContent>
-        <NavMain navMain={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
+			<SidebarContent>
+				<NavMain navMain={data.navMain} />
+				<NavSecondary items={data.navSecondary} className="mt-auto" />
+			</SidebarContent>
 
-      <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
-    </Sidebar>
-  );
+			<SidebarFooter>
+				<NavUser />
+			</SidebarFooter>
+		</Sidebar>
+	);
 };
 
 export default AdminAppSidebar;

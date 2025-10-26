@@ -8,47 +8,40 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { UpdateProvider } from "@/components/providers/update-provider";
 
 const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+	subsets: ["latin"],
+	variable: "--font-inter"
 });
 
 export const metadata: Metadata = {
-  title: "VESITRail",
-  manifest: "/manifest.webmanifest",
-  verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-  },
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://vesitrail.ves.ac.in"
-  ),
-  description:
-    "Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students.",
+	title: "VESITRail",
+	manifest: "/manifest.webmanifest",
+	verification: {
+		google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+	},
+	metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://vesitrail.ves.ac.in"),
+	description:
+		"Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students."
 };
 
 const RootLayout = ({
-  children,
+	children
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) => {
-  return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`antialiased ${inter.variable}`}>
-        <ThemeProvider
-          enableSystem
-          attribute="class"
-          defaultTheme="system"
-          disableTransitionOnChange
-        >
-          <UpdateProvider>
-            <NextTopLoader color="#9333EA" showSpinner={false} />
-            {children}
-            <Toaster richColors />
-            <PWAInitializer />
-          </UpdateProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en" className="scroll-smooth">
+			<body className={`antialiased ${inter.variable}`}>
+				<ThemeProvider enableSystem attribute="class" defaultTheme="system" disableTransitionOnChange>
+					<UpdateProvider>
+						<NextTopLoader color="#9333EA" showSpinner={false} />
+						{children}
+						<Toaster richColors />
+						<PWAInitializer />
+					</UpdateProvider>
+				</ThemeProvider>
+			</body>
+		</html>
+	);
 };
 
 export default RootLayout;

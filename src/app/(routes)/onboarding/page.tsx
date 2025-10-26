@@ -4,21 +4,21 @@ import Footer from "@/components/layout/footer";
 import MultiStepForm from "@/components/onboarding/multi-step-form";
 
 export const metadata: Metadata = {
-  title: "Onboarding | VESITRail",
+	title: "Onboarding | VESITRail"
 };
 
 const Onboarding = () => {
-  return (
-    <main className="h-screen overflow-y-auto">
-      <Header />
+	return (
+		<main className="h-screen overflow-y-auto">
+			<Header />
 
-      <div className="py-12 px-4 md:px-8">
-        <MultiStepForm />
-      </div>
+			<div className="py-12 px-4 md:px-8">
+				<MultiStepForm />
+			</div>
 
-      <Footer />
-    </main>
-  );
+			<Footer />
+		</main>
+	);
 };
 
 export default Onboarding;

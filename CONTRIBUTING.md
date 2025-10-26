@@ -2,6 +2,18 @@
 
 Thanks for your interest in contributing! This project is licensed under the **VESITRail Community License**. Please read it before contributing.
 
+## Contribution & Ownership
+
+**Important Notice for Contributors:**
+
+- You are welcome to **clone, contribute, and submit improvements** to this project.
+- By contributing, you retain the right to **claim authorship of your specific contributions** (e.g., "I contributed to feature X", "I fixed bug Y", "I implemented test Z").
+- However, you **cannot claim ownership of the entire project** or present it as your own work.
+- All contributions become part of the VESITRail project and are subject to the project's license.
+- Attribution for your contributions will be recognized in commit history, pull requests, and release notes.
+
+**In summary:** Contribute freely, claim your work, but respect the project's ownership and license.
+
 ## Deployment & Usage Restriction
 
 Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permitted to deploy or operate this software. External forks must not deploy public instances without prior written permission.
