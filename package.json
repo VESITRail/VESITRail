@@ -15,6 +15,13 @@
 		]
 	},
 	"lint-staged": {
+		"package.json": [
+			"prettier --write"
+		],
+		"*.prisma": [
+			"npx prisma format",
+			"prettier --write"
+		],
 		"*.{js,jsx,ts,tsx}": [
 			"eslint --fix",
 			"prettier --write"
@@ -25,14 +32,14 @@
 	},
 	"scripts": {
 		"lint": "eslint .",
+		"prepare": "husky",
 		"build": "next build",
 		"start": "next start",
 		"dev": "next dev --turbopack",
 		"format": "prettier . --write",
 		"format:check": "prettier . --check",
 		"postinstall": "npx prisma generate",
-		"semantic-release": "semantic-release",
-		"prepare": "husky"
+		"semantic-release": "semantic-release"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",
