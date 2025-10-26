@@ -159,7 +159,7 @@ const MultiStepForm = () => {
 			if (error instanceof z.ZodError) {
 				const newErrors: Record<string, string> = {};
 
-				error.errors.forEach((err) => {
+				error.issues.forEach((err: z.ZodIssue) => {
 					const field = err.path?.[0];
 
 					if (!field || typeof field !== "string") return;
@@ -169,7 +169,7 @@ const MultiStepForm = () => {
 
 					if (err.code === "invalid_type") {
 						message = `${formatted} is required`;
-					} else if (err.code === "invalid_string") {
+					} else if (err.code === "invalid_format") {
 						message = `Please enter a valid ${formatted}`;
 					}
 
@@ -392,7 +392,7 @@ const MultiStepForm = () => {
 				<div className="px-6 py-4">
 					<div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
 						<div className="flex items-start gap-4">
-							<div className="flex-shrink-0">
+							<div className="shrink-0">
 								<div className="size-9 hidden bg-destructive rounded-full md:flex items-center justify-center">
 									<AlertTriangle className="size-4.5 text-white" />
 								</div>

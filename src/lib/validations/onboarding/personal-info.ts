@@ -29,7 +29,7 @@ const PersonalInfoSchema = z.object({
 		.refine((val) => val.length > 0, "Last name cannot be empty after trimming"),
 
 	gender: z.enum(["Male", "Female"], {
-		errorMap: () => ({ message: "Please select a valid gender" })
+		message: "Please select a valid gender"
 	}),
 
 	address: z
