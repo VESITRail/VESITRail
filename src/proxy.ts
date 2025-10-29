@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_ROUTES = ["/", "/auth-error"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
 	if (PUBLIC_ROUTES.includes(pathname)) {
