@@ -10,6 +10,7 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
+	turbopack: {},
 	skipTrailingSlashRedirect: true,
 	async rewrites() {
 		return [
@@ -23,12 +24,9 @@ const nextConfig: NextConfig = {
 			}
 		];
 	},
-	webpack: (config, { isServer }) => {
+	webpack: async (config, { isServer }) => {
 		if (isServer) {
-			const {
-				PrismaPlugin
-				// eslint-disable-next-line @typescript-eslint/no-require-imports
-			} = require("@prisma/nextjs-monorepo-workaround-plugin");
+			const { PrismaPlugin } = await import("@prisma/nextjs-monorepo-workaround-plugin");
 			config.plugins = [...config.plugins, new PrismaPlugin()];
 		}
 
