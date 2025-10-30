@@ -1,16 +1,16 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextConfig from "eslint-config-next";
 import gitignore from "eslint-config-flat-gitignore";
-import eslintConfigPrettier from "eslint-config-prettier/flat";
+import eslintConfigPrettier from "eslint-config-prettier";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-	baseDirectory: __dirname
-});
-
-const eslintConfig = [gitignore(), ...compat.extends("next/core-web-vitals", "next/typescript"), eslintConfigPrettier];
+const eslintConfig = [
+	gitignore(),
+	...nextConfig,
+	eslintConfigPrettier,
+	{
+		rules: {
+			"react-hooks/incompatible-library": "off"
+		}
+	}
+];
 
 export default eslintConfig;
