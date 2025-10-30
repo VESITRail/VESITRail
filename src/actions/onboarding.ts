@@ -137,8 +137,7 @@ export const submitOnboarding = async (
 	data: OnboardingData
 ): Promise<Result<Student, DatabaseError>> => {
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const { class: classData, ...dbData } = data;
+		const { class: _classData, ...dbData } = data;
 
 		const student = await prisma.student.upsert({
 			where: { userId: studentId },

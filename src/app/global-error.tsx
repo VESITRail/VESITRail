@@ -53,18 +53,16 @@ const createGitHubIssueUrl = (details: ErrorDetails): string => {
 };
 
 const GlobalError = ({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) => {
-	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [errorDetails, setErrorDetails] = useState<ErrorDetails | null>(null);
-	const [theme, setTheme] = useState<string>("dark");
+	const [isLoading] = useState<boolean>(false);
+	const [errorDetails] = useState<ErrorDetails | null>(() => getErrorDetails(error));
+	const [theme] = useState<string>(() => {
+		if (typeof window !== "undefined") {
+			return localStorage.getItem("theme") || "dark";
+		}
+		return "dark";
+	});
 
 	useEffect(() => {
-		setErrorDetails(getErrorDetails(error));
-
-		const storedTheme = localStorage.getItem("theme") || "dark";
-		setTheme(storedTheme);
-
-		setIsLoading(false);
-
 		console.error("Global Error:", error);
 	}, [error]);
 

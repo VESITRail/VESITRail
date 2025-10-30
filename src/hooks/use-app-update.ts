@@ -36,11 +36,22 @@ const compareVersions = (currentVersion: string, newVersion: string): number => 
 };
 
 export const useAppUpdate = () => {
-	const [state, setState] = useState<UpdateState>({
-		loading: false,
-		available: false,
-		info: null,
-		lastChecked: null
+	const [state, setState] = useState<UpdateState>(() => {
+		let lastChecked: Date | null = null;
+		try {
+			if (typeof window !== "undefined") {
+				const stored = localStorage.getItem(LAST_CHECKED_KEY);
+				lastChecked = stored ? new Date(stored) : null;
+			}
+		} catch {
+			lastChecked = null;
+		}
+		return {
+			info: null,
+			lastChecked,
+			loading: false,
+			available: false
+		};
 	});
 
 	const loadLastChecked = useCallback((): Date | null => {
@@ -189,13 +200,6 @@ export const useAppUpdate = () => {
 			await checkForUpdates(false);
 		}
 	}, [loadLastChecked, checkForUpdates]);
-
-	useEffect(() => {
-		const stored = loadLastChecked();
-		if (stored) {
-			setState((prev) => ({ ...prev, lastChecked: stored }));
-		}
-	}, [loadLastChecked]);
 
 	return {
 		...state,

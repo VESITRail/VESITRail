@@ -267,6 +267,7 @@ const ApplicationsTable = ({
 	onFilterChange,
 	hasPreviousPage
 }: ApplicationsTableProps) => {
+	"use no memo";
 	const [selectedType, setSelectedType] = useState<string>("all");
 	const [selectedStatus, setSelectedStatus] = useState<string>("all");
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -426,7 +427,7 @@ const ApplicationsTable = ({
 				) : (
 					<>
 						<Select value={selectedType} onValueChange={handleTypeFilter}>
-							<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+							<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 								<Filter className="mr-2 size-4 text-foreground" />
 								<SelectValue placeholder="Type" />
 							</SelectTrigger>
@@ -439,7 +440,7 @@ const ApplicationsTable = ({
 						</Select>
 
 						<Select value={selectedStatus} onValueChange={handleStatusFilter}>
-							<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+							<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 								<Filter className="mr-2 size-4 text-foreground" />
 								<SelectValue placeholder="Status" />
 							</SelectTrigger>
@@ -512,7 +513,7 @@ const ApplicationsTable = ({
 					<Table>
 						<TableHeader>
 							<TableRow className="hover:bg-transparent border-border/50">
-								<TableHead className="font-semibold h-12 text-center px-4 w-[80px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-20">
 									<Skeleton className="h-4 w-12 mx-auto" />
 								</TableHead>
 								<TableHead className="font-semibold h-12 text-center px-4 w-[100px]">
