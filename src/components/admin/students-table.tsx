@@ -325,14 +325,12 @@ const StudentDetailsDialog = ({
 
 										<div className="space-y-4">
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-24">
-													Gender
-												</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">Gender</span>
 												<span className="text-sm text-right flex-1 ml-3">{studentDetails.gender}</span>
 											</div>
 
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-24">
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
 													Birth Date
 												</span>
 												<span className="text-sm text-right flex-1 ml-3">
@@ -341,10 +339,8 @@ const StudentDetailsDialog = ({
 											</div>
 
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-24">
-													Address
-												</span>
-												<span className="text-sm text-right flex-1 ml-3 break-words">{studentDetails.address}</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">Address</span>
+												<span className="text-sm text-right flex-1 ml-3 wrap-break-word">{studentDetails.address}</span>
 											</div>
 										</div>
 									</div>
@@ -357,7 +353,7 @@ const StudentDetailsDialog = ({
 										</h4>
 
 										<div className="flex justify-between items-start">
-											<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-24">
+											<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
 												Home Station
 											</span>
 											<span className="text-sm text-right flex-1 ml-3">
@@ -375,25 +371,19 @@ const StudentDetailsDialog = ({
 
 										<div className="space-y-4">
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-20">
-													Class
-												</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Class</span>
 												<span className="text-sm text-right flex-1 ml-3">{studentDetails.class.code}</span>
 											</div>
 
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-20">
-													Year
-												</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Year</span>
 												<span className="text-sm text-right flex-1 ml-3">
 													{studentDetails.class.year.name} ({studentDetails.class.year.code})
 												</span>
 											</div>
 
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-20">
-													Branch
-												</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Branch</span>
 												<span className="text-sm text-right flex-1 ml-3">
 													{studentDetails.class.branch.name} ({studentDetails.class.branch.code})
 												</span>
@@ -410,9 +400,7 @@ const StudentDetailsDialog = ({
 
 										<div className="space-y-4">
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-20">
-													Class
-												</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Class</span>
 												<span className="text-sm text-right flex-1 ml-3">
 													{studentDetails.preferredConcessionClass.name} ({studentDetails.preferredConcessionClass.code}
 													)
@@ -420,9 +408,7 @@ const StudentDetailsDialog = ({
 											</div>
 
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 w-20">
-													Period
-												</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Period</span>
 												<span className="text-sm text-right flex-1 ml-3">
 													{studentDetails.preferredConcessionPeriod.name} (
 													{studentDetails.preferredConcessionPeriod.duration}{" "}
@@ -465,16 +451,12 @@ const StudentDetailsDialog = ({
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 									<div className="space-y-4">
 										<div className="flex justify-between items-start">
-											<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0">
-												Submissions
-											</span>
+											<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">Submissions</span>
 											<span className="text-sm text-right">{studentDetails.submissionCount}</span>
 										</div>
 
 										<div className="flex justify-between items-start">
-											<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0">
-												Applied Date
-											</span>
+											<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">Applied Date</span>
 											<span className="text-sm text-right">
 												{format(new Date(studentDetails.createdAt), "MMM dd, yyyy")}
 											</span>
@@ -484,7 +466,7 @@ const StudentDetailsDialog = ({
 									<div className="space-y-4">
 										{studentDetails.reviewedAt && (
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0">
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
 													Reviewed Date
 												</span>
 												<span className="text-sm text-right">
@@ -495,9 +477,7 @@ const StudentDetailsDialog = ({
 
 										{studentDetails.reviewedBy && (
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0">
-													Reviewed By
-												</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">Reviewed By</span>
 												<span className="text-sm text-right">{toTitleCase(studentDetails.reviewedBy.user.name)}</span>
 											</div>
 										)}
@@ -568,8 +548,11 @@ const StudentDetailsDialog = ({
 									}
 								}}
 							>
-								<SelectTrigger className="w-full mt-2 !h-10 !text-foreground cursor-pointer">
-									<SelectValue className="whitespace-normal break-words" placeholder="Select a predefined reason..." />
+								<SelectTrigger className="w-full mt-2 h-10! text-foreground! cursor-pointer">
+									<SelectValue
+										className="whitespace-normal wrap-break-word"
+										placeholder="Select a predefined reason..."
+									/>
 								</SelectTrigger>
 
 								<SelectContent className="w-full max-h-60 overflow-y-auto">
@@ -615,10 +598,10 @@ const StudentDetailsDialog = ({
 						</div>
 
 						{(rejectionReason || selectedPredefinedReason) && (
-							<div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 break-words">
+							<div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 wrap-break-word">
 								<p className="text-sm font-medium text-destructive mb-1">Preview:</p>
 
-								<p className="text-sm break-words">
+								<p className="text-sm wrap-break-word">
 									{rejectionReason ||
 										PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason)?.reason}
 								</p>
@@ -800,6 +783,7 @@ const StudentsTable = ({
 	onStudentUpdate,
 	hasPreviousPage
 }: StudentsTableProps) => {
+	"use no memo";
 	const [selectedStatus, setSelectedStatus] = useState<string>("all");
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 	const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
@@ -996,7 +980,7 @@ const StudentsTable = ({
 				) : (
 					<>
 						<Select value={selectedStatus} onValueChange={handleStatusFilter}>
-							<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+							<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 								<Filter className="mr-2 size-4 text-foreground" />
 								<SelectValue placeholder="Status" />
 							</SelectTrigger>
@@ -1056,7 +1040,7 @@ const StudentsTable = ({
 					<Table>
 						<TableHeader>
 							<TableRow className="hover:bg-transparent border-border/50">
-								<TableHead className="font-semibold h-12 text-center px-4 w-[80px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-20">
 									<Skeleton className="h-4 w-12 mx-auto" />
 								</TableHead>
 								<TableHead className="font-semibold h-12 text-center px-4 w-[200px]">

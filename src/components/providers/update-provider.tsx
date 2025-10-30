@@ -27,13 +27,7 @@ type UpdateProviderProps = {
 
 export const UpdateProvider = ({ children }: UpdateProviderProps) => {
 	const { info, loading, available, lastChecked, applyUpdate, dismissUpdate, checkForUpdates } = useAppUpdate();
-	const [showModal, setShowModal] = useState<boolean>(false);
-
-	useEffect(() => {
-		if (available && info) {
-			setShowModal(true);
-		}
-	}, [available, info]);
+	const showModal = available && info !== null;
 
 	useEffect(() => {
 		let mounted = true;
@@ -61,7 +55,6 @@ export const UpdateProvider = ({ children }: UpdateProviderProps) => {
 	}, [checkForUpdates]);
 
 	const handleModalClose = (open: boolean) => {
-		setShowModal(open);
 		if (!open && available) {
 			dismissUpdate();
 		}

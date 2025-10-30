@@ -319,6 +319,7 @@ const ApplicationsTable = ({
 	onFilterChange,
 	hasPreviousPage
 }: ApplicationsTableProps) => {
+	"use no memo";
 	const [selectedType, setSelectedType] = useState<string>("all");
 	const [selectedStatus, setSelectedStatus] = useState<string>("all");
 	const [localSearchQuery, setLocalSearchQuery] = useState<string>("");
@@ -734,7 +735,7 @@ const ApplicationsTable = ({
 					) : (
 						<>
 							<Select value={selectedType} onValueChange={handleTypeFilter}>
-								<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+								<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 									<Filter className="mr-2 size-4 text-foreground" />
 									<SelectValue placeholder="Type" />
 								</SelectTrigger>
@@ -747,7 +748,7 @@ const ApplicationsTable = ({
 							</Select>
 
 							<Select value={selectedStatus} onValueChange={handleStatusFilter}>
-								<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+								<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 									<Filter className="mr-2 size-4 text-foreground" />
 									<SelectValue placeholder="Status" />
 								</SelectTrigger>
@@ -816,7 +817,7 @@ const ApplicationsTable = ({
 				) : (
 					<>
 						<Select value={selectedType} onValueChange={handleTypeFilter}>
-							<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+							<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 								<Filter className="mr-2 size-4 text-foreground" />
 								<SelectValue placeholder="Type" />
 							</SelectTrigger>
@@ -829,7 +830,7 @@ const ApplicationsTable = ({
 						</Select>
 
 						<Select value={selectedStatus} onValueChange={handleStatusFilter}>
-							<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+							<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 								<Filter className="mr-2 size-4 text-foreground" />
 								<SelectValue placeholder="Status" />
 							</SelectTrigger>
@@ -898,7 +899,7 @@ const ApplicationsTable = ({
 					<Table>
 						<TableHeader>
 							<TableRow className="hover:bg-transparent border-border/50">
-								<TableHead className="font-semibold h-12 text-center px-4 w-[80px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-20">
 									<Skeleton className="h-4 w-12 mx-auto" />
 								</TableHead>
 								<TableHead className="font-semibold h-12 text-center px-4 w-[100px]">
@@ -1090,8 +1091,11 @@ const ApplicationsTable = ({
 									}
 								}}
 							>
-								<SelectTrigger className="w-full mt-2 !h-10 !text-foreground cursor-pointer">
-									<SelectValue className="whitespace-normal break-words" placeholder="Select a predefined reason..." />
+								<SelectTrigger className="w-full mt-2 h-10! text-foreground! cursor-pointer">
+									<SelectValue
+										className="whitespace-normal wrap-break-word"
+										placeholder="Select a predefined reason..."
+									/>
 								</SelectTrigger>
 
 								<SelectContent className="w-full max-h-60 overflow-y-auto">
@@ -1137,10 +1141,10 @@ const ApplicationsTable = ({
 						</div>
 
 						{(rejectionReason || selectedPredefinedReason) && (
-							<div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 break-words">
+							<div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 wrap-break-word">
 								<p className="text-sm font-medium text-destructive mb-1">Preview:</p>
 
-								<p className="text-sm break-words">
+								<p className="text-sm wrap-break-word">
 									{rejectionReason ||
 										PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason)?.reason}
 								</p>
@@ -1236,7 +1240,7 @@ const ApplicationsTable = ({
 							<label className="block text-sm font-medium text-foreground">Rejection Reason</label>
 							{applicationDetails ? (
 								<div className="mt-2 p-4 rounded-lg bg-destructive/5 border border-destructive/20">
-									<p className="text-sm text-destructive leading-relaxed break-words whitespace-pre-wrap">
+									<p className="text-sm text-destructive leading-relaxed wrap-break-word whitespace-pre-wrap">
 										{applicationDetails.rejectionReason || "No rejection reason provided."}
 									</p>
 								</div>

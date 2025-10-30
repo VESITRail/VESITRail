@@ -35,6 +35,7 @@ const BookletApplicationsTable = ({
 	onPageChange,
 	hasPreviousPage
 }: BookletApplicationsTableProps) => {
+	"use no memo";
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
 	const generateCertificateNo = (application: BookletApplicationItem): string => {

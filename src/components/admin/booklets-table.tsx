@@ -14,9 +14,6 @@ import {
 	ChevronRight,
 	MoreVertical
 } from "lucide-react";
-import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
-import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
-import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import {
 	DropdownMenu,
 	DropdownMenuItem,
@@ -46,9 +43,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBookletStatusType } from "@/generated/zod";
 import { BookletItem, deleteBooklet } from "@/actions/booklets";
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
+import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
+import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
 
 declare module "@tanstack/react-table" {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	interface ColumnMeta<TData, TValue> {
 		displayName?: string;
 	}
@@ -100,6 +99,7 @@ const BookletsTable = ({
 	onBookletDelete,
 	hasPreviousPage
 }: BookletsTableProps) => {
+	"use no memo";
 	const router = useRouter();
 	const [sortConfig, setSortConfig] = useState<{
 		key: keyof BookletItem | "bookletNumber";
@@ -550,7 +550,7 @@ const BookletsTable = ({
 					) : (
 						<>
 							<Select value={selectedStatus} onValueChange={handleStatusFilter}>
-								<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+								<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 									<Filter className="mr-2 size-4 text-foreground" />
 									<SelectValue placeholder="Status" />
 								</SelectTrigger>

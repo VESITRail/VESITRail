@@ -30,9 +30,15 @@ const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
 	variant = "default",
 	className = "gap-1.5"
 }) => {
-	const [deferred_prompt, set_deferred_prompt] = useState<BeforeInstallPromptEvent | null>(null);
 	const [is_installing, set_is_installing] = useState<boolean>(false);
-	const [is_installable, set_is_installable] = useState<boolean>(false);
+	const [deferred_prompt, set_deferred_prompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+	const [is_installable, set_is_installable] = useState<boolean>(() => {
+		if (typeof window !== "undefined") {
+			return !window.matchMedia("(display-mode: standalone)").matches;
+		}
+		return false;
+	});
 
 	const handle_app_installed = (): void => {
 		set_is_installable(false);
@@ -67,10 +73,6 @@ const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
 			set_is_installable(true);
 			set_deferred_prompt(event);
 		};
-
-		if (window.matchMedia("(display-mode: standalone)").matches) {
-			handle_app_installed();
-		}
 
 		window.addEventListener("beforeinstallprompt", handle_before_install_prompt);
 		window.addEventListener("appinstalled", handle_app_installed);

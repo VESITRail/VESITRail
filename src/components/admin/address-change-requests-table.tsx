@@ -65,7 +65,7 @@ const PREDEFINED_REJECTION_REASONS = [
 ];
 
 declare module "@tanstack/react-table" {
-	interface ColumnMeta<TData, _TValue> {
+	interface ColumnMeta<TData, TValue> {
 		displayName?: string;
 	}
 }
@@ -642,8 +642,11 @@ const AddressChangeRequestDetailsDialog = ({
 									}
 								}}
 							>
-								<SelectTrigger className="w-full mt-2 !h-10 !text-foreground cursor-pointer">
-									<SelectValue className="whitespace-normal break-words" placeholder="Select a predefined reason..." />
+								<SelectTrigger className="w-full mt-2 h-10! text-foreground! cursor-pointer">
+									<SelectValue
+										className="whitespace-normal wrap-break-word"
+										placeholder="Select a predefined reason..."
+									/>
 								</SelectTrigger>
 
 								<SelectContent className="w-full max-h-60 overflow-y-auto">
@@ -689,10 +692,10 @@ const AddressChangeRequestDetailsDialog = ({
 						</div>
 
 						{(rejectionReason || selectedPredefinedReason) && (
-							<div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 break-words">
+							<div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 wrap-break-word">
 								<p className="text-sm font-medium text-destructive mb-1">Preview:</p>
 
-								<p className="text-sm break-words">
+								<p className="text-sm wrap-break-word">
 									{rejectionReason ||
 										PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason)?.reason}
 								</p>
@@ -1128,7 +1131,7 @@ const AddressChangeRequestsTable = ({
 					) : (
 						<>
 							<Select value={selectedStatus} onValueChange={handleStatusFilter}>
-								<SelectTrigger className="w-36 !h-10 !text-foreground cursor-pointer">
+								<SelectTrigger className="w-36 h-10! text-foreground! cursor-pointer">
 									<Filter className="mr-2 size-4 text-foreground" />
 									<SelectValue placeholder="Status" />
 								</SelectTrigger>

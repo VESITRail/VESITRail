@@ -195,6 +195,7 @@ const CustomCalendar = ({
 };
 
 const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps) => {
+	"use no memo";
 	const [open, setOpen] = useState(false);
 	type FormFieldName = Parameters<typeof form.setError>[0];
 	const form = useForm<z.infer<typeof PersonalInfoSchema>>({
