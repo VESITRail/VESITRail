@@ -65,8 +65,7 @@ const PREDEFINED_REJECTION_REASONS = [
 ];
 
 declare module "@tanstack/react-table" {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	interface ColumnMeta<TData, TValue> {
+	interface ColumnMeta<TData, _TValue> {
 		displayName?: string;
 	}
 }
@@ -93,14 +92,14 @@ const AddressChangeRequestDetailsDialog = ({
 	onRequestUpdate?: (updatedRequest: AddressChangeRequestItem) => void;
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [requestDetails, setRequestDetails] = useState<AddressChangeRequestItem | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [hasError, setHasError] = useState<boolean>(false);
 	const [isApproving, setIsApproving] = useState<boolean>(false);
 	const [isRejecting, setIsRejecting] = useState<boolean>(false);
 	const [rejectionReason, setRejectionReason] = useState<string>("");
-	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
 	const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
+	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
+	const [requestDetails, setRequestDetails] = useState<AddressChangeRequestItem | null>(null);
 
 	const loadRequestDetails = useCallback(async () => {
 		if (!request.id) return;
@@ -767,6 +766,7 @@ const AddressChangeRequestsTable = ({
 	onRequestUpdate,
 	hasPreviousPage
 }: AddressChangeRequestsTableProps) => {
+	"use no memo";
 	const [sortConfig, setSortConfig] = useState<{
 		key: keyof AddressChangeRequestItem | "studentName";
 		direction: SortOrder;
