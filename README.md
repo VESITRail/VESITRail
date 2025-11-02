@@ -100,8 +100,8 @@ _A modern web application for VESIT students to apply and manage railway concess
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn/pnpm
-- PostgreSQL database (Neon recommended)
+- Node.js 18+ and npm
+- PostgreSQL database
 - Google OAuth credentials
 - Cloudinary account (for file uploads)
 - Firebase project (for push notifications)
@@ -118,11 +118,7 @@ _A modern web application for VESIT students to apply and manage railway concess
 2. **Install dependencies**
 
    ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
+   npm ci
    ```
 
 3. **Environment Setup**
@@ -170,10 +166,6 @@ _A modern web application for VESIT students to apply and manage railway concess
 
    ```bash
    npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
    ```
 
 6. **Open your browser**
@@ -183,6 +175,8 @@ _A modern web application for VESIT students to apply and manage railway concess
 ---
 
 ## 📖 Documentation
+
+For detailed architectural information, system design, and technical specifications, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Project Structure
 
