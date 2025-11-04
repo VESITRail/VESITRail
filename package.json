@@ -88,7 +88,7 @@
 		"nextjs-toploader": "^3.9.17",
 		"nodemailer": "^7.0.9",
 		"pdf-lib": "^1.17.1",
-		"posthog-js": "^1.284.0",
+		"posthog-js": "^1.285.1",
 		"posthog-node": "^5.11.0",
 		"react": "^19.2.0",
 		"react-day-picker": "^9.11.1",
