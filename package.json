@@ -36,10 +36,12 @@
 		"prepare": "husky",
 		"build": "next build",
 		"start": "next start",
+		"test:e2e": "playwright test",
 		"format": "prettier . --write",
 		"format:check": "prettier . --check",
 		"postinstall": "npx prisma generate",
-		"semantic-release": "semantic-release"
+		"semantic-release": "semantic-release",
+		"test:e2e:install": "playwright install --with-deps"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",
@@ -105,6 +107,7 @@
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.1",
 		"@eslint/js": "^9.39.0",
+		"@playwright/test": "^1.56.1",
 		"@semantic-release/changelog": "^6.0.3",
 		"@semantic-release/git": "^10.0.1",
 		"@tailwindcss/postcss": "^4",
