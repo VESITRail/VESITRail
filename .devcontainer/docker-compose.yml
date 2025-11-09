@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    network_mode: service:db
+    environment:
+      - DATABASE_URL=postgresql://vesitrail:vesitrail@localhost:5432/vesitrail
+      - NODE_ENV=development
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=vesitrail
+      - POSTGRES_PASSWORD=vesitrail
+      - POSTGRES_DB=vesitrail
+
+volumes:
+  postgres-data:
