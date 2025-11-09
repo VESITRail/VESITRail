@@ -9,8 +9,9 @@ services:
       - ..:/workspace:cached
     command: sleep infinity
     network_mode: service:db
+    env_file:
+      - .env.devcontainer
     environment:
-      - DATABASE_URL=postgresql://vesitrail:vesitrail@localhost:5432/vesitrail
       - NODE_ENV=development
 
   db:
@@ -18,10 +19,12 @@ services:
     restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    env_file:
+      - .env.devcontainer
     environment:
-      - POSTGRES_USER=vesitrail
-      - POSTGRES_PASSWORD=vesitrail
-      - POSTGRES_DB=vesitrail
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
 volumes:
   postgres-data:
