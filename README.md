@@ -98,7 +98,30 @@ _A modern web application for VESIT students to apply and manage railway concess
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Option 1: Using DevContainer (Recommended)
+
+The easiest way to get started is using the DevContainer, which provides a fully configured development environment.
+
+**Prerequisites:**
+
+- Docker Desktop or Docker Engine
+- Visual Studio Code with Dev Containers extension
+
+**Steps:**
+
+1. Open the project in VS Code
+2. Click "Reopen in Container" when prompted, or use Command Palette: `Dev Containers: Reopen in Container`
+3. Wait for the container to build and dependencies to install
+4. Copy environment variables: `cp .devcontainer/.env.devcontainer .env`
+5. Update `.env` with your API credentials
+6. Run database migrations: `npx prisma migrate dev`
+7. Start the development server: `npm run dev`
+
+See [.devcontainer/README.md](.devcontainer/README.md) for more details.
+
+### Option 2: Local Setup
+
+**Prerequisites:**
 
 - Node.js 18+ and npm
 - PostgreSQL database
@@ -106,7 +129,7 @@ _A modern web application for VESIT students to apply and manage railway concess
 - Cloudinary account (for file uploads)
 - Firebase project (for push notifications)
 
-### Installation
+**Installation:**
 
 1. **Clone the repository**
 
