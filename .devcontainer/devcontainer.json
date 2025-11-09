@@ -1,0 +1,69 @@
+{
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"name": "VESITRail Development",
+	"dockerComposeFile": "docker-compose.yml",
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "22"
+		},
+		"ghcr.io/devcontainers/features/git:1": {
+			"version": "latest"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"prisma.prisma",
+				"esbenp.prettier-vscode",
+				"ms-playwright.playwright",
+				"bradlc.vscode-tailwindcss",
+				"dsznajder.es7-react-js-snippets",
+				"streetsidesoftware.code-spell-checker"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "zsh",
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll.eslint": "explicit"
+				},
+				"typescript.tsdk": "node_modules/typescript/lib",
+				"typescript.enablePromptUseWorkspaceTsdk": true,
+				"[prisma]": {
+					"editor.defaultFormatter": "Prisma.prisma"
+				},
+				"[javascript]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				"[typescript]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				"[typescriptreact]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				"[json]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				"tailwindCSS.experimental.classRegex": [
+					["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+					["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+				]
+			}
+		}
+	},
+	"forwardPorts": [3000, 5432],
+	"portsAttributes": {
+		"3000": {
+			"label": "Next.js Application",
+			"onAutoForward": "notify"
+		},
+		"5432": {
+			"label": "PostgreSQL Database",
+			"onAutoForward": "silent"
+		}
+	},
+	"postCreateCommand": "npm install && npx prisma generate",
+	"postStartCommand": "npx prisma migrate deploy",
+	"remoteUser": "node"
+}
