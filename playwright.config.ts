@@ -12,10 +12,6 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	projects: [
 		{
-			name: "webkit",
-			use: { ...devices["Desktop Safari"] }
-		},
-		{
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] }
 		},
