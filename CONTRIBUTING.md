@@ -46,6 +46,57 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 - Keep components accessible (ARIA attributes, keyboard navigation)
 - Avoid adding heavy dependencies without discussion
 
+## Testing
+
+VESITRail uses **Playwright** for end-to-end testing. We strongly encourage adding E2E tests for new features.
+
+### Running Tests
+
+```bash
+# Install Playwright browsers (first time only)
+npm run test:e2e:install
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run tests in UI mode (interactive debugging)
+npx playwright test --ui
+
+# Run tests in headed mode (see browser actions)
+npx playwright test --headed
+
+# Run specific test file
+npx playwright test tests/login.spec.ts
+```
+
+### Writing Tests
+
+- Place test files in the `tests/` directory with `.spec.ts` extension
+- Follow the naming convention: `feature-name.spec.ts`
+- Tests run on Chromium, Firefox, and WebKit browsers
+- Use descriptive test names that explain what is being tested
+
+**Example test structure:**
+
+```typescript
+import { test, expect } from "@playwright/test";
+
+test.describe("Feature Name", () => {
+	test("should perform expected behavior", async ({ page }) => {
+		await page.goto("/");
+		// Your test logic here
+	});
+});
+```
+
+### Test Guidelines
+
+- Write tests for critical user flows (login, applications, approvals)
+- Keep tests independent - each test should work in isolation
+- Use proper selectors (prefer `data-testid` attributes)
+- Clean up test data when necessary
+- Ensure tests pass locally before pushing
+
 ## Git & Commit Standards
 
 - Use short, descriptive branches: `feature/...`, `fix/...`, `refactor/...`
@@ -57,6 +108,8 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 Before opening a PR:
 
 - [ ] Ran `npm run build` locally without errors
+- [ ] Ran `npm run test:e2e` and all tests pass
+- [ ] Added E2E tests for new features or critical paths
 - [ ] Updated or added types/schemas if models changed
 - [ ] Added migrations if Prisma schema changed
 - [ ] Updated docs (`README.md` or relevant .md files) if behavior changed
