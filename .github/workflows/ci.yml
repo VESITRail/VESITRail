@@ -74,6 +74,9 @@ jobs:
       - name: Install Playwright Browsers
         run: npm run test:e2e:install
 
+      - name: Setup environment
+        run: cp .env.example .env || true
+
       - name: Run Playwright tests
         run: npm run test:e2e
 
