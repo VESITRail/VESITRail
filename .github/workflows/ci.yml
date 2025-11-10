@@ -75,7 +75,12 @@ jobs:
         run: npm run test:e2e:install
 
       - name: Setup environment
-        run: cp .env.example .env || true
+        run: |
+          if [ ! -f .env.example ]; then
+            echo "Error: .env.example file not found"
+            exit 1
+          fi
+          cp .env.example .env
 
       - name: Run Playwright tests
         run: npm run test:e2e
