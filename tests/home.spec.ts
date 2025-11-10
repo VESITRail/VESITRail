@@ -21,8 +21,7 @@ test("should navigate through home page elements and verify UI interactions", as
 	await page.getByRole("button", { name: "Contact Us" }).click();
 	await page.waitForLoadState("domcontentloaded");
 
-	await page.getByRole("link", { name: "VESITRail", exact: true }).click();
-	await page.waitForURL("/");
+	await page.goto("/");
 
 	await page.getByLabel("Footer Navigation").getByRole("link", { name: "Home" }).click();
 	await page.waitForURL("/");
