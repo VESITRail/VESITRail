@@ -10,6 +10,12 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 1 : undefined,
+	webServer: {
+		port: 3000,
+		timeout: 120000,
+		reuseExistingServer: !process.env.CI,
+		command: "npm run build && npm run start"
+	},
 	projects: [
 		{
 			name: "chromium",
