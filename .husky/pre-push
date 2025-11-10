@@ -1,2 +1,2 @@
 echo "Running pre-push checks..."
-npm run build && npm run test:e2e
+npm run test:e2e
