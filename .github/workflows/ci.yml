@@ -74,14 +74,6 @@ jobs:
       - name: Install Playwright Browsers
         run: npm run test:e2e:install
 
-      - name: Setup environment
-        run: |
-          if [ ! -f .env.example ]; then
-            echo "Error: .env.example file not found"
-            exit 1
-          fi
-          cp .env.example .env
-
       - name: Run Playwright tests
         run: npm run test:e2e
 
