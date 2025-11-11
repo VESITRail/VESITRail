@@ -92,6 +92,12 @@ _A modern web application for VESIT students to apply and manage railway concess
       <img src="https://img.shields.io/badge/Firebase-12.0.0-FFCA28?logo=firebase&logoColor=black" alt="Firebase">
     </td>
   </tr>
+  <tr>
+    <td><strong>Testing</strong></td>
+    <td>
+      <img src="https://img.shields.io/badge/Playwright-1.56.1-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
+    </td>
+  </tr>
 </table>
 
 ---
@@ -349,6 +355,33 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - **ESLint**: Custom configuration for Next.js
 - **Prettier**: Consistent code formatting
 - **Conventional Commits**: Semantic commit messages
+
+### Testing
+
+VESITRail uses **Playwright** for end-to-end testing to ensure application reliability across browsers.
+
+```bash
+# Install Playwright browsers (first time only)
+npm run test:e2e:install
+
+# Run E2E tests
+npm run test:e2e
+
+# Run tests in UI mode (interactive)
+npx playwright test --ui
+
+# Run tests in headed mode (see browser)
+npx playwright test --headed
+```
+
+**Test Configuration:**
+
+- Test files: Place E2E tests in `tests/` directory with `.spec.ts` extension
+- Browsers: Tests run on Chromium, Firefox, and WebKit
+- CI/CD: Automatically runs on pull requests
+- Reports: HTML test reports generated after test runs
+
+For more on writing tests, see the [Playwright documentation](https://playwright.dev).
 
 ---
 

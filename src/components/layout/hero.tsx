@@ -1,7 +1,5 @@
 "use client";
 
-import { Lead, Heading1, Heading2, Paragraph } from "@/components/ui/typography";
-import { LogIn, Rocket, Activity, FileCheck, AlertCircle, ClipboardCheck } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
@@ -10,6 +8,8 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import GitHubStars from "@/components/utils/github-stars";
+import { Lead, Heading1, Heading2, Paragraph } from "@/components/ui/typography";
+import { LogIn, Rocket, Activity, FileCheck, AlertCircle, ClipboardCheck } from "lucide-react";
 
 const Hero = () => {
 	const session = authClient.useSession();
@@ -41,7 +41,7 @@ const Hero = () => {
 
 	return (
 		<section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center px-4 md:px-8 bg-background overflow-x-hidden py-12">
-			<div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-background pointer-events-none -z-10" />
+			<div className="absolute inset-0 bg-linear-to-br from-muted/60 to-background pointer-events-none -z-10" />
 
 			<div className="container grid lg:grid-cols-2 gap-4 md:gap-8 items-center mx-auto max-w-7xl">
 				<div className="flex flex-col items-center gap-8 text-center lg:items-start lg:text-left px-2 md:px-8">
@@ -54,7 +54,7 @@ const Hero = () => {
 							<GitHubStars />
 						</div>
 
-						<Heading1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
+						<Heading1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-linear-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
 							Apply with Ease!
 						</Heading1>
 
@@ -68,10 +68,11 @@ const Hero = () => {
 					) : (
 						!session.data?.user && (
 							<div className="flex items-center gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5 w-full max-w-sm">
-								<AlertCircle className="size-4 text-destructive flex-shrink-0" />
+								<AlertCircle className="size-4 text-destructive shrink-0" />
 
 								<p className="text-xs text-destructive font-medium">
-									Only <span className="bg-destructive/20 px-1.5 rounded">@ves.ac.in</span> emails allowed
+									Only <span className="bg-destructive text-white py-0.5 px-1.5 rounded">@ves.ac.in</span> emails
+									allowed
 								</p>
 							</div>
 						)

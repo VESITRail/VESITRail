@@ -77,3 +77,6 @@ next-env.d.ts
 public/sw.js
 /src/generated
 public/swe-worker-*.js
+
+# Playwright
+/playwright/.auth/
