@@ -1,19 +1,24 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest a feature for VESITRail
 title: ""
-labels: ""
+labels: "enhancement"
 assignees: ""
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Feature Area
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+- [ ] Student Dashboard
+- [ ] Concession Application
+- [ ] Address Management
+- [ ] Admin Dashboard
+- [ ] Notifications
+- [ ] Other
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## Problem
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+## Proposed Solution
+
+## Alternatives Considered
+
+## Additional Context
