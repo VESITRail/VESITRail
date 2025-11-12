@@ -1,5 +1,14 @@
 #!/bin/sh
 
+if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ]; then
+  echo ""
+  echo "========================================"
+  echo "   CI ENVIRONMENT DETECTED - SKIPPING   "
+  echo "========================================"
+  echo ""
+  exit 0
+fi
+
 echo ""
 echo "========================================"
 echo "             PRE-PUSH CHECKS             "
