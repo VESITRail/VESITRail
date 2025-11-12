@@ -1,14 +1,28 @@
 {
 	"service": "app",
+	"remoteUser": "node",
+	"forwardPorts": [3000, 5432],
 	"workspaceFolder": "/workspace",
 	"name": "VESITRail Development",
 	"dockerComposeFile": "docker-compose.yml",
+	"postStartCommand": "npx prisma migrate deploy",
+	"postCreateCommand": "npm install && npx prisma generate",
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "22"
 		},
 		"ghcr.io/devcontainers/features/git:1": {
 			"version": "latest"
+		}
+	},
+	"portsAttributes": {
+		"3000": {
+			"label": "Next.js Application",
+			"onAutoForward": "notify"
+		},
+		"5432": {
+			"label": "PostgreSQL Database",
+			"onAutoForward": "silent"
 		}
 	},
 	"customizations": {
@@ -22,14 +36,14 @@
 				"streetsidesoftware.code-spell-checker"
 			],
 			"settings": {
+				"editor.formatOnSave": true,
+				"typescript.enablePromptUseWorkspaceTsdk": true,
+				"typescript.tsdk": "node_modules/typescript/lib",
 				"terminal.integrated.defaultProfile.linux": "zsh",
 				"editor.defaultFormatter": "esbenp.prettier-vscode",
-				"editor.formatOnSave": true,
 				"editor.codeActionsOnSave": {
 					"source.fixAll.eslint": "explicit"
 				},
-				"typescript.tsdk": "node_modules/typescript/lib",
-				"typescript.enablePromptUseWorkspaceTsdk": true,
 				"[prisma]": {
 					"editor.defaultFormatter": "Prisma.prisma"
 				},
@@ -51,19 +65,5 @@
 				]
 			}
 		}
-	},
-	"forwardPorts": [3000, 5432],
-	"portsAttributes": {
-		"3000": {
-			"label": "Next.js Application",
-			"onAutoForward": "notify"
-		},
-		"5432": {
-			"label": "PostgreSQL Database",
-			"onAutoForward": "silent"
-		}
-	},
-	"postCreateCommand": "npm install && npx prisma generate",
-	"postStartCommand": "npx prisma migrate deploy",
-	"remoteUser": "node"
+	}
 }

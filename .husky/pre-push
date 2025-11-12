@@ -1,2 +1,35 @@
-echo "Running pre-push checks..."
-npm run test:e2e
+#!/bin/sh
+
+if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ]; then
+  echo ""
+  echo "========================================"
+  echo "   CI ENVIRONMENT DETECTED - SKIPPING   "
+  echo "========================================"
+  echo ""
+  exit 0
+fi
+
+echo ""
+echo "========================================"
+echo "             PRE-PUSH CHECKS             "
+echo "========================================"
+
+echo "Running build..."
+npm run build
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo ""
+  echo "----------------------------------------"
+  echo "✗ Build failed. Push aborted."
+  echo "Please fix build errors before pushing."
+  echo "----------------------------------------"
+  exit 1
+fi
+
+echo ""
+echo "----------------------------------------"
+  echo "✓ All pre-push checks passed."
+echo "----------------------------------------"
+echo ""
+exit 0

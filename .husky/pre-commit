@@ -1,2 +1,26 @@
-echo "Running pre-commit checks..."
+#!/bin/sh
+
+echo ""
+echo "========================================"
+echo "           PRE-COMMIT CHECKS            "
+echo "========================================"
+
+echo "Running lint-staged..."
 npx lint-staged
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo ""
+  echo "----------------------------------------"
+  echo "✗ Linting failed. Commit aborted."
+  echo "Please run 'npm run lint' to fix issues."
+  echo "----------------------------------------"
+  exit 1
+fi
+
+echo ""
+echo "----------------------------------------"
+echo "✓ All pre-commit checks passed."
+echo "----------------------------------------"
+echo ""
+exit 0
