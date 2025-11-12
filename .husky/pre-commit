@@ -5,7 +5,6 @@ echo "========================================"
 echo "           PRE-COMMIT CHECKS            "
 echo "========================================"
 
-# Run lint-staged
 echo "Running lint-staged..."
 npx lint-staged
 status=$?
