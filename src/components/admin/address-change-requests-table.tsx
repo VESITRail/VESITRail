@@ -233,7 +233,7 @@ const AddressChangeRequestDetailsDialog = ({
 		<>
 			<Dialog open={isOpen} onOpenChange={setIsOpen}>
 				<DialogTrigger asChild>
-					<Button size="sm" variant="ghost" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+					<Button size="sm">
 						<Eye className="size-4" />
 					</Button>
 				</DialogTrigger>
@@ -593,13 +593,21 @@ const AddressChangeRequestDetailsDialog = ({
 										<Button
 											variant="destructive"
 											className="w-38 h-10"
+											title="Reject Request"
+											aria-label="Reject Request"
 											disabled={isApproving || isRejecting}
 											onClick={() => setShowRejectDialog(true)}
 										>
 											<XCircle className="size-4 mr-1" />
 											Reject Request
 										</Button>
-										<Button className="w-42 h-10" onClick={handleApprove} disabled={isApproving || isRejecting}>
+										<Button
+											title="Approve Request"
+											onClick={handleApprove}
+											aria-label="Approve Request"
+											disabled={isApproving || isRejecting}
+											className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+										>
 											<Check className="size-4 mr-1" />
 											Approve Request
 										</Button>

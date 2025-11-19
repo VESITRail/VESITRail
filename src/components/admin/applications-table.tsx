@@ -249,11 +249,10 @@ const createColumns = (
 						<>
 							<Button
 								size="sm"
-								variant="default"
-								className="size-8 p-0"
 								title="Approve Application"
 								aria-label="Approve application"
 								onClick={() => onApprove && onApprove(application)}
+								className="size-8 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
 							>
 								<Check className="size-4" />
 							</Button>
