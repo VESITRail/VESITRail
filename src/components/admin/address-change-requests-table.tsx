@@ -545,13 +545,13 @@ const AddressChangeRequestDetailsDialog = ({
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 									<div className="space-y-3">
 										<div className="flex items-center justify-between">
-											<span className="text-sm text-muted-foreground">Submissions</span>
-											<span className="text-sm font-medium text-foreground">{requestDetails.submissionCount}</span>
+											<span className="text-sm font-medium text-muted-foreground">Submissions</span>
+											<span className="text-sm text-foreground">{requestDetails.submissionCount}</span>
 										</div>
 
 										<div className="flex items-center justify-between">
-											<span className="text-sm text-muted-foreground">Applied Date</span>
-											<span className="text-sm font-medium text-foreground">
+											<span className="text-sm font-medium text-muted-foreground">Applied Date</span>
+											<span className="text-sm text-foreground">
 												{format(new Date(requestDetails.createdAt), "MMM dd, yyyy")}
 											</span>
 										</div>
@@ -560,8 +560,8 @@ const AddressChangeRequestDetailsDialog = ({
 									<div className="space-y-3">
 										{requestDetails.reviewedAt && (
 											<div className="flex items-center justify-between">
-												<span className="text-sm text-muted-foreground">Reviewed Date</span>
-												<span className="text-sm font-medium text-foreground">
+												<span className="text-sm font-medium text-muted-foreground">Reviewed Date</span>
+												<span className="text-sm text-foreground">
 													{format(new Date(requestDetails.reviewedAt), "MMM dd, yyyy")}
 												</span>
 											</div>
@@ -569,8 +569,10 @@ const AddressChangeRequestDetailsDialog = ({
 
 										{requestDetails.reviewedBy && (
 											<div className="flex items-center justify-between">
-												<span className="text-sm text-muted-foreground">Reviewed By</span>
-												<span className="text-sm text-right">{toTitleCase(requestDetails.reviewedBy.user.name)}</span>
+												<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
+												<span className="text-sm text-foreground">
+													{toTitleCase(requestDetails.reviewedBy.user.name)}
+												</span>
 											</div>
 										)}
 									</div>
