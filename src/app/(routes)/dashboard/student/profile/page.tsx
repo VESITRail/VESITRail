@@ -404,19 +404,18 @@ const StudentProfilePage = () => {
 						</div>
 						<Button
 							size="sm"
-							variant="outline"
 							className="flex items-center gap-2"
 							disabled={!profileData.verificationDocUrl}
 							asChild={!!profileData.verificationDocUrl}
 						>
 							{profileData.verificationDocUrl ? (
 								<a target="_blank" rel="noopener noreferrer" href={profileData.verificationDocUrl}>
-									<ExternalLink className="size-4" />
+									<ExternalLink className="size-4 mr-1" />
 									<span className="hidden md:inline">View Document</span>
 								</a>
 							) : (
 								<span>
-									<FileText className="size-4" />
+									<FileText className="size-4 mr-1" />
 									No Document
 								</span>
 							)}
