@@ -521,14 +521,14 @@ const AddressChangeRequestDetailsDialog = ({
 										<span className="text-sm font-medium flex-1">Student Verification Document</span>
 										<Button
 											size="sm"
-											variant="outline"
+											variant="default"
 											onClick={() => {
 												if (requestDetails.verificationDocUrl) {
 													window.open(requestDetails.verificationDocUrl, "_blank");
 												}
 											}}
 										>
-											<ExternalLink className="size-4 mr-2" />
+											<ExternalLink className="size-4 mr-1" />
 											View
 										</Button>
 									</div>
