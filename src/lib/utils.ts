@@ -1,6 +1,7 @@
 import { twMerge } from "tailwind-merge";
 import { clsx, type ClassValue } from "clsx";
 import { AuthErrorCode, authErrorMessages } from "@/types/error";
+import type { ConcessionBookletStatusType } from "@/generated/zod";
 
 export const cn = (...inputs: ClassValue[]) => {
 	return twMerge(clsx(inputs));
@@ -109,4 +110,27 @@ export const sortByRomanKey = <T>(data: T[], key: keyof T): T[] => {
 
 export const isValidErrorCode = (code: string): code is AuthErrorCode => {
 	return code in authErrorMessages;
+};
+
+export const calculateBookletStatus = (
+	applicationCount: number,
+	damagedPagesCount: number,
+	totalPages: number = 50,
+	isManuallyDamaged: boolean = false
+): ConcessionBookletStatusType => {
+	if (isManuallyDamaged) {
+		return "Damaged";
+	}
+
+	const totalUsedPages = applicationCount + damagedPagesCount;
+
+	if (totalUsedPages >= totalPages) {
+		return "Exhausted";
+	}
+
+	if (totalUsedPages > 0) {
+		return "InUse";
+	}
+
+	return "Available";
 };
