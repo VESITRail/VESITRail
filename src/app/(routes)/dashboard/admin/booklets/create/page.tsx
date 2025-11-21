@@ -18,7 +18,6 @@ const CreateBookletPage = () => {
 	const [formData, setFormData] = useState<CreateBookletInput>({
 		anchorX: 0,
 		anchorY: 0,
-		status: "Available",
 		serialStartNumber: ""
 	});
 
@@ -104,7 +103,6 @@ const CreateBookletPage = () => {
 				setFormData({
 					anchorX: 0,
 					anchorY: 0,
-					status: "Available",
 					serialStartNumber: ""
 				});
 				setErrors({});
@@ -129,7 +127,6 @@ const CreateBookletPage = () => {
 		setFormData({
 			anchorX: 0,
 			anchorY: 0,
-			status: "Available",
 			serialStartNumber: ""
 		});
 		setErrors({});

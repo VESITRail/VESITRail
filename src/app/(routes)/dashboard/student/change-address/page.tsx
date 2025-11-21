@@ -714,7 +714,7 @@ const AddressChangePage = () => {
 									<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 										{[1, 2, 3].map((item) => (
 											<div key={item} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20">
-												<div className="flex-shrink-0">
+												<div className="shrink-0">
 													<Skeleton className="size-8 rounded-md" />
 												</div>
 												<div className="min-w-0 flex-1 space-y-1">
@@ -796,7 +796,7 @@ const AddressChangePage = () => {
 				<div className="pb-6">
 					<div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
 						<div className="flex items-start gap-4">
-							<div className="flex-shrink-0">
+							<div className="shrink-0">
 								<div className="size-9 hidden bg-destructive rounded-full md:flex items-center justify-center">
 									<AlertTriangle className="size-4.5 text-white" />
 								</div>
@@ -981,7 +981,7 @@ const AddressChangePage = () => {
 																		: "Select station..."}
 																</span>
 																{loadingStations ? (
-																	<Loader2 className="size-4 animate-spin flex-shrink-0" />
+																	<Loader2 className="size-4 animate-spin shrink-0" />
 																) : (
 																	<ChevronsUpDown className="size-4 shrink-0 opacity-50" />
 																)}
@@ -1011,7 +1011,7 @@ const AddressChangePage = () => {
 																		>
 																			<Check
 																				className={cn(
-																					"mr-2 size-4 flex-shrink-0",
+																					"mr-2 size-4 shrink-0",
 																					field.value === station.id ? "opacity-100" : "opacity-0"
 																				)}
 																			/>
@@ -1208,12 +1208,12 @@ const AddressChangePage = () => {
 															<div className="w-full space-y-4">
 																<div className="border-2 border-solid border-border rounded-lg bg-muted/50 p-4">
 																	<div className="flex flex-wrap items-start gap-4">
-																		<div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+																		<div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 																			<FileUp className="size-5" />
 																		</div>
 
 																		<div className="min-w-0 flex-1 space-y-1">
-																			<p className="text-sm font-medium text-foreground break-words">
+																			<p className="text-sm font-medium text-foreground wrap-break-words">
 																				Address Change Verification Document
 																			</p>
 																			<p className="text-xs text-muted-foreground break-all">
@@ -1221,7 +1221,7 @@ const AddressChangePage = () => {
 																			</p>
 																		</div>
 
-																		<div className="flex gap-2 flex-shrink-0">
+																		<div className="flex gap-2 shrink-0">
 																			<Button
 																				size="sm"
 																				type="button"
@@ -1240,7 +1240,7 @@ const AddressChangePage = () => {
 																<div className="w-full border-2 border-dashed border-border rounded-lg bg-accent/10 p-4">
 																	<div className="flex flex-wrap items-center gap-4">
 																		<div className="min-w-0 flex-1">
-																			<p className="text-sm font-medium text-foreground break-words">
+																			<p className="text-sm font-medium text-foreground wrap-break-words">
 																				Want to upload a different document?
 																			</p>
 																			<p className="text-xs text-muted-foreground mt-1">
@@ -1253,7 +1253,7 @@ const AddressChangePage = () => {
 																			type="button"
 																			variant="outline"
 																			onClick={handleRemoveFile}
-																			className="flex-shrink-0 gap-2"
+																			className="shrink-0 gap-2"
 																			disabled={isDeleting || isUploading}
 																		>
 																			{isDeleting ? (
@@ -1329,7 +1329,7 @@ const AddressChangePage = () => {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<div className="flex items-center gap-3">
-							<div className="hidden size-10 sm:size-12 bg-destructive rounded-full md:flex items-center justify-center flex-shrink-0">
+							<div className="hidden size-10 sm:size-12 bg-destructive rounded-full md:flex items-center justify-center shrink-0">
 								<AlertTriangle className="size-4 sm:size-5 text-white" />
 							</div>
 							<div className="flex-1 min-w-0">

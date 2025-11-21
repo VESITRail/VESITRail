@@ -1,5 +1,3 @@
-import { Bell, Mail, Users, Shield, Calendar, Database, FileText } from "lucide-react";
-import { List, Heading1, Heading2, Heading3, Paragraph } from "@/components/ui/typography";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +6,8 @@ import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import ScrollToTop from "@/components/utils/scroll-to-top";
+import { Bell, Mail, Users, Shield, Calendar, Database, FileText } from "lucide-react";
+import { List, Heading1, Heading2, Heading3, Paragraph } from "@/components/ui/typography";
 
 export const metadata: Metadata = {
 	title: "Terms of Service | VESITRail"
@@ -22,7 +22,7 @@ const TermsOfService = () => {
 			<Header />
 
 			<section className="relative min-h-screen bg-background py-16">
-				<div className="absolute inset-0 bg-gradient-to-br from-muted/30 to-background pointer-events-none -z-10" />
+				<div className="absolute inset-0 bg-linear-to-br from-muted/30 to-background pointer-events-none -z-10" />
 
 				<div className="container mx-auto max-w-4xl px-6 md:px-16 xl:px-8">
 					<div className="text-center space-y-6 mb-12">
@@ -31,7 +31,7 @@ const TermsOfService = () => {
 							Last updated: {lastUpdated}
 						</Badge>
 
-						<Heading1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
+						<Heading1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
 							Terms of Service
 						</Heading1>
 
@@ -43,10 +43,10 @@ const TermsOfService = () => {
 					<div className="space-y-12">
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<FileText className="size-5" />
 								</div>
-								<Heading2>Introduction</Heading2>
+								<Heading2 className="pb-0! leading-none!">Introduction</Heading2>
 							</div>
 							<Paragraph className="text-muted-foreground leading-relaxed">
 								Welcome to VESITRail. These Terms of Service (&quot;Terms&quot;) govern your use of our web application
@@ -59,10 +59,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Users className="size-5" />
 								</div>
-								<Heading2>Eligibility and Account Registration</Heading2>
+								<Heading2 className="pb-0! leading-none!">Eligibility and Account Registration</Heading2>
 							</div>
 
 							<div className="space-y-6">
@@ -98,10 +98,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<FileText className="size-5" />
 								</div>
-								<Heading2>Acceptable Use</Heading2>
+								<Heading2 className="pb-0! leading-none!">Acceptable Use</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground mb-4">When using VESITRail, you agree to:</Paragraph>
@@ -142,10 +142,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Database className="size-5" />
 								</div>
-								<Heading2>Service Description</Heading2>
+								<Heading2 className="pb-0! leading-none!">Service Description</Heading2>
 							</div>
 
 							<div className="space-y-6">
@@ -178,10 +178,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Shield className="size-5" />
 								</div>
-								<Heading2>Intellectual Property</Heading2>
+								<Heading2 className="pb-0! leading-none!">Intellectual Property</Heading2>
 							</div>
 
 							<div className="space-y-6">
@@ -209,10 +209,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Bell className="size-5" />
 								</div>
-								<Heading2>Disclaimers and Limitations</Heading2>
+								<Heading2 className="pb-0! leading-none!">Disclaimers and Limitations</Heading2>
 							</div>
 
 							<div className="space-y-6">
@@ -247,10 +247,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Users className="size-5" />
 								</div>
-								<Heading2>Account Termination</Heading2>
+								<Heading2 className="pb-0! leading-none!">Account Termination</Heading2>
 							</div>
 
 							<div className="space-y-6">
@@ -281,10 +281,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<FileText className="size-5" />
 								</div>
-								<Heading2>Governing Law</Heading2>
+								<Heading2 className="pb-0! leading-none!">Governing Law</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground">
@@ -298,10 +298,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<FileText className="size-5" />
 								</div>
-								<Heading2>Changes to Terms</Heading2>
+								<Heading2 className="pb-0! leading-none!">Changes to Terms</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground">
@@ -315,10 +315,10 @@ const TermsOfService = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Mail className="size-5" />
 								</div>
-								<Heading2>Contact Us</Heading2>
+								<Heading2 className="pb-0! leading-none!">Contact Us</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground mb-6">

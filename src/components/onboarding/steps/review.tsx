@@ -424,9 +424,9 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 							<p className="text-sm font-medium">Verification Document</p>
 							<p className="text-xs text-muted-foreground">Click to view your uploaded document</p>
 						</div>
-						<Button asChild size="sm" variant="outline" className="flex items-center gap-2">
+						<Button asChild size="sm" className="flex items-center gap-2">
 							<a target="_blank" rel="noopener noreferrer" href={defaultValues.verificationDocUrl}>
-								<ExternalLink className="size-4" />
+								<ExternalLink className="size-4 mr-1" />
 								<span className="hidden md:inline">View Document</span>
 							</a>
 						</Button>

@@ -203,7 +203,7 @@ const StudentDetailsDialog = ({
 		<>
 			<Dialog open={isOpen} onOpenChange={setIsOpen}>
 				<DialogTrigger asChild>
-					<Button size="sm" variant="ghost" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+					<Button size="sm">
 						<Eye className="size-4" />
 					</Button>
 				</DialogTrigger>
@@ -432,10 +432,10 @@ const StudentDetailsDialog = ({
 									<span className="text-sm font-medium flex-1">Student Verification Document</span>
 									<Button
 										size="sm"
-										variant="outline"
+										variant="default"
 										onClick={() => window.open(studentDetails.verificationDocUrl, "_blank")}
 									>
-										<ExternalLink className="size-4 mr-2" />
+										<ExternalLink className="size-4 mr-1" />
 										View
 									</Button>
 								</div>
@@ -499,14 +499,22 @@ const StudentDetailsDialog = ({
 									<Button
 										variant="destructive"
 										className="w-38 h-10"
+										title="Reject Student"
 										disabled={isProcessing}
+										aria-label="Reject Student"
 										onClick={() => setShowRejectDialog(true)}
 									>
 										<UserX className="size-4 mr-1" />
 										Reject Student
 									</Button>
 
-									<Button className="w-42 h-10" onClick={handleApprove} disabled={isProcessing}>
+									<Button
+										title="Approve Student"
+										onClick={handleApprove}
+										disabled={isProcessing}
+										aria-label="Approve Student"
+										className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+									>
 										<Check className="size-4 mr-1" />
 										Approve Student
 									</Button>

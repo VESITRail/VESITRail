@@ -136,7 +136,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 		<div className="space-y-4 py-2">
 			{Array.from({ length: 10 }).map((_, i) => (
 				<div key={i} className="flex gap-3 p-3">
-					<Skeleton className="size-4 rounded-full flex-shrink-0 mt-1" />
+					<Skeleton className="size-4 rounded-full shrink-0 mt-1" />
 					<div className="flex-1 space-y-2">
 						<div className="flex items-center justify-between">
 							<Skeleton className="h-4 w-3/4" />
@@ -193,7 +193,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 											)}
 											onClick={() => handleNotificationClick(notification)}
 										>
-											<div className="flex-shrink-0 mt-1">
+											<div className="shrink-0 mt-1">
 												<Bell className="size-4" />
 											</div>
 											<div className="flex-1 min-w-0">
@@ -201,7 +201,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 													<h4 className={cn("font-medium text-sm truncate", !notification.isRead && "font-semibold")}>
 														{notification.title}
 													</h4>
-													{!notification.isRead && <div className="size-2 bg-primary rounded-full flex-shrink-0" />}
+													{!notification.isRead && <div className="size-2 bg-primary rounded-full shrink-0" />}
 												</div>
 												<p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-2">
 													{notification.body}

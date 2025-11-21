@@ -1,7 +1,5 @@
 "use client";
 
-import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
-import { AvailableBooklet, getAvailableBooklets, updateBookletDamagedPages } from "@/actions/booklets";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AdminApplication } from "@/actions/concession";
 import { useState, useEffect, useCallback } from "react";
 import { ExternalLink, AlertTriangle } from "lucide-react";
+import { AvailableBooklet, getAvailableBooklets, updateBookletDamagedPages } from "@/actions/booklets";
+import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
 
 type ApproveApplicationDialogProps = {
 	isOpen: boolean;
@@ -162,6 +162,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 				toast.error("Page Already Marked", {
 					description: "This page is already marked as damaged."
 				});
+				setIsMarkingDamaged(false);
 				return;
 			}
 
@@ -170,20 +171,36 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 			const result = await updateBookletDamagedPages(selectedBookletId, updatedDamagedPages);
 
 			if (result.isSuccess) {
-				const updatedBooklet = result.data;
-				setAvailableBooklets((prev) =>
-					prev.map((b) => (b.id === selectedBookletId ? { ...b, damagedPages: updatedBooklet.damagedPages } : b))
-				);
-
-				calculateNextSerialNumber({
-					...selectedBooklet,
-					damagedPages: updatedBooklet.damagedPages
-				});
-
 				const humanPageNumber = currentPageOffset + 1;
-				toast.success("Page Marked as Damaged", {
-					description: `Page ${humanPageNumber} has been marked as damaged.`
-				});
+				const updatedBooklet = result.data;
+				const totalUsedPages = updatedBooklet._count.applications + updatedDamagedPages.length;
+				const isNowExhausted = totalUsedPages >= updatedBooklet.totalPages;
+
+				if (isNowExhausted) {
+					toast.success("Page Marked & Booklet Exhausted", {
+						description: `Page ${humanPageNumber} marked as damaged. Booklet is now exhausted. Loading next available booklet...`
+					});
+
+					setIsLoading(true);
+					setAvailableBooklets([]);
+					setSelectedBookletId("");
+					setNextSerialNumber("");
+
+					await loadAvailableBooklets();
+				} else {
+					setAvailableBooklets((prev) =>
+						prev.map((b) => (b.id === selectedBookletId ? { ...b, damagedPages: updatedBooklet.damagedPages } : b))
+					);
+
+					calculateNextSerialNumber({
+						...selectedBooklet,
+						damagedPages: updatedBooklet.damagedPages
+					});
+
+					toast.success("Page Marked as Damaged", {
+						description: `Page ${humanPageNumber} has been marked as damaged.`
+					});
+				}
 			} else {
 				toast.error("Failed to Mark as Damaged", {
 					description: "Could not mark the page as damaged. Please try again."
@@ -313,7 +330,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 										return (
 											<div className="flex items-center justify-between w-full min-w-0">
 												<span className="font-medium">Booklet #{booklet.bookletNumber}</span>
-												<div className="flex items-center gap-2 ml-3 flex-shrink-0">
+												<div className="flex items-center gap-2 ml-3 shrink-0">
 													<span className="text-xs text-muted-foreground whitespace-nowrap">
 														{booklet._count.applications}/{booklet.totalPages} used
 														{damagedCount > 0 && (

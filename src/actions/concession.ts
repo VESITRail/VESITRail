@@ -22,6 +22,7 @@ import {
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/generated/prisma";
+import { calculateBookletStatus } from "@/lib/utils";
 import { sendConcessionNotification } from "@/lib/notifications";
 
 export type Concession =
@@ -824,16 +825,16 @@ export const approveConcessionWithBooklet = async (
 				}
 			});
 
-			let newBookletStatus = booklet.status;
+			const newApplicationCount = currentApplicationCount + 1;
+			const damagedPagesCount = damagedPages.length;
+			const isManuallyDamaged = booklet.status === "Damaged";
 
-			if (booklet.status === "Available") {
-				newBookletStatus = "InUse";
-			} else {
-				const totalUsedPages = currentApplicationCount + 1 + damagedPages.length;
-				if (totalUsedPages >= booklet.totalPages) {
-					newBookletStatus = "Exhausted";
-				}
-			}
+			const newBookletStatus = calculateBookletStatus(
+				newApplicationCount,
+				damagedPagesCount,
+				booklet.totalPages,
+				isManuallyDamaged
+			);
 
 			await tx.concessionBooklet.update({
 				where: { id: bookletId },

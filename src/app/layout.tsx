@@ -18,6 +18,10 @@ export const metadata: Metadata = {
 	verification: {
 		google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 	},
+	authors: [
+		{ name: "Afnan Kazi", url: "https://github.com/Afnankazi" },
+		{ name: "Jay Kerkar", url: "https://github.com/jaykerkar0405" }
+	],
 	metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://vesitrail.ves.ac.in"),
 	description:
 		"Apply for railway student concessions online with ease! Enjoy a smooth application process and real-time tracking - Made for VESIT students."

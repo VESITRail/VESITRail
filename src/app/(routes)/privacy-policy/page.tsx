@@ -1,5 +1,3 @@
-import { Bell, Mail, Cookie, Shield, Calendar, Database, FileText } from "lucide-react";
-import { List, Heading1, Heading2, Heading3, Paragraph } from "@/components/ui/typography";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +6,8 @@ import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import ScrollToTop from "@/components/utils/scroll-to-top";
+import { Bell, Mail, Cookie, Shield, Calendar, Database, FileText } from "lucide-react";
+import { List, Heading1, Heading2, Heading3, Paragraph } from "@/components/ui/typography";
 
 export const metadata: Metadata = {
 	title: "Privacy Policy | VESITRail"
@@ -22,7 +22,7 @@ const PrivacyPolicy = () => {
 			<Header />
 
 			<section className="relative min-h-screen bg-background py-16">
-				<div className="absolute inset-0 bg-gradient-to-br from-muted/30 to-background pointer-events-none -z-10" />
+				<div className="absolute inset-0 bg-linear-to-br from-muted/30 to-background pointer-events-none -z-10" />
 
 				<div className="container mx-auto max-w-4xl px-6 md:px-16 xl:px-8">
 					<div className="text-center space-y-6 mb-12">
@@ -31,7 +31,7 @@ const PrivacyPolicy = () => {
 							Last updated: {lastUpdated}
 						</Badge>
 
-						<Heading1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
+						<Heading1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight bg-linear-to-br from-foreground to-muted-foreground dark:from-white dark:to-muted-foreground bg-clip-text text-transparent lg:pb-2">
 							Privacy Policy
 						</Heading1>
 
@@ -43,10 +43,10 @@ const PrivacyPolicy = () => {
 					<div className="space-y-12">
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<FileText className="size-5" />
 								</div>
-								<Heading2>Introduction</Heading2>
+								<Heading2 className="pb-0! leading-none!">Introduction</Heading2>
 							</div>
 							<Paragraph className="text-muted-foreground leading-relaxed">
 								VESITRail (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is a web application designed exclusively
@@ -59,10 +59,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Database className="size-5" />
 								</div>
-								<Heading2>Information We Collect</Heading2>
+								<Heading2 className="pb-0! leading-none!">Information We Collect</Heading2>
 							</div>
 
 							<div className="space-y-6">
@@ -105,10 +105,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<FileText className="size-5" />
 								</div>
-								<Heading2>How We Use Your Information</Heading2>
+								<Heading2 className="pb-0! leading-none!">How We Use Your Information</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground mb-4">
@@ -145,10 +145,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Shield className="size-5" />
 								</div>
-								<Heading2>Data Sharing and Disclosure</Heading2>
+								<Heading2 className="pb-0! leading-none!">Data Sharing and Disclosure</Heading2>
 							</div>
 
 							<div className="space-y-6">
@@ -195,10 +195,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Bell className="size-5" />
 								</div>
-								<Heading2>Push Notifications</Heading2>
+								<Heading2 className="pb-0! leading-none!">Push Notifications</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground mb-4">
@@ -222,10 +222,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Cookie className="size-5" />
 								</div>
-								<Heading2>Cookies and Tracking</Heading2>
+								<Heading2 className="pb-0! leading-none!">Cookies and Tracking</Heading2>
 							</div>
 
 							<div className="space-y-6">
@@ -251,10 +251,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Shield className="size-5" />
 								</div>
-								<Heading2>Data Security</Heading2>
+								<Heading2 className="pb-0! leading-none!">Data Security</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground mb-4">
@@ -275,10 +275,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<FileText className="size-5" />
 								</div>
-								<Heading2>Your Rights</Heading2>
+								<Heading2 className="pb-0! leading-none!">Your Rights</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground mb-4">
@@ -315,10 +315,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Database className="size-5" />
 								</div>
-								<Heading2>Data Retention</Heading2>
+								<Heading2 className="pb-0! leading-none!">Data Retention</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground mb-4">
@@ -336,10 +336,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<FileText className="size-5" />
 								</div>
-								<Heading2>Updates to This Privacy Policy</Heading2>
+								<Heading2 className="pb-0! leading-none!">Updates to This Privacy Policy</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground">
@@ -353,10 +353,10 @@ const PrivacyPolicy = () => {
 
 						<div>
 							<div className="flex items-center gap-3 mb-6">
-								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+								<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 									<Mail className="size-5" />
 								</div>
-								<Heading2>Contact Us</Heading2>
+								<Heading2 className="pb-0! leading-none!">Contact Us</Heading2>
 							</div>
 
 							<Paragraph className="text-muted-foreground mb-6">

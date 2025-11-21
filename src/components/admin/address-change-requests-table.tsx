@@ -233,7 +233,7 @@ const AddressChangeRequestDetailsDialog = ({
 		<>
 			<Dialog open={isOpen} onOpenChange={setIsOpen}>
 				<DialogTrigger asChild>
-					<Button size="sm" variant="ghost" className="h-8 px-2 text-muted-foreground hover:text-foreground">
+					<Button size="sm">
 						<Eye className="size-4" />
 					</Button>
 				</DialogTrigger>
@@ -521,14 +521,14 @@ const AddressChangeRequestDetailsDialog = ({
 										<span className="text-sm font-medium flex-1">Student Verification Document</span>
 										<Button
 											size="sm"
-											variant="outline"
+											variant="default"
 											onClick={() => {
 												if (requestDetails.verificationDocUrl) {
 													window.open(requestDetails.verificationDocUrl, "_blank");
 												}
 											}}
 										>
-											<ExternalLink className="size-4 mr-2" />
+											<ExternalLink className="size-4 mr-1" />
 											View
 										</Button>
 									</div>
@@ -545,13 +545,13 @@ const AddressChangeRequestDetailsDialog = ({
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 									<div className="space-y-3">
 										<div className="flex items-center justify-between">
-											<span className="text-sm text-muted-foreground">Submissions</span>
-											<span className="text-sm font-medium text-foreground">{requestDetails.submissionCount}</span>
+											<span className="text-sm font-medium text-muted-foreground">Submissions</span>
+											<span className="text-sm text-foreground">{requestDetails.submissionCount}</span>
 										</div>
 
 										<div className="flex items-center justify-between">
-											<span className="text-sm text-muted-foreground">Applied Date</span>
-											<span className="text-sm font-medium text-foreground">
+											<span className="text-sm font-medium text-muted-foreground">Applied Date</span>
+											<span className="text-sm text-foreground">
 												{format(new Date(requestDetails.createdAt), "MMM dd, yyyy")}
 											</span>
 										</div>
@@ -560,8 +560,8 @@ const AddressChangeRequestDetailsDialog = ({
 									<div className="space-y-3">
 										{requestDetails.reviewedAt && (
 											<div className="flex items-center justify-between">
-												<span className="text-sm text-muted-foreground">Reviewed Date</span>
-												<span className="text-sm font-medium text-foreground">
+												<span className="text-sm font-medium text-muted-foreground">Reviewed Date</span>
+												<span className="text-sm text-foreground">
 													{format(new Date(requestDetails.reviewedAt), "MMM dd, yyyy")}
 												</span>
 											</div>
@@ -569,8 +569,10 @@ const AddressChangeRequestDetailsDialog = ({
 
 										{requestDetails.reviewedBy && (
 											<div className="flex items-center justify-between">
-												<span className="text-sm text-muted-foreground">Reviewed By</span>
-												<span className="text-sm text-right">{toTitleCase(requestDetails.reviewedBy.user.name)}</span>
+												<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
+												<span className="text-sm text-foreground">
+													{toTitleCase(requestDetails.reviewedBy.user.name)}
+												</span>
 											</div>
 										)}
 									</div>
@@ -593,13 +595,21 @@ const AddressChangeRequestDetailsDialog = ({
 										<Button
 											variant="destructive"
 											className="w-38 h-10"
+											title="Reject Request"
+											aria-label="Reject Request"
 											disabled={isApproving || isRejecting}
 											onClick={() => setShowRejectDialog(true)}
 										>
 											<XCircle className="size-4 mr-1" />
 											Reject Request
 										</Button>
-										<Button className="w-42 h-10" onClick={handleApprove} disabled={isApproving || isRejecting}>
+										<Button
+											title="Approve Request"
+											onClick={handleApprove}
+											aria-label="Approve Request"
+											disabled={isApproving || isRejecting}
+											className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+										>
 											<Check className="size-4 mr-1" />
 											Approve Request
 										</Button>
