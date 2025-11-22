@@ -20,11 +20,6 @@ import {
 	getConcessionClasses,
 	getStudentPreferences
 } from "@/actions/utils";
-import { Concession, getLastApplication, submitConcessionApplication } from "@/actions/concession";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogTitle, DialogHeader, DialogTrigger, DialogContent } from "@/components/ui/dialog";
-import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
-import { ConcessionClass, ConcessionPeriod, ConcessionApplicationStatusType } from "@/generated/zod";
 import {
 	AlertDialog,
 	AlertDialogTitle,
@@ -52,6 +47,11 @@ import { calculateConcessionValidity } from "@/lib/utils";
 import { ConcessionApplicationType } from "@/generated/prisma";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Concession, getLastApplication, submitConcessionApplication } from "@/actions/concession";
+import { ConcessionClass, ConcessionPeriod, ConcessionApplicationStatusType } from "@/generated/zod";
+import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
+import { Dialog, DialogTitle, DialogHeader, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 
 const ApplicationTypeBadge = ({ type }: { type: ConcessionApplicationType }) => {
 	return <Badge variant="secondary">{type}</Badge>;
@@ -494,7 +494,7 @@ const ConcessionApplicationForm = () => {
 				<div className="pb-6">
 					<div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
 						<div className="flex items-start gap-4">
-							<div className="flex-shrink-0">
+							<div className="shrink-0">
 								<div className="size-9 hidden bg-destructive rounded-full md:flex items-center justify-center">
 									<AlertTriangle className="size-4.5 text-white" />
 								</div>
@@ -571,7 +571,7 @@ const ConcessionApplicationForm = () => {
 											value={selectedApplicationType}
 											onValueChange={(value: ConcessionApplicationType) => setSelectedApplicationType(value)}
 										>
-											<SelectTrigger className="w-full !h-10">
+											<SelectTrigger className="w-full h-10!">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
@@ -673,7 +673,7 @@ const ConcessionApplicationForm = () => {
 									onValueChange={setSelectedConcessionClass}
 									value={selectedClassExists ? selectedConcessionClass : undefined}
 								>
-									<SelectTrigger className="w-full !h-10">
+									<SelectTrigger className="w-full h-10!">
 										<SelectValue placeholder="Select concession class" />
 									</SelectTrigger>
 
@@ -696,7 +696,7 @@ const ConcessionApplicationForm = () => {
 									onValueChange={setSelectedConcessionPeriod}
 									value={selectedPeriodExists ? selectedConcessionPeriod : undefined}
 								>
-									<SelectTrigger className="w-full !h-10">
+									<SelectTrigger className="w-full h-10!">
 										<SelectValue placeholder="Select concession period" />
 									</SelectTrigger>
 
@@ -759,7 +759,7 @@ const ConcessionApplicationForm = () => {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<div className="flex items-center gap-3">
-							<div className="size-10 bg-destructive rounded-full flex items-center justify-center flex-shrink-0">
+							<div className="size-10 bg-destructive rounded-full flex items-center justify-center shrink-0">
 								<AlertTriangle className="size-5 text-white" />
 							</div>
 							<div>

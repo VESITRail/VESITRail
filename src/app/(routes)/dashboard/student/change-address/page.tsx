@@ -18,16 +18,11 @@ import {
 	ChevronsUpDown,
 	type LucideIcon
 } from "lucide-react";
-import { Form, FormItem, FormField, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Station, AddressChange, AddressChangeStatusType } from "@/generated/zod";
 import type {
 	CloudinaryUploadWidgetInfo,
 	CloudinaryUploadWidgetError,
 	CloudinaryUploadWidgetResults
 } from "next-cloudinary";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogTitle, DialogHeader, DialogTrigger, DialogContent } from "@/components/ui/dialog";
-import { Command, CommandList, CommandItem, CommandInput, CommandGroup, CommandEmpty } from "@/components/ui/command";
 import {
 	type AddressChangeData,
 	StudentAddressAndStation,
@@ -68,6 +63,11 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DocumentRequirements } from "@/components/ui/document-requirements";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Station, AddressChange, AddressChangeStatusType } from "@/generated/zod";
+import { Form, FormItem, FormField, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogTitle, DialogHeader, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { Command, CommandList, CommandItem, CommandInput, CommandGroup, CommandEmpty } from "@/components/ui/command";
 
 const AddressChangeSchema = z.object({
 	verificationDocUrl: z.string().url(),
@@ -1213,7 +1213,7 @@ const AddressChangePage = () => {
 																		</div>
 
 																		<div className="min-w-0 flex-1 space-y-1">
-																			<p className="text-sm font-medium text-foreground wrap-break-words">
+																			<p className="text-sm font-medium text-foreground wrap-wrap-break-word">
 																				Address Change Verification Document
 																			</p>
 																			<p className="text-xs text-muted-foreground break-all">
@@ -1240,7 +1240,7 @@ const AddressChangePage = () => {
 																<div className="w-full border-2 border-dashed border-border rounded-lg bg-accent/10 p-4">
 																	<div className="flex flex-wrap items-center gap-4">
 																		<div className="min-w-0 flex-1">
-																			<p className="text-sm font-medium text-foreground wrap-break-words">
+																			<p className="text-sm font-medium text-foreground wrap-wrap-break-word">
 																				Want to upload a different document?
 																			</p>
 																			<p className="text-xs text-muted-foreground mt-1">

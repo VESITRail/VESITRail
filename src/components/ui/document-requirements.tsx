@@ -41,7 +41,7 @@ export function DocumentRequirements({ className }: DocumentRequirementsProps) {
 								key={index}
 								className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors"
 							>
-								<div className="flex-shrink-0">
+								<div className="shrink-0">
 									<div className="size-8 bg-primary/20 rounded-md flex items-center justify-center">
 										<IconComponent className="size-4" />
 									</div>

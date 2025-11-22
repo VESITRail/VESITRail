@@ -1,6 +1,5 @@
 "use client";
 
-import { Form, FormItem, FormField, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import {
 	CldUploadButton,
 	CloudinaryUploadWidgetInfo,
@@ -22,6 +21,7 @@ import { FileUp, Loader2, Eye, Trash2 } from "lucide-react";
 import { DocumentSchema } from "@/lib/validations/onboarding";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
 import { DocumentRequirements } from "@/components/ui/document-requirements";
+import { Form, FormItem, FormField, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
 type DocumentProps = {
 	errors?: Record<string, string>;
@@ -411,7 +411,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 							{[1, 2, 3].map((item) => (
 								<div key={item} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20">
-									<div className="flex-shrink-0">
+									<div className="shrink-0">
 										<Skeleton className="size-8 rounded-md" />
 									</div>
 									<div className="min-w-0 flex-1 space-y-1">
@@ -493,12 +493,12 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 										<div className="w-full space-y-4">
 											<div className="border-2 border-solid border-border rounded-lg bg-muted/50 p-4">
 												<div className="flex flex-wrap items-start gap-4">
-													<div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+													<div className="h-10 w-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
 														<FileUp className="size-5" />
 													</div>
 
 													<div className="min-w-0 flex-1 space-y-1">
-														<p className="text-sm font-medium text-foreground break-words">
+														<p className="text-sm font-medium text-foreground wrap-break-word">
 															Document uploaded successfully
 														</p>
 														<p
@@ -509,7 +509,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 														</p>
 													</div>
 
-													<div className="flex gap-2 flex-shrink-0">
+													<div className="flex gap-2 shrink-0">
 														<Button
 															size="sm"
 															type="button"
@@ -528,7 +528,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 											<div className="w-full border-2 border-dashed border-border rounded-lg bg-accent/10 p-4">
 												<div className="flex flex-wrap items-center gap-4">
 													<div className="min-w-0 flex-1">
-														<p className="text-sm font-medium text-foreground break-words">
+														<p className="text-sm font-medium text-foreground wrap-break-word">
 															Want to upload a different document?
 														</p>
 														<p className="text-xs text-muted-foreground mt-1">
@@ -541,7 +541,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 														type="button"
 														variant="outline"
 														onClick={handleRemoveFile}
-														className="flex-shrink-0 gap-2"
+														className="shrink-0 gap-2"
 														disabled={isDeleting || isUploading}
 													>
 														{isDeleting ? (
