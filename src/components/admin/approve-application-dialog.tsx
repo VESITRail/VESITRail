@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -216,6 +217,38 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		}
 	};
 
+	const groupConsecutivePages = (pages: number[]): string[] => {
+		if (pages.length === 0) return [];
+
+		const sorted = [...pages].sort((a, b) => a - b);
+
+		let end = sorted[0];
+		let start = sorted[0];
+		const groups: string[] = [];
+
+		const formatPageNumber = (num: number) => {
+			return (num + 1).toString().padStart(2, "0");
+		};
+
+		for (let i = 1; i <= sorted.length; i++) {
+			if (i < sorted.length && sorted[i] === end + 1) {
+				end = sorted[i];
+			} else {
+				if (start === end) {
+					groups.push(formatPageNumber(start));
+				} else {
+					groups.push(`${formatPageNumber(start)}-${formatPageNumber(end)}`);
+				}
+				if (i < sorted.length) {
+					start = sorted[i];
+					end = sorted[i];
+				}
+			}
+		}
+
+		return groups;
+	};
+
 	useEffect(() => {
 		if (isOpen && application) {
 			loadAvailableBooklets();
@@ -245,11 +278,15 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 										<div className="text-xs text-muted-foreground mb-1">Type</div>
 										<div className="text-sm font-medium">{application.applicationType}</div>
 									</div>
-								</div>
-								<div>
-									<div className="text-xs text-muted-foreground mb-1">Student</div>
-									<div className="text-sm font-medium">
-										{application.student.firstName} {application.student.lastName}
+									<div>
+										<div className="text-xs text-muted-foreground mb-1">Student</div>
+										<div className="text-sm font-medium">
+											{application.student.firstName} {application.student.lastName}
+										</div>
+									</div>
+									<div>
+										<div className="text-xs text-muted-foreground mb-1">Applied Date</div>
+										<div className="text-sm font-medium">{format(new Date(application.createdAt), "MMMM d, yyyy")}</div>
 									</div>
 								</div>
 							</div>
@@ -285,9 +322,16 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 												<Skeleton className="h-3 w-16" />
 												<Skeleton className="h-3 w-24" />
 											</div>
-											<div className="flex justify-between">
-												<Skeleton className="h-3 w-20" />
-												<Skeleton className="h-3 w-16" />
+											<div className="space-y-2">
+												<Skeleton className="h-3 w-24" />
+												<div className="bg-background/50 rounded-md p-2 border">
+													<div className="flex gap-1.5">
+														<Skeleton className="h-6 w-16" />
+														<Skeleton className="h-6 w-20" />
+														<Skeleton className="h-6 w-12" />
+														<Skeleton className="h-6 w-16" />
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -382,18 +426,30 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 													.padStart(selectedBooklet.serialStartNumber.match(/\d+$/)?.[0]?.length || 3, "0")}
 										</span>
 									</div>
+
 									<div className="flex justify-between">
 										<span className="text-muted-foreground">Usage:</span>
 										<span>
 											{selectedBooklet._count.applications}/{selectedBooklet.totalPages} pages used
 										</span>
 									</div>
+
 									{Array.isArray(selectedBooklet.damagedPages) && selectedBooklet.damagedPages.length > 0 && (
-										<div className="flex justify-between">
-											<span className="text-muted-foreground">Damaged:</span>
-											<span className="text-destructive font-medium">
-												{selectedBooklet.damagedPages.map((page) => page + 1).join(", ")}
-											</span>
+										<div className="space-y-2">
+											<div className="text-muted-foreground">Damaged Pages:</div>
+											<div className="bg-background/50 rounded-md p-2 border border-destructive/20">
+												<div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
+													{groupConsecutivePages(selectedBooklet.damagedPages).map((group, index) => (
+														<Badge
+															key={index}
+															variant="outline"
+															className="text-xs font-mono px-2 py-0.5 bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20 transition-colors"
+														>
+															{group}
+														</Badge>
+													))}
+												</div>
+											</div>
 										</div>
 									)}
 								</div>
