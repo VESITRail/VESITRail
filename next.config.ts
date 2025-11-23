@@ -1,32 +1,35 @@
+import path from "path";
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
-	disable: false,
 	swSrc: "src/sw.ts",
 	reloadOnOnline: true,
 	swDest: "public/sw.js",
-	cacheOnNavigation: true
+	cacheOnNavigation: true,
+	disable: process.env.NODE_ENV !== "production"
 });
 
 const nextConfig: NextConfig = {
-	turbopack: {},
+	turbopack: {
+		root: path.resolve(__dirname)
+	},
 	skipTrailingSlashRedirect: true,
 	async rewrites() {
 		return [
 			{
-				source: "/ingest/static/:path*",
-				destination: "https://eu-assets.i.posthog.com/static/:path*"
-			},
-			{
 				source: "/ingest/:path*",
 				destination: "https://eu.i.posthog.com/:path*"
+			},
+			{
+				source: "/ingest/static/:path*",
+				destination: "https://eu-assets.i.posthog.com/static/:path*"
 			}
 		];
 	},
-	webpack: async (config, { isServer }) => {
+	webpack: (config, { isServer }) => {
 		if (isServer) {
-			const { PrismaPlugin } = await import("@prisma/nextjs-monorepo-workaround-plugin");
+			const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 			config.plugins = [...config.plugins, new PrismaPlugin()];
 		}
 

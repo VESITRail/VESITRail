@@ -1,7 +1,7 @@
 "use server";
 
-import { Result, success, failure, AuthError, authError, databaseError, DatabaseError } from "@/lib/result";
 import { v2 as cloudinary } from "cloudinary";
+import { Result, success, failure, AuthError, authError, databaseError, DatabaseError } from "@/lib/result";
 
 cloudinary.config({
 	api_secret: process.env.CLOUDINARY_API_SECRET,
