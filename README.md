@@ -51,18 +51,18 @@ _A modern web application for VESIT students to apply and manage railway concess
   <tr>
     <td><strong>Frontend</strong></td>
     <td>
-      <img src="https://img.shields.io/badge/Next.js-15.3.2-000000?logo=nextdotjs&logoColor=white" alt="Next.js">
-      <img src="https://img.shields.io/badge/React-19.0.0-61DAFB?logo=react&logoColor=black" alt="React">
-      <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
-      <img src="https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
+      <img src="https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white" alt="Next.js">
+      <img src="https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black" alt="React">
+      <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+      <img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
     </td>
   </tr>
   <tr>
     <td><strong>Backend</strong></td>
     <td>
-      <img src="https://img.shields.io/badge/Prisma-6.13.0-2D3748?logo=prisma&logoColor=white" alt="Prisma">
-      <img src="https://img.shields.io/badge/Better%20Auth-1.2.8-FF6B6B?logoColor=white" alt="Better Auth">
-      <img src="https://img.shields.io/badge/Zod-3.25.50-FF4154?logo=zod&logoColor=white" alt="Zod">
+      <img src="https://img.shields.io/badge/Prisma-2D3748?logo=prisma&logoColor=white" alt="Prisma">
+      <img src="https://img.shields.io/badge/Better%20Auth-FF6B6B?logoColor=white" alt="Better Auth">
+      <img src="https://img.shields.io/badge/Zod-FF4154?logo=zod&logoColor=white" alt="Zod">
     </td>
   </tr>
   <tr>
@@ -75,27 +75,27 @@ _A modern web application for VESIT students to apply and manage railway concess
     <td><strong>UI Components</strong></td>
     <td>
       <img src="https://img.shields.io/badge/Radix%20UI-161618?logo=radixui&logoColor=white" alt="Radix UI">
-      <img src="https://img.shields.io/badge/Lucide-0.511.0-F56565?logo=lucide&logoColor=white" alt="Lucide Icons">
-      <img src="https://img.shields.io/badge/React%20Hook%20Form-7.57.0-EC5990?logo=reacthookform&logoColor=white" alt="React Hook Form">
+      <img src="https://img.shields.io/badge/Lucide-F56565?logo=lucide&logoColor=white" alt="Lucide Icons">
+      <img src="https://img.shields.io/badge/React%20Hook%20Form-EC5990?logo=reacthookform&logoColor=white" alt="React Hook Form">
     </td>
   </tr>
   <tr>
     <td><strong>File Upload & PDF</strong></td>
     <td>
-      <img src="https://img.shields.io/badge/Cloudinary-2.6.1-3448C5?logo=cloudinary&logoColor=white" alt="Cloudinary">
-      <img src="https://img.shields.io/badge/jsPDF-3.0.1-FF6B6B?logoColor=white" alt="jsPDF">
+      <img src="https://img.shields.io/badge/Cloudinary-3448C5?logo=cloudinary&logoColor=white" alt="Cloudinary">
+      <img src="https://img.shields.io/badge/jsPDF-FF6B6B?logoColor=white" alt="jsPDF">
     </td>
   </tr>
   <tr>
     <td><strong>Notifications</strong></td>
     <td>
-      <img src="https://img.shields.io/badge/Firebase-12.0.0-FFCA28?logo=firebase&logoColor=black" alt="Firebase">
+      <img src="https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black" alt="Firebase">
     </td>
   </tr>
   <tr>
     <td><strong>Testing</strong></td>
     <td>
-      <img src="https://img.shields.io/badge/Playwright-1.56.1-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
+      <img src="https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
     </td>
   </tr>
 </table>
