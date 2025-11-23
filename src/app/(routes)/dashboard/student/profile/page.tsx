@@ -1,8 +1,6 @@
 "use client";
 
-import { User, Edit, Info, MapPin, XCircle, FileText, ExternalLink, AlertTriangle, GraduationCap } from "lucide-react";
-import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import Link from "next/link";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import Status from "@/components/ui/status";
@@ -15,7 +13,9 @@ import { useCallback, useEffect, useState } from "react";
 import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { getStudentProfile, StudentProfile } from "@/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Link from "next/link";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
+import { User, Edit, Info, MapPin, XCircle, FileText, ExternalLink, AlertTriangle, GraduationCap } from "lucide-react";
 
 const StudentProfilePage = () => {
 	const session = authClient.useSession();
