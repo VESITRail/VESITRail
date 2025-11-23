@@ -38,6 +38,7 @@ export class ServiceWorkerManager {
 			this.isRegistered = true;
 
 			this.setupEventListeners(registration);
+			await this.sendVersionToServiceWorker();
 
 			return {
 				registration,
@@ -67,16 +68,12 @@ export class ServiceWorkerManager {
 
 		navigator.serviceWorker.addEventListener("controllerchange", () => {
 			console.log("Service worker controller changed");
+			this.sendVersionToServiceWorker();
 		});
 
 		navigator.serviceWorker.addEventListener("message", (event) => {
 			this.handleMessage(event);
 		});
-	}
-
-	private handleUpdate(): void {
-		console.log("Service worker update detected");
-		versionManager.clearCache();
 	}
 
 	private handleMessage(event: MessageEvent): void {
@@ -86,6 +83,49 @@ export class ServiceWorkerManager {
 
 		if (event.data?.type === "CACHE_CLEARED_RESPONSE") {
 			console.log("Cache cleared:", event.data.timestamp);
+		}
+
+		if (event.data?.type === "REQUEST_VERSION") {
+			const versionInfo = versionManager.getStoredVersion();
+			const version = versionInfo ? `v${versionInfo.version}` : "v1.0.0";
+			event.ports?.[0]?.postMessage({ version });
+		}
+	}
+
+	private async sendVersionToServiceWorker(): Promise<void> {
+		try {
+			const versionInfo = versionManager.getStoredVersion();
+			if (!versionInfo || !navigator.serviceWorker.controller) {
+				return;
+			}
+
+			const version = `v${versionInfo.version}`;
+
+			return new Promise<void>((resolve) => {
+				const messageChannel = new MessageChannel();
+				messageChannel.port1.onmessage = (event) => {
+					if (event.data?.type === "VERSION_SET_RESPONSE") {
+						console.log("Version set in service worker:", event.data.version);
+					}
+					resolve();
+				};
+
+				if (navigator.serviceWorker.controller) {
+					navigator.serviceWorker.controller.postMessage(
+						{
+							version,
+							type: "SET_VERSION"
+						},
+						[messageChannel.port2]
+					);
+				} else {
+					resolve();
+				}
+
+				setTimeout(() => resolve(), 1000);
+			});
+		} catch (error) {
+			console.error("Failed to send version to service worker:", error);
 		}
 	}
 
