@@ -143,6 +143,25 @@ class VersionManager {
 		}
 	}
 
+	getStoredVersion(): VersionInfo | null {
+		if (this.cachedVersion) {
+			return this.cachedVersion;
+		}
+
+		try {
+			const stored = localStorage.getItem(this.storageKey);
+			if (stored) {
+				const parsed = JSON.parse(stored) as VersionInfo;
+				this.cachedVersion = parsed;
+				return parsed;
+			}
+		} catch (error) {
+			console.error("Failed to get stored version:", error);
+		}
+
+		return null;
+	}
+
 	async getVersionString(): Promise<string> {
 		const version = await this.getCurrentVersion();
 		return version ? `v${version.version}` : `v${this.fallbackVersion}`;
