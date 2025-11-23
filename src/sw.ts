@@ -1,5 +1,5 @@
-import { Serwist, CacheFirst, NetworkOnly, NetworkFirst, StaleWhileRevalidate } from "serwist";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
+import { Serwist, CacheFirst, NetworkOnly, NetworkFirst, StaleWhileRevalidate } from "serwist";
 
 declare global {
 	interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -29,8 +29,8 @@ type ServiceWorkerClient = {
 
 type ServiceWorkerClients = {
 	claim: () => Promise<void>;
-	matchAll: (options?: { type?: string; includeUncontrolled?: boolean }) => Promise<ServiceWorkerClient[]>;
 	openWindow: (url: string) => Promise<ServiceWorkerClient | null>;
+	matchAll: (options?: { type?: string; includeUncontrolled?: boolean }) => Promise<ServiceWorkerClient[]>;
 };
 
 type ServiceWorkerGlobalScopeWithUtils = WorkerGlobalScope & {
@@ -75,6 +75,12 @@ const serwist = new Serwist({
 					{
 						cacheKeyWillBeUsed: async ({ request }) => {
 							return `${request.url}?v=${APP_VERSION}`;
+						},
+						cacheWillUpdate: async ({ response }) => {
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -88,6 +94,12 @@ const serwist = new Serwist({
 					{
 						cacheKeyWillBeUsed: async ({ request }) => {
 							return `${request.url}?v=${APP_VERSION}`;
+						},
+						cacheWillUpdate: async ({ response }) => {
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -101,6 +113,12 @@ const serwist = new Serwist({
 					{
 						cacheKeyWillBeUsed: async ({ request }) => {
 							return `${request.url}?v=${APP_VERSION}`;
+						},
+						cacheWillUpdate: async ({ response }) => {
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -116,7 +134,10 @@ const serwist = new Serwist({
 							return `${request.url}?v=${APP_VERSION}`;
 						},
 						cacheWillUpdate: async ({ response }) => {
-							return response.status === 200;
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -132,7 +153,10 @@ const serwist = new Serwist({
 							return `${request.url}?v=${APP_VERSION}`;
 						},
 						cacheWillUpdate: async ({ response }) => {
-							return response.status === 200;
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -146,6 +170,12 @@ const serwist = new Serwist({
 					{
 						cacheKeyWillBeUsed: async ({ request }) => {
 							return `${request.url}?v=${APP_VERSION}`;
+						},
+						cacheWillUpdate: async ({ response }) => {
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -159,6 +189,12 @@ const serwist = new Serwist({
 					{
 						cacheKeyWillBeUsed: async ({ request }) => {
 							return `${request.url}?v=${APP_VERSION}`;
+						},
+						cacheWillUpdate: async ({ response }) => {
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -172,6 +208,12 @@ const serwist = new Serwist({
 					{
 						cacheKeyWillBeUsed: async ({ request }) => {
 							return `${request.url}?v=${APP_VERSION}`;
+						},
+						cacheWillUpdate: async ({ response }) => {
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -185,6 +227,12 @@ const serwist = new Serwist({
 					{
 						cacheKeyWillBeUsed: async ({ request }) => {
 							return `${request.url}?v=${APP_VERSION}`;
+						},
+						cacheWillUpdate: async ({ response }) => {
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -200,7 +248,10 @@ const serwist = new Serwist({
 							return `${request.url}?v=${APP_VERSION}`;
 						},
 						cacheWillUpdate: async ({ response }) => {
-							return response.status === 200;
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -216,7 +267,10 @@ const serwist = new Serwist({
 							return `${request.url}?v=${APP_VERSION}`;
 						},
 						cacheWillUpdate: async ({ response }) => {
-							return response.status === 200;
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -242,7 +296,10 @@ const serwist = new Serwist({
 							return `${request.url}?v=${APP_VERSION}`;
 						},
 						cacheWillUpdate: async ({ response }) => {
-							return response.status === 200;
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -264,7 +321,10 @@ const serwist = new Serwist({
 							return `${request.url}?v=${APP_VERSION}`;
 						},
 						cacheWillUpdate: async ({ response }) => {
-							return response.status === 200;
+							if (!response || response.status !== 200 || response.type === "error") {
+								return null;
+							}
+							return response;
 						}
 					}
 				]
@@ -281,19 +341,19 @@ const cleanupOldCaches = async (): Promise<void> => {
 		const oldCaches = cacheNames.filter(
 			(name) =>
 				!name.includes(APP_VERSION) &&
-				(name.includes("google-fonts") ||
-					name.includes("gstatic-fonts") ||
+				(name.includes("pages") ||
+					name.includes("js-static") ||
+					name.includes("js-assets") ||
+					name.includes("api-cache") ||
+					name.includes("css-static") ||
+					name.includes("css-assets") ||
 					name.includes("font-assets") ||
-					name.includes("image-assets") ||
 					name.includes("next-images") ||
+					name.includes("google-fonts") ||
+					name.includes("image-assets") ||
 					name.includes("audio-assets") ||
 					name.includes("video-assets") ||
-					name.includes("js-static") ||
-					name.includes("css-static") ||
-					name.includes("js-assets") ||
-					name.includes("css-assets") ||
-					name.includes("api-cache") ||
-					name.includes("pages"))
+					name.includes("gstatic-fonts"))
 		);
 
 		await Promise.all(oldCaches.map((cacheName) => caches.delete(cacheName)));
@@ -334,11 +394,26 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
 	if (event.data?.type === "SKIP_WAITING") {
-		self.skipWaiting();
-		event.ports?.[0]?.postMessage({
-			type: "SKIP_WAITING_RESPONSE",
-			version: APP_VERSION
-		});
+		event.waitUntil(
+			(async () => {
+				try {
+					await self.skipWaiting();
+					event.ports?.[0]?.postMessage({
+						success: true,
+						version: APP_VERSION,
+						type: "SKIP_WAITING_RESPONSE"
+					});
+				} catch (error) {
+					console.error("Skip waiting failed:", error);
+					event.ports?.[0]?.postMessage({
+						success: false,
+						version: APP_VERSION,
+						type: "SKIP_WAITING_RESPONSE",
+						error: error instanceof Error ? error.message : String(error)
+					});
+				}
+			})()
+		);
 	}
 
 	if (event.data?.type === "CACHE_CLEARED") {
