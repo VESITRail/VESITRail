@@ -1,6 +1,5 @@
 "use client";
 
-import { Trash2, Database, HardDrive, AlertCircle, CheckCircle } from "lucide-react";
 import {
 	AlertDialog,
 	AlertDialogTitle,
@@ -19,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Trash2, Database, HardDrive, AlertCircle, CheckCircle } from "lucide-react";
 
 type CacheInfo = {
 	name: string;
@@ -246,7 +246,7 @@ const CacheManagement = () => {
 										>
 											<div className="flex-1 min-w-0">
 												<div className="flex items-center gap-2 mb-1">
-													<HardDrive className="size-4 text-muted-foreground flex-shrink-0" />
+													<HardDrive className="size-4 text-muted-foreground shrink-0" />
 													<span className="font-medium text-sm truncate pr-2">{cache.name}</span>
 												</div>
 

@@ -1063,7 +1063,7 @@ const ApplicationsTable = ({
 				<DialogContent className="sm:max-w-lg">
 					<DialogHeader className="pb-4">
 						<div className="flex items-center gap-3">
-							<div className="flex items-center justify-center size-10 rounded-full bg-destructive">
+							<div className="flex items-center justify-center size-10 rounded-full bg-destructive shrink-0">
 								<AlertTriangle className="size-5 text-white" />
 							</div>
 
@@ -1120,8 +1120,8 @@ const ApplicationsTable = ({
 							<label className="text-sm font-medium text-foreground">Custom Rejection Reason</label>
 							<Textarea
 								autoCapitalize="words"
+								disabled={isRejecting}
 								value={rejectionReason}
-								disabled={isRejecting || !!selectedPredefinedReason}
 								className="min-h-[100px] resize-none mt-2 capitalize"
 								placeholder="Enter a detailed reason for rejection..."
 								onChange={(e) => {
@@ -1186,7 +1186,7 @@ const ApplicationsTable = ({
 				<DialogContent className="sm:max-w-lg">
 					<DialogHeader className="pb-4">
 						<div className="flex items-center gap-3">
-							<div className="flex items-center justify-center size-10 rounded-full bg-destructive">
+							<div className="flex items-center justify-center size-10 rounded-full bg-destructive shrink-0">
 								<XCircle className="size-5 text-white" />
 							</div>
 

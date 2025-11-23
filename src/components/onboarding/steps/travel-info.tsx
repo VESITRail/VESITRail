@@ -1,11 +1,5 @@
 "use client";
 
-import { TravelInfoSchema, OnboardingSchema } from "@/lib/validations/onboarding";
-import { getStations, getConcessionClasses, getConcessionPeriods } from "@/actions/utils";
-import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
-import { Form, FormItem, FormLabel, FormField, FormControl, FormMessage } from "@/components/ui/form";
-import { Command, CommandItem, CommandList, CommandGroup, CommandInput, CommandEmpty } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { z } from "zod";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -16,6 +10,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 import { ConcessionClass, ConcessionPeriod, Station } from "@/generated/zod";
+import { TravelInfoSchema, OnboardingSchema } from "@/lib/validations/onboarding";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { getStations, getConcessionClasses, getConcessionPeriods } from "@/actions/utils";
+import { Form, FormItem, FormLabel, FormField, FormControl, FormMessage } from "@/components/ui/form";
+import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
+import { Command, CommandItem, CommandList, CommandGroup, CommandInput, CommandEmpty } from "@/components/ui/command";
 
 type TravelInfoProps = {
 	errors?: Record<string, string>;
@@ -223,7 +223,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 															>
 																<CheckIcon
 																	className={cn(
-																		"mr-2 h-4 w-4 flex-shrink-0",
+																		"mr-2 h-4 w-4 shrink-0",
 																		field.value === station.id ? "opacity-100" : "opacity-0"
 																	)}
 																/>

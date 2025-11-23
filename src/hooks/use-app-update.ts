@@ -178,11 +178,27 @@ export const useAppUpdate = () => {
 		if (!state.info) return;
 
 		try {
-			await serviceWorkerManager.update();
+			try {
+				await serviceWorkerManager.update();
+			} catch (swError) {
+				console.warn("Service worker update failed, falling back to direct reload:", swError);
+			}
+
 			await versionManager.storeNewVersion(state.info.version, state.info.tagName);
 			clearIgnoredVersion();
 
 			setState((prev) => ({ ...prev, available: false, info: null }));
+
+			versionManager.clearCache();
+
+			if ("caches" in window) {
+				try {
+					const cacheNames = await caches.keys();
+					await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+				} catch (cacheError) {
+					console.warn("Failed to clear caches:", cacheError);
+				}
+			}
 
 			window.location.reload();
 		} catch (error) {

@@ -71,7 +71,7 @@ export function Combobox({
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
-					className={cn("w-full justify-between h-auto min-h-[2.5rem] px-3 py-2", className)}
+					className={cn("w-full justify-between h-auto min-h-10 px-3 py-2", className)}
 					disabled={disabled}
 				>
 					<div className="flex-1 text-left">
@@ -113,7 +113,7 @@ export function Combobox({
 									className="w-full px-2 py-2 cursor-pointer hover:bg-accent hover:text-accent-foreground"
 								>
 									<Check
-										className={cn("mr-2 h-4 w-4 flex-shrink-0", value === option.value ? "opacity-100" : "opacity-0")}
+										className={cn("mr-2 h-4 w-4 shrink-0", value === option.value ? "opacity-100" : "opacity-0")}
 									/>
 									<div className="flex-1 min-w-0 w-full">{renderOption ? renderOption(option) : option.label}</div>
 								</CommandItem>

@@ -38,6 +38,7 @@ export class ServiceWorkerManager {
 			this.isRegistered = true;
 
 			this.setupEventListeners(registration);
+			await this.sendVersionToServiceWorker();
 
 			return {
 				registration,
@@ -67,16 +68,12 @@ export class ServiceWorkerManager {
 
 		navigator.serviceWorker.addEventListener("controllerchange", () => {
 			console.log("Service worker controller changed");
+			this.sendVersionToServiceWorker();
 		});
 
 		navigator.serviceWorker.addEventListener("message", (event) => {
 			this.handleMessage(event);
 		});
-	}
-
-	private handleUpdate(): void {
-		console.log("Service worker update detected");
-		versionManager.clearCache();
 	}
 
 	private handleMessage(event: MessageEvent): void {
@@ -86,6 +83,49 @@ export class ServiceWorkerManager {
 
 		if (event.data?.type === "CACHE_CLEARED_RESPONSE") {
 			console.log("Cache cleared:", event.data.timestamp);
+		}
+
+		if (event.data?.type === "REQUEST_VERSION") {
+			const versionInfo = versionManager.getStoredVersion();
+			const version = versionInfo ? `v${versionInfo.version}` : "v1.0.0";
+			event.ports?.[0]?.postMessage({ version });
+		}
+	}
+
+	private async sendVersionToServiceWorker(): Promise<void> {
+		try {
+			const versionInfo = versionManager.getStoredVersion();
+			if (!versionInfo || !navigator.serviceWorker.controller) {
+				return;
+			}
+
+			const version = `v${versionInfo.version}`;
+
+			return new Promise<void>((resolve) => {
+				const messageChannel = new MessageChannel();
+				messageChannel.port1.onmessage = (event) => {
+					if (event.data?.type === "VERSION_SET_RESPONSE") {
+						console.log("Version set in service worker:", event.data.version);
+					}
+					resolve();
+				};
+
+				if (navigator.serviceWorker.controller) {
+					navigator.serviceWorker.controller.postMessage(
+						{
+							version,
+							type: "SET_VERSION"
+						},
+						[messageChannel.port2]
+					);
+				} else {
+					resolve();
+				}
+
+				setTimeout(() => resolve(), 1000);
+			});
+		} catch (error) {
+			console.error("Failed to send version to service worker:", error);
 		}
 	}
 
@@ -99,49 +139,16 @@ export class ServiceWorkerManager {
 			await this.registration.update();
 
 			if (this.registration.waiting) {
-				this.registration.waiting.postMessage({ type: "SKIP_WAITING" });
-
-				return new Promise<void>((resolve) => {
-					const handleControllerChange = () => {
-						navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
-						window.location.reload();
-						resolve();
-					};
-
-					navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
-				});
+				await this.activateWaitingServiceWorker(this.registration.waiting);
+				return;
 			}
 
 			if (this.registration.installing) {
-				await new Promise<void>((resolve, reject) => {
-					const newWorker = this.registration!.installing!;
-					const timeout = setTimeout(() => {
-						reject(new Error("Service worker installation timeout"));
-					}, 10000);
-
-					newWorker.addEventListener("statechange", () => {
-						if (newWorker.state === "installed") {
-							clearTimeout(timeout);
-							newWorker.postMessage({ type: "SKIP_WAITING" });
-
-							const handleControllerChange = () => {
-								navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
-								window.location.reload();
-								resolve();
-							};
-
-							navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
-						} else if (newWorker.state === "redundant") {
-							clearTimeout(timeout);
-							reject(new Error("Service worker became redundant"));
-						}
-					});
-				});
+				await this.waitForServiceWorkerInstallation(this.registration.installing);
 				return;
 			}
 
 			const hasUpdates = await versionManager.checkForUpdates();
-
 			if (hasUpdates) {
 				versionManager.clearCache();
 				window.location.reload();
@@ -150,6 +157,99 @@ export class ServiceWorkerManager {
 			console.error("Service worker update failed:", error);
 			throw error;
 		}
+	}
+
+	private async activateWaitingServiceWorker(worker: ServiceWorker): Promise<void> {
+		return new Promise<void>((resolve) => {
+			let controllerChanged = false;
+			const timeoutDuration = 30000;
+
+			const timeout = setTimeout(() => {
+				if (!controllerChanged) {
+					console.warn("Service worker activation timeout, reloading anyway");
+					cleanup();
+					versionManager.clearCache();
+					window.location.reload();
+					resolve();
+				}
+			}, timeoutDuration);
+
+			const handleControllerChange = () => {
+				controllerChanged = true;
+				cleanup();
+				versionManager.clearCache();
+				window.location.reload();
+				resolve();
+			};
+
+			const cleanup = () => {
+				clearTimeout(timeout);
+				navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+			};
+
+			navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
+
+			try {
+				worker.postMessage({ type: "SKIP_WAITING" });
+			} catch (error) {
+				console.error("Failed to send SKIP_WAITING message:", error);
+				cleanup();
+				versionManager.clearCache();
+				window.location.reload();
+				resolve();
+			}
+		});
+	}
+
+	private async waitForServiceWorkerInstallation(worker: ServiceWorker): Promise<void> {
+		return new Promise<void>((resolve) => {
+			const timeoutDuration = 60000;
+			let stateChanged = false;
+
+			const timeout = setTimeout(() => {
+				if (!stateChanged) {
+					console.warn("Service worker installation timeout, reloading anyway");
+					cleanup();
+					versionManager.clearCache();
+					window.location.reload();
+					resolve();
+				}
+			}, timeoutDuration);
+
+			const handleStateChange = () => {
+				stateChanged = true;
+
+				if (worker.state === "installed") {
+					cleanup();
+					this.activateWaitingServiceWorker(worker)
+						.then(resolve)
+						.catch((error) => {
+							console.error("Failed to activate service worker:", error);
+							versionManager.clearCache();
+							window.location.reload();
+							resolve();
+						});
+				} else if (worker.state === "activated") {
+					cleanup();
+					versionManager.clearCache();
+					window.location.reload();
+					resolve();
+				} else if (worker.state === "redundant") {
+					cleanup();
+					console.warn("Service worker became redundant, reloading anyway");
+					versionManager.clearCache();
+					window.location.reload();
+					resolve();
+				}
+			};
+
+			const cleanup = () => {
+				clearTimeout(timeout);
+				worker.removeEventListener("statechange", handleStateChange);
+			};
+
+			worker.addEventListener("statechange", handleStateChange);
+		});
 	}
 
 	async unregister(): Promise<boolean> {

@@ -18,16 +18,11 @@ import {
 	ChevronsUpDown,
 	type LucideIcon
 } from "lucide-react";
-import { Form, FormItem, FormField, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Station, AddressChange, AddressChangeStatusType } from "@/generated/zod";
 import type {
 	CloudinaryUploadWidgetInfo,
 	CloudinaryUploadWidgetError,
 	CloudinaryUploadWidgetResults
 } from "next-cloudinary";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogTitle, DialogHeader, DialogTrigger, DialogContent } from "@/components/ui/dialog";
-import { Command, CommandList, CommandItem, CommandInput, CommandGroup, CommandEmpty } from "@/components/ui/command";
 import {
 	type AddressChangeData,
 	StudentAddressAndStation,
@@ -68,6 +63,11 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DocumentRequirements } from "@/components/ui/document-requirements";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Station, AddressChange, AddressChangeStatusType } from "@/generated/zod";
+import { Form, FormItem, FormField, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogTitle, DialogHeader, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { Command, CommandList, CommandItem, CommandInput, CommandGroup, CommandEmpty } from "@/components/ui/command";
 
 const AddressChangeSchema = z.object({
 	verificationDocUrl: z.string().url(),
@@ -708,27 +708,45 @@ const AddressChangePage = () => {
 									</div>
 								</div>
 
-								<div className="mt-4 space-y-3">
-									<Skeleton className="h-4 w-64" />
-
-									<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-										{[1, 2, 3].map((item) => (
-											<div key={item} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20">
-												<div className="shrink-0">
-													<Skeleton className="size-8 rounded-md" />
-												</div>
-												<div className="min-w-0 flex-1 space-y-1">
-													<Skeleton className="h-4 w-20" />
-													<Skeleton className="h-3 w-16" />
-												</div>
-											</div>
-										))}
+								<div className="mt-4 space-y-4">
+									<div className="border rounded-lg p-4 space-y-3">
+										<div className="flex items-center gap-2">
+											<Skeleton className="h-4 w-4 rounded-full" />
+											<Skeleton className="h-5 w-48" />
+										</div>
+										<Skeleton className="h-16 w-full rounded-md" />
 									</div>
 
-									<div className="flex flex-wrap gap-2 pt-1">
-										<Skeleton className="h-5 w-16 rounded-full" />
-										<Skeleton className="h-5 w-12 rounded-full" />
-										<Skeleton className="h-5 w-20 rounded-full" />
+									<div className="border rounded-lg p-4 space-y-3">
+										<Skeleton className="h-4 w-32" />
+										<div className="flex items-start gap-3 p-3 rounded-md">
+											<Skeleton className="size-10 rounded-lg" />
+											<div className="flex-1 space-y-2">
+												<Skeleton className="h-4 w-24" />
+												<Skeleton className="h-3 w-32" />
+											</div>
+										</div>
+									</div>
+
+									<div className="border rounded-lg p-4 space-y-3">
+										<Skeleton className="h-4 w-32" />
+										<Skeleton className="h-3 w-full" />
+										<div className="space-y-2">
+											<div className="flex items-start gap-3 p-3 rounded-md">
+												<Skeleton className="size-10 rounded-lg" />
+												<div className="flex-1 space-y-2">
+													<Skeleton className="h-4 w-28" />
+													<Skeleton className="h-3 w-24" />
+												</div>
+											</div>
+											<div className="flex items-start gap-3 p-3 rounded-md">
+												<Skeleton className="size-10 rounded-lg" />
+												<div className="flex-1 space-y-2">
+													<Skeleton className="h-4 w-28" />
+													<Skeleton className="h-3 w-24" />
+												</div>
+											</div>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -1182,7 +1200,7 @@ const AddressChangePage = () => {
 																		<>
 																			<FileUp className="h-10 w-10 mb-3 text-muted-foreground" />
 																			<p className="mb-2 text-sm text-foreground font-semibold">Click to upload PDF</p>
-																			<p className="text-xs text-muted-foreground">PDF (MAX. 2MB)</p>
+																			<p className="text-xs text-muted-foreground">PDF (MAX. 5MB)</p>
 																		</>
 																	)}
 																</div>
@@ -1195,7 +1213,7 @@ const AddressChangePage = () => {
 																		options={{
 																			maxFiles: 1,
 																			resourceType: "raw",
-																			maxFileSize: 2097152,
+																			maxFileSize: 5242880,
 																			clientAllowedFormats: ["pdf"],
 																			folder: "VESITRail/Verification Documents",
 																			uploadPreset: "VESITRail_Verification_Documents",
@@ -1213,7 +1231,7 @@ const AddressChangePage = () => {
 																		</div>
 
 																		<div className="min-w-0 flex-1 space-y-1">
-																			<p className="text-sm font-medium text-foreground wrap-break-words">
+																			<p className="text-sm font-medium text-foreground wrap-wrap-break-word">
 																				Address Change Verification Document
 																			</p>
 																			<p className="text-xs text-muted-foreground break-all">
@@ -1240,7 +1258,7 @@ const AddressChangePage = () => {
 																<div className="w-full border-2 border-dashed border-border rounded-lg bg-accent/10 p-4">
 																	<div className="flex flex-wrap items-center gap-4">
 																		<div className="min-w-0 flex-1">
-																			<p className="text-sm font-medium text-foreground wrap-break-words">
+																			<p className="text-sm font-medium text-foreground wrap-wrap-break-word">
 																				Want to upload a different document?
 																			</p>
 																			<p className="text-xs text-muted-foreground mt-1">
