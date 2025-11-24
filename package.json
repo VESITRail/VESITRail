@@ -121,7 +121,7 @@
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
 		"prettier": "^3.6.2",
-		"prisma": "^6.19.0",
+		"prisma": "^7.0.0",
 		"semantic-release": "^25.0.2",
 		"tailwindcss": "^4",
 		"tsx": "^4.20.6",
