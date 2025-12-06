@@ -63,19 +63,22 @@ const NotificationPreferences = () => {
 		setShowPermissionDialog(false);
 
 		if (type === "push") {
+			const previousValue = pushNotificationsEnabled;
+			setPushNotificationsEnabled(enabled);
+
 			if (!enabled) {
 				toast.promise(
 					cleanupFcmToken().then((success) => {
 						if (!success) {
+							setPushNotificationsEnabled(previousValue);
 							throw new Error("Failed to cleanup FCM token");
 						}
-						setPushNotificationsEnabled(false);
 					}),
 					{
+						finally: () => setIsUpdating(false),
 						loading: "Disabling push notifications...",
 						success: "Push notifications disabled successfully!",
-						error: "Failed to disable push notifications. Please try again.",
-						finally: () => setIsUpdating(false)
+						error: "Failed to disable push notifications. Please try again."
 					}
 				);
 			} else {
@@ -83,6 +86,7 @@ const NotificationPreferences = () => {
 					const permission = Notification.permission;
 
 					if (permission === "denied") {
+						setPushNotificationsEnabled(previousValue);
 						setShowPermissionDialog(true);
 						setIsUpdating(false);
 						return;
@@ -95,17 +99,17 @@ const NotificationPreferences = () => {
 					enablePushNotifications().then((result) => {
 						if (result.needsPermission) {
 							needsPermission = true;
+							setPushNotificationsEnabled(previousValue);
 							setShowPermissionDialog(true);
-							setIsUpdating(false);
 							return Promise.resolve();
 						}
 						if (!result.success) {
+							setPushNotificationsEnabled(previousValue);
 							throw new Error("Failed to enable push notifications");
 						}
-						setPushNotificationsEnabled(true);
-						setIsUpdating(false);
 					}),
 					{
+						finally: () => setIsUpdating(false),
 						loading: "Enabling push notifications...",
 						success: () => {
 							if (needsPermission) return null;
@@ -116,12 +120,15 @@ const NotificationPreferences = () => {
 				);
 			}
 		} else {
+			const previousValue = emailNotificationsEnabled;
+			setEmailNotificationsEnabled(enabled);
+
 			toast.promise(
 				updateNotificationPreferences(data.user.id, { emailEnabled: enabled }).then((result) => {
 					if (!result.isSuccess) {
+						setEmailNotificationsEnabled(previousValue);
 						throw new Error("Failed to update preferences");
 					}
-					setEmailNotificationsEnabled(enabled);
 				}),
 				{
 					finally: () => setIsUpdating(false),
@@ -146,16 +153,16 @@ const NotificationPreferences = () => {
 						<div className="grid grid-cols-1 gap-6">
 							<div className="flex items-center justify-between gap-4">
 								<div className="space-y-1 flex-1 min-w-0">
-									<Skeleton className="h-[14px] w-32" />
-									<Skeleton className="h-[12px] w-3/4" />
+									<Skeleton className="h-3.5 w-32" />
+									<Skeleton className="h-3 w-3/4" />
 								</div>
 								<Skeleton className="h-6 w-11 rounded-full shrink-0" />
 							</div>
 
 							<div className="flex items-center justify-between gap-4">
 								<div className="space-y-1 flex-1 min-w-0">
-									<Skeleton className="h-[14px] w-32" />
-									<Skeleton className="h-[12px] w-3/4" />
+									<Skeleton className="h-3.5 w-32" />
+									<Skeleton className="h-3 w-3/4" />
 								</div>
 								<Skeleton className="h-6 w-11 rounded-full shrink-0" />
 							</div>

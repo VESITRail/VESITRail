@@ -1,10 +1,10 @@
-import { Result, success, failure, type AppError, databaseError, validationError } from "@/lib/result";
-import { generateEmailTemplate, type EmailTemplateParams } from "./email-templates";
-import { getNotificationScenario, type NotificationScenario } from "./scenarios";
 import prisma from "@/lib/prisma";
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
 import { getNotificationPreferences } from "@/actions/settings";
+import { getNotificationScenario, type NotificationScenario } from "./scenarios";
+import { generateEmailTemplate, type EmailTemplateParams } from "./email-templates";
+import { Result, success, failure, type AppError, databaseError, validationError } from "@/lib/result";
 
 if (!admin.apps.length) {
 	const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || "{}");
