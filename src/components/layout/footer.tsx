@@ -8,7 +8,7 @@ const Footer = () => {
 	const currentYear = new Date().getFullYear();
 
 	return (
-		<footer aria-label="Footer" className="w-full border-accent bg-background pb-[8.25rem] lg:pb-0">
+		<footer aria-label="Footer" className="w-full border-accent bg-background pb-33 lg:pb-0">
 			<div className="max-w-7xl mx-auto px-6 md:px-16 xl:px-8">
 				<div className="pt-10 pb-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 					<nav aria-label="Footer Navigation">
@@ -28,7 +28,7 @@ const Footer = () => {
 
 					<div className="flex flex-col gap-2 md:items-end md:text-right items-start text-left">
 						<Paragraph className="text-base text-foreground font-semibold tracking-tight text-center lg:text-right">
-							Made with ❤️ by VESIT students for VESIT students
+							Made with ❤️ by VESITians for VESITians
 						</Paragraph>
 					</div>
 				</div>
