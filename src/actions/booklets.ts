@@ -10,7 +10,7 @@ import {
 } from "@/generated/zod";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import type { Prisma } from "@/generated/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { calculateSerialEndNumber, calculateBookletStatus } from "@/lib/utils";
 import { Result, success, failure, databaseError, DatabaseError, validationError, ValidationError } from "@/lib/result";
 
