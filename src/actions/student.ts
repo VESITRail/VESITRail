@@ -11,7 +11,7 @@ import {
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import type { Prisma } from "@/generated/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { sendStudentAccountNotification } from "@/lib/notifications";
 import type { Student, StudentApprovalStatusType } from "@/generated/zod";
 

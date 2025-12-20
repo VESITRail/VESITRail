@@ -13,8 +13,8 @@ import {
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import type { Prisma } from "@/generated/prisma";
 import { deleteCloudinaryFile } from "./cloudinary";
+import type { Prisma } from "@/generated/prisma/client";
 import { sendAddressChangeNotification } from "@/lib/notifications";
 import { AddressChange, AddressChangeStatusType } from "@/generated/zod";
 

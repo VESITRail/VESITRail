@@ -44,7 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateConcessionValidity } from "@/lib/utils";
-import { ConcessionApplicationType } from "@/generated/prisma";
+import { ConcessionApplicationType } from "@/generated/prisma/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

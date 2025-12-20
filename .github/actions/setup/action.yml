@@ -1,6 +1,11 @@
 name: Setup Node.js and Dependencies
 description: Common setup for Node.js environment and npm dependencies
 
+inputs:
+  DATABASE_URL:
+    description: Database connection string
+    required: true
+
 runs:
   using: composite
   steps:
@@ -13,3 +18,5 @@ runs:
     - name: Install dependencies
       shell: bash
       run: npm ci
+      env:
+        DATABASE_URL: ${{ inputs.DATABASE_URL }}

@@ -1,20 +1,20 @@
 {
 	"exclude": ["node_modules"],
 	"compilerOptions": {
+		"paths": {
+			"@/*": ["./src/*"]
+		},
 		"plugins": [
 			{
 				"name": "next"
 			}
 		],
-		"paths": {
-			"@/*": ["./src/*"]
-		},
 		"strict": true,
 		"noEmit": true,
 		"allowJs": true,
 		"jsx": "react-jsx",
 		"module": "esnext",
-		"target": "ES2017",
+		"target": "ES2023",
 		"incremental": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
