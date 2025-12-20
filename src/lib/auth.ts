@@ -1,12 +1,17 @@
+import pg from "pg";
+import "dotenv/config";
 import { toTitleCase } from "./utils";
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { oneTap } from "better-auth/plugins";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { nextCookies } from "better-auth/next-js";
-import { PrismaClient } from "@/generated/prisma";
+import { PrismaClient } from "@/generated/prisma/client";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
-const prisma = new PrismaClient();
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 export const auth = betterAuth({
 	plugins: [oneTap(), nextCookies()],
