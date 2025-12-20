@@ -32,8 +32,6 @@ async function fixZodTypes() {
 	console.log("");
 
 	try {
-		process.stdout.write("Processing...");
-
 		const content = await readFile(ZOD_FILE, "utf-8");
 		const fixed = content.replace(OLD_IMPORTS, NEW_IMPORTS);
 		await writeFile(ZOD_FILE, fixed, "utf-8");
