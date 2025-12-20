@@ -17,6 +17,8 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
+        with:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Apply Prisma Migrations
         run: npx prisma migrate deploy
