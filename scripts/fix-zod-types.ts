@@ -26,21 +26,31 @@ const NullTypes = {
 };`;
 
 async function fixZodTypes() {
+	console.log("");
 	console.log("========================================");
 	console.log("      FIXING ZOD TYPES FOR PRISMA      ");
 	console.log("========================================");
 	console.log("");
+
+	console.log("Updating Zod types for Prisma v7...");
 
 	try {
 		const content = await readFile(ZOD_FILE, "utf-8");
 		const fixed = content.replace(OLD_IMPORTS, NEW_IMPORTS);
 		await writeFile(ZOD_FILE, fixed, "utf-8");
 
-		process.stdout.write("\r\x1b[K");
-		console.log("[SUCCESS] Zod types fixed for Prisma v7 compatibility");
+		console.log("");
+		console.log("----------------------------------------");
+		console.log("✓ Zod types fixed successfully.");
+		console.log("----------------------------------------");
+		console.log("");
 	} catch (error) {
-		process.stdout.write("\r\x1b[K");
-		console.error("[FAILED] Unable to fix zod types:", error);
+		console.log("");
+		console.log("----------------------------------------");
+		console.log("✗ Failed to fix Zod types.");
+		console.log("----------------------------------------");
+		console.error(error);
+		console.log("");
 		process.exit(1);
 	}
 }
