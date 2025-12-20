@@ -20,8 +20,7 @@
 			"prettier --write"
 		],
 		"*.prisma": [
-			"npx prisma format",
-			"prettier --write"
+			"npx prisma format"
 		],
 		"*.{js,jsx,ts,tsx}": [
 			"eslint --fix",
@@ -40,9 +39,9 @@
 		"format": "prettier . --write",
 		"build": "next build --webpack",
 		"format:check": "prettier . --check",
-		"postinstall": "npx prisma generate",
 		"semantic-release": "semantic-release",
-		"test:e2e:install": "playwright install --with-deps"
+		"test:e2e:install": "playwright install --with-deps",
+		"postinstall": "npx prisma generate && npx tsx scripts/fix-zod-types.ts"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",
