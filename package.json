@@ -121,7 +121,7 @@
 		"dotenv": "^17.2.3",
 		"eslint": "^9.39.2",
 		"eslint-config-flat-gitignore": "^2.1.0",
-		"eslint-config-next": "^16.0.10",
+		"eslint-config-next": "^16.1.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
 		"prettier": "^3.7.4",
