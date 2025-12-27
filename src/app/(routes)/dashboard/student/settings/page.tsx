@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { Settings as SettingsIcon } from "lucide-react";
+import AppVersion from "@/components/settings/app-version";
 import Preferences from "@/components/settings/preferences";
-import { AppVersion } from "@/components/settings/app-version";
 import CacheManagement from "@/components/settings/cache-management";
 import NotificationPreferences from "@/components/settings/notification-preferences";
 

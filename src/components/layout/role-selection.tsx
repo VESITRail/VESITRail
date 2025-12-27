@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
-import { Mail, Clock, Shield, RefreshCw, ArrowRight, AlertCircle, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserRoles } from "@/actions/check-role";
+import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
+import { Mail, Clock, Shield, RefreshCw, ArrowRight, AlertCircle, GraduationCap } from "lucide-react";
 
 type RoleSelectionProps = {
 	roles: UserRoles;
@@ -19,7 +19,7 @@ const RoleSelection = ({ roles, userName }: RoleSelectionProps) => {
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/20">
+		<div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-background to-muted/20">
 			<div className="w-full max-w-4xl mx-auto space-y-8">
 				<div className="text-center space-y-2">
 					<h1 className="text-2xl md:text-3xl font-bold tracking-tight">

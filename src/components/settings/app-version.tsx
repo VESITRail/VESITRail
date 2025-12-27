@@ -15,7 +15,7 @@ type AppVersionProps = {
 	initialVersion?: string | null;
 };
 
-export const AppVersion = ({ initialVersion }: AppVersionProps) => {
+const AppVersion = ({ initialVersion }: AppVersionProps) => {
 	const [version, setVersion] = useState<string | null>(initialVersion || null);
 	const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
 	const [versionLoading, setVersionLoading] = useState<boolean>(!initialVersion);
@@ -155,3 +155,5 @@ export const AppVersion = ({ initialVersion }: AppVersionProps) => {
 		</div>
 	);
 };
+
+export default AppVersion;

@@ -136,7 +136,7 @@ const CacheManagement = () => {
 
 				<Card>
 					<CardContent className="py-2.5">
-						<div className="flex flex-col items-center justify-center min-h-[200px] space-y-4">
+						<div className="flex flex-col items-center justify-center min-h-50 space-y-4">
 							<div className="size-16 rounded-full bg-destructive flex items-center justify-center">
 								<AlertCircle className="text-white size-7" />
 							</div>

@@ -297,16 +297,6 @@ export const useFcm = (userId?: string) => {
 		}
 	}, [generateToken, requestPermission, isInitialized, userId]);
 
-	useEffect(() => {
-		if (typeof window !== "undefined" && userId && !isInitialized) {
-			const timer = setTimeout(() => {
-				initializeFcm();
-			}, 1000);
-
-			return () => clearTimeout(timer);
-		}
-	}, [initializeFcm, userId, isInitialized]);
-
 	const cleanupFcmToken = useCallback(async (): Promise<boolean> => {
 		try {
 			if (!userId) {

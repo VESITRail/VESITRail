@@ -26,7 +26,7 @@ const Footer = () => {
 						</ul>
 					</nav>
 
-					<div className="flex flex-col gap-2 md:items-end md:text-right items-start text-left">
+					<div className="flex flex-col gap-2 md:items-end md:text-right items-center text-left">
 						<Paragraph className="text-base text-foreground font-semibold tracking-tight text-center lg:text-right">
 							Made with ❤️ by VESITians for VESITians
 						</Paragraph>
