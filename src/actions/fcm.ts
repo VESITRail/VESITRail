@@ -41,25 +41,24 @@ export const saveFcmToken = async (
 				}
 			: { token: data.token };
 
-		await prisma.$transaction([
-			prisma.fcmToken.upsert({
-				where: whereClause,
-				create: {
-					token: data.token,
-					userId: data.userId,
-					platform: data.platform,
-					deviceId: data.deviceId ?? null
-				},
-				update: {
-					token: data.token,
-					platform: data.platform
-				}
-			}),
-			prisma.user.update({
-				where: { id: data.userId },
-				data: { pushNotificationsEnabled: true }
-			})
-		]);
+		await prisma.fcmToken.upsert({
+			where: whereClause,
+			create: {
+				token: data.token,
+				userId: data.userId,
+				platform: data.platform,
+				deviceId: data.deviceId ?? null
+			},
+			update: {
+				token: data.token,
+				platform: data.platform
+			}
+		});
+
+		await prisma.user.update({
+			where: { id: data.userId },
+			data: { pushNotificationsEnabled: true }
+		});
 
 		return success({ success: true });
 	} catch (error) {
