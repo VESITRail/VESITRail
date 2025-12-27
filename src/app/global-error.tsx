@@ -238,7 +238,7 @@ const GlobalError = ({ error, reset }: { error: Error & { digest?: string }; res
 								target="_blank"
 								rel="noopener noreferrer"
 								href="https://github.com/VESITRail/VESITRail/issues"
-								className="text-primary hover:underline font-medium transition-colors"
+								className="text-foreground hover:underline font-medium transition-colors"
 							>
 								GitHub Issues
 							</a>{" "}
