@@ -21,6 +21,6 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Apply Prisma Migrations
-        run: npx prisma migrate deploy
+        run: pnpm exec prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

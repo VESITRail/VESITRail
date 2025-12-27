@@ -129,8 +129,8 @@ See [.devcontainer/README.md](.devcontainer/README.md) for more details.
 
 **Prerequisites:**
 
-- Node.js 18+ and npm
 - PostgreSQL database
+- Node.js 18+ and pnpm
 - Google OAuth credentials
 - Cloudinary account (for file uploads)
 - Firebase project (for push notifications)
@@ -147,7 +147,7 @@ See [.devcontainer/README.md](.devcontainer/README.md) for more details.
 2. **Install dependencies**
 
    ```bash
-   npm ci
+   pnpm install --frozen-lockfile
    ```
 
 3. **Environment Setup**
@@ -187,14 +187,14 @@ See [.devcontainer/README.md](.devcontainer/README.md) for more details.
 4. **Database Setup**
 
    ```bash
-   npx prisma generate
-   npx prisma db push
+   pnpm exec prisma generate
+   pnpm exec prisma db push
    ```
 
 5. **Run the development server**
 
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 6. **Open your browser**
@@ -329,10 +329,10 @@ VESITRail is a fully-featured PWA with:
 
 ```bash
 # Build the application
-npm run build
+pnpm run build
 
 # Start production server
-npm start
+pnpm start
 ```
 
 ---
@@ -362,16 +362,16 @@ VESITRail uses **Playwright** for end-to-end testing to ensure application relia
 
 ```bash
 # Install Playwright browsers (first time only)
-npm run test:e2e:install
+pnpm run test:e2e:install
 
 # Run E2E tests
-npm run test:e2e
+pnpm run test:e2e
 
 # Run tests in UI mode (interactive)
-npx playwright test --ui
+pnpm exec playwright test --ui
 
 # Run tests in headed mode (see browser)
-npx playwright test --headed
+pnpm exec playwright test --headed
 ```
 
 **Test Configuration:**

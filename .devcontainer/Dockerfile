@@ -4,7 +4,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y postgresql-client \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-RUN su node -c "npm install -g npm@latest"
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 RUN chsh -s /bin/zsh node
 

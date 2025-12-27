@@ -5,8 +5,8 @@
 	"workspaceFolder": "/workspace",
 	"name": "VESITRail Development",
 	"dockerComposeFile": "docker-compose.yml",
-	"postStartCommand": "npx prisma migrate deploy",
-	"postCreateCommand": "npm install && npx prisma generate",
+	"postStartCommand": "pnpm exec prisma migrate deploy",
+	"postCreateCommand": "corepack enable && pnpm install && pnpm exec prisma generate",
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "22"

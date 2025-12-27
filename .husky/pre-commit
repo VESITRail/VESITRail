@@ -6,14 +6,13 @@ echo "           PRE-COMMIT CHECKS            "
 echo "========================================"
 
 echo "Running lint-staged..."
-npx lint-staged
+pnpm exec lint-staged
 status=$?
 
 if [ $status -ne 0 ]; then
   echo ""
   echo "----------------------------------------"
   echo "✗ Linting failed. Commit aborted."
-  echo "Please run 'npm run lint' to fix issues."
   echo "----------------------------------------"
   exit 1
 fi

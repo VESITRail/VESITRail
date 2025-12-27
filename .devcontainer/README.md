@@ -19,11 +19,11 @@ This project includes a DevContainer configuration for consistent development en
 5. Update `.env` with your configuration values
 6. Run database migrations:
    ```bash
-   npx prisma migrate dev
+   pnpm exec prisma migrate dev
    ```
 7. Start the development server:
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 ## Services

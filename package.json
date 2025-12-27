@@ -3,6 +3,7 @@
 	"type": "module",
 	"name": "vesitrail",
 	"author": "VESITRail",
+	"packageManager": "pnpm@9.15.4",
 	"version": "0.0.0-semantically-released",
 	"homepage": "https://vesitrail.ves.ac.in",
 	"repository": {
@@ -19,15 +20,15 @@
 		"package.json": [
 			"prettier --write"
 		],
-		"*.prisma": [
-			"npx prisma format"
-		],
 		"*.{js,jsx,ts,tsx}": [
 			"eslint --fix",
 			"prettier --write"
 		],
 		"*.{json,md,yml,yaml,css}": [
 			"prettier --write"
+		],
+		"*.prisma": [
+			"pnpm exec prisma format"
 		]
 	},
 	"scripts": {
@@ -41,7 +42,7 @@
 		"format:check": "prettier . --check",
 		"semantic-release": "semantic-release",
 		"test:e2e:install": "playwright install --with-deps",
-		"postinstall": "npx prisma generate && npx tsx scripts/fix-zod-types.ts"
+		"postinstall": "pnpm exec prisma generate && pnpm exec tsx scripts/fix-zod-types.ts"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",

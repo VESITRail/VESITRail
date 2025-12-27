@@ -20,8 +20,8 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 
 ## Prerequisites
 
-- Node.js 18+ and npm/yarn/pnpm
 - PostgreSQL database
+- Node.js 18+ and pnpm
 - Google OAuth credentials (@ves.ac.in usage preferred)
 - Cloudinary & Firebase credentials (if working on related features)
 
@@ -30,11 +30,11 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 1. Fork the repository
 2. Clone your fork
 3. Create a feature branch: `git checkout -b feature/your-feature`
-4. Install dependencies: `npm install`
+4. Install dependencies: `pnpm install --frozen-lockfile`
 5. Copy env file: `cp .env.example .env`
 6. Fill in required environment variables
-7. Generate Prisma client: `npx prisma generate`
-8. Start dev server: `npm run dev`
+7. Generate Prisma client: `pnpm exec prisma generate`
+8. Start dev server: `pnpm run dev`
 
 ## Code Guidelines
 
@@ -54,19 +54,19 @@ VESITRail uses **Playwright** for end-to-end testing. We strongly encourage addi
 
 ```bash
 # Install Playwright browsers (first time only)
-npm run test:e2e:install
+pnpm run test:e2e:install
 
 # Run all E2E tests
-npm run test:e2e
+pnpm run test:e2e
 
 # Run tests in UI mode (interactive debugging)
-npx playwright test --ui
+pnpm exec playwright test --ui
 
 # Run tests in headed mode (see browser actions)
-npx playwright test --headed
+pnpm exec playwright test --headed
 
 # Run specific test file
-npx playwright test tests/login.spec.ts
+pnpm exec playwright test tests/login.spec.ts
 ```
 
 ### Writing Tests
@@ -107,8 +107,8 @@ test.describe("Feature Name", () => {
 
 Before opening a PR:
 
-- [ ] Ran `npm run build` locally without errors
-- [ ] Ran `npm run test:e2e` and all tests pass
+- [ ] Ran `pnpm run build` locally without errors
+- [ ] Ran `pnpm run test:e2e` and all tests pass
 - [ ] Added E2E tests for new features or critical paths
 - [ ] Updated or added types/schemas if models changed
 - [ ] Added migrations if Prisma schema changed
@@ -118,7 +118,7 @@ Before opening a PR:
 ## Database & Prisma
 
 - Edit models in `prisma/schema.prisma` only
-- Run `npx prisma migrate dev --name meaningful_name` (if schema changes)
+- Run `pnpm exec prisma migrate dev --name meaningful_name` (if schema changes)
 - Do NOT manually edit generated files in `src/generated/`
 
 ## Security & Privacy

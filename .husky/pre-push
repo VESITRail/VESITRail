@@ -15,7 +15,7 @@ echo "             PRE-PUSH CHECKS             "
 echo "========================================"
 
 echo "Running build..."
-npm run build
+pnpm run build
 status=$?
 
 if [ $status -ne 0 ]; then
