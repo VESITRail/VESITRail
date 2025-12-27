@@ -56,6 +56,17 @@ const NotificationPreferences = () => {
 		}
 	}, [data?.user?.id, isPending]);
 
+	useEffect(() => {
+		if (!loading && pushNotificationsEnabled && data?.user?.id) {
+			if (typeof window !== "undefined" && "Notification" in window) {
+				const permission = Notification.permission;
+				if (permission === "granted") {
+					enablePushNotifications();
+				}
+			}
+		}
+	}, [loading, pushNotificationsEnabled, data?.user?.id, enablePushNotifications]);
+
 	const handleToggle = async (type: "push" | "email", enabled: boolean) => {
 		if (!data?.user?.id || isUpdating) return;
 
@@ -182,7 +193,7 @@ const NotificationPreferences = () => {
 
 			<Dialog open={showPermissionDialog} onOpenChange={setShowPermissionDialog}>
 				<DialogContent className="sm:max-w-md">
-					<DialogHeader>
+					<DialogHeader className="text-left">
 						<DialogTitle className="flex items-center gap-2">
 							<Info className="h-5 w-5" />
 							Browser Permission Required
