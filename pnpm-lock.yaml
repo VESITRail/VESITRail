@@ -73,13 +73,13 @@ importers:
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@serwist/build':
         specifier: ^9.4.4
-        version: 9.4.4(typescript@5.9.3)
+        version: 9.5.0(typescript@5.9.3)
       '@serwist/next':
         specifier: ^9.4.4
-        version: 9.4.4(next@16.1.1(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+        version: 9.5.0(next@16.1.1(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       '@serwist/sw':
         specifier: ^9.4.4
-        version: 9.4.4(typescript@5.9.3)
+        version: 9.5.0(typescript@5.9.3)
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -118,13 +118,13 @@ importers:
         version: 13.6.0
       framer-motion:
         specifier: ^12.23.27
-        version: 12.23.27(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 12.24.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       jspdf:
         specifier: ^4.0.0
         version: 4.0.0
       jspdf-autotable:
         specifier: ^5.0.7
-        version: 5.0.7(jspdf@3.0.4)
+        version: 5.0.7(jspdf@4.0.0)
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.3)
@@ -151,10 +151,10 @@ importers:
         version: 8.16.3
       posthog-js:
         specifier: ^1.313.0
-        version: 1.313.0
+        version: 1.314.0
       posthog-node:
         specifier: ^5.18.1
-        version: 5.18.1
+        version: 5.19.0
       react:
         specifier: ^19.2.3
         version: 19.2.3
@@ -172,7 +172,7 @@ importers:
         version: 10.1.0(@types/react@19.2.7)(react@19.2.3)
       serwist:
         specifier: ^9.4.4
-        version: 9.4.4(typescript@5.9.3)
+        version: 9.5.0(typescript@5.9.3)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -2076,8 +2076,8 @@ packages:
     peerDependencies:
       semantic-release: '>=20.1.0'
 
-  '@serwist/build@9.4.4':
-    resolution: {integrity: sha512-qd5/XyKMXM1ipFYO503et+07xvQGJFjhrExVuOWr6mHV7KKGLUJjs6VEti57Tv0wJDkBOS7i1jW5fSrEMnFFug==}
+  '@serwist/build@9.5.0':
+    resolution: {integrity: sha512-8D330WwYjBI5MadyVOphwUqJLMNQK76KWBoDykIPrbtt0C3uGFPxG4XNZCFXBkRG3O1QLedv9BWqH27SeqhcLg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       typescript: '>=5.0.0'
@@ -2085,11 +2085,11 @@ packages:
       typescript:
         optional: true
 
-  '@serwist/next@9.4.4':
-    resolution: {integrity: sha512-C4H9G+RJVhuPqUAaT++RbAOBtuBc2zpuieLeZxTVyiASrwhDWEp+v+qBDDzY8dCuQobsq7UO26FltJrXleGOZw==}
+  '@serwist/next@9.5.0':
+    resolution: {integrity: sha512-amJUpLzOd3F9xY8/Le0W9pf47PtDvRZrJ27gDSJESohsfoBRfnabsatjNuQdUnVE8rgl0YFIMYyVgLejNOb06g==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      '@serwist/cli': ^9.4.4
+      '@serwist/cli': ^9.5.0
       next: '>=14.0.0'
       react: '>=18.0.0'
       typescript: '>=5.0.0'
@@ -2099,19 +2099,19 @@ packages:
       typescript:
         optional: true
 
-  '@serwist/sw@9.4.4':
-    resolution: {integrity: sha512-8Ft9V33oZgXkF9BNr8ZBJfJFWDQG/05yznDl/4c6xQ7EzB4YdjYNqJRljXuGdvzJ0Lhy1wYPZgPGgDKbIW6qng==}
+  '@serwist/sw@9.5.0':
+    resolution: {integrity: sha512-4eW43iWi/+8OVqQrMXOk69Et3mKzgpbm6jRqD5Wjr7hqWv0pTB1atDkfSRZj514u7ch8MR2yOOe09cSXSIAd5w==}
     peerDependencies:
       typescript: '>=5.0.0'
     peerDependenciesMeta:
       typescript:
         optional: true
 
-  '@serwist/utils@9.4.4':
-    resolution: {integrity: sha512-esgNORd4ihQC5FAOaHRsAt0E6h7cYfsZvACWMotwIqcC+Cw0Q1NDoTg8hKV1sJ9Sc1UKA0SF3jyaWRPnlKTsGQ==}
+  '@serwist/utils@9.5.0':
+    resolution: {integrity: sha512-DBzmJgL63/VYcQ/TpSYXW1FJKRILesOxytu+1MHY0vW2WFhW7pYkLgVuHqksP5K+3ypt54M3+2QNDDMixrnutQ==}
 
-  '@serwist/webpack-plugin@9.4.4':
-    resolution: {integrity: sha512-4FeUyw2CaGA9BkCs1Pst0kMXZ7xrYx4K1ZDKfH9w7alIIPDoTnV2YmrNCjptqhkLFVB3ErZRy4Un716YzYx3Qw==}
+  '@serwist/webpack-plugin@9.5.0':
+    resolution: {integrity: sha512-76o1GZRS6r5nUtfam55c3T/Fe5NoqqW70RyFTjZAIPj6jjIRufcHXQHBpedT5jfew/7toCCmvtZ8GI60aFigVg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       typescript: '>=5.0.0'
@@ -2122,8 +2122,8 @@ packages:
       webpack:
         optional: true
 
-  '@serwist/window@9.4.4':
-    resolution: {integrity: sha512-NA7/r5njJ77gsnuTPQoGLokdYB73exnp2kao4bjcRtKL0ZBFHK6D7BtaCTfx2qQiQAbqQy7pLv0ARfsUu4bYkQ==}
+  '@serwist/window@9.5.0':
+    resolution: {integrity: sha512-WqmEZjJ+u841sbUJh2LAbtPNrz8mU/wCTo9sEVqsMOk+EM5oBz5FRpF3kDzx1cF5rTIfXer1df0D354lIdFw1Q==}
     peerDependencies:
       typescript: '>=5.0.0'
     peerDependenciesMeta:
@@ -2979,9 +2979,6 @@ packages:
   caniuse-lite@1.0.30001761:
     resolution: {integrity: sha512-JF9ptu1vP2coz98+5051jZ4PwQgd2ni8A+gYSN7EA7dPKIMf0pDlSUxhdmVOaV3/fYK5uWBkgSXJaRLr4+3A6g==}
 
-  caniuse-lite@1.0.30001762:
-    resolution: {integrity: sha512-PxZwGNvH7Ak8WX5iXzoK1KPZttBXNPuaOvI2ZYU7NrlM+d9Ov+TUvlLOBNGzVXAntMSMMlJPd+jY6ovrVjSmUw==}
-
   canvg@3.0.11:
     resolution: {integrity: sha512-5ON+q7jCTgMp9cjpu4Jo6XbvfYwSB2Ow3kzHKfIyJfaCAOHLbdKPQqGKgfED/R5B+3TFFfe8pegYA+b423SRyA==}
     engines: {node: '>=10.0.0'}
@@ -3686,8 +3683,8 @@ packages:
     resolution: {integrity: sha512-jqdObeR2rxZZbPSGL+3VckHMYtu+f9//KXBsVny6JSX/pa38Fy+bGjuG8eW/H6USNQWhLi8Num++cU2yOCNz4A==}
     engines: {node: '>= 0.12'}
 
-  framer-motion@12.23.27:
-    resolution: {integrity: sha512-EAcX8FS8jzZ4tSKpj+1GhwbVY+r1gfamPFwXZAsioPqu/ffRwU2otkKg6GEDCR41FVJv3RoBN7Aqep6drL9Itg==}
+  framer-motion@12.24.4:
+    resolution: {integrity: sha512-YLfERD7tq7YkknlD6511iCTc/d/MIoVpR+pfpIiJ8uJa+sNbY4dXEyIR0srINmjDVwYFXTqECR730u3Km0htTw==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
       react: ^18.0.0 || ^19.0.0
@@ -4278,8 +4275,8 @@ packages:
     peerDependencies:
       jspdf: ^2 || ^3 || ^4
 
-  jspdf@3.0.4:
-    resolution: {integrity: sha512-dc6oQ8y37rRcHn316s4ngz/nOjayLF/FFxBF4V9zamQKRqXxyiH1zagkCdktdWhtoQId5K20xt1lB90XzkB+hQ==}
+  jspdf@4.0.0:
+    resolution: {integrity: sha512-w12U97Z6edKd2tXDn3LzTLg7C7QLJlx0BPfM3ecjK2BckUl9/81vZ+r5gK4/3KQdhAcEZhENUxRhtgYBj75MqQ==}
 
   jsx-ast-utils@3.3.5:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
@@ -4673,11 +4670,11 @@ packages:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
 
-  motion-dom@12.23.23:
-    resolution: {integrity: sha512-n5yolOs0TQQBRUFImrRfs/+6X4p3Q4n1dUEqt/H58Vx7OW6RF+foWEgmTVDhIWJIMXOuNNL0apKH2S16en9eiA==}
+  motion-dom@12.24.3:
+    resolution: {integrity: sha512-ZjMZCwhTglim0LM64kC1iFdm4o+2P9IKk3rl/Nb4RKsb5p4O9HJ1C2LWZXOFdsRtp6twpqWRXaFKOduF30ntow==}
 
-  motion-utils@12.23.6:
-    resolution: {integrity: sha512-eAWoPgr4eFEOFfg2WjIsMoqJTW6Z8MTUCgn/GZ3VRpClWBdnbjryiA3ZSNLyxCTmCQx4RmYX6jX1iWHbenUPNQ==}
+  motion-utils@12.23.28:
+    resolution: {integrity: sha512-0W6cWd5Okoyf8jmessVK3spOmbyE0yTdNKujHctHH9XdAE4QDuZ1/LjSXC68rrhsJU+TkzXURC5OdSWh9ibOwQ==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -5192,11 +5189,11 @@ packages:
     resolution: {integrity: sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw==}
     engines: {node: '>=12'}
 
-  posthog-js@1.313.0:
-    resolution: {integrity: sha512-CL8RkC7m9BTZrix86w0fdnSCVqC/gxrfs6c4Wfkz/CldFD7f2912S2KqnWFmwRVDGIwm9IR82YhublQ88gdDKw==}
+  posthog-js@1.314.0:
+    resolution: {integrity: sha512-qW1T73UAFpA0g2Ln0blsOUJxRhv0Tn4DrPdhGyTpw+MupW+qvVjzEg/i9jWQ4Al+8AkrNcmZFafJcSWXxWsWqg==}
 
-  posthog-node@5.18.1:
-    resolution: {integrity: sha512-Hi7cRqAlvuEitdiurXJFdMip+BxcwYoX66at5RErMVP91V+Ph9BspGiawC3mJx/4znjwUjF29kAhf8oZQ2uJ5Q==}
+  posthog-node@5.19.0:
+    resolution: {integrity: sha512-5Nx+/b1JbAy6TaCENuO+mLFfZIXyYavae+D6FABd52gzkGryRkRTsKi+WLlILI5shSCAMWs5gxzGAZ3nOC0gFA==}
     engines: {node: '>=20'}
 
   preact@10.28.1:
@@ -5504,8 +5501,8 @@ packages:
   seq-queue@0.0.5:
     resolution: {integrity: sha512-hr3Wtp/GZIc/6DAGPDcV4/9WoZhjrkXsi5B/07QgX8tsdc6ilr7BFM6PM6rbdAX1kFSDYeZGLipIZZKyQP0O5Q==}
 
-  serwist@9.4.4:
-    resolution: {integrity: sha512-MrsVo5ruv8De4zRphWRyBh2XnQNtSplVg4NR1j4RNoQrjECMLncxYUirnJqkplBH7CA5IIUl+mlsKs4uD5JjiA==}
+  serwist@9.5.0:
+    resolution: {integrity: sha512-wjrsPWHI5ZM20jIsVKZGN/uAdS2aKOgmIOE4dqUaFhK6SVIzgoJZjTnZ3v29T+NmneuD753jlhGui9eYypsj0A==}
     peerDependencies:
       typescript: '>=5.0.0'
     peerDependenciesMeta:
@@ -6215,9 +6212,6 @@ packages:
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
-
-  zod@4.2.1:
-    resolution: {integrity: sha512-0wZ1IRqGGhMP76gLqz8EyfBXKk0J2qo2+H3fi4mcUP/KtTocoX08nmIAHl1Z2kJIZbZee8KOpBCSNPRgauucjw==}
 
   zod@4.3.5:
     resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
@@ -8444,57 +8438,57 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@serwist/build@9.4.4(typescript@5.9.3)':
+  '@serwist/build@9.5.0(typescript@5.9.3)':
     dependencies:
-      '@serwist/utils': 9.4.4
+      '@serwist/utils': 9.5.0
       common-tags: 1.8.2
       glob: 10.5.0
       pretty-bytes: 6.1.1
       source-map: 0.8.0-beta.0
-      zod: 4.2.1
+      zod: 4.3.5
     optionalDependencies:
       typescript: 5.9.3
 
-  '@serwist/next@9.4.4(next@16.1.1(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)':
+  '@serwist/next@9.5.0(next@16.1.1(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(typescript@5.9.3)':
     dependencies:
-      '@serwist/build': 9.4.4(typescript@5.9.3)
-      '@serwist/utils': 9.4.4
-      '@serwist/webpack-plugin': 9.4.4(typescript@5.9.3)
-      '@serwist/window': 9.4.4(typescript@5.9.3)
+      '@serwist/build': 9.5.0(typescript@5.9.3)
+      '@serwist/utils': 9.5.0
+      '@serwist/webpack-plugin': 9.5.0(typescript@5.9.3)
+      '@serwist/window': 9.5.0(typescript@5.9.3)
       browserslist: 4.28.1
       glob: 10.5.0
       kolorist: 1.8.0
       next: 16.1.1(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react: 19.2.3
       semver: 7.7.3
-      serwist: 9.4.4(typescript@5.9.3)
-      zod: 4.2.1
+      serwist: 9.5.0(typescript@5.9.3)
+      zod: 4.3.5
     optionalDependencies:
       typescript: 5.9.3
     transitivePeerDependencies:
       - webpack
 
-  '@serwist/sw@9.4.4(typescript@5.9.3)':
+  '@serwist/sw@9.5.0(typescript@5.9.3)':
     dependencies:
-      serwist: 9.4.4(typescript@5.9.3)
+      serwist: 9.5.0(typescript@5.9.3)
     optionalDependencies:
       typescript: 5.9.3
 
-  '@serwist/utils@9.4.4': {}
+  '@serwist/utils@9.5.0': {}
 
-  '@serwist/webpack-plugin@9.4.4(typescript@5.9.3)':
+  '@serwist/webpack-plugin@9.5.0(typescript@5.9.3)':
     dependencies:
-      '@serwist/build': 9.4.4(typescript@5.9.3)
-      '@serwist/utils': 9.4.4
+      '@serwist/build': 9.5.0(typescript@5.9.3)
+      '@serwist/utils': 9.5.0
       pretty-bytes: 6.1.1
-      zod: 4.2.1
+      zod: 4.3.5
     optionalDependencies:
       typescript: 5.9.3
 
-  '@serwist/window@9.4.4(typescript@5.9.3)':
+  '@serwist/window@9.5.0(typescript@5.9.3)':
     dependencies:
       '@types/trusted-types': 2.0.7
-      serwist: 9.4.4(typescript@5.9.3)
+      serwist: 9.5.0(typescript@5.9.3)
     optionalDependencies:
       typescript: 5.9.3
 
@@ -9387,7 +9381,7 @@ snapshots:
   browserslist@4.28.1:
     dependencies:
       baseline-browser-mapping: 2.9.11
-      caniuse-lite: 1.0.30001762
+      caniuse-lite: 1.0.30001761
       electron-to-chromium: 1.5.267
       node-releases: 2.0.27
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
@@ -9429,8 +9423,6 @@ snapshots:
   callsites@3.1.0: {}
 
   caniuse-lite@1.0.30001761: {}
-
-  caniuse-lite@1.0.30001762: {}
 
   canvg@3.0.11:
     dependencies:
@@ -10379,10 +10371,10 @@ snapshots:
       safe-buffer: 5.2.1
     optional: true
 
-  framer-motion@12.23.27(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  framer-motion@12.24.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
-      motion-dom: 12.23.23
-      motion-utils: 12.23.6
+      motion-dom: 12.24.3
+      motion-utils: 12.23.28
       tslib: 2.8.1
     optionalDependencies:
       react: 19.2.3
@@ -11004,7 +10996,7 @@ snapshots:
       ms: 2.1.3
       semver: 7.7.3
 
-  jspdf-autotable@5.0.7(jspdf@3.0.4):
+  jspdf-autotable@5.0.7(jspdf@4.0.0):
     dependencies:
       jspdf: 4.0.0
 
@@ -11517,11 +11509,11 @@ snapshots:
 
   minipass@7.1.2: {}
 
-  motion-dom@12.23.23:
+  motion-dom@12.24.3:
     dependencies:
-      motion-utils: 12.23.6
+      motion-utils: 12.23.28
 
-  motion-utils@12.23.6: {}
+  motion-utils@12.23.28: {}
 
   ms@2.1.3: {}
 
@@ -11954,7 +11946,7 @@ snapshots:
 
   postgres@3.4.7: {}
 
-  posthog-js@1.313.0:
+  posthog-js@1.314.0:
     dependencies:
       '@posthog/core': 1.9.0
       core-js: 3.47.0
@@ -11962,7 +11954,7 @@ snapshots:
       preact: 10.28.1
       web-vitals: 4.2.4
 
-  posthog-node@5.18.1:
+  posthog-node@5.19.0:
     dependencies:
       '@posthog/core': 1.9.0
 
@@ -12346,9 +12338,9 @@ snapshots:
 
   seq-queue@0.0.5: {}
 
-  serwist@9.4.4(typescript@5.9.3):
+  serwist@9.5.0(typescript@5.9.3):
     dependencies:
-      '@serwist/utils': 9.4.4
+      '@serwist/utils': 9.5.0
       idb: 8.0.3
     optionalDependencies:
       typescript: 5.9.3
@@ -13173,8 +13165,6 @@ snapshots:
       zod: 4.3.5
 
   zod@3.25.76: {}
-
-  zod@4.2.1: {}
 
   zod@4.3.5: {}
 
