@@ -82,7 +82,7 @@
 		"firebase": "^12.7.0",
 		"firebase-admin": "^13.6.0",
 		"framer-motion": "^12.23.27",
-		"jspdf": "^3.0.4",
+		"jspdf": "^4.0.0",
 		"jspdf-autotable": "^5.0.7",
 		"lucide-react": "^0.562.0",
 		"next": "16.1.1",
