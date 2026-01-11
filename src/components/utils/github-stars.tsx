@@ -16,14 +16,14 @@ const GitHubStars = ({ className }: GitHubStarsProps) => {
 	useEffect(() => {
 		const fetchStars = async () => {
 			try {
-				const response = await fetch("https://api.github.com/repos/VESITRail/VESITRail");
+				const response = await fetch("/api/github?type=stars");
 
 				if (!response.ok) {
 					throw new Error("Failed to fetch repo data");
 				}
 
 				const data = await response.json();
-				setStars(data.stargazers_count);
+				setStars(data.stars);
 			} catch (error) {
 				console.error("Error fetching GitHub stars:", error);
 				setError(true);
