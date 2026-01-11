@@ -486,7 +486,7 @@ const StudentDetailsDialog = ({
 
 								{studentDetails.rejectionReason && (
 									<div className="mt-6">
-										<p className="text-sm font-medium text-muted-foreground mb-2">Rejection Reason</p>
+										<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
 										<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
 											<p className="text-sm text-destructive">{studentDetails.rejectionReason}</p>
 										</div>
