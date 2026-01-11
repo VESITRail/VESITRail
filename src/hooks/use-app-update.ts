@@ -115,11 +115,7 @@ export const useAppUpdate = () => {
 					return false;
 				}
 
-				const response = await fetch(`https://api.github.com/repos/VESITRail/VESITRail/releases/latest`, {
-					headers: {
-						Accept: "application/vnd.github.v3+json"
-					}
-				});
+				const response = await fetch("/api/github?type=release");
 
 				if (!response.ok) {
 					setState((prev) => ({ ...prev, loading: false }));
@@ -127,15 +123,14 @@ export const useAppUpdate = () => {
 				}
 
 				const releaseData = await response.json();
-
 				const hasUpdate = compareVersions(current.version, latest.version) < 0;
 
 				if (hasUpdate && (force || !isVersionIgnored(latest.version))) {
 					const updateInfo: UpdateInfo = {
 						version: latest.version,
 						tagName: latest.tagName,
-						publishedAt: releaseData.published_at,
-						changelog: releaseData.body || "No changelog available."
+						changelog: releaseData.changelog,
+						publishedAt: releaseData.publishedAt
 					};
 
 					setState({

@@ -16,17 +16,12 @@ import {
 	ChevronRight,
 	AlertTriangle
 } from "lucide-react";
-import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
-import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
-import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuTrigger,
 	DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
-import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
 import {
 	AdminApplication,
 	reviewConcessionApplication,
@@ -45,6 +40,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
 import ApproveApplicationDialog from "./approve-application-dialog";
+import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
+import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
+import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
+import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
+import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
 
 const PREDEFINED_REJECTION_REASONS = [
 	{
@@ -901,28 +901,28 @@ const ApplicationsTable = ({
 								<TableHead className="font-semibold h-12 text-center px-4 w-20">
 									<Skeleton className="h-4 w-12 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[100px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-25">
 									<Skeleton className="h-4 w-16 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[200px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-50">
 									<Skeleton className="h-4 w-24 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
 									<Skeleton className="h-4 w-12 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[120px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-30">
 									<Skeleton className="h-4 w-14 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[200px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-50">
 									<Skeleton className="h-4 w-16 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
 									<Skeleton className="h-4 w-20 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[180px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-45">
 									<Skeleton className="h-4 w-20 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
 									<Skeleton className="h-4 w-20 mx-auto" />
 								</TableHead>
 							</TableRow>
@@ -1122,7 +1122,7 @@ const ApplicationsTable = ({
 								autoCapitalize="words"
 								disabled={isRejecting}
 								value={rejectionReason}
-								className="min-h-[100px] resize-none mt-2 capitalize"
+								className="min-h-25 resize-none mt-2 capitalize"
 								placeholder="Enter a detailed reason for rejection..."
 								onChange={(e) => {
 									const capitalizedValue = e.target.value

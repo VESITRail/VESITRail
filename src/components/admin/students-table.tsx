@@ -16,11 +16,6 @@ import {
 	ExternalLink,
 	AlertTriangle
 } from "lucide-react";
-import { rejectStudent, StudentDetails, approveStudent, StudentListItem, getStudentDetails } from "@/actions/student";
-import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
-import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
-import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
-import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -40,6 +35,11 @@ import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { StudentApprovalStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
+import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
+import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
+import { rejectStudent, StudentDetails, approveStudent, StudentListItem, getStudentDetails } from "@/actions/student";
+import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 const PREDEFINED_REJECTION_REASONS = [
 	{
@@ -486,7 +486,7 @@ const StudentDetailsDialog = ({
 
 								{studentDetails.rejectionReason && (
 									<div className="mt-6">
-										<p className="text-sm font-medium text-muted-foreground mb-2">Rejection Reason</p>
+										<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
 										<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
 											<p className="text-sm text-destructive">{studentDetails.rejectionReason}</p>
 										</div>
@@ -588,7 +588,7 @@ const StudentDetailsDialog = ({
 								autoCapitalize="words"
 								value={rejectionReason}
 								disabled={isProcessing}
-								className="min-h-[100px] resize-none mt-2 capitalize"
+								className="min-h-25 resize-none mt-2 capitalize"
 								placeholder="Enter a detailed reason for rejection..."
 								onChange={(e) => {
 									const capitalizedValue = e.target.value
@@ -1051,22 +1051,22 @@ const StudentsTable = ({
 								<TableHead className="font-semibold h-12 text-center px-4 w-20">
 									<Skeleton className="h-4 w-12 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[200px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-50">
 									<Skeleton className="h-4 w-16 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
 									<Skeleton className="h-4 w-24 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[180px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-45">
 									<Skeleton className="h-4 w-16 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[120px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-30">
 									<Skeleton className="h-4 w-14 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[150px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
 									<Skeleton className="h-4 w-20 mx-auto" />
 								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-[100px]">
+								<TableHead className="font-semibold h-12 text-center px-4 w-25">
 									<Skeleton className="h-4 w-14 mx-auto" />
 								</TableHead>
 							</TableRow>

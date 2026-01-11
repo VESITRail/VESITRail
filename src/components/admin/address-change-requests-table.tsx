@@ -23,10 +23,6 @@ import {
 	reviewAddressChangeRequest,
 	getAddressChangeRequestDetails
 } from "@/actions/address-change-requests";
-import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
-import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
-import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
-import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -44,6 +40,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressChangeStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
+import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
+import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
+import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
+import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 const PREDEFINED_REJECTION_REASONS = [
 	{
@@ -580,7 +580,7 @@ const AddressChangeRequestDetailsDialog = ({
 
 								{requestDetails.rejectionReason && (
 									<div className="mt-6">
-										<p className="text-sm font-medium text-muted-foreground mb-2">Rejection Reason</p>
+										<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
 										<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
 											<p className="text-sm text-destructive">{requestDetails.rejectionReason}</p>
 										</div>
@@ -684,7 +684,7 @@ const AddressChangeRequestDetailsDialog = ({
 								autoCapitalize="words"
 								disabled={isRejecting}
 								value={rejectionReason}
-								className="min-h-[100px] resize-none mt-2 capitalize"
+								className="min-h-25 resize-none mt-2 capitalize"
 								placeholder="Enter a detailed reason for rejection..."
 								onChange={(e) => {
 									const capitalizedValue = e.target.value
