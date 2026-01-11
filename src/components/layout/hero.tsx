@@ -45,7 +45,7 @@ const Hero = () => {
 
 			<div className="container grid lg:grid-cols-2 gap-4 md:gap-8 items-center mx-auto max-w-7xl">
 				<div className="flex flex-col items-center gap-8 text-center lg:items-start lg:text-left px-2 md:px-8">
-					<div className="space-y-6 max-w-[540px] w-full">
+					<div className="space-y-6 max-w-135 w-full">
 						<div className="flex items-center justify-center lg:justify-start gap-3 flex-wrap">
 							<Badge variant="secondary" className="px-4 py-1 text-sm font-medium rounded-full">
 								VESIT Students Only
