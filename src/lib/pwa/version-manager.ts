@@ -48,26 +48,18 @@ class VersionManager {
 
 	async getLatestRelease(): Promise<VersionInfo | null> {
 		try {
-			const response = await fetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest`, {
-				headers: {
-					Accept: "application/vnd.github.v3+json"
-				}
-			});
+			const response = await fetch("/api/github?type=release");
 
 			if (!response.ok) {
 				throw new Error(`GitHub API error: ${response.status}`);
 			}
 
-			const data = (await response.json()) as GitHubRelease;
-
-			if (data.draft || data.prerelease) {
-				throw new Error("Latest release is draft or prerelease");
-			}
+			const data = await response.json();
 
 			const versionInfo: VersionInfo = {
 				timestamp: Date.now(),
-				tagName: data.tag_name,
-				version: data.tag_name.replace(/^v/, "")
+				tagName: data.tagName,
+				version: data.version
 			};
 
 			return versionInfo;
