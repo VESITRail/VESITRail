@@ -140,8 +140,8 @@ See [.devcontainer/README.md](.devcontainer/README.md) for more details.
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/jaykerkar0405/vesitrail.git
-   cd vesitrail
+   git clone https://github.com/VESITRail/VESITRail.git
+   cd VESITRail
    ```
 
 2. **Install dependencies**
