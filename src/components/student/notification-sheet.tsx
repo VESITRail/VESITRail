@@ -1,6 +1,5 @@
 "use client";
 
-import { Sheet, SheetTitle, SheetHeader, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
 	getNotifications,
 	type NotificationItem,
@@ -9,6 +8,7 @@ import {
 } from "@/actions/notifications";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect, useCallback } from "react";
+import { Sheet, SheetTitle, SheetHeader, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 type NotificationSheetProps = {
 	children: React.ReactNode;
@@ -94,6 +95,13 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 
 	const handleNotificationClick = async (notification: NotificationItem) => {
 		if (!session?.user?.id) return;
+
+		posthog.capture("notification_clicked", {
+			title: notification.title,
+			hasUrl: !!notification.url,
+			isRead: notification.isRead,
+			notificationId: notification.id
+		});
 
 		if (!notification.isRead) {
 			try {

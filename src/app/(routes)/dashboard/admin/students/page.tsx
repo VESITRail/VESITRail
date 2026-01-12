@@ -7,6 +7,7 @@ import {
 	type StudentPaginationParams
 } from "@/actions/student";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -91,6 +92,9 @@ const Students = () => {
 	const handleFilterChange = useCallback(
 		(newFilters: FilterParams) => {
 			setFilters((prev) => ({ ...prev, ...newFilters }));
+			posthog.capture("students_filtered", {
+				filters: newFilters.status || "all"
+			});
 			loadStudents(1, 10, newFilters.status, searchQuery);
 		},
 		[loadStudents, searchQuery]
@@ -101,6 +105,11 @@ const Students = () => {
 			setSearchQuery(query);
 
 			const timeoutId = setTimeout(() => {
+				if (query.trim()) {
+					posthog.capture("students_searched", {
+						query: query.trim()
+					});
+				}
 				loadStudents(1, 10, filters.status, query);
 			}, 300);
 

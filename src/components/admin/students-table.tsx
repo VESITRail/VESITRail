@@ -23,6 +23,7 @@ import {
 	DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "../ui/status";
 import { Input } from "../ui/input";
@@ -124,6 +125,11 @@ const StudentDetailsDialog = ({
 			});
 
 			if (result.isSuccess) {
+				posthog.capture("application_approved", {
+					student_id: student.userId,
+					application_type: "student_registration"
+				});
+
 				setStudentDetails(result.data);
 				onStudentUpdate?.(result.data);
 				setIsOpen(false);
@@ -166,6 +172,12 @@ const StudentDetailsDialog = ({
 			});
 
 			if (result.isSuccess) {
+				posthog.capture("application_rejected", {
+					student_id: student.userId,
+					rejection_reason: finalReason,
+					application_type: "student_registration"
+				});
+
 				setStudentDetails(result.data);
 				onStudentUpdate?.(result.data);
 				setShowRejectDialog(false);
@@ -1119,8 +1131,8 @@ const StudentsTable = ({
 				icon={XCircle}
 				iconColor="text-white"
 				iconBg="bg-destructive"
-				containerClassName="min-h-[63vh]"
 				title="Failed to Fetch Students"
+				containerClassName="min-h-[63vh]"
 				description="We couldn't load the student data. Please check your connection or try again shortly."
 			/>
 		);

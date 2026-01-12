@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "@/components/ui/status";
 import { Badge } from "@/components/ui/badge";
@@ -216,7 +217,11 @@ const StudentProfilePage = () => {
 					<h1 className="text-2xl font-semibold">Profile Overview</h1>
 				</span>
 
-				<Popover>
+				<Popover
+					onOpenChange={(open) => {
+						if (open) posthog.capture("profile_detail_expanded", { section_name: "profile_info" });
+					}}
+				>
 					<PopoverTrigger asChild>
 						<Button size="icon" variant="outline" className="size-10">
 							<Info className="size-5" />

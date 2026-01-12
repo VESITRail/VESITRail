@@ -30,6 +30,7 @@ import {
 	DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { format } from "date-fns";
 import { Input } from "../ui/input";
 import { toTitleCase } from "@/lib/utils";
@@ -145,6 +146,11 @@ const AddressChangeRequestDetailsDialog = ({
 					reviewedAt: new Date()
 				};
 
+				posthog.capture("address_change_approved", {
+					request_id: requestDetails.id,
+					student_id: requestDetails.student.userId
+				});
+
 				setRequestDetails(updatedRequest);
 				onRequestUpdate?.(updatedRequest);
 				setIsOpen(false);
@@ -193,6 +199,12 @@ const AddressChangeRequestDetailsDialog = ({
 					reviewedAt: new Date(),
 					rejectionReason: finalReason
 				};
+
+				posthog.capture("address_change_rejected", {
+					request_id: requestDetails.id,
+					rejection_reason: finalReason,
+					student_id: requestDetails.student.userId
+				});
 
 				setRequestDetails(updatedRequest);
 				onRequestUpdate?.(updatedRequest);

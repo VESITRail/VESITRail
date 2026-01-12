@@ -1,9 +1,7 @@
 "use client";
 
-import { getStudentPreferences, updateStudentPreferences } from "@/actions/settings";
-import { StudentPreferences, getConcessionClasses, getConcessionPeriods } from "@/actions/utils";
-import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
@@ -12,6 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConcessionClass, ConcessionPeriod } from "@/generated/zod";
 import { Save, Loader2, AlertTriangle, RefreshCcw } from "lucide-react";
+import { getStudentPreferences, updateStudentPreferences } from "@/actions/settings";
+import { StudentPreferences, getConcessionClasses, getConcessionPeriods } from "@/actions/utils";
+import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
 
 const Preferences = () => {
 	const { data, isPending } = authClient.useSession();
@@ -175,7 +176,7 @@ const Preferences = () => {
 
 				<Card>
 					<CardContent className="py-4">
-						<div className="flex flex-col items-center justify-center min-h-[200px] space-y-4">
+						<div className="flex flex-col items-center justify-center min-h-50 space-y-4">
 							<div className="size-16 rounded-full bg-destructive flex items-center justify-center">
 								<AlertTriangle className="text-white size-7" />
 							</div>
@@ -216,8 +217,11 @@ const Preferences = () => {
 							</Label>
 							<Select
 								disabled={isSubmitting}
-								onValueChange={setSelectedClassId}
 								value={selectedClassExists ? selectedClassId : undefined}
+								onValueChange={(value) => {
+									setSelectedClassId(value);
+									posthog.capture("preference_changed", { preference_type: "concession_class" });
+								}}
 							>
 								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select concession class" />
@@ -244,8 +248,11 @@ const Preferences = () => {
 							</Label>
 							<Select
 								disabled={isSubmitting}
-								onValueChange={setSelectedPeriodId}
 								value={selectedPeriodExists ? selectedPeriodId : undefined}
+								onValueChange={(value) => {
+									setSelectedPeriodId(value);
+									posthog.capture("preference_changed", { preference_type: "concession_period" });
+								}}
 							>
 								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select concession period" />
@@ -268,11 +275,7 @@ const Preferences = () => {
 					</div>
 
 					<div className="flex justify-end mt-8">
-						<Button
-							onClick={handleSave}
-							className="min-w-[140px]"
-							disabled={!hasChanges || !isFormValid || isSubmitting}
-						>
+						<Button onClick={handleSave} className="min-w-35" disabled={!hasChanges || !isFormValid || isSubmitting}>
 							{isSubmitting ? (
 								<>
 									<Loader2 className="mr-0.5 size-4 animate-spin" />

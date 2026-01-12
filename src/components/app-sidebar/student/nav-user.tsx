@@ -1,6 +1,5 @@
 "use client";
 
-import { useSidebar, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import {
 	DropdownMenu,
 	DropdownMenuItem,
@@ -18,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { LogOut, ChevronsUpDown, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSidebar, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 
 const StudentNavUser = () => {
 	const router = useRouter();
