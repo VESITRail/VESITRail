@@ -8,6 +8,7 @@ import {
 } from "next-cloudinary";
 import type { z } from "zod";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -133,7 +134,8 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 		setIsUploading(false);
 
 		try {
-			const { public_id, secure_url } = result.info as CloudinaryUploadWidgetInfo;
+			const info = result.info as CloudinaryUploadWidgetInfo;
+			const { public_id, secure_url, bytes, format } = info;
 
 			setPublicId(public_id);
 			form.clearErrors("verificationDocUrl");
@@ -141,11 +143,19 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 
 			onSubmit({ verificationDocUrl: secure_url });
 
+			posthog.capture("document_upload_success", {
+				file_size: bytes,
+				file_type: format
+			});
+
 			toast.success("Document uploaded successfully!", {
 				description: "Your verification document has been uploaded."
 			});
 		} catch (error) {
 			console.error("Upload processing error:", error);
+			posthog.capture("document_upload_failed", {
+				error: error instanceof Error ? error.message : "Unknown error"
+			});
 			toast.error("Upload processing failed", {
 				description: "Failed to process the uploaded document. Please try again."
 			});
@@ -155,6 +165,9 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 	const handleUploadError = (error: CloudinaryUploadWidgetError | null) => {
 		setIsUploading(false);
 		console.error("Upload error:", error);
+		posthog.capture("document_upload_failed", {
+			error: error || "Upload error"
+		});
 		toast.error("Failed to upload document", {
 			description: "Please try again with a valid PDF file."
 		});
@@ -198,6 +211,8 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 						preferredConcessionPeriod: ""
 					});
 				}
+
+				posthog.capture("document_deleted");
 
 				toast.dismiss(deleteToastId);
 				toast.success("Document removed successfully!", {
@@ -493,8 +508,11 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 												<CldUploadButton
 													onError={handleUploadError}
 													onSuccess={handleUploadSuccess}
-													onUpload={() => setIsUploading(true)}
 													className="absolute inset-0 cursor-pointer opacity-0"
+													onUpload={() => {
+														setIsUploading(true);
+														posthog.capture("document_upload_started");
+													}}
 													options={{
 														maxFiles: 1,
 														resourceType: "raw",

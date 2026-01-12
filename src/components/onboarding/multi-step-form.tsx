@@ -1,10 +1,8 @@
 "use client";
 
-import { RefreshCw, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle } from "lucide-react";
-import { Review, Document, TravelInfo, PersonalInfo, AcademicInfo } from "./steps";
-import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 import { z } from "zod";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { isFailure } from "@/lib/result";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -14,6 +12,9 @@ import { useState, useRef, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getExistingStudentData } from "@/actions/onboarding";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
+import { Review, Document, TravelInfo, PersonalInfo, AcademicInfo } from "./steps";
+import { RefreshCw, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 
 const MultiStepForm = () => {
 	const totalSteps = 5;
@@ -56,6 +57,10 @@ const MultiStepForm = () => {
 
 				if (isFailure(result)) {
 					console.error("Failed to load existing data:", result.error);
+					posthog.capture("onboarding_data_load_failed", {
+						error: result.error,
+						user_id: session.user.id
+					});
 					setIsLoading(false);
 					return;
 				}
@@ -89,10 +94,28 @@ const MultiStepForm = () => {
 							reason: result.data.rejectionReason || undefined,
 							submissionCount: result.data.submissionCount || undefined
 						});
+						posthog.capture("onboarding_resubmission_started", {
+							user_id: session.user.id,
+							submission_count: result.data.submissionCount,
+							rejection_reason: result.data.rejectionReason
+						});
+					} else {
+						posthog.capture("onboarding_existing_data_loaded", {
+							user_id: session.user.id,
+							status: result.data.status
+						});
 					}
+				} else {
+					posthog.capture("onboarding_started", {
+						user_id: session.user.id
+					});
 				}
 			} catch (error) {
 				console.error("Error loading existing data:", error);
+				posthog.capture("onboarding_data_load_error", {
+					user_id: session.user.id,
+					error: error instanceof Error ? error.message : "Unknown error"
+				});
 				toast.error("Loading Error", {
 					description: "Failed to load your previous application data."
 				});
@@ -195,6 +218,13 @@ const MultiStepForm = () => {
 						break;
 				}
 
+				posthog.capture("onboarding_validation_failed", {
+					step: step,
+					step_name: stepName,
+					error_count: Object.keys(newErrors).length,
+					fields_with_errors: Object.keys(newErrors)
+				});
+
 				toast.error("Required Fields Missing", {
 					description: `Please complete all required fields in ${stepName}.`
 				});
@@ -206,11 +236,19 @@ const MultiStepForm = () => {
 
 	const handleNext = () => {
 		if (validateStep(currentStep)) {
+			posthog.capture("onboarding_step_completed", {
+				step: currentStep,
+				step_name: steps[currentStep - 1].title
+			});
 			setCurrentStep((prev) => prev + 1);
 		}
 	};
 
 	const handlePrevious = () => {
+		posthog.capture("onboarding_step_back", {
+			from_step: currentStep,
+			to_step: currentStep - 1
+		});
 		setCurrentStep((prev) => prev - 1);
 	};
 
@@ -270,7 +308,7 @@ const MultiStepForm = () => {
 				<div className="space-y-6">
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 						{[1, 2, 3].map((item) => (
-							<div key={item} className="space-y-1 h-[78px]">
+							<div key={item} className="space-y-1 h-19.5">
 								<div className="block">
 									<Skeleton className="h-4 w-20" />
 								</div>
@@ -282,7 +320,7 @@ const MultiStepForm = () => {
 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
 						{[1, 2].map((item) => (
-							<div key={item} className="space-y-1 h-[78px]">
+							<div key={item} className="space-y-1 h-19.5">
 								<div className="block">
 									<Skeleton className="h-4 w-16" />
 								</div>

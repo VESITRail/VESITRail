@@ -1,7 +1,5 @@
 "use client";
 
-import { getReviewData, submitOnboarding, type Review as ReviewType } from "@/actions/onboarding";
-import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 import {
 	User,
 	Send,
@@ -27,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { z } from "zod";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
@@ -36,9 +35,11 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { useCallback, useEffect, useState, useRef } from "react";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
+import { useCallback, useEffect, useState, useRef } from "react";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
+import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
+import { getReviewData, submitOnboarding, type Review as ReviewType } from "@/actions/onboarding";
 
 type ReviewProps = {
 	defaultValues: z.infer<typeof OnboardingSchema>;
@@ -180,6 +181,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 	);
 
 	const handleSubmit = async () => {
+		posthog.capture("onboarding_submit_initiated");
+
 		setIsSubmitting(true);
 		setShowConfirmDialog(false);
 
@@ -231,9 +234,24 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 			const result = await submissionPromise;
 
 			if (result.isSuccess) {
+				posthog.capture("onboarding_submitted_success", {
+					class: reviewData.class.code,
+					user_id: session.data.user.id,
+					station: reviewData.station.name,
+					concession_class: reviewData.concessionClass.name,
+					concession_period: reviewData.concessionPeriod.name
+				});
 				router.push("/dashboard/student");
+			} else {
+				posthog.capture("onboarding_submitted_failed", {
+					error: result instanceof Error ? result.message : "Unknown error"
+				});
 			}
 		} catch (error) {
+			posthog.capture("onboarding_submit_error", {
+				error: error instanceof Error ? error.message : "Unknown error"
+			});
+
 			if (error instanceof Error) {
 				console.error("Submission Failed:", error.message);
 			} else {
@@ -451,8 +469,8 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 					<Button
 						size="lg"
 						disabled={isSubmitting}
+						className="w-full sm:w-auto min-w-50"
 						onClick={() => setShowConfirmDialog(true)}
-						className="w-full sm:w-auto min-w-[200px]"
 					>
 						{isSubmitting ? (
 							<>
