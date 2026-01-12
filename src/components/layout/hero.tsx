@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import posthog from "posthog-js";
 import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,10 @@ const Hero = () => {
 	const session = authClient.useSession();
 
 	const handleGoogleAuth = async () => {
+		posthog.capture("auth_google_initiated", {
+			location: "hero_section"
+		});
+
 		await authClient.signIn.social({
 			provider: "google",
 			callbackURL: "/dashboard",
@@ -27,10 +32,14 @@ const Hero = () => {
 		const initOneTap = async () => {
 			if (!session.isPending && !session.data?.user) {
 				try {
+					posthog.capture("auth_onetap_initialized");
 					await authClient.oneTap({
 						callbackURL: "/dashboard"
 					});
 				} catch (error) {
+					posthog.capture("auth_onetap_failed", {
+						error: error instanceof Error ? error.message : "Unknown error"
+					});
 					console.error("One Tap initialization failed:", error);
 				}
 			}

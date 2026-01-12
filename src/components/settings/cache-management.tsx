@@ -12,6 +12,7 @@ import {
 	AlertDialogDescription
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { serviceWorkerManager } from "@/lib/pwa";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,6 +66,7 @@ const CacheManagement = () => {
 		try {
 			await clearCache();
 			setCacheInfo([]);
+			posthog.capture("cache_cleared");
 
 			toast.success("Cache Cleared", {
 				duration: 2000,

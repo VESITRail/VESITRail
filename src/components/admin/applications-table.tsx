@@ -29,6 +29,7 @@ import {
 	getConcessionApplicationDetails
 } from "@/actions/concession";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "../ui/status";
 import { toTitleCase } from "@/lib/utils";
@@ -487,6 +488,12 @@ const ApplicationsTable = ({
 					status: "Approved" as ApplicationStatus
 				};
 
+				posthog.capture("application_approved", {
+					booklet_id: bookletId,
+					application_id: applicationId,
+					application_type: selectedApplication?.applicationType
+				});
+
 				updateLocalApplication(updatedApplication);
 				setSelectedApplication(null);
 
@@ -532,6 +539,12 @@ const ApplicationsTable = ({
 					rejectionReason: finalReason,
 					status: "Rejected" as ApplicationStatus
 				};
+
+				posthog.capture("application_rejected", {
+					rejection_reason: finalReason,
+					application_id: selectedApplication.id,
+					application_type: selectedApplication.applicationType
+				});
 
 				updateLocalApplication(updatedApplication);
 				setShowRejectDialog(false);

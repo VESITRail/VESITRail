@@ -9,6 +9,7 @@ import {
 	DialogDescription
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { Switch } from "../ui/switch";
 import { useFcm } from "@/hooks/use-fcm";
 import { Info, Lock } from "lucide-react";
@@ -76,6 +77,7 @@ const NotificationPreferences = () => {
 		if (type === "push") {
 			const previousValue = pushNotificationsEnabled;
 			setPushNotificationsEnabled(enabled);
+			posthog.capture("notification_preference_toggled", { preference_type: "push", enabled });
 
 			if (!enabled) {
 				toast.promise(
@@ -133,6 +135,7 @@ const NotificationPreferences = () => {
 		} else {
 			const previousValue = emailNotificationsEnabled;
 			setEmailNotificationsEnabled(enabled);
+			posthog.capture("notification_preference_toggled", { preference_type: "email", enabled });
 
 			toast.promise(
 				updateNotificationPreferences(data.user.id, { emailEnabled: enabled }).then((result) => {
