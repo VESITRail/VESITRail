@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { z } from "zod";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import Status from "@/components/ui/status";
@@ -382,7 +383,7 @@ const AddressChangePage = () => {
 
 	const handleUploadSuccess = (result: CloudinaryUploadWidgetResults) => {
 		try {
-			const { public_id, secure_url } = result.info as CloudinaryUploadWidgetInfo;
+			const { public_id, secure_url, bytes, format } = result.info as CloudinaryUploadWidgetInfo;
 
 			setPublicId(public_id);
 
@@ -390,6 +391,11 @@ const AddressChangePage = () => {
 				shouldDirty: true,
 				shouldTouch: true,
 				shouldValidate: true
+			});
+
+			posthog.capture("address_change_document_uploaded", {
+				file_size: bytes,
+				file_format: format
 			});
 
 			toast.success("Document uploaded successfully!", {
@@ -444,6 +450,8 @@ const AddressChangePage = () => {
 					shouldTouch: true,
 					shouldValidate: true
 				});
+
+				posthog.capture("address_change_document_deleted");
 
 				toast.dismiss(deleteToastId);
 				toast.success("Document removed successfully!", {
@@ -549,6 +557,8 @@ const AddressChangePage = () => {
 			return;
 		}
 
+		posthog.capture("address_change_submit_initiated");
+
 		setIsSubmitting(true);
 		setShowConfirmDialog(false);
 
@@ -582,6 +592,14 @@ const AddressChangePage = () => {
 			const result = await submitPromise;
 
 			if (result.isSuccess) {
+				const oldStationObj = stations.find((s) => s.id === student.station.id);
+				const newStationObj = stations.find((s) => s.id === formData.newStationId);
+
+				posthog.capture("address_change_submitted_success", {
+					old_station: oldStationObj ? `${oldStationObj.name} (${oldStationObj.code})` : student.station.id,
+					new_station: newStationObj ? `${newStationObj.name} (${newStationObj.code})` : formData.newStationId
+				});
+
 				setCanApply(false);
 				setStatus({
 					icon: Clock,
@@ -592,6 +610,8 @@ const AddressChangePage = () => {
 						"Your address change request is currently being reviewed. Please wait for approval before submitting a new request."
 				});
 			} else {
+				posthog.capture("address_change_submitted_failed");
+
 				setStatus({
 					icon: XCircle,
 					iconColor: "text-white",
@@ -607,6 +627,8 @@ const AddressChangePage = () => {
 				});
 			}
 		} catch (error) {
+			posthog.capture("address_change_submit_error");
+
 			if (error instanceof Error) {
 				console.error("Unexpected error:", error.message);
 			} else {
@@ -1023,6 +1045,10 @@ const AddressChangePage = () => {
 																					shouldValidate: true
 																				});
 
+																				posthog.capture("address_change_station_selected", {
+																					station_value: `${station.name} (${station.code})`
+																				});
+
 																				setOpen(false);
 																			}}
 																			className="cursor-pointer"
@@ -1208,8 +1234,11 @@ const AddressChangePage = () => {
 																	<CldUploadButton
 																		onError={handleUploadError}
 																		onSuccess={handleUploadSuccess}
-																		onUpload={() => setIsUploading(true)}
 																		className="absolute inset-0 cursor-pointer opacity-0 z-10"
+																		onUpload={() => {
+																			posthog.capture("address_change_document_upload_started");
+																			setIsUploading(true);
+																		}}
 																		options={{
 																			maxFiles: 1,
 																			resourceType: "raw",

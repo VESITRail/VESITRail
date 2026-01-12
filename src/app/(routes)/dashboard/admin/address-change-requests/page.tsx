@@ -7,6 +7,7 @@ import {
 	PaginatedAddressChangeRequestsResult
 } from "@/actions/address-change-requests";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -90,6 +91,9 @@ const AddressChangeRequests = () => {
 	const handleFilterChange = useCallback(
 		(newFilters: FilterParams) => {
 			setFilters((prev) => ({ ...prev, ...newFilters }));
+			posthog.capture("address_change_filtered", {
+				filter: newFilters.status || "all"
+			});
 			loadAddressChangeRequests(1, 10, newFilters.status, searchQuery);
 		},
 		[loadAddressChangeRequests, searchQuery]
@@ -100,6 +104,11 @@ const AddressChangeRequests = () => {
 			setSearchQuery(query);
 
 			const timeoutId = setTimeout(() => {
+				if (query.trim()) {
+					posthog.capture("address_change_searched", {
+						query: query.trim()
+					});
+				}
 				loadAddressChangeRequests(1, 10, filters.status, query);
 			}, 300);
 

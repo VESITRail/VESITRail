@@ -1,14 +1,15 @@
 "use client";
 
-import { PaginatedResult, AdminApplication, getAllApplications, AdminApplicationParams } from "@/actions/concession";
-import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { toTitleCase } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useState, useCallback, useEffect } from "react";
 import ApplicationsTable from "@/components/admin/applications-table";
+import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
+import { PaginatedResult, AdminApplication, getAllApplications, AdminApplicationParams } from "@/actions/concession";
 
 const Admin = () => {
 	const { data, isPending } = authClient.useSession();
@@ -98,6 +99,19 @@ const Admin = () => {
 			if (filters.applicationType !== undefined) setTypeFilter(filters.applicationType);
 			if (filters.searchQuery !== undefined) setSearchQuery(filters.searchQuery);
 
+			if (filters.status !== undefined || filters.applicationType !== undefined) {
+				posthog.capture("admin_applications_filtered", {
+					status_filter: filters.status || statusFilter,
+					type_filter: filters.applicationType || typeFilter
+				});
+			}
+
+			if (filters.searchQuery !== undefined) {
+				posthog.capture("admin_applications_searched", {
+					search_query: filters.searchQuery
+				});
+			}
+
 			loadApplications(1, filters);
 		},
 		[loadApplications]
@@ -157,7 +171,7 @@ const Admin = () => {
 					<h1 className="text-2xl font-semibold">
 						Welcome,{" "}
 						{isPending ? (
-							<Skeleton className="inline-block align-middle h-[1.75rem] w-[8rem]" />
+							<Skeleton className="inline-block align-middle h-7 w-32" />
 						) : (
 							toTitleCase(data?.user?.name ?? "Admin")
 						)}

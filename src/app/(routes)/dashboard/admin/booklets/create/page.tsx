@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,6 +92,12 @@ const CreateBookletPage = () => {
 			return;
 		}
 
+		posthog.capture("booklet_create_initiated", {
+			anchor_x: formData.anchorX,
+			anchor_y: formData.anchorY,
+			serial_start_number: formData.serialStartNumber.toUpperCase().trim()
+		});
+
 		setIsCreating(true);
 
 		const createPromise = async () => {
@@ -100,6 +107,11 @@ const CreateBookletPage = () => {
 			});
 
 			if (result.isSuccess) {
+				const serialEnd = calculateSerialEndNumber(formData.serialStartNumber);
+				posthog.capture("booklet_created_success", {
+					serial_range: `${formData.serialStartNumber.toUpperCase().trim()} - ${serialEnd}`
+				});
+
 				setFormData({
 					anchorX: 0,
 					anchorY: 0,
@@ -109,7 +121,11 @@ const CreateBookletPage = () => {
 				router.push("/dashboard/admin/booklets");
 				return result.data;
 			} else {
-				throw new Error(result.error.message || "Failed to create booklet");
+				const errorMsg = result.error.message || "Failed to create booklet";
+				posthog.capture("booklet_create_failed", {
+					error: errorMsg
+				});
+				throw new Error(errorMsg);
 			}
 		};
 

@@ -31,6 +31,7 @@ import {
 	AlertDialogDescription
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
@@ -322,6 +323,16 @@ const ConcessionApplicationForm = () => {
 			return;
 		}
 
+		const selectedClass = concessionClasses.find((c) => c.id === selectedConcessionClass);
+		const selectedPeriod = concessionPeriods.find((p) => p.id === selectedConcessionPeriod);
+
+		posthog.capture("concession_submit_initiated", {
+			class: selectedClass?.name,
+			period: selectedPeriod?.name,
+			station: student.station.name,
+			application_type: selectedApplicationType
+		});
+
 		setIsSubmitting(true);
 		setShowConfirmDialog(false);
 
@@ -355,8 +366,20 @@ const ConcessionApplicationForm = () => {
 			const result = await submissionPromise;
 
 			if (result.isSuccess) {
+				posthog.capture("concession_submitted_success", {
+					class: selectedClass?.name,
+					period: selectedPeriod?.name,
+					station: student.station.name,
+					application_type: selectedApplicationType
+				});
 				router.push("/dashboard/student");
 			} else {
+				posthog.capture("concession_submitted_failed", {
+					class: selectedClass?.name,
+					period: selectedPeriod?.name,
+					station: student.station.name,
+					application_type: selectedApplicationType
+				});
 				const isResubmission = lastApplication?.status === "Rejected";
 				toast.error(isResubmission ? "Resubmission Failed" : "Submission Failed", {
 					description: isResubmission
@@ -365,6 +388,9 @@ const ConcessionApplicationForm = () => {
 				});
 			}
 		} catch (error) {
+			posthog.capture("concession_submit_error", {
+				error: error instanceof Error ? error.message : String(error)
+			});
 			console.error("Submission error:", error);
 		} finally {
 			setIsSubmitting(false);
@@ -569,7 +595,12 @@ const ConcessionApplicationForm = () => {
 									<div className="relative">
 										<Select
 											value={selectedApplicationType}
-											onValueChange={(value: ConcessionApplicationType) => setSelectedApplicationType(value)}
+											onValueChange={(value: ConcessionApplicationType) => {
+												posthog.capture("concession_application_type_changed", {
+													application_type: value
+												});
+												setSelectedApplicationType(value);
+											}}
 										>
 											<SelectTrigger className="w-full h-10!">
 												<SelectValue />
@@ -670,7 +701,14 @@ const ConcessionApplicationForm = () => {
 								</Label>
 
 								<Select
-									onValueChange={setSelectedConcessionClass}
+									onValueChange={(value) => {
+										const selectedClass = concessionClasses.find((c) => c.id === value);
+										posthog.capture("concession_form_option_changed", {
+											field_name: "class",
+											value: selectedClass?.name
+										});
+										setSelectedConcessionClass(value);
+									}}
 									value={selectedClassExists ? selectedConcessionClass : undefined}
 								>
 									<SelectTrigger className="w-full h-10!">
@@ -693,7 +731,14 @@ const ConcessionApplicationForm = () => {
 								</Label>
 
 								<Select
-									onValueChange={setSelectedConcessionPeriod}
+									onValueChange={(value) => {
+										const selectedPeriod = concessionPeriods.find((p) => p.id === value);
+										posthog.capture("concession_form_option_changed", {
+											field_name: "period",
+											value: selectedPeriod?.name
+										});
+										setSelectedConcessionPeriod(value);
+									}}
 									value={selectedPeriodExists ? selectedConcessionPeriod : undefined}
 								>
 									<SelectTrigger className="w-full h-10!">

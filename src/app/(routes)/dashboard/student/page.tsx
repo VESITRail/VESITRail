@@ -1,9 +1,8 @@
 "use client";
 
-import { getConcessions, type Concession, type PaginatedResult, type PaginationParams } from "@/actions/concession";
-import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
 import Link from "next/link";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { PlusCircle } from "lucide-react";
 import { toTitleCase } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
@@ -13,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { useEffect, useState, useCallback } from "react";
 import { Small, Heading3 } from "@/components/ui/typography";
 import ApplicationsTable from "@/components/student/applications-table";
+import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
+import { getConcessions, type Concession, type PaginatedResult, type PaginationParams } from "@/actions/concession";
 
 type FilterParams = {
 	status?: ConcessionApplicationStatusType | "all";
@@ -64,6 +65,14 @@ const Student = () => {
 
 				if (result.isSuccess) {
 					setPaginationData(result.data);
+					if (result.data.data.length > 0) {
+						posthog.capture("application_status_viewed", {
+							currentPage: page,
+							typeFilter: params.typeFilter || "all",
+							totalApplications: result.data.totalCount,
+							statusFilter: params.statusFilter || "all"
+						});
+					}
 				} else {
 					setIsError(true);
 					console.error("Failed to fetch concessions:", result.error);
@@ -115,7 +124,7 @@ const Student = () => {
 					<Heading3 className="text-2xl font-semibold">
 						Welcome,{" "}
 						{isPending ? (
-							<Skeleton className="inline-block align-middle h-[1.75rem] w-[8rem]" />
+							<Skeleton className="inline-block align-middle h-7 w-32" />
 						) : (
 							toTitleCase(data?.user?.name ?? "Student")
 						)}

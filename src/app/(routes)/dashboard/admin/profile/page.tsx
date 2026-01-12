@@ -1,10 +1,7 @@
 "use client";
 
-import { User, Info, Users, MapPin, XCircle, FileText, CheckCircle, AlertTriangle } from "lucide-react";
-import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
 import { toast } from "sonner";
+import { format } from "date-fns";
 import Status from "@/components/ui/status";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
@@ -15,6 +12,9 @@ import { useCallback, useEffect, useState } from "react";
 import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { getAdminProfile, AdminProfile } from "@/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
+import { User, Info, Users, MapPin, XCircle, FileText, CheckCircle, AlertTriangle } from "lucide-react";
 
 const AdminProfilePage = () => {
 	const session = authClient.useSession();
