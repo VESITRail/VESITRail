@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { messaging } from "@/config/firebase";
 import { FcmPlatformType } from "@/generated/zod";
 import { useCallback, useEffect, useState } from "react";
@@ -49,6 +50,12 @@ export const useFcm = (userId?: string) => {
 			try {
 				const deviceId = generateDeviceId();
 
+				posthog.capture("fcm_token_registration_attempted", {
+					userId,
+					deviceId,
+					platform: getPlatform()
+				});
+
 				const result = await saveFcmToken({
 					token,
 					userId,
@@ -58,23 +65,47 @@ export const useFcm = (userId?: string) => {
 
 				if (!result.isSuccess) {
 					console.error("Failed to save FCM token:", result.error);
+
+					posthog.capture("fcm_token_registration_failed", {
+						userId,
+						deviceId,
+						platform: getPlatform(),
+						error: result.error.message
+					});
+
 					if (!hasShownToasts) {
 						setHasShownToasts(true);
 						toast.error("Notification Setup Failed", {
 							description: "Could not enable notifications. Please try again later"
 						});
 					}
+
 					return false;
 				}
+
+				posthog.capture("fcm_token_registered", {
+					userId,
+					deviceId,
+					platform: getPlatform()
+				});
+
 				return true;
 			} catch (error) {
 				console.error("Notification Setup Failed:", error);
+
+				posthog.capture("fcm_token_registration_failed", {
+					userId,
+					platform: getPlatform(),
+					error: error instanceof Error ? error.message : "Unknown error"
+				});
+
 				if (!hasShownToasts) {
 					setHasShownToasts(true);
 					toast.error("Notification Setup Failed", {
 						description: "An unexpected error occurred while setting up notifications"
 					});
 				}
+
 				return false;
 			}
 		},
@@ -112,18 +143,25 @@ export const useFcm = (userId?: string) => {
 				return false;
 			}
 
+			posthog.capture("notification_permission_requested", { userId });
+
 			const permission = await Notification.requestPermission();
 			setState((prev) => ({ ...prev, permission }));
 
 			if (permission === "granted") {
+				posthog.capture("notification_permission_granted", { userId });
+
 				if (!hasShownToasts) {
 					setHasShownToasts(true);
 					toast.success("Notifications Enabled", {
 						description: "You'll now receive push notifications for important updates"
 					});
 				}
+
 				return true;
 			} else if (permission === "denied") {
+				posthog.capture("notification_permission_denied", { userId });
+
 				if (userId) {
 					await removeFcmToken(userId);
 				}
@@ -139,6 +177,7 @@ export const useFcm = (userId?: string) => {
 						description: "You can enable notifications later from your browser settings"
 					});
 				}
+
 				setState((prev) => ({
 					...prev,
 					loading: false,
@@ -173,6 +212,12 @@ export const useFcm = (userId?: string) => {
 		try {
 			onMessage(messagingInstance, (payload) => {
 				const { title, body } = payload.notification || {};
+
+				posthog.capture("notification_received", {
+					hasBody: !!body,
+					title: title || "No title",
+					messageId: payload.messageId
+				});
 
 				if (title && body) {
 					toast.info(title, {
