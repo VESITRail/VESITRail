@@ -7,8 +7,19 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 const CACHE_DURATIONS = {
 	stars: 3600,
-	release: 1800
+	release: 1800,
+	contributors: false as false
 };
+
+const BOT_PATTERNS = [
+	"bot",
+	"[bot]",
+	"renovate",
+	"dependabot",
+	"greenkeeper",
+	"github-actions",
+	"semantic-release-bot"
+];
 
 type GitHubRepoResponse = {
 	stargazers_count: number;
@@ -28,6 +39,28 @@ type ReleaseData = {
 	changelog: string;
 	publishedAt: string;
 };
+
+type GitHubContributor = {
+	id: number;
+	type: string;
+	login: string;
+	html_url: string;
+	avatar_url: string;
+	contributions: number;
+};
+
+type Contributor = {
+	avatar: string;
+	commits: number;
+	username: string;
+	profileUrl: string;
+};
+
+function isBot(username: string, type: string): boolean {
+	if (type === "Bot") return true;
+	const lowerUsername = username.toLowerCase();
+	return BOT_PATTERNS.some((pattern) => lowerUsername.includes(pattern));
+}
 
 const fetchGitHub = async <T>(endpoint: string): Promise<T> => {
 	const headers: Record<string, string> = {
@@ -49,7 +82,7 @@ const fetchGitHub = async <T>(endpoint: string): Promise<T> => {
 	return response.json();
 };
 
-const getCachedStars = unstable_cache(
+export const getCachedStars = unstable_cache(
 	async (): Promise<number> => {
 		const data = await fetchGitHub<GitHubRepoResponse>("");
 		return data.stargazers_count;
@@ -61,7 +94,7 @@ const getCachedStars = unstable_cache(
 	}
 );
 
-const getCachedRelease = unstable_cache(
+export const getCachedRelease = unstable_cache(
 	async (): Promise<ReleaseData | null> => {
 		const data = await fetchGitHub<GitHubReleaseResponse>("/releases/latest");
 
@@ -80,6 +113,34 @@ const getCachedRelease = unstable_cache(
 	{
 		tags: ["github-release"],
 		revalidate: CACHE_DURATIONS.release
+	}
+);
+
+export const getCachedContributors = unstable_cache(
+	async (): Promise<Contributor[]> => {
+		try {
+			const data = await fetchGitHub<GitHubContributor[]>("/contributors?per_page=100");
+
+			const contributors = data
+				.filter((contributor) => !isBot(contributor.login, contributor.type))
+				.map((contributor) => ({
+					username: contributor.login,
+					avatar: contributor.avatar_url,
+					profileUrl: contributor.html_url,
+					commits: contributor.contributions
+				}))
+				.sort((a, b) => b.commits - a.commits);
+
+			return contributors;
+		} catch (error) {
+			console.error("Failed to fetch GitHub contributors:", error);
+			return [];
+		}
+	},
+	["github-contributors"],
+	{
+		tags: ["github-contributors"],
+		revalidate: CACHE_DURATIONS.contributors
 	}
 );
 
@@ -111,6 +172,16 @@ export async function GET(request: NextRequest) {
 			return NextResponse.json(releaseData, {
 				headers: {
 					"Cache-Control": `public, s-maxage=${CACHE_DURATIONS.release}, stale-while-revalidate=${CACHE_DURATIONS.release * 2}`
+				}
+			});
+		}
+
+		if (type === "contributors") {
+			const contributors = await getCachedContributors();
+
+			return NextResponse.json(contributors, {
+				headers: {
+					"Cache-Control": "public, immutable"
 				}
 			});
 		}
