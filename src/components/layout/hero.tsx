@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import posthog from "posthog-js";
-import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
@@ -27,26 +26,6 @@ const Hero = () => {
 			newUserCallbackURL: "/onboarding"
 		});
 	};
-
-	useEffect(() => {
-		const initOneTap = async () => {
-			if (!session.isPending && !session.data?.user) {
-				try {
-					posthog.capture("auth_onetap_initialized");
-					await authClient.oneTap({
-						callbackURL: "/dashboard"
-					});
-				} catch (error) {
-					posthog.capture("auth_onetap_failed", {
-						error: error instanceof Error ? error.message : "Unknown error"
-					});
-					console.error("One Tap initialization failed:", error);
-				}
-			}
-		};
-
-		initOneTap();
-	}, [session.isPending, session.data?.user]);
 
 	return (
 		<section className="relative flex min-h-[calc(100vh-4rem)] flex-col justify-center px-4 md:px-8 bg-background overflow-x-hidden py-12">
