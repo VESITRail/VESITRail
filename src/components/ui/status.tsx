@@ -49,7 +49,7 @@ const Status = ({
 							</div>
 
 							<div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse" />
-							<div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 blur-xl -z-10" />
+							<div className="absolute inset-0 rounded-full bg-linear-to-r from-primary/10 to-primary/5 blur-xl -z-10" />
 						</div>
 
 						<div className="space-y-3">

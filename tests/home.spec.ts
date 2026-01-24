@@ -9,7 +9,7 @@ test("should navigate through main navigation links", async ({ page }) => {
 
 	await page.getByLabel("Main").getByRole("link", { name: "Home" }).click();
 	await page.getByLabel("Main").getByRole("link", { name: "Guide" }).click();
-	await page.getByLabel("Main").getByRole("link", { name: "Developers" }).click();
+	await page.getByLabel("Main").getByRole("link", { name: "Contributors" }).click();
 	await page.getByLabel("Main").getByRole("link", { name: "Contact" }).click();
 });
 
@@ -46,6 +46,6 @@ test("should navigate through footer links", async ({ page }) => {
 
 	await page.getByLabel("Footer Navigation").getByRole("link", { name: "Home" }).click();
 	await page.getByLabel("Footer Navigation").getByRole("link", { name: "Guide" }).click();
-	await page.getByLabel("Footer Navigation").getByRole("link", { name: "Developers" }).click();
+	await page.getByLabel("Footer Navigation").getByRole("link", { name: "Contributors" }).click();
 	await page.getByLabel("Footer Navigation").getByRole("link", { name: "Contact" }).click();
 });

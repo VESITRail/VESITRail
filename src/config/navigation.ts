@@ -19,8 +19,8 @@ export const navigationItems: NavigationItem[] = [
 	},
 	{
 		icon: Users,
-		label: "Developers",
-		href: "/#developers"
+		label: "Contributors",
+		href: "/#contributors"
 	},
 	{
 		icon: Mail,

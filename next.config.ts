@@ -11,10 +11,18 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
+	skipTrailingSlashRedirect: true,
 	turbopack: {
 		root: path.resolve(__dirname)
 	},
-	skipTrailingSlashRedirect: true,
+	images: {
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "avatars.githubusercontent.com"
+			}
+		]
+	},
 	async rewrites() {
 		return [
 			{
