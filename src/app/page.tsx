@@ -3,8 +3,8 @@ import Guide from "@/components/layout/guide";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import Contact from "@/components/layout/contact";
-import Developers from "@/components/layout/developers";
 import ScrollToTop from "@/components/utils/scroll-to-top";
+import Contributors from "@/components/layout/contributors";
 import FloatingGithubButton from "@/components/utils/floating-github-button";
 
 const Home = () => {
@@ -13,7 +13,7 @@ const Home = () => {
 			<Header />
 			<Hero />
 			<Guide />
-			<Developers />
+			<Contributors />
 			<Contact />
 			<Footer />
 			<FloatingGithubButton />

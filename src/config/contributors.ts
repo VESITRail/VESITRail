@@ -1,4 +1,4 @@
-interface Developer {
+interface Contributor {
 	name: string;
 	year: string;
 	class: string;
@@ -7,7 +7,7 @@ interface Developer {
 	linkedin: string;
 }
 
-export const developers: Developer[] = [
+export const contributors: Contributor[] = [
 	{
 		year: "TE",
 		class: "D15A",
