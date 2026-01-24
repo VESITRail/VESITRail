@@ -1,27 +1,29 @@
+import { unstable_cache } from "next/cache";
+
 interface GitHubContributor {
-	login: string;
 	id: number;
-	avatar_url: string;
-	html_url: string;
-	contributions: number;
 	type: string;
+	login: string;
+	html_url: string;
+	avatar_url: string;
+	contributions: number;
 }
 
 export interface Contributor {
-	username: string;
 	avatar: string;
-	profileUrl: string;
 	commits: number;
+	username: string;
+	profileUrl: string;
 }
 
 const BOT_PATTERNS = [
 	"bot",
 	"[bot]",
-	"dependabot",
-	"github-actions",
-	"semantic-release-bot",
 	"renovate",
-	"greenkeeper"
+	"dependabot",
+	"greenkeeper",
+	"github-actions",
+	"semantic-release-bot"
 ];
 
 function isBot(username: string, type: string): boolean {
@@ -30,9 +32,9 @@ function isBot(username: string, type: string): boolean {
 	return BOT_PATTERNS.some((pattern) => lowerUsername.includes(pattern));
 }
 
-export async function fetchGitHubContributors(): Promise<Contributor[]> {
-	const token = process.env.GITHUB_TOKEN;
+async function fetchContributorsFromGitHub(): Promise<Contributor[]> {
 	const repo = "VESITRail/VESITRail";
+	const token = process.env.GITHUB_TOKEN;
 
 	const headers: HeadersInit = {
 		Accept: "application/vnd.github.v3+json",
@@ -42,7 +44,7 @@ export async function fetchGitHubContributors(): Promise<Contributor[]> {
 	try {
 		const response = await fetch(`https://api.github.com/repos/${repo}/contributors?per_page=100`, {
 			headers,
-			next: { revalidate: false }
+			cache: "force-cache"
 		});
 
 		if (!response.ok) {
@@ -67,3 +69,7 @@ export async function fetchGitHubContributors(): Promise<Contributor[]> {
 		return [];
 	}
 }
+
+export const fetchGitHubContributors = unstable_cache(fetchContributorsFromGitHub, ["github-contributors"], {
+	revalidate: false
+});
