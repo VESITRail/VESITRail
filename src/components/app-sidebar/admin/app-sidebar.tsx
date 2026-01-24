@@ -30,7 +30,7 @@ const data = {
 		{
 			icon: MessageSquare,
 			title: "Feedback Responses",
-			url: "https://docs.google.com/spreadsheets/d/1260EnvlbUiM1U6h63-u8MMFAfbmekcp7pabsW_QJOLc/edit"
+			url: "https://docs.google.com/spreadsheets/d/1yQUxc7IwFh7xk4O1gZXHavHm1RoC6t0EAyPXfLQa5q8/edit?usp=sharing"
 		}
 	],
 	navMain: [

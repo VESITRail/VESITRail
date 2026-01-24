@@ -35,7 +35,7 @@ const data = {
 		{
 			icon: Send,
 			title: "Feedback",
-			url: "https://forms.gle/YhMtdbaHX19YieBQ9"
+			url: "https://forms.gle/GCVuSnV4QRDt5Mu5A"
 		}
 	],
 	navMain: [
