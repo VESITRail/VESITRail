@@ -7,7 +7,7 @@ import ScrollToTop from "@/components/utils/scroll-to-top";
 import Contributors from "@/components/layout/contributors";
 import FloatingGithubButton from "@/components/utils/floating-github-button";
 
-const Home = () => {
+const Home = async () => {
 	return (
 		<main>
 			<Header />
