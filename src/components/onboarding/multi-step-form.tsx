@@ -477,7 +477,7 @@ const MultiStepForm = () => {
 				</div>
 			)}
 
-			<CardContent>
+			<CardContent className="mt-8">
 				{renderStep()}
 
 				{currentStep != totalSteps && (
