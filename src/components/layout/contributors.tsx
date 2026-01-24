@@ -1,13 +1,47 @@
+"use client";
+
 import Link from "next/link";
+import { AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import Status from "@/components/ui/status";
-import { AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Lead, Heading1 } from "@/components/ui/typography";
-import { fetchGitHubContributors } from "@/lib/github-contributors";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-const Contributors = async () => {
-	const contributors = await fetchGitHubContributors();
+interface Contributor {
+	avatar: string;
+	commits: number;
+	username: string;
+	profileUrl: string;
+}
+
+const Contributors = () => {
+	const [error, setError] = useState<boolean>(false);
+	const [loading, setLoading] = useState<boolean>(true);
+	const [contributors, setContributors] = useState<Contributor[]>([]);
+
+	useEffect(() => {
+		const fetchContributors = async () => {
+			try {
+				const response = await fetch("/api/github?type=contributors");
+
+				if (!response.ok) {
+					throw new Error("Failed to fetch contributors");
+				}
+
+				const data = await response.json();
+				setContributors(data);
+			} catch (error) {
+				console.error("Error fetching GitHub contributors:", error);
+				setError(true);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchContributors();
+	}, []);
 
 	return (
 		<section id="contributors" className="flex flex-col bg-background overflow-x-hidden px-4 md:px-8 py-12">
@@ -22,7 +56,30 @@ const Contributors = async () => {
 					</Lead>
 				</div>
 
-				{contributors.length > 0 ? (
+				{loading ? (
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
+						{Array.from({ length: 6 }).map((_, i) => (
+							<Card key={i} className="p-5 bg-card border border-border">
+								<div className="flex items-center gap-4">
+									<Skeleton className="size-15 rounded-full" />
+									<div className="flex-1 space-y-2">
+										<Skeleton className="h-5 w-32" />
+										<Skeleton className="h-4 w-24" />
+									</div>
+								</div>
+							</Card>
+						))}
+					</div>
+				) : error || contributors.length === 0 ? (
+					<Status
+						icon={AlertCircle}
+						iconBg="bg-yellow-600"
+						iconColor="text-white"
+						containerClassName="p-0"
+						title="Unable to Load Contributors"
+						description="We couldn't fetch contributor data at this time. Please try again later."
+					/>
+				) : (
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
 						{contributors.map((contributor) => (
 							<Card
@@ -55,15 +112,6 @@ const Contributors = async () => {
 							</Card>
 						))}
 					</div>
-				) : (
-					<Status
-						icon={AlertCircle}
-						iconBg="bg-yellow-600"
-						iconColor="text-white"
-						containerClassName="p-0"
-						title="Unable to Load Contributors"
-						description="We couldn't fetch contributor data at this time. Please try again later."
-					/>
 				)}
 			</div>
 		</section>
