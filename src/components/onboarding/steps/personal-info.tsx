@@ -1,10 +1,5 @@
 "use client";
 
-import { PersonalInfoSchema, type OnboardingSchema } from "@/lib/validations/onboarding";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
-import { format, getDay, addMonths, subMonths, startOfMonth, getDaysInMonth } from "date-fns";
-import { Form, FormItem, FormField, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
 import type { z } from "zod";
 import { useForm } from "react-hook-form";
 import { CalendarIcon } from "lucide-react";
@@ -13,6 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { capitalizeWords, cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { PersonalInfoSchema, type OnboardingSchema } from "@/lib/validations/onboarding";
+import { format, getDay, addMonths, subMonths, startOfMonth, getDaysInMonth } from "date-fns";
+import { Form, FormItem, FormField, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
+import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
 
 type PersonalInfoProps = {
 	errors?: Record<string, string>;
@@ -151,7 +151,7 @@ const CustomCalendar = ({
 								<span>{currentYear}</span>
 							</div>
 						</SelectTrigger>
-						<SelectContent className="max-h-[200px]">
+						<SelectContent className="max-h-50">
 							{years.map((year) => (
 								<SelectItem key={year} value={year.toString()}>
 									{year}
@@ -285,13 +285,13 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 
 	return (
 		<Form {...form}>
-			<div className="space-y-6">
-				<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+			<div className="space-y-4">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<FormField
 						name="firstName"
 						control={form.control}
 						render={({ field }) => (
-							<FormItem className="space-y-1 h-[78px]">
+							<FormItem className="space-y-1">
 								<FormLabel className="block">
 									First Name <span className="text-destructive">*</span>
 								</FormLabel>
@@ -307,7 +307,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 									/>
 								</FormControl>
 
-								<div className="h-5">
+								<div className="min-h-5">
 									<FormMessage id="firstName-error" className="text-sm" />
 								</div>
 							</FormItem>
@@ -318,7 +318,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 						name="middleName"
 						control={form.control}
 						render={({ field }) => (
-							<FormItem className="space-y-1 h-[78px]">
+							<FormItem className="space-y-1">
 								<FormLabel className="block">
 									Middle Name <span className="text-destructive">*</span>
 								</FormLabel>
@@ -333,7 +333,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 										onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
 									/>
 								</FormControl>
-								<div className="h-5">
+								<div className="min-h-5">
 									<FormMessage id="middleName-error" className="text-sm" />
 								</div>
 							</FormItem>
@@ -344,7 +344,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 						name="lastName"
 						control={form.control}
 						render={({ field }) => (
-							<FormItem className="space-y-1 h-[78px]">
+							<FormItem className="space-y-1">
 								<FormLabel className="block">
 									Last Name <span className="text-destructive">*</span>
 								</FormLabel>
@@ -359,7 +359,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 										onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
 									/>
 								</FormControl>
-								<div className="h-5">
+								<div className="min-h-5">
 									<FormMessage id="lastName-error" className="text-sm" />
 								</div>
 							</FormItem>
@@ -371,7 +371,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 						name="gender"
 						control={form.control}
 						render={({ field }) => (
-							<FormItem className="space-y-1 h-[78px]">
+							<FormItem className="space-y-1">
 								<FormLabel className="block">
 									Gender <span className="text-destructive">*</span>
 								</FormLabel>
@@ -392,7 +392,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 									</SelectContent>
 								</Select>
 
-								<div className="h-5">
+								<div className="min-h-5">
 									<FormMessage id="gender-error" className="text-sm" />
 								</div>
 							</FormItem>
@@ -403,7 +403,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 						name="dateOfBirth"
 						control={form.control}
 						render={({ field }) => (
-							<FormItem className="space-y-1 h-[78px]">
+							<FormItem className="space-y-1">
 								<FormLabel className="block">
 									Date Of Birth <span className="text-destructive">*</span>
 								</FormLabel>
@@ -437,7 +437,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 									</Popover>
 								</FormControl>
 
-								<div className="h-5">
+								<div className="min-h-5">
 									<FormMessage id="dateOfBirth-error" className="text-sm" />
 								</div>
 							</FormItem>
@@ -557,7 +557,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 									</div>
 								</FormControl>
 
-								<div className="h-5">
+								<div className="min-h-5">
 									<FormMessage id="address-error" className="text-sm" />
 								</div>
 							</FormItem>
