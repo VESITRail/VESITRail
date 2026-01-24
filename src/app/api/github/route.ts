@@ -82,7 +82,7 @@ const fetchGitHub = async <T>(endpoint: string): Promise<T> => {
 	return response.json();
 };
 
-export const getCachedStars = unstable_cache(
+const getCachedStars = unstable_cache(
 	async (): Promise<number> => {
 		const data = await fetchGitHub<GitHubRepoResponse>("");
 		return data.stargazers_count;
@@ -94,7 +94,7 @@ export const getCachedStars = unstable_cache(
 	}
 );
 
-export const getCachedRelease = unstable_cache(
+const getCachedRelease = unstable_cache(
 	async (): Promise<ReleaseData | null> => {
 		const data = await fetchGitHub<GitHubReleaseResponse>("/releases/latest");
 
@@ -116,7 +116,7 @@ export const getCachedRelease = unstable_cache(
 	}
 );
 
-export const getCachedContributors = unstable_cache(
+const getCachedContributors = unstable_cache(
 	async (): Promise<Contributor[]> => {
 		try {
 			const data = await fetchGitHub<GitHubContributor[]>("/contributors?per_page=100");
