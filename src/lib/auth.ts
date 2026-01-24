@@ -3,7 +3,6 @@ import "dotenv/config";
 import { toTitleCase } from "./utils";
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
-import { oneTap } from "better-auth/plugins";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { nextCookies } from "better-auth/next-js";
 import { PrismaClient } from "@/generated/prisma/client";
@@ -14,7 +13,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 export const auth = betterAuth({
-	plugins: [oneTap(), nextCookies()],
+	plugins: [nextCookies()],
 	database: prismaAdapter(prisma, {
 		provider: "postgresql"
 	}),

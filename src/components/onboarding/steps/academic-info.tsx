@@ -1,7 +1,5 @@
 "use client";
 
-import { Form, FormItem, FormField, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
-import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 import type { z } from "zod";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -13,6 +11,8 @@ import { Branch, Class, Year } from "@/generated/zod";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
 import { AcademicInfoSchema } from "@/lib/validations/onboarding";
 import { getYears, getBranches, getClasses } from "@/actions/utils";
+import { Form, FormItem, FormField, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
+import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 
 type AcademicInfoProps = {
 	errors?: Record<string, string>;
@@ -160,7 +160,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 	}, [errors, form]);
 
 	const YearSelectSkeleton = () => (
-		<FormItem className="space-y-1 h-[78px]">
+		<FormItem className="space-y-1">
 			<FormLabel className="block">
 				Year <span className="text-destructive">*</span>
 			</FormLabel>
@@ -169,7 +169,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 	);
 
 	const BranchSelectSkeleton = () => (
-		<FormItem className="space-y-1 h-[78px]">
+		<FormItem className="space-y-1">
 			<FormLabel className="block">
 				Branch <span className="text-destructive">*</span>
 			</FormLabel>
@@ -178,7 +178,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 	);
 
 	const ClassSelectSkeleton = () => (
-		<FormItem className="space-y-1 h-[78px] mt-6 md:mt-0">
+		<FormItem className="space-y-1 mt-6 md:mt-0">
 			<FormLabel className="block">
 				Class <span className="text-destructive">*</span>
 			</FormLabel>
@@ -188,7 +188,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 
 	return (
 		<Form {...form}>
-			<div className="grid grid-cols-1 md:grid-cols-2 space-y-6 gap-x-6">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-x-6 md:gap-y-4">
 				{isLoadingYears ? (
 					<YearSelectSkeleton />
 				) : (
@@ -196,11 +196,10 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 						name="year"
 						control={form.control}
 						render={({ field }) => (
-							<FormItem className="space-y-1 h-[78px]">
+							<FormItem className="space-y-1">
 								<FormLabel className="block">
 									Year <span className="text-destructive">*</span>
 								</FormLabel>
-
 								<Select value={field.value} onValueChange={field.onChange}>
 									<FormControl>
 										<SelectTrigger className="w-full">
@@ -228,11 +227,11 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 						name="branch"
 						control={form.control}
 						render={({ field }) => (
-							<FormItem className="space-y-1 h-[78px]">
+							<FormItem className="space-y-1">
+								{" "}
 								<FormLabel className="block">
 									Branch <span className="text-destructive">*</span>
-								</FormLabel>
-
+								</FormLabel>{" "}
 								<Select value={field.value} onValueChange={field.onChange}>
 									<FormControl>
 										<SelectTrigger className="w-full">
@@ -261,11 +260,10 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 					name="class"
 					control={form.control}
 					render={({ field }) => (
-						<FormItem className="space-y-1 h-[78px] mt-6 md:mt-0">
+						<FormItem className="space-y-1 mt-6">
 							<FormLabel className="block">
 								Class <span className="text-destructive">*</span>
 							</FormLabel>
-
 							<Select
 								value={field.value}
 								onValueChange={field.onChange}

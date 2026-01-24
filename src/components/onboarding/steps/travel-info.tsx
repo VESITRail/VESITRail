@@ -136,7 +136,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 	}, [errors, form]);
 
 	const StationSelectSkeleton = () => (
-		<FormItem className="space-y-1 h-[78px]">
+		<FormItem className="space-y-1">
 			<FormLabel>
 				Home Station <span className="text-destructive">*</span>
 			</FormLabel>
@@ -145,7 +145,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 	);
 
 	const ConcessionClassSelectSkeleton = () => (
-		<FormItem className="space-y-1 h-[78px]">
+		<FormItem className="space-y-1">
 			<FormLabel>
 				Preferred Concession Class <span className="text-destructive">*</span>
 			</FormLabel>
@@ -154,7 +154,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 	);
 
 	const ConcessionPeriodSelectSkeleton = () => (
-		<FormItem className="space-y-1 h-[78px] mb-4 lg:mb-0">
+		<FormItem className="space-y-1 mb-4 lg:mb-0">
 			<FormLabel>
 				Preferred Concession Period <span className="text-destructive">*</span>
 			</FormLabel>
@@ -165,7 +165,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 	return (
 		<Form {...form}>
 			<form>
-				<div className="space-y-6">
+				<div className="space-y-4">
 					{isLoadingStations ? (
 						<StationSelectSkeleton />
 					) : (
@@ -173,11 +173,10 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 							name="station"
 							control={form.control}
 							render={({ field }) => (
-								<FormItem className="space-y-1 h-[78px]">
+								<FormItem className="space-y-1">
 									<FormLabel>
 										Home Station <span className="text-destructive">*</span>
 									</FormLabel>
-
 									<Popover open={open} onOpenChange={setOpen}>
 										<PopoverTrigger asChild>
 											<FormControl>
@@ -242,7 +241,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 					)}
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-6">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
 					{isLoadingConcessionClasses ? (
 						<ConcessionClassSelectSkeleton />
 					) : (
@@ -250,11 +249,10 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 							control={form.control}
 							name="preferredConcessionClass"
 							render={({ field }) => (
-								<FormItem className="space-y-1 h-[78px]">
+								<FormItem className="space-y-1">
 									<FormLabel>
 										Preferred Concession Class <span className="text-destructive">*</span>
 									</FormLabel>
-
 									<Select
 										value={field.value}
 										onValueChange={(value) => handleFieldChange("preferredConcessionClass", value)}
@@ -285,11 +283,10 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 							control={form.control}
 							name="preferredConcessionPeriod"
 							render={({ field }) => (
-								<FormItem className="space-y-1 h-[78px] mb-4 lg:mb-0">
+								<FormItem className="space-y-1 mb-4 lg:mb-0">
 									<FormLabel>
 										Preferred Concession Period <span className="text-destructive">*</span>
 									</FormLabel>
-
 									<Select
 										value={field.value}
 										onValueChange={(value) => handleFieldChange("preferredConcessionPeriod", value)}
