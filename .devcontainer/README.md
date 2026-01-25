@@ -53,4 +53,4 @@ psql postgresql://vesitrail:vesitrail@localhost:5432/vesitrail
 
 ## Environment Variables
 
-The devcontainer uses a pre-configured database connection. For other services (Firebase, Cloudinary, etc.), update the `.env` file with your credentials.
+The devcontainer uses a pre-configured database connection. For other services (Firebase, Cloudflare R2, etc.), update the `.env` file with your credentials.
