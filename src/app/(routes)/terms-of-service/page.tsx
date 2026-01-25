@@ -236,7 +236,7 @@ const TermsOfService = () => {
 								<div>
 									<Heading3 className="mb-3">Third-Party Services</Heading3>
 									<Paragraph className="text-muted-foreground">
-										Our service integrates with third-party providers (Google, Firebase, Cloudinary). We are not
+										Our service integrates with third-party providers (Google, Firebase, Cloudflare R2). We are not
 										responsible for the availability, content, or practices of these external services.
 									</Paragraph>
 								</div>

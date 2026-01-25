@@ -132,7 +132,7 @@ See [.devcontainer/README.md](.devcontainer/README.md) for more details.
 - PostgreSQL database
 - Node.js 18+ and pnpm
 - Google OAuth credentials
-- Cloudinary account (for file uploads)
+- Cloudflare R2 bucket (for file storage)
 - Firebase project (for push notifications)
 
 **Installation:**
@@ -246,7 +246,7 @@ Students complete a multi-step onboarding process:
 - Auto-filled forms based on student profile
 - Support for new and renewal applications
 - Real-time status tracking
-- Document upload with Cloudinary
+- Document upload with Cloudflare R2
 
 #### 🏠 Address Change Management
 
@@ -310,7 +310,7 @@ VESITRail is a fully-featured PWA with:
 - **Authentication**: Secure Google OAuth integration
 - **Authorization**: Role-based access control (Student/Admin)
 - **Data Validation**: Comprehensive input validation with Zod
-- **File Upload**: Secure document upload with Cloudinary
+- **File Upload**: Secure document upload with Cloudflare R2
 - **Email Verification**: @ves.ac.in domain restriction
 - **CSRF Protection**: Built-in security measures
 - **Database Security**: PostgreSQL with SSL connections
