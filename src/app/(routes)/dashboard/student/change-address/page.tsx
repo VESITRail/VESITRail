@@ -18,11 +18,6 @@ import {
 	ChevronsUpDown,
 	type LucideIcon
 } from "lucide-react";
-import type {
-	CloudinaryUploadWidgetInfo,
-	CloudinaryUploadWidgetError,
-	CloudinaryUploadWidgetResults
-} from "next-cloudinary";
 import {
 	type AddressChangeData,
 	StudentAddressAndStation,
@@ -53,13 +48,12 @@ import { getStations } from "@/actions/utils";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { CldUploadButton } from "next-cloudinary";
 import { capitalizeWords, cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
-import { deleteCloudinaryFile } from "@/actions/cloudinary";
+import { deleteR2File, getUploadUrl } from "@/actions/r2";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DocumentRequirements } from "@/components/ui/document-requirements";
@@ -113,15 +107,15 @@ const StatusBadge = ({ status }: { status: AddressChangeStatusType }) => {
 const AddressChangePage = () => {
 	const isMobile = useIsMobile();
 	const [open, setOpen] = useState<boolean>(false);
+	const [fileKey, setFileKey] = useState<string>("");
 	const { data, isPending } = authClient.useSession();
 	const slideButtonRef = useRef<SlideButtonRef>(null);
-	const [publicId, setPublicId] = useState<string>("");
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [canApply, setCanApply] = useState<boolean>(false);
 	const [isDeleting, setIsDeleting] = useState<boolean>(false);
 	const [isUploading, setIsUploading] = useState<boolean>(false);
 	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-	const [isVerifying, setIsVerifying] = useState<boolean>(false);
 	const [loadingStations, setLoadingStations] = useState<boolean>(true);
 	const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
@@ -165,15 +159,6 @@ const AddressChangePage = () => {
 	});
 
 	const watchedUrl = form.watch("verificationDocUrl");
-
-	useEffect(() => {
-		if (watchedUrl) {
-			const id = watchedUrl.split("/").pop()?.split(".")[0];
-			if (id) {
-				setPublicId(`VESITRail/Verification Documents/${id}.pdf`);
-			}
-		}
-	}, [watchedUrl]);
 
 	const fetchStations = async () => {
 		setLoadingStations(true);
@@ -306,71 +291,37 @@ const AddressChangePage = () => {
 	}, [data?.user?.id, isPending, fetchStudentDetails, checkLastAddressChange]);
 
 	useEffect(() => {
-		if (lastApplication?.status === "Rejected") {
+		if (lastApplication?.status === "Rejected" && lastApplication.newAddress) {
 			const addressParts = lastApplication.newAddress.split(", ");
+
 			if (addressParts.length >= 4) {
 				const [building, area, city, pincode] = addressParts;
 
-				form.setValue("building", building.trim());
-				form.setValue("area", area.trim());
-				form.setValue("city", city.trim());
-				form.setValue("pincode", pincode.trim());
-				form.setValue("newStationId", lastApplication.newStationId);
+				form.setValue("area", area.trim(), { shouldValidate: false });
+				form.setValue("city", city.trim(), { shouldValidate: false });
+				form.setValue("pincode", pincode.trim(), { shouldValidate: false });
+				form.setValue("building", building.trim(), { shouldValidate: false });
+				form.setValue("newStationId", lastApplication.newStationId, { shouldValidate: false });
 
-				const verifyAndSetDocument = async () => {
-					if (lastApplication.verificationDocUrl) {
-						setIsVerifying(true);
+				if (lastApplication.verificationDocUrl) {
+					const urlParts = lastApplication.verificationDocUrl.split("/");
+					const fileName = urlParts[urlParts.length - 1];
 
-						const verifyToastId = toast.loading("Verifying document...", {
-							description: "Please wait while we check your uploaded document."
-						});
+					form.setValue("verificationDocUrl", lastApplication.verificationDocUrl, { shouldValidate: false });
+					setFileKey(fileName);
 
-						try {
-							const response = await fetch(lastApplication.verificationDocUrl, {
-								method: "HEAD"
-							});
-
-							toast.dismiss(verifyToastId);
-
-							if (response.ok) {
-								form.setValue("verificationDocUrl", lastApplication.verificationDocUrl);
-
-								const id = lastApplication.verificationDocUrl.split("/").pop()?.split(".")[0];
-								if (id) {
-									setPublicId(`VESITRail/Verification Documents/${id}.pdf`);
-								}
-
-								toast.success("Document verified successfully!", {
-									description: "Your previously uploaded document is ready."
-								});
-							} else {
-								console.warn("Verification document URL is no longer valid, clearing from form");
-								form.setValue("verificationDocUrl", "");
-								setPublicId("");
-
-								toast.warning("Previous document not found", {
-									description: "Your previous document is no longer available. Please upload a new one."
-								});
-							}
-						} catch (error) {
-							toast.dismiss(verifyToastId);
-							console.warn("Could not verify document URL, clearing from form:", error);
-							form.setValue("verificationDocUrl", "");
-							setPublicId("");
-
-							toast.warning("Document verification failed", {
-								description: "Unable to verify your previous document. Please upload a new one."
-							});
-						} finally {
-							setIsVerifying(false);
-						}
-					}
-				};
-
-				verifyAndSetDocument();
+					toast.success("Previous document loaded", {
+						description: "You can keep this document or remove it to upload a new one."
+					});
+				}
 			}
 		}
-	}, [lastApplication, form]);
+	}, [
+		lastApplication?.status,
+		lastApplication?.newAddress,
+		lastApplication?.newStationId,
+		lastApplication?.verificationDocUrl
+	]);
 
 	useEffect(() => {
 		return () => {
@@ -381,23 +332,63 @@ const AddressChangePage = () => {
 
 	const availableStations = stations.filter((station) => station.id !== student?.station.id);
 
-	const handleUploadSuccess = (result: CloudinaryUploadWidgetResults) => {
+	const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		if (file.type !== "application/pdf") {
+			toast.error("Invalid file type", {
+				description: "Please upload a PDF file."
+			});
+			return;
+		}
+
+		if (file.size > 5242880) {
+			toast.error("File too large", {
+				description: "Please upload a file smaller than 5MB."
+			});
+			return;
+		}
+
+		setIsUploading(true);
+		posthog.capture("address_change_document_upload_started");
+
+		const uploadToastId = toast.loading("Uploading document...", {
+			description: "Please wait while we upload your document."
+		});
+
 		try {
-			const { public_id, secure_url, bytes, format } = result.info as CloudinaryUploadWidgetInfo;
+			const result = await getUploadUrl(file.type);
 
-			setPublicId(public_id);
+			if (!result.isSuccess) {
+				throw new Error(result.error.message);
+			}
 
-			form.setValue("verificationDocUrl", secure_url, {
+			const { uploadUrl, fileUrl, key } = result.data;
+
+			const uploadResponse = await fetch(uploadUrl, {
+				body: file,
+				method: "PUT"
+			});
+
+			if (!uploadResponse.ok) {
+				throw new Error("Failed to upload file");
+			}
+
+			setFileKey(key);
+
+			form.setValue("verificationDocUrl", fileUrl, {
 				shouldDirty: true,
 				shouldTouch: true,
 				shouldValidate: true
 			});
 
 			posthog.capture("address_change_document_uploaded", {
-				file_size: bytes,
-				file_format: format
+				file_size: file.size,
+				file_format: file.type
 			});
 
+			toast.dismiss(uploadToastId);
 			toast.success("Document uploaded successfully!", {
 				description: "Your verification document has been uploaded."
 			});
@@ -405,34 +396,21 @@ const AddressChangePage = () => {
 			document.body.style.overflow = "auto";
 			document.documentElement.style.overflow = "auto";
 		} catch (error) {
-			console.error("Error while processing uploaded document:", error);
-			toast.error("Upload processing failed", {
-				description: "Failed to process the uploaded document."
+			console.error("Error while uploading document:", error);
+			toast.dismiss(uploadToastId);
+			toast.error("Failed to Upload Document", {
+				description: "Please try again with a valid PDF file."
 			});
 		} finally {
 			setIsUploading(false);
+			if (fileInputRef.current) {
+				fileInputRef.current.value = "";
+			}
 		}
-	};
-
-	const handleUploadError = (error: CloudinaryUploadWidgetError | null) => {
-		setIsUploading(false);
-
-		document.body.style.overflow = "auto";
-		document.documentElement.style.overflow = "auto";
-
-		if (error) {
-			console.error("Cloudinary upload error:", error);
-		} else {
-			console.error("Unknown error during Cloudinary upload");
-		}
-
-		toast.error("Failed to Upload Document", {
-			description: "Please try again with a valid PDF file."
-		});
 	};
 
 	const handleRemoveFile = async (): Promise<void> => {
-		if (!watchedUrl || !publicId) return;
+		if (!watchedUrl || !fileKey) return;
 
 		setIsDeleting(true);
 
@@ -441,10 +419,10 @@ const AddressChangePage = () => {
 		});
 
 		try {
-			const result = await deleteCloudinaryFile(publicId);
+			const result = await deleteR2File(fileKey);
 
 			if (result.isSuccess) {
-				setPublicId("");
+				setFileKey("");
 				form.setValue("verificationDocUrl", "", {
 					shouldDirty: true,
 					shouldTouch: true,
@@ -461,7 +439,7 @@ const AddressChangePage = () => {
 				const errorMessage = result.error?.message || "Unknown error";
 
 				if (errorMessage.includes("not found") || errorMessage.includes("does not exist")) {
-					setPublicId("");
+					setFileKey("");
 					form.setValue("verificationDocUrl", "", {
 						shouldDirty: true,
 						shouldTouch: true,
@@ -473,8 +451,8 @@ const AddressChangePage = () => {
 						description: "The file was already removed from storage. You can now upload a new document."
 					});
 				} else {
-					console.error("Cloudinary deletion failed:", errorMessage);
-					setPublicId("");
+					console.error("R2 deletion failed:", errorMessage);
+
 					form.setValue("verificationDocUrl", "", {
 						shouldDirty: true,
 						shouldTouch: true,
@@ -492,10 +470,9 @@ const AddressChangePage = () => {
 			toast.dismiss(deleteToastId);
 
 			if (error instanceof Error) {
-				console.error("Error while deleting Cloudinary file:", error.message);
+				console.error("Error while deleting R2 file:", error.message);
 
 				if (error.message.includes("not found") || error.message.includes("does not exist")) {
-					setPublicId("");
 					form.setValue("verificationDocUrl", "", {
 						shouldDirty: true,
 						shouldTouch: true,
@@ -506,7 +483,6 @@ const AddressChangePage = () => {
 						description: "The file was already removed from storage. You can now upload a new document."
 					});
 				} else {
-					setPublicId("");
 					form.setValue("verificationDocUrl", "", {
 						shouldDirty: true,
 						shouldTouch: true,
@@ -519,9 +495,8 @@ const AddressChangePage = () => {
 					});
 				}
 			} else {
-				console.error("Unknown error while deleting Cloudinary file:", error);
+				console.error("Unknown error while deleting R2 file:", error);
 
-				setPublicId("");
 				form.setValue("verificationDocUrl", "", {
 					shouldDirty: true,
 					shouldTouch: true,
@@ -658,7 +633,7 @@ const AddressChangePage = () => {
 		!isUploading &&
 		!isDeleting;
 
-	if (isPending || loading || loadingStations || isVerifying || !student) {
+	if (isPending || loading || loadingStations || !student) {
 		return (
 			<div className="container max-w-5xl mx-auto py-8 px-4">
 				<div className="flex w-full gap-4 justify-between items-start">
@@ -1231,24 +1206,15 @@ const AddressChangePage = () => {
 																	)}
 																</div>
 																{!isUploading && canUpload && (
-																	<CldUploadButton
-																		onError={handleUploadError}
-																		onSuccess={handleUploadSuccess}
-																		className="absolute inset-0 cursor-pointer opacity-0 z-10"
-																		onUpload={() => {
-																			posthog.capture("address_change_document_upload_started");
-																			setIsUploading(true);
-																		}}
-																		options={{
-																			maxFiles: 1,
-																			resourceType: "raw",
-																			maxFileSize: 5242880,
-																			clientAllowedFormats: ["pdf"],
-																			folder: "VESITRail/Verification Documents",
-																			uploadPreset: "VESITRail_Verification_Documents",
-																			publicId: `${data?.user.id}-${formValues.newStationId}.pdf`
-																		}}
-																	/>
+																	<>
+																		<input
+																			type="file"
+																			ref={fileInputRef}
+																			accept="application/pdf"
+																			onChange={handleFileSelect}
+																			className="absolute inset-0 cursor-pointer opacity-0 z-10"
+																		/>
+																	</>
 																)}
 															</div>
 														) : (
@@ -1261,10 +1227,10 @@ const AddressChangePage = () => {
 
 																		<div className="min-w-0 flex-1 space-y-1">
 																			<p className="text-sm font-medium text-foreground wrap-wrap-break-word">
-																				Address Change Verification Document
+																				Document uploaded successfully
 																			</p>
-																			<p className="text-xs text-muted-foreground break-all">
-																				{data?.user.id}-{formValues.newStationId}.pdf
+																			<p className="text-xs text-muted-foreground break-all" title={fileKey}>
+																				{fileKey}
 																			</p>
 																		</div>
 
@@ -1339,16 +1305,16 @@ const AddressChangePage = () => {
 										<SlideButton
 											fullWidth
 											ref={slideButtonRef}
-											text={
-												lastApplication?.status === "Rejected" ? "Slide to resubmit request" : "Slide to submit request"
-											}
+											disabled={!isFormValid}
+											isSubmitting={isSubmitting}
+											isLoading={loadingStations}
 											loadingText={lastApplication?.status === "Rejected" ? "Resubmitting..." : "Submitting..."}
 											onSlideComplete={() => {
 												setShowConfirmDialog(true);
 											}}
-											disabled={!isFormValid}
-											isSubmitting={isSubmitting}
-											isLoading={loadingStations || isVerifying}
+											text={
+												lastApplication?.status === "Rejected" ? "Slide to resubmit request" : "Slide to submit request"
+											}
 										/>
 									) : (
 										<Button type="submit" className="min-w-32" disabled={!isFormValid || isSubmitting}>
