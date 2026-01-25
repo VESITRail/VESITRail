@@ -174,10 +174,10 @@ const PrivacyPolicy = () => {
 										We work with trusted third-party service providers who help us operate our service:
 									</Paragraph>
 									<List className="space-y-2 text-muted-foreground">
-										<li>Google (Authentication)</li>
 										<li>PostHog (Analytics)</li>
-										<li>Cloudinary (Document storage and management)</li>
+										<li>Google (Authentication)</li>
 										<li>Firebase (Push notifications)</li>
+										<li>Cloudflare R2 (Document storage and management)</li>
 									</List>
 								</div>
 
@@ -262,12 +262,12 @@ const PrivacyPolicy = () => {
 							</Paragraph>
 
 							<List className="space-y-2 text-muted-foreground">
+								<li>Regular security audits and updates</li>
+								<li>Document encryption using Cloudflare R2</li>
 								<li>SSL/TLS encryption for data transmission</li>
 								<li>Secure authentication using Google OAuth</li>
-								<li>Regular security audits and updates</li>
-								<li>Access controls and role-based permissions</li>
 								<li>Secure cloud infrastructure (PostgreSQL)</li>
-								<li>Document encryption using Cloudinary</li>
+								<li>Access controls and role-based permissions</li>
 							</List>
 						</div>
 
