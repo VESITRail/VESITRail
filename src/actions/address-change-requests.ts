@@ -12,8 +12,8 @@ import {
 	ValidationError
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
+import { deleteR2File } from "./r2";
 import { revalidatePath } from "next/cache";
-import { deleteCloudinaryFile } from "./cloudinary";
 import type { Prisma } from "@/generated/prisma/client";
 import { sendAddressChangeNotification } from "@/lib/notifications";
 import { AddressChange, AddressChangeStatusType } from "@/generated/zod";
@@ -326,24 +326,12 @@ export const reviewAddressChangeRequest = async (
 
 				if (oldVerificationDocUrl) {
 					const urlParts = oldVerificationDocUrl.split("/");
-					const uploadIndex = urlParts.findIndex((part) => part === "upload");
+					const fileKey = urlParts[urlParts.length - 1];
 
-					if (uploadIndex !== -1) {
-						let pathAfterUpload = urlParts.slice(uploadIndex + 1).join("/");
+					const deleteResult = await deleteR2File(fileKey);
 
-						if (pathAfterUpload.startsWith("v")) {
-							const versionMatch = pathAfterUpload.match(/^v\d+\/(.*)/);
-							if (versionMatch) {
-								pathAfterUpload = versionMatch[1];
-							}
-						}
-
-						const publicId = decodeURIComponent(pathAfterUpload);
-						const deleteResult = await deleteCloudinaryFile(publicId);
-
-						if (!deleteResult.isSuccess) {
-							console.error("Failed to delete old verification document:", deleteResult.error);
-						}
+					if (!deleteResult.isSuccess) {
+						console.error("Failed to delete old verification document:", deleteResult.error);
 					}
 				}
 
