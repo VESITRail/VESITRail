@@ -1,23 +1,16 @@
 "use client";
 
-import {
-	CldUploadButton,
-	CloudinaryUploadWidgetInfo,
-	CloudinaryUploadWidgetError,
-	CloudinaryUploadWidgetResults
-} from "next-cloudinary";
 import type { z } from "zod";
 import { toast } from "sonner";
 import posthog from "posthog-js";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { deleteCloudinaryFile } from "@/actions/cloudinary";
+import { deleteR2File, getUploadUrl } from "@/actions/r2";
 import { FileUp, Loader2, Eye, Trash2 } from "lucide-react";
 import { DocumentSchema } from "@/lib/validations/onboarding";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
@@ -31,12 +24,11 @@ type DocumentProps = {
 };
 
 const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
-	const router = useRouter();
 	const session = authClient.useSession();
+	const [fileKey, setFileKey] = useState<string>("");
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [publicId, setPublicId] = useState<string>("");
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isUploading, setIsUploading] = useState(false);
-	const [isVerifying, setIsVerifying] = useState(false);
 
 	const form = useForm<z.infer<typeof DocumentSchema>>({
 		resolver: zodResolver(DocumentSchema),
@@ -48,47 +40,13 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 	useEffect(() => {
 		if (defaultValues?.verificationDocUrl) {
 			const documentUrl = defaultValues.verificationDocUrl;
-			const id = documentUrl.split("/").pop()?.split(".")[0];
+			const urlParts = documentUrl.split("/");
+			const fileName = urlParts[urlParts.length - 1];
+			setFileKey(fileName);
 
-			if (id) {
-				const publicIdFromUrl = `VESITRail/Verification Documents/${id}.pdf`;
-
-				setIsVerifying(true);
-
-				const verifyToastId = toast.loading("Verifying document...", {
-					description: "Please wait while we check your uploaded document."
-				});
-
-				fetch(documentUrl, { method: "HEAD" })
-					.then((response) => {
-						toast.dismiss(verifyToastId);
-						if (response.ok) {
-							setPublicId(publicIdFromUrl);
-							toast.success("Document verified successfully!", {
-								description: "Your previously uploaded document is ready."
-							});
-						} else {
-							console.warn("Document URL not accessible, clearing from form");
-							setPublicId("");
-							form.setValue("verificationDocUrl", "");
-							toast.warning("Previous document not found", {
-								description: "Your previous document is no longer available. Please upload a new one."
-							});
-						}
-					})
-					.catch((error) => {
-						toast.dismiss(verifyToastId);
-						console.warn("Document verification failed:", error);
-						setPublicId("");
-						form.setValue("verificationDocUrl", "");
-						toast.warning("Document verification failed", {
-							description: "Unable to verify your previous document. Please upload a new one."
-						});
-					})
-					.finally(() => {
-						setIsVerifying(false);
-					});
-			}
+			form.reset({
+				verificationDocUrl: defaultValues.verificationDocUrl
+			});
 		}
 	}, [defaultValues?.verificationDocUrl, form]);
 
@@ -130,51 +88,87 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 		}
 	};
 
-	const handleUploadSuccess = (result: CloudinaryUploadWidgetResults) => {
-		setIsUploading(false);
+	const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		if (file.type !== "application/pdf") {
+			toast.error("Invalid file type", {
+				description: "Please upload a PDF file."
+			});
+			return;
+		}
+
+		if (file.size > 5242880) {
+			toast.error("File too large", {
+				description: "Please upload a file smaller than 5MB."
+			});
+			return;
+		}
+
+		setIsUploading(true);
+		posthog.capture("document_upload_started");
+
+		const uploadToastId = toast.loading("Uploading document...", {
+			description: "Please wait while we upload your document."
+		});
 
 		try {
-			const info = result.info as CloudinaryUploadWidgetInfo;
-			const { public_id, secure_url, bytes, format } = info;
+			const result = await getUploadUrl(file.type);
 
-			setPublicId(public_id);
-			form.clearErrors("verificationDocUrl");
-			form.setValue("verificationDocUrl", secure_url);
+			if (!result.isSuccess) {
+				throw new Error(result.error.message);
+			}
 
-			onSubmit({ verificationDocUrl: secure_url });
+			const { uploadUrl, fileUrl, key } = result.data;
 
-			posthog.capture("document_upload_success", {
-				file_size: bytes,
-				file_type: format
+			const uploadResponse = await fetch(uploadUrl, {
+				body: file,
+				method: "PUT"
 			});
 
+			if (!uploadResponse.ok) {
+				throw new Error("Failed to upload file");
+			}
+
+			setFileKey(key);
+			form.clearErrors("verificationDocUrl");
+			form.setValue("verificationDocUrl", fileUrl, {
+				shouldDirty: true,
+				shouldTouch: true,
+				shouldValidate: true
+			});
+
+			onSubmit({ verificationDocUrl: fileUrl });
+
+			posthog.capture("document_upload_success", {
+				file_size: file.size,
+				file_type: file.type
+			});
+
+			toast.dismiss(uploadToastId);
 			toast.success("Document uploaded successfully!", {
 				description: "Your verification document has been uploaded."
 			});
 		} catch (error) {
-			console.error("Upload processing error:", error);
+			console.error("Upload error:", error);
 			posthog.capture("document_upload_failed", {
 				error: error instanceof Error ? error.message : "Unknown error"
 			});
-			toast.error("Upload processing failed", {
-				description: "Failed to process the uploaded document. Please try again."
+			toast.dismiss(uploadToastId);
+			toast.error("Failed to upload document", {
+				description: "Please try again with a valid PDF file."
 			});
+		} finally {
+			setIsUploading(false);
+			if (fileInputRef.current) {
+				fileInputRef.current.value = "";
+			}
 		}
 	};
 
-	const handleUploadError = (error: CloudinaryUploadWidgetError | null) => {
-		setIsUploading(false);
-		console.error("Upload error:", error);
-		posthog.capture("document_upload_failed", {
-			error: error || "Upload error"
-		});
-		toast.error("Failed to upload document", {
-			description: "Please try again with a valid PDF file."
-		});
-	};
-
 	const handleRemoveFile = async () => {
-		if (!watchedUrl || !publicId) return;
+		if (!watchedUrl || !fileKey) return;
 
 		setIsDeleting(true);
 
@@ -183,10 +177,10 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 		});
 
 		try {
-			const result = await deleteCloudinaryFile(publicId);
+			const result = await deleteR2File(fileKey);
 
 			if (result.isSuccess) {
-				setPublicId("");
+				setFileKey("");
 				form.setValue("verificationDocUrl", "");
 
 				if (defaultValues) {
@@ -222,7 +216,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 				const errorMessage = result.error?.message || "Unknown error";
 
 				if (errorMessage.includes("not found") || errorMessage.includes("does not exist")) {
-					setPublicId("");
+					setFileKey("");
 					form.setValue("verificationDocUrl", "");
 
 					if (defaultValues) {
@@ -253,8 +247,9 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 						description: "The file was already removed from storage. You can now upload a new document."
 					});
 				} else {
-					console.error("Cloudinary deletion failed:", errorMessage);
-					setPublicId("");
+					console.error("R2 deletion failed:", errorMessage);
+
+					setFileKey("");
 					form.setValue("verificationDocUrl", "");
 
 					if (defaultValues) {
@@ -289,106 +284,38 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 			}
 		} catch (error) {
 			toast.dismiss(deleteToastId);
+			console.error("Error while deleting R2 file:", error);
 
-			if (error instanceof Error) {
-				console.error("Error while deleting Cloudinary file:", error.message);
+			setFileKey("");
+			form.setValue("verificationDocUrl", "");
 
-				if (error.message.includes("not found") || error.message.includes("does not exist")) {
-					setPublicId("");
-					form.setValue("verificationDocUrl", "");
-
-					if (defaultValues) {
-						setFormData({
-							...defaultValues,
-							verificationDocUrl: ""
-						});
-					} else {
-						setFormData({
-							year: "",
-							class: "",
-							branch: "",
-							station: "",
-							address: "",
-							lastName: "",
-							firstName: "",
-							middleName: "",
-							gender: "Male",
-							dateOfBirth: "",
-							verificationDocUrl: "",
-							preferredConcessionClass: "",
-							preferredConcessionPeriod: ""
-						});
-					}
-
-					toast.success("Document cleared successfully!", {
-						description: "The file was already removed from storage. You can now upload a new document."
-					});
-				} else {
-					setPublicId("");
-					form.setValue("verificationDocUrl", "");
-
-					if (defaultValues) {
-						setFormData({
-							...defaultValues,
-							verificationDocUrl: ""
-						});
-					} else {
-						setFormData({
-							year: "",
-							class: "",
-							branch: "",
-							station: "",
-							address: "",
-							lastName: "",
-							firstName: "",
-							middleName: "",
-							gender: "Male",
-							dateOfBirth: "",
-							verificationDocUrl: "",
-							preferredConcessionClass: "",
-							preferredConcessionPeriod: ""
-						});
-					}
-
-					toast.warning("Document cleared from form", {
-						description:
-							"There was an issue removing the file, but it has been cleared from your form. You can now upload a new document."
-					});
-				}
+			if (defaultValues) {
+				setFormData({
+					...defaultValues,
+					verificationDocUrl: ""
+				});
 			} else {
-				console.error("Unknown error while deleting Cloudinary file:", error);
-
-				setPublicId("");
-				form.setValue("verificationDocUrl", "");
-
-				if (defaultValues) {
-					setFormData({
-						...defaultValues,
-						verificationDocUrl: ""
-					});
-				} else {
-					setFormData({
-						year: "",
-						class: "",
-						branch: "",
-						station: "",
-						address: "",
-						lastName: "",
-						firstName: "",
-						middleName: "",
-						gender: "Male",
-						dateOfBirth: "",
-						verificationDocUrl: "",
-						preferredConcessionClass: "",
-						preferredConcessionPeriod: ""
-					});
-				}
-
-				toast.warning("Document cleared from form", {
-					description:
-						"An unexpected error occurred, but the document has been cleared from your form. You can now upload a new document."
+				setFormData({
+					year: "",
+					class: "",
+					branch: "",
+					station: "",
+					address: "",
+					lastName: "",
+					firstName: "",
+					middleName: "",
+					gender: "Male",
+					dateOfBirth: "",
+					verificationDocUrl: "",
+					preferredConcessionClass: "",
+					preferredConcessionPeriod: ""
 				});
 			}
+
+			toast.warning("Document cleared from form", {
+				description:
+					"An unexpected error occurred, but the document has been cleared from your form. You can now upload a new document."
+			});
 		} finally {
 			setIsDeleting(false);
 		}
@@ -400,12 +327,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 		}
 	};
 
-	if (!session.data?.user) {
-		router.push("/");
-		return null;
-	}
-
-	if (session.isPending || isVerifying) {
+	if (session.isPending) {
 		return (
 			<div className="space-y-4">
 				<div className="space-y-2">
@@ -505,24 +427,15 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 												)}
 											</div>
 											{!isUploading && (
-												<CldUploadButton
-													onError={handleUploadError}
-													onSuccess={handleUploadSuccess}
-													className="absolute inset-0 cursor-pointer opacity-0"
-													onUpload={() => {
-														setIsUploading(true);
-														posthog.capture("document_upload_started");
-													}}
-													options={{
-														maxFiles: 1,
-														resourceType: "raw",
-														maxFileSize: 5242880,
-														clientAllowedFormats: ["pdf"],
-														folder: "VESITRail/Verification Documents",
-														uploadPreset: "VESITRail_Verification_Documents",
-														publicId: `${session.data?.user.id}-${defaultValues?.station || "default"}.pdf`
-													}}
-												/>
+												<>
+													<input
+														type="file"
+														ref={fileInputRef}
+														accept="application/pdf"
+														onChange={handleFileSelect}
+														className="absolute inset-0 cursor-pointer opacity-0"
+													/>
+												</>
 											)}
 										</div>
 									) : (
@@ -537,11 +450,8 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 														<p className="text-sm font-medium text-foreground wrap-break-word">
 															Document uploaded successfully
 														</p>
-														<p
-															className="text-xs text-muted-foreground break-all"
-															title={`${session.data?.user.id}-${defaultValues?.station || "default"}.pdf`}
-														>
-															{session.data?.user.id}-{defaultValues?.station || "default"}.pdf
+														<p className="text-xs text-muted-foreground break-all" title={fileKey}>
+															{fileKey}
 														</p>
 													</div>
 
