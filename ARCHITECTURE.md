@@ -52,7 +52,7 @@ Digitize and automate the entire lifecycle of railway concession applications—
 ┌─────────────────────────────────────────────────────────────────┐
 │                    External Services                            │
 ├─────────────────────────────────────────────────────────────────┤
-│  • Cloudinary (File Storage)                                    │
+│  • Cloudflare R2 (File Storage)                                 │
 │  • Firebase Cloud Messaging (Push Notifications)                │
 │  • SMTP Service (Email Notifications)                           │
 │  • PostHog (Analytics)                                          │
@@ -292,7 +292,7 @@ Step 3: Travel Details
   └── Preferred Concession Period
         ↓
 Step 4: Document Verification
-  ├── Government ID Upload (Cloudinary)
+  ├── Aadhaar Card Upload (Cloudflare R2)
   └── Document Preview
         ↓
 Step 5: Review & Submit
@@ -307,7 +307,7 @@ Admin Review (Pending State)
 **Technical Implementation**:
 
 - Form state management: React Hook Form + Zod validation
-- File uploads: Cloudinary SDK with transformation
+- File uploads: Cloudflare R2 SDK with presigned URLs
 - Resubmission support: Track count, preserve data
 - Server action: `submitOnboarding()`
 
@@ -502,7 +502,7 @@ Cache Strategies by Resource Type:
 │   └── HTML pages
 │
 └── External APIs (NetworkOnly)
-    ├── Cloudinary
+    ├── Cloudflare R2
     ├── Firebase
     └── Analytics
 ```
@@ -597,26 +597,26 @@ Error Types:
 ```
 Client File Selection
     ↓
-Cloudinary Widget (Client-side)
+R2 Upload Component (Client-side)
     ↓
-Direct Upload to Cloudinary
+Presigned URL Request
     ↓
-Signed URL Generation
+Direct Upload to Cloudflare R2
+    ↓
+Public URL Generation
     ↓
 URL Storage in Database
     ↓
-Transformations on Demand
-    ↓
-CDN Delivery
+CDN Delivery via Custom Domain
 ```
 
-**Cloudinary Configuration**:
+**Cloudflare R2 Configuration**:
 
-- Automatic format optimization
-- Responsive image transformations
-- Secure signed uploads
+- S3-compatible API
 - Folder-based organization
 - Delete on application rejection
+- Presigned URLs for secure uploads
+- Public URL access via custom domain
 
 ---
 
@@ -661,24 +661,24 @@ if (!session.user.admin) {
 
 **Input Validation**:
 
+- Custom validation rules
+- Type coercion and transformation
 - Zod schema validation on all inputs
 - Generated schemas from Prisma models
-- Type coercion and transformation
-- Custom validation rules
 
 **Database Security**:
 
-- Parameterized queries via Prisma
 - SQL injection prevention
-- Row-level security through application logic
 - Encrypted connections (SSL)
+- Parameterized queries via Prisma
+- Row-level security through application logic
 
 **File Security**:
 
-- Signed URLs for uploads
-- Private Cloudinary folder
-- Document verification before storage
+- Private R2 bucket
+- Presigned URLs for uploads
 - Automatic cleanup on rejection
+- Document verification before storage
 
 ### 4. API Security
 
@@ -690,9 +690,9 @@ if (!session.user.admin) {
 
 **CORS Configuration**:
 
-- Same-origin policy enforcement
 - Restricted API routes
 - Secure headers configuration
+- Same-origin policy enforcement
 
 ---
 
@@ -718,32 +718,32 @@ if (!session.user.admin) {
 
 **Optimization Techniques**:
 
-- Parallel data fetching where possible
-- Database query optimization with Prisma
 - Selective field inclusion
 - Pagination for large datasets
 - Index optimization on foreign keys
+- Parallel data fetching where possible
+- Database query optimization with Prisma
 
 **Caching Strategy**:
 
 - Next.js automatic caching
 - Revalidation on mutations
+- Cloudflare R2 CDN caching
 - Service Worker caching for offline
-- Cloudinary CDN caching
 
 ### 3. Bundle Optimization
 
 **Code Splitting**:
 
 - Route-based automatic splitting
-- Dynamic imports for heavy components
 - Lazy loading for modals and dialogs
+- Dynamic imports for heavy components
 - Separate chunks for admin/student routes
 
 **Asset Optimization**:
 
 - Next.js Image component
-- Cloudinary automatic optimization
+- Cloudflare R2 CDN delivery
 - Font subsetting (Inter)
 - Icon tree-shaking (Lucide)
 
@@ -889,10 +889,10 @@ Request Flow with Caching:
 - Connection pooling
 - Automated backups
 
-**CDN**: Cloudinary
+**CDN**: Cloudflare R2
 
-- Image and document storage
-- Automatic optimization
+- Document storage
+- S3-compatible API
 - Global CDN delivery
 
 **Push Notifications**: Firebase Cloud Messaging
@@ -1118,13 +1118,13 @@ docs(architecture): update database section
 - Preview deployments
 - Zero configuration
 
-**Cloudinary**:
+**Cloudflare R2**:
 
-- Image optimization
+- S3-compatible object storage
+- Zero egress fees
 - CDN delivery
-- Transformation API
-- Generous free tier
-- Reliable infrastructure
+- Custom domain support
+- Cost-effective storage
 
 **Firebase Cloud Messaging**:
 
@@ -1189,9 +1189,11 @@ GOOGLE_CLIENT_SECRET
 NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 # File Storage
-CLOUDINARY_API_SECRET
-NEXT_PUBLIC_CLOUDINARY_API_KEY
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+R2_ENDPOINT
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_BUCKET_NAME
+R2_PUBLIC_URL
 
 # Notifications
 FIREBASE_SERVICE_ACCOUNT

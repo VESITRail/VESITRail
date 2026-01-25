@@ -39,7 +39,7 @@ In-scope components:
 
 Out of scope:
 
-- Third-party service vulnerabilities (Google, Firebase, Cloudinary)
+- Third-party service vulnerabilities (Google, Firebase, Cloudflare R2)
 - User misuse of credentials
 
 ## Best Practices Followed

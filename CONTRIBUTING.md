@@ -23,7 +23,7 @@ Only **VESIT (Vivekanand Education Society's Institute of Technology)** is permi
 - PostgreSQL database
 - Node.js 18+ and pnpm
 - Google OAuth credentials (@ves.ac.in usage preferred)
-- Cloudinary & Firebase credentials (if working on related features)
+- Cloudflare R2 & Firebase credentials (if working on related features)
 
 ## Development Setup
 
