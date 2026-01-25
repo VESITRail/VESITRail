@@ -154,7 +154,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 	);
 
 	const ConcessionPeriodSelectSkeleton = () => (
-		<FormItem className="space-y-1 mb-4 lg:mb-0">
+		<FormItem className="space-y-1">
 			<FormLabel>
 				Preferred Concession Period <span className="text-destructive">*</span>
 			</FormLabel>
@@ -283,7 +283,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 							control={form.control}
 							name="preferredConcessionPeriod"
 							render={({ field }) => (
-								<FormItem className="space-y-1 mb-4 lg:mb-0">
+								<FormItem className="space-y-1">
 									<FormLabel>
 										Preferred Concession Period <span className="text-destructive">*</span>
 									</FormLabel>
