@@ -317,6 +317,7 @@ const AddressChangePage = () => {
 			}
 		}
 	}, [
+		form,
 		lastApplication?.status,
 		lastApplication?.newAddress,
 		lastApplication?.newStationId,

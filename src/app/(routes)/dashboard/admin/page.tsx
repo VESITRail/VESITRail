@@ -114,7 +114,7 @@ const Admin = () => {
 
 			loadApplications(1, filters);
 		},
-		[loadApplications]
+		[loadApplications, statusFilter, typeFilter]
 	);
 
 	useEffect(() => {
