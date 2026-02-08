@@ -5,7 +5,7 @@ const ZOD_FILE = join(process.cwd(), "src/generated/zod/index.ts");
 
 const OLD_IMPORTS = `import { z } from 'zod';
 import { JsonValue, InputJsonValue, objectEnumValues } from '@prisma/client/runtime/library';
-import type { Prisma } from '../prisma';`;
+import type { Prisma } from '../prisma/client';`;
 
 const NEW_IMPORTS = `// @ts-nocheck
 import { z } from "zod";
