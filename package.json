@@ -72,7 +72,7 @@
 		"@serwist/next": "^9.5.3",
 		"@serwist/sw": "^9.5.3",
 		"@tanstack/react-table": "^8.21.3",
-		"@types/nodemailer": "^7.0.5",
+		"@types/nodemailer": "^7.0.10",
 		"better-auth": "^1.4.18",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
