@@ -83,7 +83,7 @@
 		"firebase": "^12.9.0",
 		"firebase-admin": "^13.6.1",
 		"framer-motion": "^12.34.1",
-		"jspdf": "^4.1.0",
+		"jspdf": "^4.2.0",
 		"jspdf-autotable": "^5.0.7",
 		"lucide-react": "^0.574.0",
 		"nanoid": "^5.1.6",
