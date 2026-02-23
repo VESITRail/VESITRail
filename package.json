@@ -109,7 +109,7 @@
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.3",
-		"@eslint/js": "^9.39.2",
+		"@eslint/js": "^9.39.3",
 		"@playwright/test": "^1.58.2",
 		"@prisma/adapter-pg": "^7.4.0",
 		"@semantic-release/changelog": "^6.0.3",
