@@ -86,7 +86,7 @@ jobs:
         run: pnpm run test:e2e
 
       - name: Upload test report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
