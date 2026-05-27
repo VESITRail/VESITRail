@@ -1,7 +1,7 @@
 "use client";
 
-import { Github } from "lucide-react";
 import { useEffect, useState } from "react";
+import { SiGithub } from "@icons-pack/react-simple-icons";
 
 const FloatingGithubButton = () => {
 	const [visible, setVisible] = useState<boolean>(false);
@@ -28,7 +28,7 @@ const FloatingGithubButton = () => {
 				visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
 			}`}
 		>
-			<Github size={25} />
+			<SiGithub size={25} />
 		</button>
 	);
 };

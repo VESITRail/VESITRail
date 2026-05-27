@@ -1,8 +1,9 @@
 "use client";
 
-import { Github, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SiGithub } from "@icons-pack/react-simple-icons";
 
 type GitHubStarsProps = {
 	className?: string;
@@ -56,7 +57,7 @@ const GitHubStars = ({ className }: GitHubStarsProps) => {
 			onClick={handleClick}
 			className={`inline-flex cursor-pointer items-center gap-2 px-3 py-[4.81px] rounded-full bg-primary text-white ${className}`}
 		>
-			<Github className="size-4" />
+			<SiGithub className="size-4" />
 
 			<div className="flex items-center gap-1">
 				<Star className="size-3 fill-current" />
