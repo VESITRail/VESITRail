@@ -7,7 +7,8 @@ import {
 	SidebarGroupContent
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { type LucideIcon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
+import { IconType } from "@icons-pack/react-simple-icons";
 
 const NavSecondary = ({
 	items,
@@ -16,7 +17,7 @@ const NavSecondary = ({
 	items: {
 		url: string;
 		title: string;
-		icon: LucideIcon;
+		icon: LucideIcon | IconType;
 	}[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) => {
 	const { isMobile, setOpenMobile } = useSidebar();

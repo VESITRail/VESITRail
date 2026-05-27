@@ -1,4 +1,3 @@
-import { User, Users, MapPin, Github, BookOpen, FileText, MessageSquare } from "lucide-react";
 import {
 	Sidebar,
 	useSidebar,
@@ -13,7 +12,9 @@ import Link from "next/link";
 import Image from "next/image";
 import NavMain from "@/components/nav-main";
 import NavSecondary from "@/components/nav-secondary";
+import { SiGithub } from "@icons-pack/react-simple-icons";
 import NavUser from "@/components/app-sidebar/admin/nav-user";
+import { User, Users, MapPin, BookOpen, FileText, MessageSquare } from "lucide-react";
 
 const data = {
 	navSecondary: [
@@ -23,7 +24,7 @@ const data = {
 			url: "/dashboard/admin/profile"
 		},
 		{
-			icon: Github,
+			icon: SiGithub,
 			title: "GitHub",
 			url: "https://github.com/VESITRail/VESITRail"
 		},
