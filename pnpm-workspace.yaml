@@ -1,5 +1,9 @@
 packages:
   - "."
+
+overrides:
+  kysely: "0.28.17"
+
 allowBuilds:
   "@firebase/util": false
   "@prisma/engines": true
