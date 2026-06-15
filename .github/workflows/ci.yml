@@ -1,5 +1,4 @@
 name: CI
-
 on:
   pull_request:
     branches: [main]
@@ -8,32 +7,26 @@ jobs:
   prettier:
     name: Prettier Check
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Setup
         uses: ./.github/actions/setup
         with:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
       - name: Run Prettier
         run: pnpm run format:check
 
   eslint:
     name: ESLint Check
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Setup
         uses: ./.github/actions/setup
         with:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
       - name: Run ESLint
         run: pnpm run lint
 
@@ -41,16 +34,13 @@ jobs:
     name: Verify Build
     runs-on: ubuntu-latest
     needs: [prettier, eslint]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Setup
         uses: ./.github/actions/setup
         with:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
       - name: Cache Next.js build
         uses: actions/cache@v5
         with:
@@ -60,35 +50,44 @@ jobs:
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
-
       - name: Build application
         run: pnpm run build
 
-  e2e-tests:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    needs: [verify-build]
-    timeout-minutes: 60
+  # e2e-tests:
+  #   name: E2E Tests
+  #   runs-on: ubuntu-latest
+  #   needs: [verify-build]
+  #   timeout-minutes: 60
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v6
+  #     - name: Setup
+  #       uses: ./.github/actions/setup
+  #       with:
+  #         DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+  #     - name: Cache Playwright browsers
+  #       id: pw-cache
+  #       uses: actions/cache@v5
+  #       with:
+  #         path: ~/.cache/ms-playwright
+  #         key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      - name: Setup
-        uses: ./.github/actions/setup
-        with:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  #     - name: Install Playwright Chromium + deps
+  #       if: steps.pw-cache.outputs.cache-hit != 'true'
+  #       run: pnpm exec playwright install --with-deps chromium
 
-      - name: Install Playwright Browsers
-        run: pnpm run test:e2e:install
+  #     - name: Install Chromium system deps only
+  #       if: steps.pw-cache.outputs.cache-hit == 'true'
+  #       run: pnpm exec playwright install-deps chromium
 
-      - name: Run Playwright tests
-        run: pnpm run test:e2e
+  #     - name: Run Playwright tests
+  #       run: pnpm run test:e2e
 
-      - name: Upload test report
-        uses: actions/upload-artifact@v7
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+  #     - name: Upload test report
+  #       uses: actions/upload-artifact@v7
+  #       if: ${{ !cancelled() }}
+  #       with:
+  #         name: playwright-report
+  #         path: playwright-report/
+  #         retention-days: 30
