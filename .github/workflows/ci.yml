@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -36,7 +36,7 @@ jobs:
     needs: [prettier, eslint]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup
         uses: ./.github/actions/setup
         with:
@@ -60,7 +60,7 @@ jobs:
   #   timeout-minutes: 60
   #   steps:
   #     - name: Checkout
-  #       uses: actions/checkout@v6
+  #       uses: actions/checkout@v7
   #     - name: Setup
   #       uses: ./.github/actions/setup
   #       with:
