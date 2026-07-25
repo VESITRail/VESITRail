@@ -89,7 +89,7 @@ const Student = () => {
 				setIsLoading(false);
 			}
 		},
-		[pageSize, currentPage, typeFilter, statusFilter, data?.user?.id]
+		[pageSize, currentPage, typeFilter, statusFilter, data]
 	);
 
 	useEffect(() => {

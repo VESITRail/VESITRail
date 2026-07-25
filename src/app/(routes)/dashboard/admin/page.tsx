@@ -79,7 +79,7 @@ const Admin = () => {
 				setIsLoading(false);
 			}
 		},
-		[data?.user?.id, isPending, statusFilter, typeFilter, searchQuery]
+		[data, isPending, statusFilter, typeFilter, searchQuery]
 	);
 
 	const handlePageChange = useCallback(

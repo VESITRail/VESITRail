@@ -172,9 +172,9 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 		},
 		[
 			router,
+			session.data,
 			defaultValues.class,
 			defaultValues.station,
-			session.data?.user?.id,
 			defaultValues.preferredConcessionClass,
 			defaultValues.preferredConcessionPeriod
 		]
