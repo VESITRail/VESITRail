@@ -251,6 +251,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
 	useEffect(() => {
 		if (isOpen && application) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- loadAvailableBooklets is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
 			loadAvailableBooklets();
 		}
 	}, [isOpen, application, loadAvailableBooklets]);

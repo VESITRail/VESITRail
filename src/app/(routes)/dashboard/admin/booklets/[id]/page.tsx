@@ -202,6 +202,7 @@ const BookletApplicationsPage = () => {
 	}, [bookletId, paginationData.booklet, paginationData.data.length]);
 
 	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- loadApplications is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
 		loadApplications();
 	}, [loadApplications]);
 

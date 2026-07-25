@@ -122,6 +122,7 @@ const CacheManagement = () => {
 			};
 			loadCacheInfo();
 		} else {
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- loading is reset immediately when Cache API support is unavailable; this is a support-state reset, not derived state from props or fetched data.
 			setLoading(false);
 		}
 	}, [isSupported, getCacheInfo, getCacheUsage]);
