@@ -199,16 +199,16 @@ importers:
         version: 3.3.11(@prisma/client@7.9.0(prisma@7.9.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3))(typescript@6.0.3))(prisma@7.9.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3))(zod@4.4.3)
     devDependencies:
       '@eslint/eslintrc':
-        specifier: ^3.3.5
+        specifier: ^3.3.6
         version: 3.3.6(supports-color@7.2.0)
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))
       '@playwright/test':
-        specifier: ^1.58.2
+        specifier: ^1.61.1
         version: 1.61.1
       '@prisma/adapter-pg':
-        specifier: ^7.4.2
+        specifier: ^7.9.0
         version: 7.9.0
       '@semantic-release/changelog':
         specifier: ^6.0.3
@@ -232,37 +232,37 @@ importers:
         specifier: ^19
         version: 19.2.3(@types/react@19.2.17)
       dotenv:
-        specifier: ^17.3.1
+        specifier: ^17.4.2
         version: 17.4.2
       eslint:
         specifier: ^9.39.2
         version: 9.39.5(jiti@2.7.0)(supports-color@7.2.0)
       eslint-config-flat-gitignore:
-        specifier: ^2.2.1
+        specifier: ^2.3.0
         version: 2.3.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))
       eslint-config-next:
-        specifier: ^16.1.6
+        specifier: ^16.2.11
         version: 16.2.11(@typescript-eslint/parser@8.65.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3))(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
       husky:
         specifier: ^9.1.7
         version: 9.1.7
       lint-staged:
-        specifier: ^17.0.5
+        specifier: ^17.2.0
         version: 17.2.0
       prettier:
-        specifier: ^3.8.1
+        specifier: ^3.9.6
         version: 3.9.6
       prisma:
         specifier: ^7.2.0
         version: 7.9.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)
       semantic-release:
-        specifier: ^25.0.3
+        specifier: ^25.0.8
         version: 25.0.8(supports-color@7.2.0)(typescript@6.0.3)
       tailwindcss:
         specifier: ^4
         version: 4.3.3
       tsx:
-        specifier: ^4.21.0
+        specifier: ^4.23.1
         version: 4.23.1
       tw-animate-css:
         specifier: ^1.4.0
@@ -271,7 +271,7 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
       typescript-eslint:
-        specifier: ^8.57.0
+        specifier: ^8.65.0
         version: 8.65.0(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
 
 packages:
