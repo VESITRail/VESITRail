@@ -78,7 +78,8 @@ const ConcessionApplicationForm = () => {
 	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 	const [loadingOptions, setLoadingOptions] = useState<boolean>(true);
 	const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
-
+	const lastApplicationStatusRef = useRef<ConcessionApplicationStatusType | null>(null);
+	
 	const [student, setStudent] = useState<
 		| (StudentPreferences & {
 				station: StudentStation;
@@ -110,19 +111,6 @@ const ConcessionApplicationForm = () => {
 			onClick?: () => void;
 		};
 	} | null>(null);
-
-	useEffect(() => {
-		if (lastApplication) {
-			setSelectedApplicationType("Renewal");
-		}
-	}, [lastApplication]);
-
-	useEffect(() => {
-		if (lastApplication?.status === "Rejected") {
-			setSelectedConcessionClass(lastApplication.concessionClass.id);
-			setSelectedConcessionPeriod(lastApplication.concessionPeriod.id);
-		}
-	}, [lastApplication]);
 
 	useEffect(() => {
 		const fetchOptions = async () => {
@@ -181,6 +169,11 @@ const ConcessionApplicationForm = () => {
 						station: stationResult.data,
 						...prefResult.data
 					});
+
+					if (lastApplicationStatusRef.current !== "Rejected") {
+						setSelectedConcessionClass(prefResult.data.preferredConcessionClass.id);
+						setSelectedConcessionPeriod(prefResult.data.preferredConcessionPeriod.id);
+					}
 				}
 			} catch (error) {
 				console.error("Error while loading student details:", error);
@@ -192,13 +185,6 @@ const ConcessionApplicationForm = () => {
 
 		fetchStudentDetails();
 	}, [data?.user?.id, isPending]);
-
-	useEffect(() => {
-		if (student) {
-			setSelectedConcessionClass(student.preferredConcessionClass.id);
-			setSelectedConcessionPeriod(student.preferredConcessionPeriod.id);
-		}
-	}, [student]);
 
 	useEffect(() => {
 		const checkApplicationStatus = async () => {
@@ -225,7 +211,10 @@ const ConcessionApplicationForm = () => {
 				}
 
 				const application = result.data;
+				lastApplicationStatusRef.current = application?.status ?? null;
+
 				setLastApplication(application);
+				setSelectedApplicationType(application ? "Renewal" : "New");
 
 				if (!application) {
 					setStatus(null);
@@ -233,6 +222,8 @@ const ConcessionApplicationForm = () => {
 				} else {
 					switch (application.status) {
 						case "Rejected":
+							setSelectedConcessionClass(application.concessionClass.id);
+							setSelectedConcessionPeriod(application.concessionPeriod.id);
 							setStatus(null);
 							setCanApply(true);
 							break;
