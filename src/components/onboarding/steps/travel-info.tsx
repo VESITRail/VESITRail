@@ -23,6 +23,33 @@ type TravelInfoProps = {
 	setFormData: (data: z.infer<typeof OnboardingSchema>) => void;
 };
 
+const StationSelectSkeleton = () => (
+	<FormItem className="space-y-1">
+		<FormLabel>
+			Home Station <span className="text-destructive">*</span>
+		</FormLabel>
+		<Skeleton className="h-10 w-full rounded-md" />
+	</FormItem>
+);
+
+const ConcessionClassSelectSkeleton = () => (
+	<FormItem className="space-y-1">
+		<FormLabel>
+			Preferred Concession Class <span className="text-destructive">*</span>
+		</FormLabel>
+		<Skeleton className="h-10 w-full rounded-md" />
+	</FormItem>
+);
+
+const ConcessionPeriodSelectSkeleton = () => (
+	<FormItem className="space-y-1">
+		<FormLabel>
+			Preferred Concession Period <span className="text-destructive">*</span>
+		</FormLabel>
+		<Skeleton className="h-10 w-full rounded-md" />
+	</FormItem>
+);
+
 const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => {
 	const [stations, setStations] = useState<Station[]>([]);
 	const [concessionPeriods, setConcessionPeriods] = useState<ConcessionPeriod[]>([]);
@@ -134,33 +161,6 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 			});
 		}
 	}, [errors, form]);
-
-	const StationSelectSkeleton = () => (
-		<FormItem className="space-y-1">
-			<FormLabel>
-				Home Station <span className="text-destructive">*</span>
-			</FormLabel>
-			<Skeleton className="h-10 w-full rounded-md" />
-		</FormItem>
-	);
-
-	const ConcessionClassSelectSkeleton = () => (
-		<FormItem className="space-y-1">
-			<FormLabel>
-				Preferred Concession Class <span className="text-destructive">*</span>
-			</FormLabel>
-			<Skeleton className="h-10 w-full rounded-md" />
-		</FormItem>
-	);
-
-	const ConcessionPeriodSelectSkeleton = () => (
-		<FormItem className="space-y-1">
-			<FormLabel>
-				Preferred Concession Period <span className="text-destructive">*</span>
-			</FormLabel>
-			<Skeleton className="h-10 w-full rounded-md" />
-		</FormItem>
-	);
 
 	return (
 		<Form {...form}>
