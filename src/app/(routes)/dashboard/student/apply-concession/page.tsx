@@ -79,7 +79,7 @@ const ConcessionApplicationForm = () => {
 	const [loadingOptions, setLoadingOptions] = useState<boolean>(true);
 	const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 	const lastApplicationStatusRef = useRef<ConcessionApplicationStatusType | null>(null);
-	
+
 	const [student, setStudent] = useState<
 		| (StudentPreferences & {
 				station: StudentStation;
