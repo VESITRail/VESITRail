@@ -36,6 +36,25 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 	const [isMarkingDamaged, setIsMarkingDamaged] = useState<boolean>(false);
 	const [availableBooklets, setAvailableBooklets] = useState<AvailableBooklet[]>([]);
 
+	const calculateNextSerialNumber = useCallback((booklet: AvailableBooklet) => {
+		const serialStart = booklet.serialStartNumber;
+		const prefix = serialStart.replace(/\d+$/, "");
+		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
+		const damagedPages = Array.isArray(booklet.damagedPages) ? booklet.damagedPages : [];
+
+		let nextPage = booklet._count.applications;
+		while (damagedPages.includes(nextPage) && nextPage < booklet.totalPages) {
+			nextPage++;
+		}
+
+		const nextNum = startNum + nextPage;
+		const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 3;
+
+		const nextSerial = `${prefix}${nextNum.toString().padStart(paddingLength, "0")}`;
+		setNextSerialNumber(nextSerial);
+		return nextPage;
+	}, []);
+
 	const loadAvailableBooklets = useCallback(async () => {
 		setIsLoading(true);
 		try {
@@ -61,26 +80,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
-
-	const calculateNextSerialNumber = (booklet: AvailableBooklet) => {
-		const serialStart = booklet.serialStartNumber;
-		const prefix = serialStart.replace(/\d+$/, "");
-		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-		const damagedPages = Array.isArray(booklet.damagedPages) ? booklet.damagedPages : [];
-
-		let nextPage = booklet._count.applications;
-		while (damagedPages.includes(nextPage) && nextPage < booklet.totalPages) {
-			nextPage++;
-		}
-
-		const nextNum = startNum + nextPage;
-		const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 3;
-
-		const nextSerial = `${prefix}${nextNum.toString().padStart(paddingLength, "0")}`;
-		setNextSerialNumber(nextSerial);
-		return nextPage;
-	};
+	}, [calculateNextSerialNumber]);
 
 	const generateBookletSearchTerms = (booklet: AvailableBooklet) => {
 		const serialStart = booklet.serialStartNumber;
@@ -251,6 +251,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
 	useEffect(() => {
 		if (isOpen && application) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- loadAvailableBooklets is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
 			loadAvailableBooklets();
 		}
 	}, [isOpen, application, loadAvailableBooklets]);

@@ -25,6 +25,29 @@ type NotificationSheetProps = {
 	children: React.ReactNode;
 };
 
+const NotificationSkeleton = () => (
+	<div className="space-y-4 py-2">
+		{Array.from({ length: 10 }).map((_, i) => (
+			<div key={i} className="flex gap-3 p-3">
+				<Skeleton className="size-4 rounded-full shrink-0 mt-1" />
+				<div className="flex-1 space-y-2">
+					<div className="flex items-center justify-between">
+						<Skeleton className="h-4 w-3/4" />
+						<Skeleton className="size-2 rounded-full" />
+					</div>
+					<Skeleton className="h-3 w-full" />
+					<Skeleton className="h-3 w-2/3" />
+					<div className="flex items-center gap-2">
+						<Skeleton className="h-3 w-3 rounded-full" />
+						<Skeleton className="h-3 w-16" />
+						<Skeleton className="h-4 w-12 rounded-full" />
+					</div>
+				</div>
+			</div>
+		))}
+	</div>
+);
+
 const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 	const router = useRouter();
 	const isMobile = useIsMobile();
@@ -84,7 +107,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 				setLoadingMore(false);
 			}
 		},
-		[session?.user?.id, pageSize]
+		[session, pageSize]
 	);
 
 	const loadMore = useCallback(() => {
@@ -126,6 +149,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 
 	useEffect(() => {
 		if (isOpen) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- fetchNotifications is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
 			fetchNotifications(1, true);
 		}
 	}, [isOpen, fetchNotifications]);
@@ -138,29 +162,6 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 			}
 		},
 		[hasNextPage, loadingMore, loadMore]
-	);
-
-	const NotificationSkeleton = () => (
-		<div className="space-y-4 py-2">
-			{Array.from({ length: 10 }).map((_, i) => (
-				<div key={i} className="flex gap-3 p-3">
-					<Skeleton className="size-4 rounded-full shrink-0 mt-1" />
-					<div className="flex-1 space-y-2">
-						<div className="flex items-center justify-between">
-							<Skeleton className="h-4 w-3/4" />
-							<Skeleton className="size-2 rounded-full" />
-						</div>
-						<Skeleton className="h-3 w-full" />
-						<Skeleton className="h-3 w-2/3" />
-						<div className="flex items-center gap-2">
-							<Skeleton className="h-3 w-3 rounded-full" />
-							<Skeleton className="h-3 w-16" />
-							<Skeleton className="h-4 w-12 rounded-full" />
-						</div>
-					</div>
-				</div>
-			))}
-		</div>
 	);
 
 	return (

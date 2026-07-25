@@ -172,9 +172,9 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 		},
 		[
 			router,
+			session.data,
 			defaultValues.class,
 			defaultValues.station,
-			session.data?.user?.id,
 			defaultValues.preferredConcessionClass,
 			defaultValues.preferredConcessionPeriod
 		]
@@ -275,6 +275,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 
 	useEffect(() => {
 		if (session.data?.user?.id) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- loadReviewData is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
 			loadReviewData();
 		}
 	}, [session.data?.user?.id, loadReviewData]);

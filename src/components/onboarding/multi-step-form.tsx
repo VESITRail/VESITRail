@@ -16,6 +16,88 @@ import { Review, Document, TravelInfo, PersonalInfo, AcademicInfo } from "./step
 import { RefreshCw, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 
+const steps = [
+	{ id: 1, title: "Personal Details" },
+	{ id: 2, title: "Academic Details" },
+	{ id: 3, title: "Travel Details" },
+	{ id: 4, title: "Document Upload" },
+	{ id: 5, title: "Review & Submit" }
+];
+
+const OnboardingFormSkeleton = () => (
+	<Card className="w-full max-w-5xl mx-auto py-12 md:px-4">
+		<CardHeader className="space-y-6">
+			<div className="text-center">
+				<CardTitle className="text-3xl font-bold tracking-tight">Onboarding</CardTitle>
+				<CardDescription className="text-lg text-muted-foreground">Loading your application data...</CardDescription>
+			</div>
+
+			<div className="relative flex flex-nowrap overflow-x-auto justify-between items-center pt-4 px-4 md:px-0 md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none">
+				{steps.map((step, index) => (
+					<div key={step.id} className="flex flex-col items-center shrink-0 z-10 px-2 md:px-4 min-w-fit relative">
+						{index < steps.length - 1 && (
+							<div className="absolute h-0.5 w-full left-1/2 top-5 -translate-y-1/2 bg-border" />
+						)}
+						<Skeleton className="size-10 animate-none z-10 rounded-full" />
+						<div className="mt-3 text-center">
+							<Skeleton className="h-4 w-24 mx-auto" />
+						</div>
+					</div>
+				))}
+			</div>
+		</CardHeader>
+
+		<CardContent className="mt-8">
+			<div className="space-y-6">
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+					{[1, 2, 3].map((item) => (
+						<div key={item} className="space-y-1 h-19.5">
+							<div className="block">
+								<Skeleton className="h-4 w-20" />
+							</div>
+							<Skeleton className="h-10 w-full rounded-md" />
+							<div className="h-5" />
+						</div>
+					))}
+				</div>
+
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+					{[1, 2].map((item) => (
+						<div key={item} className="space-y-1 h-19.5">
+							<div className="block">
+								<Skeleton className="h-4 w-16" />
+							</div>
+							<Skeleton className="h-10 w-full rounded-md" />
+							<div className="h-5" />
+						</div>
+					))}
+				</div>
+
+				<div className="space-y-1">
+					<div className="block">
+						<Skeleton className="h-4 w-14" />
+					</div>
+					<div className="space-y-6">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+							{[1, 2, 3, 4].map((item) => (
+								<div key={item} className="space-y-2">
+									<Skeleton className="h-4 w-24" />
+									<Skeleton className="h-10 w-full rounded-md" />
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div className="flex justify-between mt-8 gap-4">
+				<Skeleton className="h-10 w-24 rounded-md" />
+				<Skeleton className="h-10 w-16 rounded-md" />
+			</div>
+		</CardContent>
+	</Card>
+);
+
 const MultiStepForm = () => {
 	const totalSteps = 5;
 	const router = useRouter();
@@ -273,88 +355,6 @@ const MultiStepForm = () => {
 		}
 	};
 
-	const steps = [
-		{ id: 1, title: "Personal Details" },
-		{ id: 2, title: "Academic Details" },
-		{ id: 3, title: "Travel Details" },
-		{ id: 4, title: "Document Upload" },
-		{ id: 5, title: "Review & Submit" }
-	];
-
-	const OnboardingFormSkeleton = () => (
-		<Card className="w-full max-w-5xl mx-auto py-12 md:px-4">
-			<CardHeader className="space-y-6">
-				<div className="text-center">
-					<CardTitle className="text-3xl font-bold tracking-tight">Onboarding</CardTitle>
-					<CardDescription className="text-lg text-muted-foreground">Loading your application data...</CardDescription>
-				</div>
-
-				<div className="relative flex flex-nowrap overflow-x-auto justify-between items-center pt-4 px-4 md:px-0 md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-					{steps.map((step, index) => (
-						<div key={step.id} className="flex flex-col items-center shrink-0 z-10 px-2 md:px-4 min-w-fit relative">
-							{index < steps.length - 1 && (
-								<div className="absolute h-0.5 w-full left-1/2 top-5 -translate-y-1/2 bg-border" />
-							)}
-							<Skeleton className="size-10 animate-none z-10 rounded-full" />
-							<div className="mt-3 text-center">
-								<Skeleton className="h-4 w-24 mx-auto" />
-							</div>
-						</div>
-					))}
-				</div>
-			</CardHeader>
-
-			<CardContent className="mt-8">
-				<div className="space-y-6">
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-						{[1, 2, 3].map((item) => (
-							<div key={item} className="space-y-1 h-19.5">
-								<div className="block">
-									<Skeleton className="h-4 w-20" />
-								</div>
-								<Skeleton className="h-10 w-full rounded-md" />
-								<div className="h-5" />
-							</div>
-						))}
-					</div>
-
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-						{[1, 2].map((item) => (
-							<div key={item} className="space-y-1 h-19.5">
-								<div className="block">
-									<Skeleton className="h-4 w-16" />
-								</div>
-								<Skeleton className="h-10 w-full rounded-md" />
-								<div className="h-5" />
-							</div>
-						))}
-					</div>
-
-					<div className="space-y-1">
-						<div className="block">
-							<Skeleton className="h-4 w-14" />
-						</div>
-						<div className="space-y-6">
-							<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-								{[1, 2, 3, 4].map((item) => (
-									<div key={item} className="space-y-2">
-										<Skeleton className="h-4 w-24" />
-										<Skeleton className="h-10 w-full rounded-md" />
-									</div>
-								))}
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div className="flex justify-between mt-8 gap-4">
-					<Skeleton className="h-10 w-24 rounded-md" />
-					<Skeleton className="h-10 w-16 rounded-md" />
-				</div>
-			</CardContent>
-		</Card>
-	);
-
 	if (isLoading || isPending) {
 		return <OnboardingFormSkeleton />;
 	}
@@ -371,7 +371,7 @@ const MultiStepForm = () => {
 
 				<div
 					ref={stepsContainerRef}
-					className="relative flex flex-nowrap overflow-x-auto justify-between items-center pt-4 px-4 md:px-0 md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+					className="relative flex flex-nowrap overflow-x-auto justify-between items-center pt-4 px-4 md:px-0 md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none"
 				>
 					{steps.map((step, index) => (
 						<div
