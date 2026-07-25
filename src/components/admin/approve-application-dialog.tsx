@@ -36,7 +36,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 	const [isMarkingDamaged, setIsMarkingDamaged] = useState<boolean>(false);
 	const [availableBooklets, setAvailableBooklets] = useState<AvailableBooklet[]>([]);
 
-	const calculateNextSerialNumber = (booklet: AvailableBooklet) => {
+	const calculateNextSerialNumber = useCallback((booklet: AvailableBooklet) => {
 		const serialStart = booklet.serialStartNumber;
 		const prefix = serialStart.replace(/\d+$/, "");
 		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
@@ -53,7 +53,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		const nextSerial = `${prefix}${nextNum.toString().padStart(paddingLength, "0")}`;
 		setNextSerialNumber(nextSerial);
 		return nextPage;
-	};
+	}, []);
 
 	const loadAvailableBooklets = useCallback(async () => {
 		setIsLoading(true);
