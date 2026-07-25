@@ -1,16 +1,17 @@
 import prisma from "@/lib/prisma";
-import admin from "firebase-admin";
 import nodemailer from "nodemailer";
+import { getMessaging } from "firebase-admin/messaging";
 import { getNotificationPreferences } from "@/actions/settings";
+import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getNotificationScenario, type NotificationScenario } from "./scenarios";
 import { generateEmailTemplate, type EmailTemplateParams } from "./email-templates";
 import { Result, success, failure, type AppError, databaseError, validationError } from "@/lib/result";
 
-if (!admin.apps.length) {
+if (!getApps().length) {
 	const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || "{}");
 
-	admin.initializeApp({
-		credential: admin.credential.cert(serviceAccount),
+	initializeApp({
+		credential: cert(serviceAccount),
 		projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
 	});
 }
@@ -221,7 +222,7 @@ const sendPushNotification = async (params: {
 			}
 		};
 
-		await admin.messaging().sendEachForMulticast(message);
+		await getMessaging().sendEachForMulticast(message);
 		return success(true);
 	} catch (error) {
 		console.error("Error sending push notification:", error);
