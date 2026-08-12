@@ -101,12 +101,14 @@ const StudentDashboardLayoutContent = ({ children }: { children: React.ReactNode
 						</div>
 					</div>
 
-					<NotificationSheet>
-						<Button size="icon" className="mr-2 shrink-0">
-							<Bell className="size-[1.2rem]" />
-							<span className="sr-only">Notifications</span>
-						</Button>
-					</NotificationSheet>
+					<div className="mr-2 shrink-0">
+						<NotificationSheet>
+							<Button size="icon" className="shrink-0">
+								<Bell className="size-[1.2rem]" />
+								<span className="sr-only">Notifications</span>
+							</Button>
+						</NotificationSheet>
+					</div>
 
 					<ThemeToggle className="mr-5 shrink-0" />
 				</header>

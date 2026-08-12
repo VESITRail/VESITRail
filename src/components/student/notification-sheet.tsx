@@ -4,6 +4,7 @@ import {
 	getNotifications,
 	type NotificationItem,
 	markNotificationAsRead,
+	getUnreadNotificationCount,
 	type NotificationPaginationParams
 } from "@/actions/notifications";
 import { toast } from "sonner";
@@ -148,6 +149,29 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 	};
 
 	useEffect(() => {
+		if (!session?.user?.id) return;
+
+		let isMounted = true;
+
+		const fetchInitialUnreadCount = async () => {
+			try {
+				const result = await getUnreadNotificationCount(session.user.id);
+				if (result.isSuccess && isMounted) {
+					setUnreadCount(result.data.count);
+				}
+			} catch (error) {
+				console.error("Failed to fetch unread notification count:", error);
+			}
+		};
+
+		fetchInitialUnreadCount();
+
+		return () => {
+			isMounted = false;
+		};
+	}, [session?.user?.id]);
+
+	useEffect(() => {
 		if (isOpen) {
 			// eslint-disable-next-line react-hooks/set-state-in-effect -- fetchNotifications is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
 			fetchNotifications(1, true);
@@ -166,7 +190,19 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 
 	return (
 		<Sheet open={isOpen} onOpenChange={setIsOpen}>
-			<SheetTrigger asChild>{children}</SheetTrigger>
+			<SheetTrigger asChild>
+				<div className="relative inline-flex shrink-0">
+					{children}
+					{unreadCount > 0 && (
+						<Badge
+							variant="destructive"
+							className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-red-500 text-white dark:bg-red-600 dark:text-white px-1 text-[11px] font-bold leading-none shadow-xs pointer-events-none z-10"
+						>
+							{unreadCount > 99 ? "99+" : unreadCount}
+						</Badge>
+					)}
+				</div>
+			</SheetTrigger>
 
 			<SheetContent side="right" className="w-full sm:max-w-md p-0">
 				<SheetHeader className="p-4 pb-0">
