@@ -8,7 +8,18 @@ import { generateEmailTemplate, type EmailTemplateParams } from "./email-templat
 import { Result, success, failure, type AppError, databaseError, validationError } from "@/lib/result";
 
 if (!getApps().length) {
-	const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || "{}");
+	const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+
+	if (!rawServiceAccount) {
+		throw new Error("FIREBASE_SERVICE_ACCOUNT env var is not set. Firebase Admin cannot initialize.");
+	}
+
+	let serviceAccount;
+	try {
+		serviceAccount = JSON.parse(rawServiceAccount);
+	} catch (err) {
+		throw new Error(`FIREBASE_SERVICE_ACCOUNT is not valid JSON: ${(err as Error).message}`);
+	}
 
 	initializeApp({
 		credential: cert(serviceAccount),
