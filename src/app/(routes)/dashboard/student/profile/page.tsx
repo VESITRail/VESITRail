@@ -125,7 +125,7 @@ const StudentProfilePage = () => {
 						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-12" />
-								<Skeleton className="h-6 w-16 rounded-full" />
+								<Skeleton className="h-5 w-24" />
 							</div>
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-16" />
@@ -133,7 +133,7 @@ const StudentProfilePage = () => {
 							</div>
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-12" />
-								<Skeleton className="h-6 w-20 rounded-full" />
+								<Skeleton className="h-5 w-20" />
 							</div>
 						</div>
 					</div>
@@ -157,12 +157,12 @@ const StudentProfilePage = () => {
 							</div>
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-36" />
-								<Skeleton className="h-6 w-24 rounded-full" />
+								<Skeleton className="h-5 w-32" />
 							</div>
 						</div>
 						<div className="space-y-2">
 							<Skeleton className="h-4 w-36" />
-							<Skeleton className="h-6 w-28 rounded-full" />
+							<Skeleton className="h-5 w-40" />
 						</div>
 					</div>
 				</div>
@@ -306,9 +306,9 @@ const StudentProfilePage = () => {
 					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Year</p>
-							<Badge variant="outline">
+							<p className="font-medium">
 								{profileData.class?.year?.name ?? "N/A"} ({profileData.class?.year?.code ?? "N/A"})
-							</Badge>
+							</p>
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Branch</p>
@@ -318,7 +318,7 @@ const StudentProfilePage = () => {
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Class</p>
-							<Badge variant="outline">{profileData.class?.code || "N/A"}</Badge>
+							<p className="font-medium">{profileData.class?.code || "N/A"}</p>
 						</div>
 					</div>
 				</CardContent>
@@ -360,10 +360,10 @@ const StudentProfilePage = () => {
 									</Button>
 								</Link>
 							</div>
-							<Badge variant="outline">
+							<p className="font-medium">
 								{profileData.preferredConcessionClass?.name || "N/A"} (
 								{profileData.preferredConcessionClass?.code || "N/A"})
-							</Badge>
+							</p>
 						</div>
 					</div>
 					<div className="space-y-1">
@@ -375,7 +375,7 @@ const StudentProfilePage = () => {
 								</Button>
 							</Link>
 						</div>
-						<Badge variant="outline">
+						<p className="font-medium">
 							{profileData.preferredConcessionPeriod?.name || "N/A"} (
 							{profileData.preferredConcessionPeriod?.duration != null
 								? `${profileData.preferredConcessionPeriod.duration} ${
@@ -383,7 +383,7 @@ const StudentProfilePage = () => {
 									}`
 								: "N/A"}
 							)
-						</Badge>
+						</p>
 					</div>
 				</CardContent>
 			</Card>
@@ -401,16 +401,16 @@ const StudentProfilePage = () => {
 					</div>
 				</CardHeader>
 				<CardContent>
-					<div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-						<div className="space-y-1">
+					<div className="flex items-center justify-between gap-3 p-4 border rounded-lg bg-muted/50">
+						<div className="space-y-1 min-w-0 flex-1">
 							<p className="text-sm font-medium">Verification Document</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="text-xs text-muted-foreground leading-snug">
 								{profileData.verificationDocUrl ? "Click to view your uploaded document" : "No document uploaded"}
 							</p>
 						</div>
 						<Button
 							size="sm"
-							className="flex items-center gap-2"
+							className="flex items-center gap-2 shrink-0"
 							disabled={!profileData.verificationDocUrl}
 							asChild={!!profileData.verificationDocUrl}
 						>
