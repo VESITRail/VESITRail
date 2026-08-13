@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://rail.vesit.ves.ac.in/opengraph-image.png" alt="VESITRail - Streamlined Railway Concessions" width="512" style="border-radius: 8px; margin-bottom: 20px;">
+<img src="src/app/opengraph-image.png" alt="VESITRail - Streamlined Railway Concessions" width="512" style="border-radius: 8px; margin-bottom: 20px;">
 
 # VESITRail
 
