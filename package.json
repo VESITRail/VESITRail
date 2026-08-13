@@ -3,9 +3,9 @@
 	"type": "module",
 	"name": "vesitrail",
 	"author": "VESITRail",
-	"packageManager": "pnpm@11.17.0",
+	"packageManager": "pnpm@11.21.0",
 	"version": "0.0.0-semantically-released",
-	"homepage": "https://vesitrail.ves.ac.in",
+	"homepage": "https://rail.vesit.ves.ac.in",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/VESITRail/VESITRail.git"
