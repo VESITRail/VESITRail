@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AdminApplication } from "@/actions/concession";
 import { useState, useEffect, useCallback } from "react";
 import { ExternalLink, AlertTriangle } from "lucide-react";
+import { ConcessionBookletStatusType } from "@/generated/zod";
 import { AvailableBooklet, getAvailableBooklets, updateBookletDamagedPages } from "@/actions/booklets";
 import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
 
@@ -20,6 +21,19 @@ type ApproveApplicationDialogProps = {
 	onClose: () => void;
 	application: AdminApplication | null;
 	onApprove: (applicationId: string, bookletId: string) => Promise<void>;
+};
+
+const StatusBadge = ({ status }: { status: ConcessionBookletStatusType }) => {
+	const variants = {
+		InUse: "bg-primary text-white",
+		Damaged: "bg-red-600 text-white",
+		Exhausted: "bg-gray-600 text-white",
+		Available: "bg-green-600 text-white"
+	};
+
+	const displayText = status === "InUse" ? "In Use" : status;
+
+	return <Badge className={`${variants[status]} font-medium`}>{displayText}</Badge>;
 };
 
 const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
@@ -382,12 +396,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 															<span className="text-destructive ml-1">• {damagedCount} damaged</span>
 														)}
 													</span>
-													<Badge
-														className="text-xs whitespace-nowrap"
-														variant={booklet.status === "InUse" ? "default" : "outline"}
-													>
-														{booklet.status === "InUse" ? "In Use" : "Available"}
-													</Badge>
+													<StatusBadge status={booklet.status} />
 												</div>
 											</div>
 										);
