@@ -1,4 +1,5 @@
 import {
+	X,
 	Eye,
 	Check,
 	UserX,
@@ -13,7 +14,6 @@ import {
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
-	ExternalLink,
 	AlertTriangle
 } from "lucide-react";
 import {
@@ -87,9 +87,10 @@ const StudentDetailsDialog = ({
 	const [hasError, setHasError] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
+	const [showDocViewer, setShowDocViewer] = useState<boolean>(false);
 	const [rejectionReason, setRejectionReason] = useState<string>("");
-	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
 	const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
+	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
 
 	const loadStudentDetails = useCallback(async () => {
 		if (!isOpen || studentDetails) return;
@@ -132,6 +133,7 @@ const StudentDetailsDialog = ({
 
 				setStudentDetails(result.data);
 				onStudentUpdate?.(result.data);
+				setShowDocViewer(false);
 				setIsOpen(false);
 				return result.data;
 			} else {
@@ -183,6 +185,7 @@ const StudentDetailsDialog = ({
 				setShowRejectDialog(false);
 				setRejectionReason("");
 				setSelectedPredefinedReason("");
+				setShowDocViewer(false);
 				setIsOpen(false);
 				return result.data;
 			} else {
@@ -209,6 +212,12 @@ const StudentDetailsDialog = ({
 		} else {
 			setStudentDetails(null);
 			setHasError(false);
+
+			const timeout = setTimeout(() => {
+				setShowDocViewer(false);
+			}, 200);
+
+			return () => clearTimeout(timeout);
 		}
 	}, [isOpen, loadStudentDetails]);
 
@@ -221,7 +230,15 @@ const StudentDetailsDialog = ({
 					</Button>
 				</DialogTrigger>
 
-				<DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+				<DialogContent
+					closeClassName="top-4 right-4 z-50"
+					onFocusOutside={(e) => e.preventDefault()}
+					onInteractOutside={(e) => e.preventDefault()}
+					onPointerDownOutside={(e) => e.preventDefault()}
+					className={`max-h-[90vh] transition-[max-width,width,height] duration-500 ease-in-out ${
+						showDocViewer ? "sm:max-w-[95vw] w-[95vw] h-[90vh] overflow-hidden pt-12" : "sm:max-w-3xl overflow-y-auto"
+					}`}
+				>
 					{isLoading ? (
 						<div className="space-y-6">
 							<div className="flex mt-4 items-center justify-between">
@@ -301,238 +318,294 @@ const StudentDetailsDialog = ({
 							</div>
 						</div>
 					) : studentDetails ? (
-						<div className="space-y-6">
-							<div className="flex mt-4 items-center justify-between">
-								<div className="flex items-center gap-3">
-									<Avatar className="size-8 rounded-lg">
-										<AvatarImage
-											alt={studentDetails.user.image || "Student"}
-											src={studentDetails.user.image || undefined}
-										/>
-										<AvatarFallback className="rounded-lg">
-											{getUserInitials("Student", studentDetails.user.name)}
-										</AvatarFallback>
-									</Avatar>
+						<div
+							className={`flex h-full transition-[gap] duration-500 ease-in-out ${showDocViewer ? "gap-6" : "gap-0"}`}
+						>
+							<div
+								className={`space-y-6 overflow-y-auto transition-[width] duration-500 ease-in-out pr-4 ${
+									showDocViewer ? "w-[45%] shrink-0" : "w-full"
+								}`}
+								style={{ maxHeight: showDocViewer ? "calc(90vh - 4.5rem)" : undefined }}
+							>
+								<div className="flex mt-4 items-center justify-between">
+									<div className="flex items-center gap-3">
+										<Avatar className="size-8 rounded-lg">
+											<AvatarImage
+												alt={studentDetails.user.image || "Student"}
+												src={studentDetails.user.image || undefined}
+											/>
+											<AvatarFallback className="rounded-lg">
+												{getUserInitials("Student", studentDetails.user.name)}
+											</AvatarFallback>
+										</Avatar>
 
-									<div>
-										<h3 className="font-semibold text-lg">
-											{toTitleCase(
-												`${studentDetails.firstName} ${studentDetails.middleName} ${studentDetails.lastName}`
-											)}
-										</h3>
-										<p className="text-sm text-muted-foreground">{studentDetails.user.email}</p>
+										<div>
+											<h3 className="font-semibold text-lg">
+												{toTitleCase(
+													`${studentDetails.firstName} ${studentDetails.middleName} ${studentDetails.lastName}`
+												)}
+											</h3>
+											<p className="text-sm text-muted-foreground">{studentDetails.user.email}</p>
+										</div>
 									</div>
+
+									<StatusBadge status={studentDetails.status} />
 								</div>
 
-								<StatusBadge status={studentDetails.status} />
-							</div>
+								<Separator />
 
-							<Separator />
+								<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+									<div className="space-y-6">
+										<div>
+											<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+												Personal Information
+											</h4>
 
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-								<div className="space-y-6">
-									<div>
-										<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-											Personal Information
-										</h4>
+											<div className="space-y-4">
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
+														Gender
+													</span>
+													<span className="text-sm text-right flex-1 ml-3">{studentDetails.gender}</span>
+												</div>
 
-										<div className="space-y-4">
-											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">Gender</span>
-												<span className="text-sm text-right flex-1 ml-3">{studentDetails.gender}</span>
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
+														Birth Date
+													</span>
+													<span className="text-sm text-right flex-1 ml-3">
+														{format(new Date(studentDetails.dateOfBirth), "MMM dd, yyyy")}
+													</span>
+												</div>
+
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
+														Address
+													</span>
+													<span className="text-sm text-right flex-1 ml-3 wrap-break-word">
+														{studentDetails.address}
+													</span>
+												</div>
 											</div>
+										</div>
+
+										<Separator />
+
+										<div>
+											<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+												Station Information
+											</h4>
 
 											<div className="flex justify-between items-start">
 												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
-													Birth Date
+													Home Station
 												</span>
 												<span className="text-sm text-right flex-1 ml-3">
-													{format(new Date(studentDetails.dateOfBirth), "MMM dd, yyyy")}
+													{studentDetails.station.name} ({studentDetails.station.code})
 												</span>
-											</div>
-
-											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">Address</span>
-												<span className="text-sm text-right flex-1 ml-3 wrap-break-word">{studentDetails.address}</span>
 											</div>
 										</div>
 									</div>
 
-									<Separator />
+									<div className="space-y-6">
+										<div>
+											<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+												Academic Information
+											</h4>
 
-									<div>
-										<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-											Station Information
-										</h4>
+											<div className="space-y-4">
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Class</span>
+													<span className="text-sm text-right flex-1 ml-3">{studentDetails.class.code}</span>
+												</div>
 
-										<div className="flex justify-between items-start">
-											<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
-												Home Station
-											</span>
-											<span className="text-sm text-right flex-1 ml-3">
-												{studentDetails.station.name} ({studentDetails.station.code})
-											</span>
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Year</span>
+													<span className="text-sm text-right flex-1 ml-3">
+														{studentDetails.class.year.name} ({studentDetails.class.year.code})
+													</span>
+												</div>
+
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">
+														Branch
+													</span>
+													<span className="text-sm text-right flex-1 ml-3">
+														{studentDetails.class.branch.name} ({studentDetails.class.branch.code})
+													</span>
+												</div>
+											</div>
+										</div>
+
+										<Separator />
+
+										<div>
+											<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+												Concession Preferences
+											</h4>
+
+											<div className="space-y-4">
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Class</span>
+													<span className="text-sm text-right flex-1 ml-3">
+														{studentDetails.preferredConcessionClass.name} (
+														{studentDetails.preferredConcessionClass.code})
+													</span>
+												</div>
+
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">
+														Period
+													</span>
+													<span className="text-sm text-right flex-1 ml-3">
+														{studentDetails.preferredConcessionPeriod.name} (
+														{studentDetails.preferredConcessionPeriod.duration}{" "}
+														{studentDetails.preferredConcessionPeriod.duration === 1 ? "month" : "months"})
+													</span>
+												</div>
+											</div>
 										</div>
 									</div>
 								</div>
+
+								<Separator />
+
+								<div className="space-y-4">
+									<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+										Verification Document
+									</h4>
+
+									<div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
+										<FileText className="size-4 text-muted-foreground" />
+										<span className="text-sm font-medium flex-1">Student Verification Document</span>
+										<Button
+											size="sm"
+											variant={showDocViewer ? "destructive" : "default"}
+											onClick={() => setShowDocViewer(!showDocViewer)}
+										>
+											{showDocViewer ? (
+												<>
+													<X className="size-4 mr-1" />
+													Close
+												</>
+											) : (
+												<>
+													<Eye className="size-4 mr-1" />
+													View
+												</>
+											)}
+										</Button>
+									</div>
+								</div>
+
+								<Separator />
 
 								<div className="space-y-6">
-									<div>
-										<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-											Academic Information
-										</h4>
+									<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+										Application Status
+									</h4>
 
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 										<div className="space-y-4">
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Class</span>
-												<span className="text-sm text-right flex-1 ml-3">{studentDetails.class.code}</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">Submissions</span>
+												<span className="text-sm text-right">{studentDetails.submissionCount}</span>
 											</div>
 
 											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Year</span>
-												<span className="text-sm text-right flex-1 ml-3">
-													{studentDetails.class.year.name} ({studentDetails.class.year.code})
-												</span>
-											</div>
-
-											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Branch</span>
-												<span className="text-sm text-right flex-1 ml-3">
-													{studentDetails.class.branch.name} ({studentDetails.class.branch.code})
-												</span>
-											</div>
-										</div>
-									</div>
-
-									<Separator />
-
-									<div>
-										<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-											Concession Preferences
-										</h4>
-
-										<div className="space-y-4">
-											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Class</span>
-												<span className="text-sm text-right flex-1 ml-3">
-													{studentDetails.preferredConcessionClass.name} ({studentDetails.preferredConcessionClass.code}
-													)
-												</span>
-											</div>
-
-											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-20">Period</span>
-												<span className="text-sm text-right flex-1 ml-3">
-													{studentDetails.preferredConcessionPeriod.name} (
-													{studentDetails.preferredConcessionPeriod.duration}{" "}
-													{studentDetails.preferredConcessionPeriod.duration === 1 ? "month" : "months"})
-												</span>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							<Separator />
-
-							<div className="space-y-4">
-								<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-									Verification Document
-								</h4>
-
-								<div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
-									<FileText className="size-4 text-muted-foreground" />
-									<span className="text-sm font-medium flex-1">Student Verification Document</span>
-									<Button
-										size="sm"
-										variant="default"
-										onClick={() => window.open(studentDetails.verificationDocUrl, "_blank")}
-									>
-										<ExternalLink className="size-4 mr-1" />
-										View
-									</Button>
-								</div>
-							</div>
-
-							<Separator />
-
-							<div className="space-y-6">
-								<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-									Application Status
-								</h4>
-
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-									<div className="space-y-4">
-										<div className="flex justify-between items-start">
-											<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">Submissions</span>
-											<span className="text-sm text-right">{studentDetails.submissionCount}</span>
-										</div>
-
-										<div className="flex justify-between items-start">
-											<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">Applied Date</span>
-											<span className="text-sm text-right">
-												{format(new Date(studentDetails.createdAt), "MMM dd, yyyy")}
-											</span>
-										</div>
-									</div>
-
-									<div className="space-y-4">
-										{studentDetails.reviewedAt && (
-											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
-													Reviewed Date
-												</span>
+												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">Applied Date</span>
 												<span className="text-sm text-right">
-													{format(new Date(studentDetails.reviewedAt), "MMM dd, yyyy")}
+													{format(new Date(studentDetails.createdAt), "MMM dd, yyyy")}
 												</span>
 											</div>
-										)}
+										</div>
 
-										{studentDetails.reviewedBy && (
-											<div className="flex justify-between items-start">
-												<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">Reviewed By</span>
-												<span className="text-sm text-right">{toTitleCase(studentDetails.reviewedBy.user.name)}</span>
-											</div>
-										)}
+										<div className="space-y-4">
+											{studentDetails.reviewedAt && (
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
+														Reviewed Date
+													</span>
+													<span className="text-sm text-right">
+														{format(new Date(studentDetails.reviewedAt), "MMM dd, yyyy")}
+													</span>
+												</div>
+											)}
+
+											{studentDetails.reviewedBy && (
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
+														Reviewed By
+													</span>
+													<span className="text-sm text-right">{toTitleCase(studentDetails.reviewedBy.user.name)}</span>
+												</div>
+											)}
+										</div>
 									</div>
+
+									{studentDetails.rejectionReason && (
+										<div className="mt-6">
+											<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
+											<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+												<p className="text-sm text-destructive">{studentDetails.rejectionReason}</p>
+											</div>
+										</div>
+									)}
 								</div>
 
-								{studentDetails.rejectionReason && (
-									<div className="mt-6">
-										<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
-										<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-											<p className="text-sm text-destructive">{studentDetails.rejectionReason}</p>
-										</div>
+								{studentDetails.status === "Pending" && (
+									<div className="flex justify-end gap-4 pt-6 border-t">
+										<Button
+											variant="destructive"
+											className="w-38 h-10"
+											title="Reject Student"
+											disabled={isProcessing}
+											aria-label="Reject Student"
+											onClick={() => setShowRejectDialog(true)}
+										>
+											<UserX className="size-4 mr-1" />
+											Reject Student
+										</Button>
+
+										<Button
+											title="Approve Student"
+											onClick={handleApprove}
+											disabled={isProcessing}
+											aria-label="Approve Student"
+											className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+										>
+											<Check className="size-4 mr-1" />
+											Approve Student
+										</Button>
 									</div>
 								)}
 							</div>
 
-							{studentDetails.status === "Pending" && (
-								<div className="flex justify-end gap-4 pt-6 border-t">
-									<Button
-										variant="destructive"
-										className="w-38 h-10"
-										title="Reject Student"
-										disabled={isProcessing}
-										aria-label="Reject Student"
-										onClick={() => setShowRejectDialog(true)}
-									>
-										<UserX className="size-4 mr-1" />
-										Reject Student
-									</Button>
+							<div
+								style={{ maxHeight: "calc(90vh - 4.5rem)" }}
+								className={`relative rounded-xl border bg-muted/30 overflow-hidden transition-[width,opacity] duration-500 ease-in-out ${
+									showDocViewer ? "w-[55%] opacity-100" : "w-0 opacity-0 border-0"
+								}`}
+							>
+								{showDocViewer && (
+									<div className="flex flex-col h-full animate-in fade-in duration-300">
+										<div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur-sm">
+											<div className="flex items-center gap-2">
+												<FileText className="size-4 text-muted-foreground" />
+												<span className="text-sm font-semibold">Verification Document</span>
+											</div>
+										</div>
 
-									<Button
-										title="Approve Student"
-										onClick={handleApprove}
-										disabled={isProcessing}
-										aria-label="Approve Student"
-										className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
-									>
-										<Check className="size-4 mr-1" />
-										Approve Student
-									</Button>
-								</div>
-							)}
+										<div className="flex-1 min-h-0">
+											<iframe
+												title="Verification Document"
+												className="w-full h-full border-0"
+												src={studentDetails.verificationDocUrl}
+											/>
+										</div>
+									</div>
+								)}
+							</div>
 						</div>
 					) : null}
 				</DialogContent>

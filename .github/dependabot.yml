@@ -5,13 +5,48 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: monday
     open-pull-requests-limit: 10
+    versioning-strategy: increase
     groups:
-      production-dependencies:
+      framework:
+        dependency-type: production
         patterns:
-          - "*"
+          - "next"
+          - "react"
+          - "react-dom"
+        update-types:
+          - minor
+          - patch
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+        update-types:
+          - minor
+          - patch
+      ui-components:
+        dependency-type: production
+        patterns:
+          - "@radix-ui/*"
+          - "lucide-react"
+          - "class-variance-authority"
+          - "tailwind-merge"
+        update-types:
+          - minor
+          - patch
+      production-dependencies:
+        dependency-type: production
         exclude-patterns:
-          - "@types/*"
+          - "next"
+          - "react"
+          - "react-dom"
+          - "prisma"
+          - "@prisma/*"
+          - "@radix-ui/*"
+          - "lucide-react"
+          - "class-variance-authority"
+          - "tailwind-merge"
         update-types:
           - minor
           - patch
@@ -25,12 +60,21 @@ updates:
     commit-message:
       prefix: chore
       prefix-development: chore
+      include: scope
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
     labels:
       - dependencies
       - github-actions

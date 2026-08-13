@@ -40,7 +40,6 @@ Thumbs.db:encryptable
 .env.*
 !.env.test
 !.env.example
-!.env.devcontainer
 !.env.local.example
 
 # Logs

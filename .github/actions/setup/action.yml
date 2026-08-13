@@ -3,8 +3,9 @@ description: Common setup for Node.js environment and npm dependencies
 
 inputs:
   DATABASE_URL:
+    required: false
     description: Database connection string
-    required: true
+    default: "postgresql://user:pass@localhost:5432/db"
 
 runs:
   using: composite
