@@ -29,10 +29,18 @@ export class ServiceWorkerManager {
 		try {
 			await versionManager.getCurrentVersion();
 
-			const registration = await navigator.serviceWorker.register("/sw.js", {
-				scope: PWA_CONFIG.serviceWorker.scope,
-				updateViaCache: PWA_CONFIG.serviceWorker.updateViaCache
-			});
+			let registration: ServiceWorkerRegistration;
+			try {
+				registration = await navigator.serviceWorker.register("/sw.js", {
+					scope: PWA_CONFIG.serviceWorker.scope,
+					updateViaCache: PWA_CONFIG.serviceWorker.updateViaCache
+				});
+			} catch (swError) {
+				console.warn("Failed to register /sw.js, falling back to /firebase-messaging-sw.js:", swError);
+				registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+					scope: "/"
+				});
+			}
 
 			this.registration = registration;
 			this.isRegistered = true;
