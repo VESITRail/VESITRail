@@ -1,51 +1,49 @@
 <div align="center">
 
-<img src="https://vesitrail.vercel.app/opengraph-image.png" alt="VESITRail - Streamlined Railway Concessions" width="512" style="border-radius: 8px; margin-bottom: 20px;">
+<img src="https://rail.vesit.ves.ac.in/opengraph-image.png" alt="VESITRail - Streamlined Railway Concessions" width="512" style="border-radius: 8px; margin-bottom: 20px;">
 
 # VESITRail
 
 **Streamlined Railway Concessions with Real-time Tracking**
 
-_A modern web application for VESIT students to apply and manage railway concessions with ease_
+_A modern web application for VESIT students to apply for and manage railway concessions with ease._
 
 </div>
 
 ---
 
-## 🌟 Features
+## Features
 
 ### For Students
 
-- 🎓 **Easy Application Process** - Apply for railway concessions with auto-filled details
-- 📊 **Real-time Tracking** - Monitor application status with live updates
-- 🏠 **Address Management** - Update home station and address details seamlessly
-- 📱 **Progressive Web App** - Install and use offline with native app experience
-- 🔔 **Smart Notifications** - Get push notifications about application updates
-- 📋 **Application History** - View past applications and their status
-- 📄 **Digital Booklets** - Download digital concession booklets
+- **Easy Application Process** - Apply for railway concessions with pre-filled details.
+- **Real-time Tracking** - Monitor application status with live updates.
+- **Address Management** - Request and manage home station and address updates.
+- **Progressive Web App** - Installable web application with offline support.
+- **Smart Notifications** - Receive push notifications regarding application updates.
+- **Application History** - View past applications and current statuses.
+- **Digital Booklets** - Access digital concession booklets.
 
 ### For Administrators
 
-- 👥 **Student Management** - Review and approve student registrations
-- 📝 **Application Processing** - Efficiently handle concession applications
-- 📈 **Analytics Dashboard** - Track applications and generate reports
-- 🎫 **Booklet Management** - Generate and manage concession booklets
-- 📊 **Comprehensive Reports** - Generate detailed analytics and insights
-- 🔄 **Address Change Requests** - Process student address change requests
+- **Student Management** - Review and approve student registrations.
+- **Application Processing** - Process and manage concession requests efficiently.
+- **Analytics Dashboard** - Track application metrics and generate insights.
+- **Booklet Management** - Issue and manage concession booklets.
+- **Comprehensive Reports** - Generate detailed reports and analytics.
+- **Address Change Requests** - Process and verify student address change requests.
 
-### Technical Features
+### Technical Highlights
 
-- ⚡ **Lightning Fast** - Optimized performance with Next.js 15
-- 🎨 **Modern UI/UX** - Beautiful interface with Radix UI components
-- 🔐 **Secure Authentication** - Google OAuth with Better Auth
-- 📱 **Fully Responsive** - Works perfectly on all devices
-- 🌙 **Dark Mode Support** - Toggle between light and dark themes
-- 🔄 **Real-time Updates** - Live status updates and push notifications
-- 📊 **Analytics** - PostHog integration for insights
+- **Optimized Performance** - Built with Next.js 15 App Router.
+- **Modern UI/UX** - Accessible, responsive interface built with Radix UI and Tailwind CSS.
+- **Secure Authentication** - Google OAuth integration powered by Better Auth.
+- **Theme Support** - Native light and dark mode integration.
+- **Real-time Updates** - Push notification infrastructure for status changes.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 <table>
   <tr>
@@ -102,9 +100,9 @@ _A modern web application for VESIT students to apply and manage railway concess
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-**Prerequisites:**
+### Prerequisites
 
 - PostgreSQL database
 - Node.js 18+ and pnpm
@@ -112,7 +110,7 @@ _A modern web application for VESIT students to apply and manage railway concess
 - Cloudflare R2 bucket (for file storage)
 - Firebase project (for push notifications)
 
-**Installation:**
+### Local Development Setup
 
 1. **Clone the repository**
 
@@ -129,36 +127,10 @@ _A modern web application for VESIT students to apply and manage railway concess
 
 3. **Environment Setup**
 
+   Copy `.env.example` to `.env` and fill in your required API credentials and database connection string:
+
    ```bash
    cp .env.example .env
-   ```
-
-   Fill in your environment variables:
-
-   ```env
-   # Site Configuration
-   NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-
-   # BetterAuth
-   BETTER_AUTH_URL="http://localhost:3000"
-   BETTER_AUTH_SECRET="your-32-character-secret-key"
-
-   # Database
-   DATABASE_URL="postgresql://username:password@localhost:5432/vesitrail"
-
-   # Google OAuth
-   GOOGLE_CLIENT_SECRET="your-google-client-secret"
-   NEXT_PUBLIC_GOOGLE_CLIENT_ID="your-google-client-id"
-
-   # Cloudinary
-   NEXT_PUBLIC_CLOUDINARY_API_KEY="your-api-key"
-   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
-   CLOUDINARY_API_SECRET="your-api-secret"
-
-   # Firebase (Push Notifications)
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
-   NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
-   # ... other Firebase config
    ```
 
 4. **Database Setup**
@@ -174,168 +146,112 @@ _A modern web application for VESIT students to apply and manage railway concess
    pnpm run dev
    ```
 
-6. **Open your browser**
+6. **Access the application**
 
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 📖 Documentation
+## Documentation
 
 For detailed architectural information, system design, and technical specifications, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-### Project Structure
+### Key Features Overview
 
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── (routes)/          # Route groups
-│   │   └── dashboard/     # Dashboard routes
-│   ├── globals.css        # Global styles
-│   └── manifest.ts        # PWA manifest
-├── components/            # Reusable UI components
-│   ├── ui/               # shadcn/ui components
-│   ├── layout/           # Layout components
-│   ├── onboarding/       # Onboarding flow
-│   ├── student/          # Student-specific components
-│   └── admin/            # Admin-specific components
-├── lib/                   # Utility libraries
-├── actions/              # Server actions
-├── hooks/                # Custom React hooks
-├── config/               # Configuration files
-└── generated/            # Generated types and schemas
-```
+#### Student Onboarding
 
-### Key Features Implementation
+Students complete a structured onboarding flow:
 
-#### 🎓 Student Onboarding
-
-Students complete a multi-step onboarding process:
-
-- Personal information
-- Academic details
-- Travel preferences
+- Personal information & profile setup
+- Academic details verification
+- Travel preferences configuration
 - Document verification
-- Profile review
+- Final review
 
-#### 📝 Concession Application
+#### Concession Application
 
-- Auto-filled forms based on student profile
-- Support for new and renewal applications
-- Real-time status tracking
-- Document upload with Cloudflare R2
+- Auto-filled application forms based on verified student profiles
+- Support for new applications and renewals
+- Real-time status tracking and history log
+- Secure document attachments
 
-#### 🏠 Address Change Management
+#### Address Change Management
 
-- Station-based address updates
-- Admin approval workflow
-- Document verification requirements
+- Station and home address update requests
+- Verification workflow with required document attachments
+- Administrator review and approval pipeline
 
-#### 👨‍💼 Admin Dashboard
+#### Admin Dashboard
 
-- Student registration approval
-- Application processing
-- Booklet management
-- Analytics and reporting
+- Student registration approvals
+- Application processing workflows
+- Concession booklet generation and distribution
+- Analytics and reporting tools
 
-#### 🔔 Push Notifications
+#### Push Notifications
 
 - Firebase Cloud Messaging integration
-- Real-time application status updates
-- Cross-platform notification support
-- Customizable notification preferences
+- Application status event notifications
+- Cross-platform delivery
 
 ---
 
-## 🎨 Design System
+## Design System
 
-VESITRail uses a comprehensive design system built with:
+VESITRail incorporates a design system built with:
 
-- **Color Palette**: Custom CSS variables for consistent theming
-- **Typography**: Inter font family with responsive scaling
-- **Components**: shadcn/ui with custom variants
-- **Icons**: Lucide React for consistent iconography
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
-
-### Theme Support
-
-```tsx
-// Light and dark mode support
-const { theme, setTheme } = useTheme();
-
-// Toggle theme
-<Button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun /> : <Moon />}</Button>;
-```
+- **Color Palette**: Custom CSS variables supporting consistent theming
+- **Typography**: Inter font family with responsive scale
+- **Components**: shadcn/ui primitives with custom styling
+- **Iconography**: Lucide React icons
+- **Layout**: Mobile-first responsive design using Tailwind CSS
 
 ---
 
-## 📱 Progressive Web App
+## Progressive Web App
 
-VESITRail is a fully-featured PWA with:
+VESITRail is built as a Progressive Web App (PWA):
 
-- 📱 **Installable** - Add to home screen on mobile devices
-- ⚡ **Fast Loading** - Optimized performance and caching
-- 🔄 **Offline Support** - Basic functionality works offline
-- 📸 **App Screenshots** - Rich install prompts with screenshots
-- 🎯 **Native Feel** - App-like experience across platforms
-- 🔔 **Push Notifications** - Firebase-powered notifications
-
----
-
-## 🔐 Security Features
-
-- **Authentication**: Secure Google OAuth integration
-- **Authorization**: Role-based access control (Student/Admin)
-- **Data Validation**: Comprehensive input validation with Zod
-- **File Upload**: Secure document upload with Cloudflare R2
-- **Email Verification**: @ves.ac.in domain restriction
-- **CSRF Protection**: Built-in security measures
-- **Database Security**: PostgreSQL with SSL connections
+- **Installable** - Add to home screen on mobile and desktop devices
+- **Performance** - Optimized asset delivery and caching strategies
+- **Offline Support** - Caches core assets for offline availability
+- **Native Experience** - Responsive and app-like user interface
+- **Push Notifications** - Firebase-powered updates
 
 ---
 
-## 🚀 Deployment
+## Security Features
 
-### Deploy on Vercel (Recommended)
-
-1. **Connect your repository** to Vercel
-2. **Configure environment variables** in Vercel dashboard
-3. **Deploy** automatically on push to main branch
-
-### Manual Deployment
-
-```bash
-# Build the application
-pnpm run build
-
-# Start production server
-pnpm start
-```
+- **Authentication**: Secure Google OAuth integration restricted to `@ves.ac.in` domain users
+- **Authorization**: Role-based access control (Student / Administrator)
+- **Data Validation**: Schema-level input validation using Zod
+- **File Security**: Secure cloud file uploads
+- **Database Security**: PostgreSQL with SSL connection support
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+Contributions are welcome. Please read our [Contributing Guidelines](CONTRIBUTING.md) for workflow details.
 
 ### Development Workflow
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes using semantic commit messages (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ### Code Standards
 
 - **TypeScript**: Strict mode enabled
-- **ESLint**: Custom configuration for Next.js
-- **Prettier**: Consistent code formatting
-- **Conventional Commits**: Semantic commit messages
+- **ESLint**: Custom Next.js configuration
+- **Prettier**: Code formatting
+- **Conventional Commits**: Semantic commit message format
 
 ### Testing
 
-VESITRail uses **Playwright** for end-to-end testing to ensure application reliability across browsers.
+VESITRail uses **Playwright** for end-to-end (E2E) testing.
 
 ```bash
 # Install Playwright browsers (first time only)
@@ -346,23 +262,11 @@ pnpm run test:e2e
 
 # Run tests in UI mode (interactive)
 pnpm exec playwright test --ui
-
-# Run tests in headed mode (see browser)
-pnpm exec playwright test --headed
 ```
-
-**Test Configuration:**
-
-- Test files: Place E2E tests in `tests/` directory with `.spec.ts` extension
-- Browsers: Tests run on Chromium, Firefox, and WebKit
-- CI/CD: Automatically runs on pull requests
-- Reports: HTML test reports generated after test runs
-
-For more on writing tests, see the [Playwright documentation](https://playwright.dev).
 
 ---
 
-## 📜 License & Policies
+## License & Policies
 
 This project is released under the **VESITRail Community License v1.0** (custom, source-available, restricted deployment). Only **Vivekanand Education Society's Institute of Technology (VESIT)** is authorized to deploy operational instances. External contributors are welcome to submit improvements under the same license.
 
@@ -371,4 +275,4 @@ This project is released under the **VESITRail Community License v1.0** (custom,
 - Code of Conduct: See [`CODE_OF_CONDUCT.md`](./.github/CODE_OF_CONDUCT.md)
 - Security Policy: See [`SECURITY.md`](./.github/SECURITY.md)
 
-If you need a different license arrangement or deployment permission, open a discussion or contact the maintainer privately.
+For special licensing or deployment inquiries, contact the maintainer team.
