@@ -23,7 +23,7 @@ import { getNotificationPreferences, updateNotificationPreferences } from "@/act
 
 const NotificationPreferences = () => {
 	const { data, isPending } = authClient.useSession();
-	const { cleanupFcmToken, enablePushNotifications } = useFcm(data?.user?.id);
+	const { disableNotifications, enablePushNotifications } = useFcm(data?.user?.id);
 
 	const [loading, setLoading] = useState<boolean>(true);
 	const [isUpdating, setIsUpdating] = useState<boolean>(false);
@@ -58,7 +58,7 @@ const NotificationPreferences = () => {
 	}, [data?.user?.id, isPending]);
 
 	useEffect(() => {
-		if (!loading && pushNotificationsEnabled && data?.user?.id) {
+		if (!loading && !isUpdating && pushNotificationsEnabled && data?.user?.id) {
 			if (typeof window !== "undefined" && "Notification" in window) {
 				const permission = Notification.permission;
 				if (permission === "granted") {
@@ -66,7 +66,7 @@ const NotificationPreferences = () => {
 				}
 			}
 		}
-	}, [loading, pushNotificationsEnabled, data?.user?.id, enablePushNotifications]);
+	}, [loading, isUpdating, pushNotificationsEnabled, data?.user?.id, enablePushNotifications]);
 
 	const handleToggle = async (type: "push" | "email", enabled: boolean) => {
 		if (!data?.user?.id || isUpdating) return;
@@ -81,10 +81,10 @@ const NotificationPreferences = () => {
 
 			if (!enabled) {
 				toast.promise(
-					cleanupFcmToken().then((success) => {
+					disableNotifications().then((success) => {
 						if (!success) {
 							setPushNotificationsEnabled(previousValue);
-							throw new Error("Failed to cleanup FCM token");
+							throw new Error("Failed to disable push notifications");
 						}
 					}),
 					{

@@ -233,7 +233,27 @@ const sendPushNotification = async (params: {
 			}
 		};
 
-		await getMessaging().sendEachForMulticast(message);
+		const response = await getMessaging().sendEachForMulticast(message);
+
+		const invalidTokens: string[] = [];
+		response.responses.forEach((resp, idx) => {
+			if (!resp.success) {
+				const errorCode = resp.error?.code;
+				if (
+					errorCode === "messaging/invalid-registration-token" ||
+					errorCode === "messaging/registration-token-not-registered"
+				) {
+					invalidTokens.push(tokens[idx]);
+				}
+			}
+		});
+
+		if (invalidTokens.length > 0) {
+			await prisma.fcmToken.deleteMany({
+				where: { token: { in: invalidTokens } }
+			});
+		}
+
 		return success(true);
 	} catch (error) {
 		console.error("Error sending push notification:", error);
