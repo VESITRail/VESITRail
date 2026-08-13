@@ -16,16 +16,18 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function (payload) {
 	if (!payload.notification && payload.data) {
+		const notificationUrl = payload.data.url || "/dashboard/student";
 		const notificationTitle = payload.data.title || "VESITRail Notification";
+		const notificationBody = payload.data.body || "You have a new notification";
 
 		const notificationOptions = {
 			sound: "default",
+			body: notificationBody,
 			icon: "/icons/ios/256.png",
 			tag: "vesitrail-notification",
 			vibrate: [200, 100, 200, 100, 200],
-			body: payload.data.body || "You have a new notification",
 			data: {
-				url: payload.data.url || "/dashboard/student",
+				url: notificationUrl,
 				messageId: payload.messageId || Date.now().toString()
 			},
 			actions: [
