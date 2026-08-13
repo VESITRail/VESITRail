@@ -1,12 +1,17 @@
 "use client";
 
+import {
+	saveFcmToken,
+	removeFcmTokenForDevice,
+	disablePushNotifications,
+	updatePushNotificationStatus
+} from "@/actions/fcm";
 import { toast } from "sonner";
 import posthog from "posthog-js";
+import { useCallback, useState } from "react";
 import { messaging } from "@/config/firebase";
 import { FcmPlatformType } from "@/generated/zod";
-import { useCallback, useEffect, useState } from "react";
 import { getToken, onMessage, type Messaging } from "firebase/messaging";
-import { saveFcmToken, removeFcmToken, updatePushNotificationStatus } from "@/actions/fcm";
 
 type FcmState = {
 	loading: boolean;
@@ -163,12 +168,11 @@ export const useFcm = (userId?: string) => {
 				posthog.capture("notification_permission_denied", { userId });
 
 				if (userId) {
-					await removeFcmToken(userId);
-				}
-
-				const storedDeviceId = localStorage.getItem("fcm_device_id");
-				if (storedDeviceId) {
-					localStorage.removeItem("fcm_device_id");
+					const deviceId = localStorage.getItem("fcm_device_id");
+					if (deviceId) {
+						await removeFcmTokenForDevice(userId, deviceId);
+						localStorage.removeItem("fcm_device_id");
+					}
 				}
 
 				if (!hasShownToasts) {
@@ -211,7 +215,8 @@ export const useFcm = (userId?: string) => {
 	const setupInAppNotifications = useCallback(async (messagingInstance: Messaging) => {
 		try {
 			onMessage(messagingInstance, (payload) => {
-				const { title, body } = payload.notification || {};
+				const body = payload.notification?.body || payload.data?.body;
+				const title = payload.notification?.title || payload.data?.title;
 
 				posthog.capture("notification_received", {
 					hasBody: !!body,
@@ -225,6 +230,10 @@ export const useFcm = (userId?: string) => {
 					});
 				} else if (title) {
 					toast.info(title);
+				} else if (body) {
+					toast.info("Notification", {
+						description: body
+					});
 				} else {
 					toast.info("New notification received");
 				}
@@ -260,11 +269,21 @@ export const useFcm = (userId?: string) => {
 				return false;
 			}
 
-			const serviceWorkerRegistration = await navigator.serviceWorker.ready;
+			let serviceWorkerRegistration: ServiceWorkerRegistration | undefined;
+			if ("serviceWorker" in navigator) {
+				try {
+					serviceWorkerRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+						scope: "/"
+					});
+				} catch (swError) {
+					console.warn("Failed to register /firebase-messaging-sw.js, trying fallback getRegistration:", swError);
+					serviceWorkerRegistration = await navigator.serviceWorker.getRegistration();
+				}
+			}
 
 			const currentToken = await getToken(messagingInstance, {
 				vapidKey: vapidKey,
-				serviceWorkerRegistration: serviceWorkerRegistration
+				serviceWorkerRegistration
 			});
 
 			if (currentToken) {
@@ -324,7 +343,11 @@ export const useFcm = (userId?: string) => {
 				}
 			} else {
 				if (userId) {
-					await removeFcmToken(userId);
+					const deviceId = localStorage.getItem("fcm_device_id");
+					if (deviceId) {
+						await removeFcmTokenForDevice(userId, deviceId);
+						localStorage.removeItem("fcm_device_id");
+					}
 				}
 
 				setState((prev) => ({
@@ -342,43 +365,26 @@ export const useFcm = (userId?: string) => {
 		}
 	}, [generateToken, requestPermission, isInitialized, userId]);
 
-	const cleanupFcmToken = useCallback(async (): Promise<boolean> => {
+	const disableNotifications = useCallback(async (): Promise<boolean> => {
 		try {
 			if (!userId) {
 				return false;
 			}
 
-			const messagingInstance = await messaging();
-
-			if (messagingInstance) {
-				try {
-					const { deleteToken } = await import("firebase/messaging");
-					await deleteToken(messagingInstance);
-				} catch (error) {
-					console.error("Error deleting FCM token from browser:", error);
-				}
-			}
-
-			const result = await removeFcmToken(userId);
+			const result = await disablePushNotifications(userId);
 
 			if (result.isSuccess) {
 				setState((prev) => ({
 					...prev,
-					token: null,
 					error: null
 				}));
-
-				const storedDeviceId = localStorage.getItem("fcm_device_id");
-				if (storedDeviceId) {
-					localStorage.removeItem("fcm_device_id");
-				}
 
 				return true;
 			}
 
 			return false;
 		} catch (error) {
-			console.error("Error cleaning up FCM token:", error);
+			console.error("Error disabling push notifications:", error);
 			return false;
 		}
 	}, [userId]);
@@ -419,8 +425,8 @@ export const useFcm = (userId?: string) => {
 	return {
 		...state,
 		initializeFcm,
-		cleanupFcmToken,
 		requestPermission,
+		disableNotifications,
 		enablePushNotifications
 	};
 };
