@@ -1,4 +1,6 @@
 import { PWA_CONFIG } from "./config";
+import { fetchGitHubRelease } from "@/lib/github-client";
+import { compareVersions, normalizeVersion } from "./version-utils";
 
 type VersionInfo = {
 	version: string;
@@ -48,13 +50,7 @@ class VersionManager {
 
 	async getLatestRelease(): Promise<VersionInfo | null> {
 		try {
-			const response = await fetch("/api/github?type=release");
-
-			if (!response.ok) {
-				throw new Error(`GitHub API error: ${response.status}`);
-			}
-
-			const data = await response.json();
+			const data = await fetchGitHubRelease();
 
 			const versionInfo: VersionInfo = {
 				timestamp: Date.now(),
@@ -87,18 +83,7 @@ class VersionManager {
 	}
 
 	compareVersions(currentVersion: string, newVersion: string): number {
-		const latest = newVersion.split(".").map(Number);
-		const current = currentVersion.split(".").map(Number);
-
-		for (let i = 0; i < Math.max(current.length, latest.length); i++) {
-			const latestPart = latest[i] || 0;
-			const currentPart = current[i] || 0;
-
-			if (currentPart < latestPart) return -1;
-			if (currentPart > latestPart) return 1;
-		}
-
-		return 0;
+		return compareVersions(currentVersion, newVersion);
 	}
 
 	async checkForUpdates(): Promise<boolean> {
@@ -115,7 +100,7 @@ class VersionManager {
 		const versionInfo: VersionInfo = {
 			tagName: tagName,
 			timestamp: Date.now(),
-			version: version.replace(/^v/, "")
+			version: normalizeVersion(version)
 		};
 
 		try {

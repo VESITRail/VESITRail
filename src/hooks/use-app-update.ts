@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { fetchGitHubRelease } from "@/lib/github-client";
+import { compareVersions } from "@/lib/pwa/version-utils";
 import { versionManager, serviceWorkerManager } from "@/lib/pwa";
 
 type UpdateInfo = {
@@ -19,21 +21,6 @@ type UpdateState = {
 
 const LAST_CHECKED_KEY = "app-version-last-checked";
 const UPDATE_IGNORED_KEY = "app-update-ignored-version";
-
-const compareVersions = (currentVersion: string, newVersion: string): number => {
-	const latest = newVersion.split(".").map(Number);
-	const current = currentVersion.split(".").map(Number);
-
-	for (let i = 0; i < Math.max(current.length, latest.length); i++) {
-		const latestPart = latest[i] || 0;
-		const currentPart = current[i] || 0;
-
-		if (currentPart < latestPart) return -1;
-		if (currentPart > latestPart) return 1;
-	}
-
-	return 0;
-};
 
 export const useAppUpdate = () => {
 	const [state, setState] = useState<UpdateState>(() => {
@@ -115,14 +102,7 @@ export const useAppUpdate = () => {
 					return false;
 				}
 
-				const response = await fetch("/api/github?type=release");
-
-				if (!response.ok) {
-					setState((prev) => ({ ...prev, loading: false }));
-					return false;
-				}
-
-				const releaseData = await response.json();
+				const releaseData = await fetchGitHubRelease();
 				const hasUpdate = compareVersions(current.version, latest.version) < 0;
 
 				if (hasUpdate && (force || !isVersionIgnored(latest.version))) {

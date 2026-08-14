@@ -8,7 +8,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const CACHE_DURATIONS = {
 	stars: 3600,
 	release: 1800,
-	contributors: false as false
+	contributors: 3600
 };
 
 const BOT_PATTERNS = [
@@ -47,6 +47,11 @@ type GitHubContributor = {
 	html_url: string;
 	avatar_url: string;
 	contributions: number;
+};
+
+type GitHubContributorStats = {
+	total: number;
+	author: GitHubContributor;
 };
 
 type Contributor = {
@@ -119,9 +124,27 @@ const getCachedRelease = unstable_cache(
 const getCachedContributors = unstable_cache(
 	async (): Promise<Contributor[]> => {
 		try {
+			try {
+				const stats = await fetchGitHub<GitHubContributorStats[] | Record<string, never>>("/stats/contributors");
+
+				if (Array.isArray(stats) && stats.length > 0) {
+					return stats
+						.filter((item) => item.author && !isBot(item.author.login, item.author.type))
+						.map((item) => ({
+							commits: item.total,
+							username: item.author.login,
+							avatar: item.author.avatar_url,
+							profileUrl: item.author.html_url
+						}))
+						.sort((a, b) => b.commits - a.commits);
+				}
+			} catch (statsError) {
+				console.warn("Failed to fetch GitHub contributor stats, falling back to contributors endpoint:", statsError);
+			}
+
 			const data = await fetchGitHub<GitHubContributor[]>("/contributors?per_page=100");
 
-			const contributors = data
+			return data
 				.filter((contributor) => !isBot(contributor.login, contributor.type))
 				.map((contributor) => ({
 					username: contributor.login,
@@ -130,8 +153,6 @@ const getCachedContributors = unstable_cache(
 					commits: contributor.contributions
 				}))
 				.sort((a, b) => b.commits - a.commits);
-
-			return contributors;
 		} catch (error) {
 			console.error("Failed to fetch GitHub contributors:", error);
 			return [];
@@ -181,7 +202,7 @@ export async function GET(request: NextRequest) {
 
 			return NextResponse.json(contributors, {
 				headers: {
-					"Cache-Control": "public, immutable"
+					"Cache-Control": `public, s-maxage=${CACHE_DURATIONS.contributors}, stale-while-revalidate=${CACHE_DURATIONS.contributors * 2}`
 				}
 			});
 		}

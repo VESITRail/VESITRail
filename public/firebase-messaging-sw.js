@@ -1,5 +1,5 @@
-importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/12.17.1/firebase-messaging-compat.js");
 
 const firebaseConfig = {
 	projectId: "vesitrail-e16b0",

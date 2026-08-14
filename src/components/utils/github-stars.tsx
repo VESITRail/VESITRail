@@ -3,6 +3,7 @@
 import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetchGitHubStars } from "@/lib/github-client";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 
 type GitHubStarsProps = {
@@ -15,25 +16,31 @@ const GitHubStars = ({ className }: GitHubStarsProps) => {
 	const [stars, setStars] = useState<number | null>(null);
 
 	useEffect(() => {
+		let isMounted = true;
+
 		const fetchStars = async () => {
 			try {
-				const response = await fetch("/api/github?type=stars");
-
-				if (!response.ok) {
-					throw new Error("Failed to fetch repo data");
+				const data = await fetchGitHubStars();
+				if (isMounted) {
+					setStars(data.stars);
 				}
-
-				const data = await response.json();
-				setStars(data.stars);
 			} catch (error) {
 				console.error("Error fetching GitHub stars:", error);
-				setError(true);
+				if (isMounted) {
+					setError(true);
+				}
 			} finally {
-				setLoading(false);
+				if (isMounted) {
+					setLoading(false);
+				}
 			}
 		};
 
 		fetchStars();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	const handleClick = () => {
