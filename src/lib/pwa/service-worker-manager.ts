@@ -1,4 +1,5 @@
 import { PWA_CONFIG } from "./config";
+import { formatVersion } from "./version-utils";
 import { versionManager } from "./version-manager";
 
 type ServiceWorkerRegistrationResult = {
@@ -9,7 +10,9 @@ type ServiceWorkerRegistrationResult = {
 
 export class ServiceWorkerManager {
 	private isRegistered = false;
+	private controllerChangeHandler: (() => void) | null = null;
 	private registration: ServiceWorkerRegistration | null = null;
+	private messageHandler: ((event: MessageEvent) => void) | null = null;
 
 	async register(): Promise<ServiceWorkerRegistrationResult> {
 		if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
@@ -29,18 +32,10 @@ export class ServiceWorkerManager {
 		try {
 			await versionManager.getCurrentVersion();
 
-			let registration: ServiceWorkerRegistration;
-			try {
-				registration = await navigator.serviceWorker.register("/sw.js", {
-					scope: PWA_CONFIG.serviceWorker.scope,
-					updateViaCache: PWA_CONFIG.serviceWorker.updateViaCache
-				});
-			} catch (swError) {
-				console.warn("Failed to register /sw.js, falling back to /firebase-messaging-sw.js:", swError);
-				registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-					scope: "/"
-				});
-			}
+			const registration = await navigator.serviceWorker.register("/sw.js", {
+				scope: PWA_CONFIG.serviceWorker.scope,
+				updateViaCache: PWA_CONFIG.serviceWorker.updateViaCache
+			});
 
 			this.registration = registration;
 			this.isRegistered = true;
@@ -74,14 +69,16 @@ export class ServiceWorkerManager {
 			});
 		});
 
-		navigator.serviceWorker.addEventListener("controllerchange", () => {
+		this.controllerChangeHandler = () => {
 			console.log("Service worker controller changed");
 			this.sendVersionToServiceWorker();
-		});
+		};
+		navigator.serviceWorker.addEventListener("controllerchange", this.controllerChangeHandler);
 
-		navigator.serviceWorker.addEventListener("message", (event) => {
+		this.messageHandler = (event: MessageEvent) => {
 			this.handleMessage(event);
-		});
+		};
+		navigator.serviceWorker.addEventListener("message", this.messageHandler);
 	}
 
 	private handleMessage(event: MessageEvent): void {
@@ -95,7 +92,8 @@ export class ServiceWorkerManager {
 
 		if (event.data?.type === "REQUEST_VERSION") {
 			const versionInfo = versionManager.getStoredVersion();
-			const version = versionInfo ? `v${versionInfo.version}` : "v1.0.0";
+			const version = versionInfo ? formatVersion(versionInfo.version) : "v1.0.0";
+
 			event.ports?.[0]?.postMessage({ version });
 		}
 	}
@@ -107,11 +105,14 @@ export class ServiceWorkerManager {
 				return;
 			}
 
-			const version = `v${versionInfo.version}`;
+			const version = formatVersion(versionInfo.version);
 
 			return new Promise<void>((resolve) => {
 				const messageChannel = new MessageChannel();
+				const timeout = setTimeout(() => resolve(), 1000);
+
 				messageChannel.port1.onmessage = (event) => {
+					clearTimeout(timeout);
 					if (event.data?.type === "VERSION_SET_RESPONSE") {
 						console.log("Version set in service worker:", event.data.version);
 					}
@@ -127,10 +128,9 @@ export class ServiceWorkerManager {
 						[messageChannel.port2]
 					);
 				} else {
+					clearTimeout(timeout);
 					resolve();
 				}
-
-				setTimeout(() => resolve(), 1000);
 			});
 		} catch (error) {
 			console.error("Failed to send version to service worker:", error);
@@ -198,7 +198,19 @@ export class ServiceWorkerManager {
 			navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
 
 			try {
-				worker.postMessage({ type: "SKIP_WAITING" });
+				const messageChannel = new MessageChannel();
+
+				messageChannel.port1.onmessage = (event) => {
+					if (event.data?.type === "SKIP_WAITING_RESPONSE" && !event.data.success) {
+						console.error("SKIP_WAITING failed in service worker:", event.data.error);
+						cleanup();
+						versionManager.clearCache();
+						window.location.reload();
+						resolve();
+					}
+				};
+
+				worker.postMessage({ type: "SKIP_WAITING" }, [messageChannel.port2]);
 			} catch (error) {
 				console.error("Failed to send SKIP_WAITING message:", error);
 				cleanup();
@@ -266,6 +278,15 @@ export class ServiceWorkerManager {
 		}
 
 		try {
+			if (this.controllerChangeHandler) {
+				navigator.serviceWorker.removeEventListener("controllerchange", this.controllerChangeHandler);
+				this.controllerChangeHandler = null;
+			}
+			if (this.messageHandler) {
+				navigator.serviceWorker.removeEventListener("message", this.messageHandler);
+				this.messageHandler = null;
+			}
+
 			const result = await this.registration.unregister();
 			this.registration = null;
 			this.isRegistered = false;
@@ -283,7 +304,10 @@ export class ServiceWorkerManager {
 
 		return new Promise((resolve) => {
 			const messageChannel = new MessageChannel();
+			const timeout = setTimeout(() => resolve(null), 1000);
+
 			messageChannel.port1.onmessage = (event) => {
+				clearTimeout(timeout);
 				if (event.data?.type === "VERSION_RESPONSE") {
 					resolve(event.data.version);
 				} else {
@@ -294,10 +318,9 @@ export class ServiceWorkerManager {
 			if (navigator.serviceWorker.controller) {
 				navigator.serviceWorker.controller.postMessage({ type: "GET_VERSION" }, [messageChannel.port2]);
 			} else {
+				clearTimeout(timeout);
 				resolve(null);
 			}
-
-			setTimeout(() => resolve(null), 1000);
 		});
 	}
 

@@ -1,5 +1,12 @@
-import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist, CacheFirst, NetworkOnly, NetworkFirst, StaleWhileRevalidate } from "serwist";
+import type {
+	PrecacheEntry,
+	StrategyOptions,
+	SerwistGlobalConfig,
+	NetworkFirstOptions,
+	RouteHandlerCallbackOptions
+} from "serwist";
+import type { Strategy as StrategyType } from "serwist";
+import { Serwist, CacheFirst, NetworkOnly, NetworkFirst, StaleWhileRevalidate, ExpirationPlugin } from "serwist";
 
 declare global {
 	interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -47,6 +54,22 @@ importScripts("/firebase-messaging-sw.js");
 
 let APP_VERSION = "v1.0.0";
 
+const CACHE_PREFIXES = [
+	"pages",
+	"api-cache",
+	"js-static",
+	"js-assets",
+	"css-static",
+	"css-assets",
+	"font-assets",
+	"next-images",
+	"google-fonts",
+	"image-assets",
+	"audio-assets",
+	"video-assets",
+	"gstatic-fonts"
+] as const;
+
 const initializeVersion = async (): Promise<void> => {
 	try {
 		const clients = await self.clients.matchAll({ includeUncontrolled: true });
@@ -54,15 +77,16 @@ const initializeVersion = async (): Promise<void> => {
 			const messageChannel = new MessageChannel();
 
 			const versionPromise = new Promise<string>((resolve) => {
+				const timeout = setTimeout(() => resolve("v1.0.0"), 500);
+
 				messageChannel.port1.onmessage = (event) => {
+					clearTimeout(timeout);
 					if (event.data?.version) {
 						resolve(event.data.version);
 					} else {
 						resolve("v1.0.0");
 					}
 				};
-
-				setTimeout(() => resolve("v1.0.0"), 500);
 			});
 
 			(client as unknown as { postMessage: (msg: unknown, transfer: Transferable[]) => void }).postMessage(
@@ -81,8 +105,14 @@ const initializeVersion = async (): Promise<void> => {
 	}
 };
 
-const createStrategy = (StrategyClass: any, cacheNamePrefix: string, options: any = {}) => {
-	return async ({ request, event, params }: any) => {
+type StrategyConstructor = new (options?: StrategyOptions) => StrategyType;
+
+const createStrategy = (
+	StrategyClass: StrategyConstructor,
+	cacheNamePrefix: string,
+	options: StrategyOptions & Partial<Pick<NetworkFirstOptions, "networkTimeoutSeconds">> = {}
+) => {
+	return async ({ request, event, params }: RouteHandlerCallbackOptions) => {
 		const cacheName = `${cacheNamePrefix}-${APP_VERSION}`;
 		const strategy = new StrategyClass({
 			cacheName,
@@ -107,54 +137,76 @@ const createStrategy = (StrategyClass: any, cacheNamePrefix: string, options: an
 };
 
 const serwist = new Serwist({
-	skipWaiting: false,
 	clientsClaim: true,
+	skipWaiting: false,
 	navigationPreload: true,
 	precacheEntries: self.__SW_MANIFEST,
 	runtimeCaching: [
 		{
 			matcher: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-			handler: createStrategy(CacheFirst, "google-fonts")
+			handler: createStrategy(CacheFirst, "google-fonts", {
+				plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-			handler: createStrategy(CacheFirst, "gstatic-fonts")
+			handler: createStrategy(CacheFirst, "gstatic-fonts", {
+				plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\.(?:eot|otf|ttc|ttf|woff|woff2|font\.css)$/i,
-			handler: createStrategy(CacheFirst, "font-assets")
+			handler: createStrategy(CacheFirst, "font-assets", {
+				plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\.(?:jpg|jpeg|gif|png|svg|ico|webp|avif)$/i,
-			handler: createStrategy(StaleWhileRevalidate, "image-assets")
+			handler: createStrategy(StaleWhileRevalidate, "image-assets", {
+				plugins: [new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\/_next\/image\?url=.*/i,
-			handler: createStrategy(StaleWhileRevalidate, "next-images")
+			handler: createStrategy(StaleWhileRevalidate, "next-images", {
+				plugins: [new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\.(?:mp3|wav|ogg|m4a|aac)$/i,
-			handler: createStrategy(CacheFirst, "audio-assets")
+			handler: createStrategy(CacheFirst, "audio-assets", {
+				plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 30 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\.(?:mp4|webm|ogg|avi|mov)$/i,
-			handler: createStrategy(CacheFirst, "video-assets")
+			handler: createStrategy(CacheFirst, "video-assets", {
+				plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 30 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\/_next\/static\/.+\.js$/i,
-			handler: createStrategy(CacheFirst, "js-static")
+			handler: createStrategy(CacheFirst, "js-static", {
+				plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\/_next\/static\/.+\.css$/i,
-			handler: createStrategy(CacheFirst, "css-static")
+			handler: createStrategy(CacheFirst, "css-static", {
+				plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\.(?:js|mjs)$/i,
-			handler: createStrategy(StaleWhileRevalidate, "js-assets")
+			handler: createStrategy(StaleWhileRevalidate, "js-assets", {
+				plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: /\.(?:css)$/i,
-			handler: createStrategy(StaleWhileRevalidate, "css-assets")
+			handler: createStrategy(StaleWhileRevalidate, "css-assets", {
+				plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: ({ url, request, sameOrigin }) =>
@@ -163,20 +215,26 @@ const serwist = new Serwist({
 		},
 		{
 			matcher: ({ url, request, sameOrigin }) =>
-				request.method === "GET" &&
 				sameOrigin &&
+				request.method === "GET" &&
 				url.pathname.startsWith("/api/") &&
 				!url.pathname.startsWith("/api/auth/"),
-			handler: createStrategy(NetworkFirst, "api-cache", { networkTimeoutSeconds: 3 })
+			handler: createStrategy(NetworkFirst, "api-cache", {
+				networkTimeoutSeconds: 3,
+				plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 24 * 60 * 60 })]
+			})
 		},
 		{
 			matcher: ({ url, request, sameOrigin }) =>
-				request.method === "GET" &&
 				sameOrigin &&
+				request.method === "GET" &&
 				!url.pathname.startsWith("/api/") &&
 				!url.pathname.includes("_next/data") &&
 				!url.pathname.startsWith("/_next/webpack-hmr"),
-			handler: createStrategy(NetworkFirst, "pages", { networkTimeoutSeconds: 5 })
+			handler: createStrategy(NetworkFirst, "pages", {
+				networkTimeoutSeconds: 5,
+				plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 })]
+			})
 		}
 	]
 });
@@ -187,21 +245,7 @@ const cleanupOldCaches = async (): Promise<void> => {
 	try {
 		const cacheNames = await caches.keys();
 		const oldCaches = cacheNames.filter(
-			(name) =>
-				!name.includes(APP_VERSION) &&
-				(name.includes("pages") ||
-					name.includes("js-static") ||
-					name.includes("js-assets") ||
-					name.includes("api-cache") ||
-					name.includes("css-static") ||
-					name.includes("css-assets") ||
-					name.includes("font-assets") ||
-					name.includes("next-images") ||
-					name.includes("google-fonts") ||
-					name.includes("image-assets") ||
-					name.includes("audio-assets") ||
-					name.includes("video-assets") ||
-					name.includes("gstatic-fonts"))
+			(name) => !name.includes(APP_VERSION) && CACHE_PREFIXES.some((prefix) => name.includes(prefix))
 		);
 
 		await Promise.all(oldCaches.map((cacheName) => caches.delete(cacheName)));
@@ -226,7 +270,7 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
 				await self.registration.navigationPreload.enable();
 			}
 
-			await self.clients.claim();
+			await initializeVersion();
 			await cleanupOldCaches();
 
 			const clients = await self.clients.matchAll();
@@ -243,7 +287,9 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
 	if (event.data?.type === "SET_VERSION") {
-		APP_VERSION = String(event.data.version || "v1.0.0");
+		const rawVersion = String(event.data.version || "v1.0.0");
+		APP_VERSION = rawVersion.startsWith("v") ? rawVersion : `v${rawVersion}`;
+
 		event.waitUntil(
 			(async () => {
 				await cleanupOldCaches();
