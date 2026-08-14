@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import Status from "@/components/ui/status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Lead, Heading1 } from "@/components/ui/typography";
+import { fetchGitHubContributors } from "@/lib/github-client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface Contributor {
@@ -22,25 +23,31 @@ const Contributors = () => {
 	const [contributors, setContributors] = useState<Contributor[]>([]);
 
 	useEffect(() => {
+		let isMounted = true;
+
 		const fetchContributors = async () => {
 			try {
-				const response = await fetch("/api/github?type=contributors");
-
-				if (!response.ok) {
-					throw new Error("Failed to fetch contributors");
+				const data = await fetchGitHubContributors();
+				if (isMounted) {
+					setContributors(data);
 				}
-
-				const data = await response.json();
-				setContributors(data);
 			} catch (error) {
 				console.error("Error fetching GitHub contributors:", error);
-				setError(true);
+				if (isMounted) {
+					setError(true);
+				}
 			} finally {
-				setLoading(false);
+				if (isMounted) {
+					setLoading(false);
+				}
 			}
 		};
 
 		fetchContributors();
+
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 
 	return (

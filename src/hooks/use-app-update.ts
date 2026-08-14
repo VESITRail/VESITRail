@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { fetchGitHubRelease } from "@/lib/github-client";
 import { versionManager, serviceWorkerManager } from "@/lib/pwa";
 
 type UpdateInfo = {
@@ -115,14 +116,7 @@ export const useAppUpdate = () => {
 					return false;
 				}
 
-				const response = await fetch("/api/github?type=release");
-
-				if (!response.ok) {
-					setState((prev) => ({ ...prev, loading: false }));
-					return false;
-				}
-
-				const releaseData = await response.json();
+				const releaseData = await fetchGitHubRelease();
 				const hasUpdate = compareVersions(current.version, latest.version) < 0;
 
 				if (hasUpdate && (force || !isVersionIgnored(latest.version))) {

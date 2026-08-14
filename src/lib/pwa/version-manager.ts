@@ -1,4 +1,5 @@
 import { PWA_CONFIG } from "./config";
+import { fetchGitHubRelease } from "@/lib/github-client";
 
 type VersionInfo = {
 	version: string;
@@ -48,13 +49,7 @@ class VersionManager {
 
 	async getLatestRelease(): Promise<VersionInfo | null> {
 		try {
-			const response = await fetch("/api/github?type=release");
-
-			if (!response.ok) {
-				throw new Error(`GitHub API error: ${response.status}`);
-			}
-
-			const data = await response.json();
+			const data = await fetchGitHubRelease();
 
 			const versionInfo: VersionInfo = {
 				timestamp: Date.now(),
