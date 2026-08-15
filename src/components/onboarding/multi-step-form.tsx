@@ -47,7 +47,7 @@ const OnboardingFormSkeleton = () => (
 			</div>
 		</CardHeader>
 
-		<CardContent className="mt-8">
+		<CardContent>
 			<div className="space-y-6">
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 					{[1, 2, 3].map((item) => (
@@ -427,7 +427,7 @@ const MultiStepForm = () => {
 			</CardHeader>
 
 			{rejectionInfo && (
-				<div className="px-6 py-4">
+				<div className="px-6">
 					<div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
 						<div className="flex items-start gap-4">
 							<div className="shrink-0">
@@ -477,7 +477,7 @@ const MultiStepForm = () => {
 				</div>
 			)}
 
-			<CardContent className="mt-8">
+			<CardContent>
 				{renderStep()}
 
 				{currentStep != totalSteps && (

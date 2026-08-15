@@ -1,4 +1,5 @@
 import {
+	X,
 	Eye,
 	User,
 	Home,
@@ -98,6 +99,7 @@ const AddressChangeRequestDetailsDialog = ({
 	const [isApproving, setIsApproving] = useState<boolean>(false);
 	const [isRejecting, setIsRejecting] = useState<boolean>(false);
 	const [rejectionReason, setRejectionReason] = useState<string>("");
+	const [showDocViewer, setShowDocViewer] = useState<boolean>(false);
 	const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
 	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
 	const [requestDetails, setRequestDetails] = useState<AddressChangeRequestItem | null>(null);
@@ -153,6 +155,7 @@ const AddressChangeRequestDetailsDialog = ({
 
 				setRequestDetails(updatedRequest);
 				onRequestUpdate?.(updatedRequest);
+				setShowDocViewer(false);
 				setIsOpen(false);
 				return updatedRequest;
 			} else {
@@ -211,6 +214,7 @@ const AddressChangeRequestDetailsDialog = ({
 				setShowRejectDialog(false);
 				setRejectionReason("");
 				setSelectedPredefinedReason("");
+				setShowDocViewer(false);
 				setIsOpen(false);
 				return updatedRequest;
 			} else {
@@ -239,6 +243,12 @@ const AddressChangeRequestDetailsDialog = ({
 		} else {
 			setRequestDetails(null);
 			setHasError(false);
+
+			const timeout = setTimeout(() => {
+				setShowDocViewer(false);
+			}, 200);
+
+			return () => clearTimeout(timeout);
 		}
 	}, [isOpen, loadRequestDetails]);
 
@@ -251,7 +261,15 @@ const AddressChangeRequestDetailsDialog = ({
 					</Button>
 				</DialogTrigger>
 
-				<DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+				<DialogContent
+					closeClassName="top-4 right-4 z-50"
+					onFocusOutside={(e) => e.preventDefault()}
+					onInteractOutside={(e) => e.preventDefault()}
+					onPointerDownOutside={(e) => e.preventDefault()}
+					className={`max-h-[90vh] transition-[max-width,width,height] duration-500 ease-in-out ${
+						showDocViewer ? "sm:max-w-[95vw] w-[95vw] h-[90vh] overflow-hidden pt-12" : "sm:max-w-3xl overflow-y-auto"
+					}`}
+				>
 					{isLoading ? (
 						<div className="space-y-0">
 							<div className="flex mt-4 items-center justify-between pb-6">
@@ -417,218 +435,258 @@ const AddressChangeRequestDetailsDialog = ({
 							</div>
 						</div>
 					) : requestDetails ? (
-						<div className="space-y-0">
-							<div className="flex mt-4 items-center justify-between pb-6">
-								<div className="flex items-center gap-3">
-									<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
-										<MapPin className="size-5" />
-									</div>
-									<div>
-										<h3 className="font-semibold text-lg">Address Change Request</h3>
-										<p className="text-sm text-muted-foreground">
-											{toTitleCase(
-												`${requestDetails.student.firstName} ${requestDetails.student.middleName} ${requestDetails.student.lastName}`
-											)}
-										</p>
-									</div>
-								</div>
-
-								<StatusBadge status={requestDetails.status} />
-							</div>
-
-							<Separator />
-
-							<div className="py-6">
-								<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-									Student Information
-								</h4>
-								<div className="space-y-3">
+						<div
+							className={`flex h-full transition-[gap] duration-500 ease-in-out ${showDocViewer ? "gap-6" : "gap-0"}`}
+						>
+							<div
+								className={`space-y-0 overflow-y-auto transition-[width] duration-500 ease-in-out pr-4 ${
+									showDocViewer ? "w-[45%] shrink-0" : "w-full"
+								}`}
+								style={{ maxHeight: showDocViewer ? "calc(90vh - 4.5rem)" : undefined }}
+							>
+								<div className="flex mt-4 items-center justify-between pb-6">
 									<div className="flex items-center gap-3">
-										<User className="size-4 text-muted-foreground" />
+										<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
+											<MapPin className="size-5" />
+										</div>
 										<div>
-											<p className="text-sm font-medium">
+											<h3 className="font-semibold text-lg">Address Change Request</h3>
+											<p className="text-sm text-muted-foreground">
 												{toTitleCase(
 													`${requestDetails.student.firstName} ${requestDetails.student.middleName} ${requestDetails.student.lastName}`
 												)}
 											</p>
-											<p className="text-xs text-muted-foreground">{requestDetails.student.user.email}</p>
 										</div>
 									</div>
-									<div className="flex items-center gap-3">
-										<FileText className="size-4 text-muted-foreground" />
-										<div>
-											<p className="text-sm font-medium">{requestDetails.student.class.code}</p>
-											<p className="text-xs text-muted-foreground">
-												{requestDetails.student.class.year.name} - {requestDetails.student.class.branch.name}
-											</p>
-										</div>
-									</div>
-								</div>
-							</div>
 
-							<Separator />
-
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
-								<div className="space-y-6">
-									<div>
-										<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-											Current Details
-										</h4>
-										<div className="space-y-3">
-											<div className="flex items-center gap-3">
-												<Train className="size-4 text-muted-foreground" />
-												<div>
-													<p className="text-sm font-medium">{requestDetails.currentStation.name}</p>
-													<p className="text-xs text-muted-foreground">{requestDetails.currentStation.code}</p>
-												</div>
-											</div>
-											<div className="flex items-start gap-3">
-												<Home className="size-4 text-muted-foreground mt-0.5" />
-												<div className="flex-1">
-													<p className="text-xs font-medium text-muted-foreground mb-1">Current Address</p>
-													<div className="p-3 bg-muted/50 rounded-md">
-														<p className="text-sm">{requestDetails.currentAddress}</p>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
+									<StatusBadge status={requestDetails.status} />
 								</div>
 
-								<div className="space-y-6">
-									<div>
-										<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-											Requested Changes
-										</h4>
-										<div className="space-y-3">
-											<div className="flex items-center gap-3">
-												<Train className="size-4 text-muted-foreground" />
-												<div>
-													<p className="text-sm font-medium">{requestDetails.newStation.name}</p>
-													<p className="text-xs text-muted-foreground">{requestDetails.newStation.code}</p>
-												</div>
-											</div>
-											<div className="flex items-start gap-3">
-												<Home className="size-4 text-muted-foreground mt-0.5" />
-												<div className="flex-1">
-													<p className="text-xs font-medium text-muted-foreground mb-1">New Address</p>
-													<div className="p-3 bg-muted/50 rounded-md">
-														<p className="text-sm">{requestDetails.newAddress}</p>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
+								<Separator />
 
-							<Separator />
-
-							{requestDetails.verificationDocUrl && (
 								<div className="py-6">
 									<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-										Verification Document
+										Student Information
 									</h4>
-									<div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
-										<FileText className="size-4 text-muted-foreground" />
-										<span className="text-sm font-medium flex-1">Student Verification Document</span>
-										<Button
-											size="sm"
-											variant="default"
-											onClick={() => {
-												if (requestDetails.verificationDocUrl) {
-													window.open(requestDetails.verificationDocUrl, "_blank");
-												}
-											}}
-										>
-											<ExternalLink className="size-4 mr-1" />
-											View
-										</Button>
-									</div>
-								</div>
-							)}
-
-							<Separator />
-
-							<div className="space-y-6 py-6">
-								<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-									Application Status
-								</h4>
-
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 									<div className="space-y-3">
-										<div className="flex items-center justify-between">
-											<span className="text-sm font-medium text-muted-foreground">Submissions</span>
-											<span className="text-sm text-foreground">{requestDetails.submissionCount}</span>
-										</div>
-
-										<div className="flex items-center justify-between">
-											<span className="text-sm font-medium text-muted-foreground">Applied Date</span>
-											<span className="text-sm text-foreground">
-												{format(new Date(requestDetails.createdAt), "MMM dd, yyyy")}
-											</span>
-										</div>
-									</div>
-
-									<div className="space-y-3">
-										{requestDetails.reviewedAt && (
-											<div className="flex items-center justify-between">
-												<span className="text-sm font-medium text-muted-foreground">Reviewed Date</span>
-												<span className="text-sm text-foreground">
-													{format(new Date(requestDetails.reviewedAt), "MMM dd, yyyy")}
-												</span>
+										<div className="flex items-center gap-3">
+											<User className="size-4 text-muted-foreground" />
+											<div>
+												<p className="text-sm font-medium">
+													{toTitleCase(
+														`${requestDetails.student.firstName} ${requestDetails.student.middleName} ${requestDetails.student.lastName}`
+													)}
+												</p>
+												<p className="text-xs text-muted-foreground">{requestDetails.student.user.email}</p>
 											</div>
-										)}
-
-										{requestDetails.reviewedBy && (
-											<div className="flex items-center justify-between">
-												<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
-												<span className="text-sm text-foreground">
-													{toTitleCase(requestDetails.reviewedBy.user.name)}
-												</span>
+										</div>
+										<div className="flex items-center gap-3">
+											<FileText className="size-4 text-muted-foreground" />
+											<div>
+												<p className="text-sm font-medium">{requestDetails.student.class.code}</p>
+												<p className="text-xs text-muted-foreground">
+													{requestDetails.student.class.year.name} - {requestDetails.student.class.branch.name}
+												</p>
 											</div>
-										)}
+										</div>
 									</div>
 								</div>
 
-								{requestDetails.rejectionReason && (
-									<div className="mt-6">
-										<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
-										<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-											<p className="text-sm text-destructive">{requestDetails.rejectionReason}</p>
+								<Separator />
+
+								<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
+									<div className="space-y-6">
+										<div>
+											<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+												Current Details
+											</h4>
+											<div className="space-y-3">
+												<div className="flex items-center gap-3">
+													<Train className="size-4 text-muted-foreground" />
+													<div>
+														<p className="text-sm font-medium">{requestDetails.currentStation.name}</p>
+														<p className="text-xs text-muted-foreground">{requestDetails.currentStation.code}</p>
+													</div>
+												</div>
+												<div className="flex items-start gap-3">
+													<Home className="size-4 text-muted-foreground mt-0.5" />
+													<div className="flex-1">
+														<p className="text-xs font-medium text-muted-foreground mb-1">Current Address</p>
+														<div className="p-3 bg-muted/50 rounded-md">
+															<p className="text-sm">{requestDetails.currentAddress}</p>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<div className="space-y-6">
+										<div>
+											<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+												Requested Changes
+											</h4>
+											<div className="space-y-3">
+												<div className="flex items-center gap-3">
+													<Train className="size-4 text-muted-foreground" />
+													<div>
+														<p className="text-sm font-medium">{requestDetails.newStation.name}</p>
+														<p className="text-xs text-muted-foreground">{requestDetails.newStation.code}</p>
+													</div>
+												</div>
+												<div className="flex items-start gap-3">
+													<Home className="size-4 text-muted-foreground mt-0.5" />
+													<div className="flex-1">
+														<p className="text-xs font-medium text-muted-foreground mb-1">New Address</p>
+														<div className="p-3 bg-muted/50 rounded-md">
+															<p className="text-sm">{requestDetails.newAddress}</p>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<Separator />
+
+								{requestDetails.verificationDocUrl && (
+									<div className="space-y-4">
+										<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+											Verification Document
+										</h4>
+										<div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
+											<FileText className="size-4 text-muted-foreground" />
+											<span className="text-sm font-medium flex-1">Student Verification Document</span>
+											<Button
+												size="sm"
+												variant={showDocViewer ? "destructive" : "default"}
+												onClick={() => setShowDocViewer(!showDocViewer)}
+											>
+												{showDocViewer ? (
+													<>
+														<X className="size-4 mr-1" />
+														Close
+													</>
+												) : (
+													<>
+														<Eye className="size-4 mr-1" />
+														View
+													</>
+												)}
+											</Button>
+										</div>
+									</div>
+								)}
+
+								<Separator />
+
+								<div className="space-y-6 py-6">
+									<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+										Application Status
+									</h4>
+
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+										<div className="space-y-3">
+											<div className="flex items-center justify-between">
+												<span className="text-sm font-medium text-muted-foreground">Submissions</span>
+												<span className="text-sm text-foreground">{requestDetails.submissionCount}</span>
+											</div>
+
+											<div className="flex items-center justify-between">
+												<span className="text-sm font-medium text-muted-foreground">Applied Date</span>
+												<span className="text-sm text-foreground">
+													{format(new Date(requestDetails.createdAt), "MMM dd, yyyy")}
+												</span>
+											</div>
+										</div>
+
+										<div className="space-y-3">
+											{requestDetails.reviewedAt && (
+												<div className="flex items-center justify-between">
+													<span className="text-sm font-medium text-muted-foreground">Reviewed Date</span>
+													<span className="text-sm text-foreground">
+														{format(new Date(requestDetails.reviewedAt), "MMM dd, yyyy")}
+													</span>
+												</div>
+											)}
+
+											{requestDetails.reviewedBy && (
+												<div className="flex items-center justify-between">
+													<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
+													<span className="text-sm text-foreground">
+														{toTitleCase(requestDetails.reviewedBy.user.name)}
+													</span>
+												</div>
+											)}
+										</div>
+									</div>
+
+									{requestDetails.rejectionReason && (
+										<div className="mt-6">
+											<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
+											<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+												<p className="text-sm text-destructive">{requestDetails.rejectionReason}</p>
+											</div>
+										</div>
+									)}
+								</div>
+
+								{requestDetails.status === "Pending" && (
+									<>
+										<Separator />
+										<div className="flex justify-end gap-4 pt-6">
+											<Button
+												variant="destructive"
+												className="w-38 h-10"
+												title="Reject Request"
+												aria-label="Reject Request"
+												disabled={isApproving || isRejecting}
+												onClick={() => setShowRejectDialog(true)}
+											>
+												<XCircle className="size-4 mr-1" />
+												Reject Request
+											</Button>
+											<Button
+												title="Approve Request"
+												onClick={handleApprove}
+												aria-label="Approve Request"
+												disabled={isApproving || isRejecting}
+												className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+											>
+												<Check className="size-4 mr-1" />
+												Approve Request
+											</Button>
+										</div>
+									</>
+								)}
+							</div>
+
+							<div
+								style={{ maxHeight: "calc(90vh - 4.5rem)" }}
+								className={`relative rounded-xl border bg-muted/30 overflow-hidden transition-[width,opacity] duration-500 ease-in-out ${
+									showDocViewer ? "w-[55%] opacity-100" : "w-0 opacity-0 border-0"
+								}`}
+							>
+								{showDocViewer && requestDetails.verificationDocUrl && (
+									<div className="flex flex-col h-full animate-in fade-in duration-300">
+										<div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur-sm">
+											<div className="flex items-center gap-2">
+												<FileText className="size-4 text-muted-foreground" />
+												<span className="text-sm font-semibold">Verification Document</span>
+											</div>
+										</div>
+
+										<div className="flex-1 min-w-0">
+											<iframe
+												title="Verification Document"
+												className="w-full h-full border-0"
+												src={requestDetails.verificationDocUrl}
+											/>
 										</div>
 									</div>
 								)}
 							</div>
-
-							{requestDetails.status === "Pending" && (
-								<>
-									<Separator />
-									<div className="flex justify-end gap-4 pt-6">
-										<Button
-											variant="destructive"
-											className="w-38 h-10"
-											title="Reject Request"
-											aria-label="Reject Request"
-											disabled={isApproving || isRejecting}
-											onClick={() => setShowRejectDialog(true)}
-										>
-											<XCircle className="size-4 mr-1" />
-											Reject Request
-										</Button>
-										<Button
-											title="Approve Request"
-											onClick={handleApprove}
-											aria-label="Approve Request"
-											disabled={isApproving || isRejecting}
-											className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
-										>
-											<Check className="size-4 mr-1" />
-											Approve Request
-										</Button>
-									</div>
-								</>
-							)}
 						</div>
 					) : null}
 				</DialogContent>
