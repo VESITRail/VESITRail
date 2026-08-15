@@ -7,6 +7,7 @@ import {
 	Filter,
 	Trash2,
 	BookOpen,
+	Crosshair,
 	ChevronLeft,
 	AlertCircle,
 	ArrowUpDown,
@@ -43,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBookletStatusType } from "@/generated/zod";
 import { BookletItem, deleteBooklet } from "@/actions/booklets";
 import { useState, useMemo, useCallback, useEffect } from "react";
+import AnchorCalibrationDialog from "@/components/admin/anchor-calibration-dialog";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
@@ -106,12 +108,14 @@ const BookletsTable = ({
 		direction: SortOrder;
 	} | null>(null);
 
+	const [isDeleting, setIsDeleting] = useState<boolean>(false);
 	const [selectedStatus, setSelectedStatus] = useState<string>("all");
 	const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 	const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
 	const [bookletToDelete, setBookletToDelete] = useState<BookletItem | null>(null);
-	const [isDeleting, setIsDeleting] = useState<boolean>(false);
+	const [showCalibrationDialog, setShowCalibrationDialog] = useState<boolean>(false);
+	const [calibrationBooklet, setCalibrationBooklet] = useState<BookletItem | null>(null);
 
 	const handleSort = useCallback((key: keyof BookletItem | "bookletNumber") => {
 		setSortConfig((current) => {
@@ -165,6 +169,27 @@ const BookletsTable = ({
 			router.push(`/dashboard/admin/booklets/${booklet.id}/update`);
 		},
 		[router]
+	);
+
+	const handleCalibrateClick = useCallback((booklet: BookletItem) => {
+		setCalibrationBooklet(booklet);
+		setShowCalibrationDialog(true);
+	}, []);
+
+	const handleCalibrationClose = useCallback(() => {
+		setShowCalibrationDialog(false);
+		setCalibrationBooklet(null);
+	}, []);
+
+	const handleAnchorUpdate = useCallback(
+		(bookletId: string, anchorX: number, anchorY: number) => {
+			const updatedBooklet = booklets.find((b) => b.id === bookletId);
+			if (updatedBooklet) {
+				updatedBooklet.anchorX = anchorX;
+				updatedBooklet.anchorY = anchorY;
+			}
+		},
+		[booklets]
 	);
 
 	const handleDeleteConfirm = useCallback(async () => {
@@ -393,6 +418,10 @@ const BookletsTable = ({
 									<Edit className="mr-2 size-4" />
 									Edit Booklet
 								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => handleCalibrateClick(row.original)}>
+									<Crosshair className="mr-2 size-4" />
+									Calibrate Anchors
+								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									onClick={() => handleDeleteClick(row.original)}
@@ -407,7 +436,7 @@ const BookletsTable = ({
 				)
 			}
 		],
-		[handleSort, currentPage, handleDeleteClick, handleUpdateClick]
+		[handleSort, currentPage, handleDeleteClick, handleUpdateClick, handleCalibrateClick]
 	);
 
 	const table = useReactTable({
@@ -686,6 +715,13 @@ const BookletsTable = ({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			<AnchorCalibrationDialog
+				booklet={calibrationBooklet}
+				isOpen={showCalibrationDialog}
+				onClose={handleCalibrationClose}
+				onAnchorUpdate={handleAnchorUpdate}
+			/>
 		</div>
 	);
 };
