@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -118,6 +119,7 @@ const AdminNavUser = () => {
 									await authClient.signOut({
 										fetchOptions: {
 											onSuccess: () => {
+												posthog.reset();
 												toast.dismiss();
 												toast.success("Signed Out Successfully", {
 													description: "You've been logged out securely. See you next time!"
