@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "@/components/ui/status";
-import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,7 +88,7 @@ const StudentProfilePage = () => {
 						</div>
 					</div>
 					<div className="p-6 pt-0 space-y-4">
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-20" />
 								<Skeleton className="h-5 w-36" />
@@ -100,7 +99,7 @@ const StudentProfilePage = () => {
 							</div>
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-16" />
-								<Skeleton className="h-6 w-20 rounded-full" />
+								<Skeleton className="h-5 w-20" />
 							</div>
 						</div>
 						<Skeleton className="h-px w-full" />
@@ -149,8 +148,8 @@ const StudentProfilePage = () => {
 							</div>
 						</div>
 					</div>
-					<div className="p-6 pt-0 space-y-4">
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div className="p-6 pt-0">
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-24" />
 								<Skeleton className="h-5 w-28" />
@@ -159,10 +158,10 @@ const StudentProfilePage = () => {
 								<Skeleton className="h-4 w-36" />
 								<Skeleton className="h-5 w-32" />
 							</div>
-						</div>
-						<div className="space-y-2">
-							<Skeleton className="h-4 w-36" />
-							<Skeleton className="h-5 w-40" />
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-36" />
+								<Skeleton className="h-5 w-40" />
+							</div>
 						</div>
 					</div>
 				</div>
@@ -262,7 +261,7 @@ const StudentProfilePage = () => {
 				</CardHeader>
 
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Full Name</p>
 							<p className="font-medium">
@@ -279,7 +278,7 @@ const StudentProfilePage = () => {
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Gender</p>
-							<Badge variant="secondary">{profileData.gender || "N/A"}</Badge>
+							<p className="font-medium">{profileData.gender || "N/A"}</p>
 						</div>
 					</div>
 					<Separator />
@@ -337,7 +336,7 @@ const StudentProfilePage = () => {
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 						<div className="space-y-1">
 							<div className="flex items-center gap-2">
 								<p className="text-sm font-medium text-muted-foreground">Home Station</p>
@@ -365,25 +364,25 @@ const StudentProfilePage = () => {
 								{profileData.preferredConcessionClass?.code || "N/A"})
 							</p>
 						</div>
-					</div>
-					<div className="space-y-1">
-						<div className="flex items-center gap-2">
-							<p className="text-sm font-medium text-muted-foreground">Preferred Concession Period</p>
-							<Link href="/dashboard/student/settings#concession-preferences">
-								<Button size="sm" variant="ghost" className="size-5 p-0 hover:bg-muted">
-									<Edit className="size-3" />
-								</Button>
-							</Link>
+						<div className="space-y-1">
+							<div className="flex items-center gap-2">
+								<p className="text-sm font-medium text-muted-foreground">Preferred Concession Period</p>
+								<Link href="/dashboard/student/settings#concession-preferences">
+									<Button size="sm" variant="ghost" className="size-5 p-0 hover:bg-muted">
+										<Edit className="size-3" />
+									</Button>
+								</Link>
+							</div>
+							<p className="font-medium">
+								{profileData.preferredConcessionPeriod?.name || "N/A"} (
+								{profileData.preferredConcessionPeriod?.duration != null
+									? `${profileData.preferredConcessionPeriod.duration} ${
+											profileData.preferredConcessionPeriod.duration === 1 ? "month" : "months"
+										}`
+									: "N/A"}
+								)
+							</p>
 						</div>
-						<p className="font-medium">
-							{profileData.preferredConcessionPeriod?.name || "N/A"} (
-							{profileData.preferredConcessionPeriod?.duration != null
-								? `${profileData.preferredConcessionPeriod.duration} ${
-										profileData.preferredConcessionPeriod.duration === 1 ? "month" : "months"
-									}`
-								: "N/A"}
-							)
-						</p>
 					</div>
 				</CardContent>
 			</Card>
