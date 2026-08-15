@@ -8,9 +8,9 @@ import {
 } from "@/actions/fcm";
 import { toast } from "sonner";
 import posthog from "posthog-js";
-import { useCallback, useState } from "react";
 import { messaging } from "@/config/firebase";
 import { FcmPlatformType } from "@/generated/zod";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getToken, onMessage, type Messaging } from "firebase/messaging";
 
 type FcmState = {
@@ -45,6 +45,7 @@ export const useFcm = (userId?: string) => {
 		loading: true,
 		permission: "default"
 	});
+	const hasAttemptedInitRef = useRef<boolean>(false);
 	const [isInitialized, setIsInitialized] = useState<boolean>(false);
 	const [hasShownToasts, setHasShownToasts] = useState<boolean>(false);
 
@@ -327,19 +328,41 @@ export const useFcm = (userId?: string) => {
 	}, [saveTokenToDb, setupInAppNotifications]);
 
 	const initializeFcm = useCallback(async (): Promise<void> => {
-		if (isInitialized) return;
+		if (isInitialized || !userId) return;
 		setIsInitialized(true);
 
 		try {
+			if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {
+				if (userId) {
+					await updatePushNotificationStatus(userId, false);
+				}
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: "Push notifications not supported in this browser"
+				}));
+				return;
+			}
+
 			const currentPermission = Notification.permission;
 			setState((prev) => ({ ...prev, permission: currentPermission }));
 
 			if (currentPermission === "granted") {
-				await generateToken();
+				const tokenGenerated = await generateToken();
+				if (!tokenGenerated && userId) {
+					await updatePushNotificationStatus(userId, false);
+				}
 			} else if (currentPermission === "default") {
 				const permissionGranted = await requestPermission();
 				if (permissionGranted) {
-					await generateToken();
+					const tokenGenerated = await generateToken();
+					if (!tokenGenerated && userId) {
+						await updatePushNotificationStatus(userId, false);
+					}
+				} else {
+					if (userId) {
+						await updatePushNotificationStatus(userId, false);
+					}
 				}
 			} else {
 				if (userId) {
@@ -348,6 +371,7 @@ export const useFcm = (userId?: string) => {
 						await removeFcmTokenForDevice(userId, deviceId);
 						localStorage.removeItem("fcm_device_id");
 					}
+					await updatePushNotificationStatus(userId, false);
 				}
 
 				setState((prev) => ({
@@ -357,6 +381,10 @@ export const useFcm = (userId?: string) => {
 				}));
 			}
 		} catch (error) {
+			console.error("Failed to initialize FCM:", error);
+			if (userId) {
+				await updatePushNotificationStatus(userId, false);
+			}
 			setState((prev) => ({
 				...prev,
 				loading: false,
@@ -364,6 +392,13 @@ export const useFcm = (userId?: string) => {
 			}));
 		}
 	}, [generateToken, requestPermission, isInitialized, userId]);
+
+	useEffect(() => {
+		if (userId && !hasAttemptedInitRef.current) {
+			hasAttemptedInitRef.current = true;
+			initializeFcm();
+		}
+	}, [userId, initializeFcm]);
 
 	const disableNotifications = useCallback(async (): Promise<boolean> => {
 		try {
