@@ -29,7 +29,6 @@ import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -51,35 +50,114 @@ const ReviewSkeleton = () => {
 
 	return (
 		<div className="max-w-5xl mx-auto space-y-6">
-			{[1, 2, 3, 4].map((index) => (
-				<Card key={index} className="shadow-sm">
-					<CardHeader className="pb-4">
-						<div className="flex items-center gap-3">
-							<Skeleton className="size-10 rounded-lg" />
-							<div className="flex-1 space-y-2">
-								<Skeleton className="h-5 w-40" />
-								<Skeleton className="h-4 w-32" />
-							</div>
-							<Skeleton className="w-10 h-8 rounded-md" />
+			<Card className="shadow-sm">
+				<CardHeader className="pb-4">
+					<div className="flex items-center gap-3">
+						<Skeleton className="size-10 rounded-lg" />
+						<div className="flex-1 space-y-2">
+							<Skeleton className="h-5 w-40" />
+							<Skeleton className="h-4 w-32" />
 						</div>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-							{[1, 2].map((item) => (
-								<div key={item} className="space-y-2">
-									<Skeleton className="h-4 w-24" />
-									<Skeleton className="h-5 w-full" />
-								</div>
-							))}
-						</div>
-						<Separator />
+						<Skeleton className="w-16 h-8 rounded-md" />
+					</div>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 						<div className="space-y-2">
 							<Skeleton className="h-4 w-20" />
-							<Skeleton className="h-5 w-full" />
+							<Skeleton className="h-5 w-36" />
 						</div>
-					</CardContent>
-				</Card>
-			))}
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-24" />
+							<Skeleton className="h-5 w-28" />
+						</div>
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-16" />
+							<Skeleton className="h-5 w-16" />
+						</div>
+					</div>
+					<Separator />
+					<div className="space-y-2">
+						<Skeleton className="h-4 w-16" />
+						<Skeleton className="h-5 w-3/4" />
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card className="shadow-sm">
+				<CardHeader className="pb-4">
+					<div className="flex items-center gap-3">
+						<Skeleton className="size-10 rounded-lg" />
+						<div className="flex-1 space-y-2">
+							<Skeleton className="h-5 w-44" />
+							<Skeleton className="h-4 w-36" />
+						</div>
+						<Skeleton className="w-16 h-8 rounded-md" />
+					</div>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-12" />
+							<Skeleton className="h-5 w-24" />
+						</div>
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-16" />
+							<Skeleton className="h-5 w-32" />
+						</div>
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-14" />
+							<Skeleton className="h-5 w-20" />
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card className="shadow-sm">
+				<CardHeader className="pb-4">
+					<div className="flex items-center gap-3">
+						<Skeleton className="size-10 rounded-lg" />
+						<div className="flex-1 space-y-2">
+							<Skeleton className="h-5 w-36" />
+							<Skeleton className="h-4 w-40" />
+						</div>
+						<Skeleton className="w-16 h-8 rounded-md" />
+					</div>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-24" />
+							<Skeleton className="h-5 w-32" />
+						</div>
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-44" />
+							<Skeleton className="h-5 w-28" />
+						</div>
+					</div>
+					<div className="space-y-2">
+						<Skeleton className="h-4 w-44" />
+						<Skeleton className="h-5 w-36" />
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card className="shadow-sm">
+				<CardHeader className="pb-4">
+					<div className="flex items-center gap-3">
+						<Skeleton className="size-10 rounded-lg" />
+						<div className="flex-1 space-y-2">
+							<Skeleton className="h-5 w-44" />
+							<Skeleton className="h-4 w-36" />
+						</div>
+						<Skeleton className="w-16 h-8 rounded-md" />
+					</div>
+				</CardHeader>
+				<CardContent>
+					<Skeleton className="h-16 w-full rounded-lg" />
+				</CardContent>
+			</Card>
+
 			<div className="flex justify-end pt-6">
 				<Skeleton className={isMobile ? "h-12 w-full rounded-lg" : "w-48 h-12 rounded-lg"} />
 			</div>
@@ -326,7 +404,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Gender</p>
-							<Badge variant="secondary">{defaultValues.gender}</Badge>
+							<p className="font-medium">{defaultValues.gender}</p>
 						</div>
 					</div>
 					<Separator />
@@ -357,9 +435,9 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Year</p>
-							<Badge variant="outline">
+							<p className="font-medium">
 								{reviewData.class.year.name} ({reviewData.class.year.code})
-							</Badge>
+							</p>
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Branch</p>
@@ -369,7 +447,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Class</p>
-							<Badge variant="outline">{reviewData.class.code}</Badge>
+							<p className="font-medium">{reviewData.class.code}</p>
 						</div>
 					</div>
 				</CardContent>
@@ -401,14 +479,14 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Preferred Concession Class</p>
-							<Badge variant="outline">
+							<p className="font-medium">
 								{reviewData.concessionClass.name} ({reviewData.concessionClass.code})
-							</Badge>
+							</p>
 						</div>
 					</div>
 					<div className="space-y-1">
 						<p className="text-sm font-medium text-muted-foreground">Preferred Concession Period</p>
-						<Badge variant="outline">
+						<p className="font-medium">
 							{reviewData.concessionPeriod.name} (
 							{reviewData.concessionPeriod?.duration != null
 								? `${reviewData.concessionPeriod.duration} ${
@@ -416,7 +494,7 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 									}`
 								: "N/A"}
 							)
-						</Badge>
+						</p>
 					</div>
 				</CardContent>
 			</Card>
