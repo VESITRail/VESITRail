@@ -763,3 +763,48 @@ export const recalculateAllBookletStatuses = async (): Promise<Result<{ updated:
 		return failure(databaseError("Failed to recalculate booklet statuses"));
 	}
 };
+
+export const updateBookletAnchorCoordinates = async (
+	bookletId: string,
+	anchorX: number,
+	anchorY: number
+): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+	try {
+		const booklet = await prisma.concessionBooklet.findUnique({
+			where: { id: bookletId }
+		});
+
+		if (!booklet) {
+			return failure(validationError("Booklet not found"));
+		}
+
+		if (anchorX < 0 || anchorX > 100) {
+			return failure(validationError("Anchor X must be between 0 and 100"));
+		}
+
+		if (anchorY < 0 || anchorY > 100) {
+			return failure(validationError("Anchor Y must be between 0 and 100"));
+		}
+
+		const updatedBooklet = await prisma.concessionBooklet.update({
+			where: { id: bookletId },
+			data: {
+				anchorX,
+				anchorY
+			},
+			include: {
+				_count: {
+					select: {
+						applications: true
+					}
+				}
+			}
+		});
+
+		revalidatePath("/dashboard/admin/booklets");
+		return success(updatedBooklet);
+	} catch (error) {
+		console.error("Error updating booklet anchor coordinates:", error);
+		return failure(databaseError("Failed to update anchor coordinates"));
+	}
+};
