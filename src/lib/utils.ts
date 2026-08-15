@@ -108,6 +108,66 @@ export const sortByRomanKey = <T>(data: T[], key: keyof T): T[] => {
 	return data.sort((a, b) => romanToInt(String(a[key])) - romanToInt(String(b[key])));
 };
 
+export const sortByYearOrder = <T extends { name?: string; code?: string }>(data: T[]): T[] => {
+	const getYearRank = (item: T): number => {
+		const code = (item.code || "").toUpperCase().trim();
+		const name = (item.name || "").toUpperCase().trim();
+
+		if (
+			code.includes("FE") ||
+			code.includes("FY") ||
+			code === "1" ||
+			code === "1ST" ||
+			code === "I" ||
+			name.includes("FIRST") ||
+			name.includes("1ST")
+		) {
+			return 1;
+		}
+
+		if (
+			code.includes("SE") ||
+			code.includes("SY") ||
+			code === "2" ||
+			code === "2ND" ||
+			code === "II" ||
+			name.includes("SECOND") ||
+			name.includes("2ND")
+		) {
+			return 2;
+		}
+
+		if (
+			code.includes("TE") ||
+			code.includes("TY") ||
+			code === "3" ||
+			code === "3RD" ||
+			code === "III" ||
+			name.includes("THIRD") ||
+			name.includes("3RD")
+		) {
+			return 3;
+		}
+
+		if (
+			code.includes("BE") ||
+			code.includes("LY") ||
+			code === "4" ||
+			code === "4TH" ||
+			code === "IV" ||
+			name.includes("FOURTH") ||
+			name.includes("FINAL") ||
+			name.includes("4TH")
+		) {
+			return 4;
+		}
+
+		return 99;
+	};
+
+	return [...data].sort((a, b) => getYearRank(a) - getYearRank(b));
+};
+
 export const isValidErrorCode = (code: string): code is AuthErrorCode => {
 	return code in authErrorMessages;
 };
