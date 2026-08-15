@@ -1,8 +1,8 @@
 "use server";
 
-import { Result, success, failure, authError, AuthError, DatabaseError, databaseError } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import type { Notification } from "@/generated/zod";
+import { Result, success, failure, authError, AuthError, DatabaseError, databaseError } from "@/lib/result";
 
 export type NotificationItem = Pick<Notification, "id" | "title" | "body" | "url" | "isRead" | "createdAt">;
 
@@ -113,6 +113,35 @@ export const markNotificationAsRead = async (
 	} catch (error) {
 		console.error("Error while marking notification as read:", error);
 		return failure(databaseError("Failed to mark notification as read"));
+	}
+};
+
+export const markAllNotificationsAsRead = async (
+	userId: string
+): Promise<Result<{ success: boolean; count: number }, DatabaseError | AuthError>> => {
+	try {
+		const user = await prisma.user.findUnique({
+			where: { id: userId }
+		});
+
+		if (!user) {
+			return failure(authError("User not found"));
+		}
+
+		const result = await prisma.notification.updateMany({
+			where: {
+				userId: userId,
+				isRead: false
+			},
+			data: {
+				isRead: true
+			}
+		});
+
+		return success({ success: true, count: result.count });
+	} catch (error) {
+		console.error("Error while marking all notifications as read:", error);
+		return failure(databaseError("Failed to mark all notifications as read"));
 	}
 };
 

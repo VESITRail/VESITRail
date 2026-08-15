@@ -14,7 +14,7 @@ import NavMain from "@/components/nav-main";
 import NavSecondary from "@/components/nav-secondary";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 import NavUser from "@/components/app-sidebar/admin/nav-user";
-import { User, Users, MapPin, BookOpen, FileText, MessageSquare } from "lucide-react";
+import { User, Users, MapPin, BookOpen, FileText, MessageSquare, Sliders } from "lucide-react";
 
 const data = {
 	navSecondary: [
@@ -62,6 +62,11 @@ const data = {
 					icon: BookOpen,
 					name: "Booklets",
 					url: "/dashboard/admin/booklets"
+				},
+				{
+					icon: Sliders,
+					name: "Form Layout",
+					url: "/dashboard/admin/form-layout"
 				}
 			]
 		}

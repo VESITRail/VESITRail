@@ -2,8 +2,8 @@
 
 import type { z } from "zod";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
+import { cn, sortByYearOrder } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,7 +82,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 				]);
 
 				if (yearsResponse.isSuccess) {
-					setYears(yearsResponse.data);
+					setYears(sortByYearOrder(yearsResponse.data));
 				} else {
 					toast.error("Failed to load years", {
 						description: "Please refresh the page and try again."

@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useFcm } from "@/hooks/use-fcm";
 import { isFailure } from "@/lib/result";
 import { useRouter } from "next/navigation";
 import Status from "@/components/ui/status";
@@ -14,6 +15,8 @@ const OnboardingLayoutContent = ({ children }: { children: React.ReactNode }) =>
 	const session = authClient.useSession();
 	const hasCheckedRef = useRef<boolean>(false);
 	const [isVerifying, setIsVerifying] = useState<boolean>(true);
+
+	useFcm(session.data?.user?.id);
 
 	useEffect(() => {
 		const verifyOnboardingAccess = async () => {

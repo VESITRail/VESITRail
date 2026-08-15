@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { isFailure } from "@/lib/result";
 import { useFcm } from "@/hooks/use-fcm";
 import Status from "@/components/ui/status";
@@ -21,6 +22,15 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 	const [showRoleSelection, setShowRoleSelection] = useState<boolean>(false);
 
 	useFcm(session.data?.user?.id);
+
+	useEffect(() => {
+		if (session.data?.user?.id) {
+			posthog.identify(session.data.user.id, {
+				email: session.data.user.email,
+				name: session.data.user.name
+			});
+		}
+	}, [session.data?.user]);
 
 	useEffect(() => {
 		const isAdminPath = pathname.startsWith("/dashboard/admin");

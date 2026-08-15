@@ -1,9 +1,9 @@
 "use server";
 
+import prisma from "@/lib/prisma";
+import { sortByRomanKey, sortByYearOrder } from "@/lib/utils";
 import { Result, success, failure, databaseError, DatabaseError } from "@/lib/result";
 import { Year, Class, Branch, Station, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
-import prisma from "@/lib/prisma";
-import { sortByRomanKey } from "@/lib/utils";
 
 export type StudentStation = Pick<Station, "id" | "code" | "name">;
 
@@ -61,7 +61,7 @@ export const getYears = async (): Promise<Result<Year[], DatabaseError>> => {
 			where: { isActive: true }
 		});
 
-		return success(years);
+		return success(sortByYearOrder(years));
 	} catch (error) {
 		console.error("Error while fetching years:", error);
 		return failure(databaseError("Failed to fetch years"));

@@ -4,6 +4,7 @@ import {
 	getNotifications,
 	type NotificationItem,
 	markNotificationAsRead,
+	markAllNotificationsAsRead,
 	getUnreadNotificationCount,
 	type NotificationPaginationParams
 } from "@/actions/notifications";
@@ -69,6 +70,12 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 
 			if (page === 1) {
 				setLoading(true);
+				try {
+					await markAllNotificationsAsRead(session.user.id);
+					setUnreadCount(0);
+				} catch (error) {
+					console.error("Error marking all notifications as read:", error);
+				}
 			} else {
 				setLoadingMore(true);
 			}
