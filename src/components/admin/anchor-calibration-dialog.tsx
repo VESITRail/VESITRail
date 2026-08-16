@@ -63,20 +63,20 @@ const AnchorCalibrationDialog: React.FC<AnchorCalibrationDialogProps> = ({
 	const handleAdjustX = useCallback((delta: number) => {
 		setAdjustedX((prev) => {
 			const next = Math.round((prev + delta) * 100) / 100;
-			return Math.max(0, Math.min(100, next));
+			return Math.max(-50, Math.min(100, next));
 		});
 	}, []);
 
 	const handleAdjustY = useCallback((delta: number) => {
 		setAdjustedY((prev) => {
 			const next = Math.round((prev + delta) * 100) / 100;
-			return Math.max(0, Math.min(100, next));
+			return Math.max(-50, Math.min(100, next));
 		});
 	}, []);
 
 	const handleInputChangeX = useCallback((value: string) => {
 		const num = parseFloat(value);
-		if (!isNaN(num) && num >= 0 && num <= 100) {
+		if (!isNaN(num) && num >= -50 && num <= 100) {
 			setAdjustedX(num);
 		} else if (value === "" || value === "-") {
 			setAdjustedX(0);
@@ -85,7 +85,7 @@ const AnchorCalibrationDialog: React.FC<AnchorCalibrationDialogProps> = ({
 
 	const handleInputChangeY = useCallback((value: string) => {
 		const num = parseFloat(value);
-		if (!isNaN(num) && num >= 0 && num <= 100) {
+		if (!isNaN(num) && num >= -50 && num <= 100) {
 			setAdjustedY(num);
 		} else if (value === "" || value === "-") {
 			setAdjustedY(0);
@@ -202,14 +202,14 @@ const AnchorCalibrationDialog: React.FC<AnchorCalibrationDialogProps> = ({
 									<Button
 										size="icon"
 										variant="outline"
-										disabled={adjustedX <= 0}
+										disabled={adjustedX <= -50}
 										className="size-8 shrink-0"
 										onClick={() => handleAdjustX(-1)}
 									>
 										<Minus className="size-3" />
 									</Button>
 									<Input
-										min="0"
+										min="-50"
 										step="1"
 										max="100"
 										type="number"
@@ -238,14 +238,14 @@ const AnchorCalibrationDialog: React.FC<AnchorCalibrationDialogProps> = ({
 									<Button
 										size="icon"
 										variant="outline"
-										disabled={adjustedY <= 0}
+										disabled={adjustedY <= -50}
 										className="size-8 shrink-0"
 										onClick={() => handleAdjustY(-1)}
 									>
 										<Minus className="size-3" />
 									</Button>
 									<Input
-										min="0"
+										min="-50"
 										step="1"
 										max="100"
 										type="number"

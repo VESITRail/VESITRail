@@ -59,12 +59,12 @@ const CreateBookletPage = () => {
 			}
 		}
 
-		if (formData.anchorX < 0 || formData.anchorX > 100) {
-			newErrors.anchorX = "Anchor X must be between 0 and 100";
+		if (formData.anchorX < -50 || formData.anchorX > 100) {
+			newErrors.anchorX = "Anchor X must be between -50 and 100";
 		}
 
-		if (formData.anchorY < 0 || formData.anchorY > 100) {
-			newErrors.anchorY = "Anchor Y must be between 0 and 100";
+		if (formData.anchorY < -50 || formData.anchorY > 100) {
+			newErrors.anchorY = "Anchor Y must be between -50 and 100";
 		}
 
 		setErrors(newErrors);
@@ -224,8 +224,8 @@ const CreateBookletPage = () => {
 							</Label>
 
 							<Input
-								min="0"
 								step="1"
+								min="-50"
 								max="100"
 								id="anchorX"
 								type="number"
@@ -244,7 +244,7 @@ const CreateBookletPage = () => {
 								</div>
 							)}
 
-							<div className="text-xs text-muted-foreground">X coordinate (0-100)</div>
+							<div className="text-xs text-muted-foreground">X coordinate (-50 to 100)</div>
 						</div>
 
 						<div className="space-y-2">
@@ -253,8 +253,8 @@ const CreateBookletPage = () => {
 							</Label>
 
 							<Input
-								min="0"
 								step="1"
+								min="-50"
 								max="100"
 								id="anchorY"
 								type="number"
@@ -273,7 +273,7 @@ const CreateBookletPage = () => {
 								</div>
 							)}
 
-							<div className="text-xs text-muted-foreground">Y coordinate (0-100)</div>
+							<div className="text-xs text-muted-foreground">Y coordinate (-50 to 100)</div>
 						</div>
 					</div>
 
@@ -287,9 +287,9 @@ const CreateBookletPage = () => {
 							disabled={
 								isCreating ||
 								!formData.serialStartNumber.trim() ||
-								formData.anchorX < 0 ||
+								formData.anchorX < -50 ||
 								formData.anchorX > 100 ||
-								formData.anchorY < 0 ||
+								formData.anchorY < -50 ||
 								formData.anchorY > 100
 							}
 						>
