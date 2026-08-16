@@ -1,8 +1,13 @@
 "use server";
 
-import { Result, success, failure, databaseError, DatabaseError, validationError, ValidationError } from "@/lib/result";
-import { Year, Class, Branch, Station, Student, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
 import prisma from "@/lib/prisma";
+import { Year, Class, Branch, Station, Student, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
+import { Result, success, failure, databaseError, DatabaseError, validationError, ValidationError } from "@/lib/result";
+
+export type LegacyStudentData = {
+	stationId: string;
+	station: Pick<Station, "id" | "code" | "name">;
+} | null;
 
 export type ReviewData = Pick<
 	Student,
@@ -132,21 +137,45 @@ export const getExistingStudentData = async (userId: string): Promise<Result<Onb
 	}
 };
 
+export const getLegacyStudentByEmail = async (email: string): Promise<Result<LegacyStudentData, DatabaseError>> => {
+	try {
+		const legacyStudent = await prisma.legacyStudent.findUnique({
+			where: { email: email.toLowerCase() },
+			select: {
+				stationId: true,
+				station: {
+					select: { id: true, code: true, name: true }
+				}
+			}
+		});
+
+		return success(legacyStudent);
+	} catch (error) {
+		console.error("Error while fetching legacy student data:", error);
+		return failure(databaseError("Failed to fetch legacy student data"));
+	}
+};
+
 export const submitOnboarding = async (
 	studentId: string,
-	data: OnboardingData
+	data: OnboardingData,
+	isLegacyStudent: boolean = false
 ): Promise<Result<Student, DatabaseError>> => {
 	try {
 		const { class: _classData, ...dbData } = data;
+
+		const shouldAutoApprove = isLegacyStudent;
+		const status = shouldAutoApprove ? "Approved" : "Pending";
 
 		const student = await prisma.student.upsert({
 			where: { userId: studentId },
 			create: {
 				...dbData,
+				status,
 				userId: studentId,
-				status: "Pending",
 				submissionCount: 1,
-				rejectionReason: null
+				rejectionReason: null,
+				...(shouldAutoApprove && { reviewedAt: new Date() })
 			},
 			update: {
 				...dbData,

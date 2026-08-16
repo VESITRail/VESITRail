@@ -8,7 +8,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import type { LegacyStudentData } from "@/actions/onboarding";
+import { CheckIcon, ChevronsUpDownIcon, CheckCircle2 } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { ConcessionClass, ConcessionPeriod, Station } from "@/generated/zod";
 import { TravelInfoSchema, OnboardingSchema } from "@/lib/validations/onboarding";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,6 +21,7 @@ import { Command, CommandItem, CommandList, CommandGroup, CommandInput, CommandE
 
 type TravelInfoProps = {
 	errors?: Record<string, string>;
+	legacyStudentData?: LegacyStudentData;
 	defaultValues?: z.infer<typeof OnboardingSchema>;
 	setFormData: (data: z.infer<typeof OnboardingSchema>) => void;
 };
@@ -50,7 +53,7 @@ const ConcessionPeriodSelectSkeleton = () => (
 	</FormItem>
 );
 
-const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => {
+const TravelInfo = ({ errors, setFormData, defaultValues, legacyStudentData }: TravelInfoProps) => {
 	const [stations, setStations] = useState<Station[]>([]);
 	const [concessionPeriods, setConcessionPeriods] = useState<ConcessionPeriod[]>([]);
 	const [concessionClasses, setConcessionClasses] = useState<ConcessionClass[]>([]);
@@ -166,8 +169,31 @@ const TravelInfo = ({ errors, setFormData, defaultValues }: TravelInfoProps) => 
 		<Form {...form}>
 			<form>
 				<div className="space-y-4">
+					{legacyStudentData && (
+						<Alert variant="default">
+							<CheckCircle2 className="size-4" />
+							<AlertTitle>Account Found in VESITRail v1</AlertTitle>
+							<AlertDescription>
+								<p>
+									Your station has been pre-filled and your account will be auto-approved. Update it anytime from{" "}
+									<strong className="text-foreground">Change Address</strong>.
+								</p>
+							</AlertDescription>
+						</Alert>
+					)}
+
 					{isLoadingStations ? (
 						<StationSelectSkeleton />
+					) : legacyStudentData ? (
+						<FormItem className="space-y-1">
+							<FormLabel>
+								Home Station <span className="text-destructive">*</span>
+							</FormLabel>
+							<div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm opacity-70 cursor-not-allowed">
+								{legacyStudentData.station.name} ({legacyStudentData.station.code})
+							</div>
+							<p className="text-xs text-muted-foreground">Pre-filled from your VESITRail v1 account</p>
+						</FormItem>
 					) : (
 						<FormField
 							name="station"

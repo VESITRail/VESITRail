@@ -14,6 +14,7 @@ import {
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
+	CheckCircle2,
 	AlertTriangle
 } from "lucide-react";
 import {
@@ -532,14 +533,33 @@ const StudentDetailsDialog = ({
 												</div>
 											)}
 
-											{studentDetails.reviewedBy && (
+											{studentDetails.reviewedBy ? (
 												<div className="flex justify-between items-start">
 													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
 														Reviewed By
 													</span>
-													<span className="text-sm text-right">{toTitleCase(studentDetails.reviewedBy.user.name)}</span>
+													<span className="text-sm text-right font-medium">
+														{toTitleCase(studentDetails.reviewedBy.user?.name || "Admin")}
+													</span>
 												</div>
-											)}
+											) : studentDetails.status === "Approved" ? (
+												<div className="flex justify-between items-center">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
+														Reviewed By
+													</span>
+													<span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-600/15 text-emerald-600 dark:text-emerald-400 border border-emerald-600/20">
+														<CheckCircle2 className="size-3" />
+														Auto-Approved
+													</span>
+												</div>
+											) : studentDetails.status === "Rejected" ? (
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
+														Reviewed By
+													</span>
+													<span className="text-sm text-right text-muted-foreground">System</span>
+												</div>
+											) : null}
 										</div>
 									</div>
 

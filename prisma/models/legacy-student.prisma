@@ -1,0 +1,10 @@
+model LegacyStudent {
+  id        String @id @default(uuid())
+  email     String @unique
+  stationId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  station Station @relation(fields: [stationId], references: [id])
+}

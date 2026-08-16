@@ -778,12 +778,12 @@ export const updateBookletAnchorCoordinates = async (
 			return failure(validationError("Booklet not found"));
 		}
 
-		if (anchorX < 0 || anchorX > 100) {
-			return failure(validationError("Anchor X must be between 0 and 100"));
+		if (anchorX < -50 || anchorX > 100) {
+			return failure(validationError("Anchor X must be between -50 and 100"));
 		}
 
-		if (anchorY < 0 || anchorY > 100) {
-			return failure(validationError("Anchor Y must be between 0 and 100"));
+		if (anchorY < -50 || anchorY > 100) {
+			return failure(validationError("Anchor Y must be between -50 and 100"));
 		}
 
 		const updatedBooklet = await prisma.concessionBooklet.update({

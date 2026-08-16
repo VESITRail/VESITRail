@@ -2,6 +2,8 @@ import { Separator } from "@/components/ui/separator";
 import { getFormLayoutConfig } from "@/actions/app-config";
 import FormLayoutEditor from "@/components/admin/form-layout-editor";
 
+export const dynamic = "force-dynamic";
+
 export default async function FormLayoutPage() {
 	const initialConfigRes = await getFormLayoutConfig();
 	const initialData = initialConfigRes.isSuccess ? initialConfigRes.data : {};
