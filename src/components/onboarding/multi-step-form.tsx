@@ -10,11 +10,11 @@ import { Button } from "@/components/ui/button";
 import { cn, formatFieldName } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getExistingStudentData } from "@/actions/onboarding";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
 import { Review, Document, TravelInfo, PersonalInfo, AcademicInfo } from "./steps";
 import { RefreshCw, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
+import { getExistingStudentData, getLegacyStudentByEmail, type LegacyStudentData } from "@/actions/onboarding";
 
 const steps = [
 	{ id: 1, title: "Personal Details" },
@@ -111,6 +111,8 @@ const MultiStepForm = () => {
 		submissionCount?: number;
 	} | null>(null);
 
+	const [legacyStudentData, setLegacyStudentData] = useState<LegacyStudentData>(null);
+
 	const [formData, setFormData] = useState<z.infer<typeof OnboardingSchema>>({
 		year: "",
 		class: "",
@@ -188,6 +190,22 @@ const MultiStepForm = () => {
 						});
 					}
 				} else {
+					if (session.user.email) {
+						const legacyResult = await getLegacyStudentByEmail(session.user.email);
+
+						if (legacyResult.isSuccess && legacyResult.data) {
+							setLegacyStudentData(legacyResult.data);
+							setFormData((prev) => ({
+								...prev,
+								station: legacyResult.data!.stationId
+							}));
+							posthog.capture("onboarding_legacy_student_matched", {
+								user_id: session.user.id,
+								station_id: legacyResult.data.stationId,
+								station_name: legacyResult.data.station.name
+							});
+						}
+					}
 					posthog.capture("onboarding_started", {
 						user_id: session.user.id
 					});
@@ -341,11 +359,20 @@ const MultiStepForm = () => {
 			case 2:
 				return <AcademicInfo errors={errors} defaultValues={formData} setFormData={setFormData} />;
 			case 3:
-				return <TravelInfo errors={errors} defaultValues={formData} setFormData={setFormData} />;
+				return (
+					<TravelInfo
+						errors={errors}
+						defaultValues={formData}
+						setFormData={setFormData}
+						legacyStudentData={legacyStudentData}
+					/>
+				);
 			case 4:
 				return <Document errors={errors} defaultValues={formData} setFormData={setFormData} />;
 			case 5:
-				return <Review defaultValues={formData} setCurrentStep={setCurrentStep} />;
+				return (
+					<Review defaultValues={formData} setCurrentStep={setCurrentStep} isLegacyStudent={!!legacyStudentData} />
+				);
 			default:
 				router.push("/");
 				toast.error("Something Went Wrong", {
