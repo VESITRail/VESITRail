@@ -90,8 +90,9 @@ model Station {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  students     Student[]
-  applications ConcessionApplication[]
+  students       Student[]
+  legacyStudents LegacyStudent[]
+  applications   ConcessionApplication[]
 
   newStationChange     AddressChange[] @relation("NewStation")
   currentStationChange AddressChange[] @relation("CurrentStation")
