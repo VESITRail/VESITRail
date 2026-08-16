@@ -41,6 +41,7 @@ import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/com
 import { getReviewData, submitOnboarding, type Review as ReviewType } from "@/actions/onboarding";
 
 type ReviewProps = {
+	isLegacyStudent?: boolean;
 	defaultValues: z.infer<typeof OnboardingSchema>;
 	setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
 };
@@ -190,7 +191,7 @@ const ErrorComponent = ({
 	/>
 );
 
-const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
+const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: ReviewProps) => {
 	const router = useRouter();
 	const isMobile = useIsMobile();
 	const session = authClient.useSession();
@@ -285,23 +286,27 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 				return;
 			}
 
-			const submissionPromise = submitOnboarding(session.data.user.id, {
-				status: "Pending",
-				submissionCount: 1,
-				rejectionReason: null,
-				class: reviewData.class,
-				gender: defaultValues.gender,
-				classId: defaultValues.class,
-				address: defaultValues.address,
-				lastName: defaultValues.lastName,
-				stationId: defaultValues.station,
-				firstName: defaultValues.firstName,
-				middleName: defaultValues.middleName,
-				dateOfBirth: new Date(defaultValues.dateOfBirth),
-				verificationDocUrl: defaultValues.verificationDocUrl,
-				preferredConcessionClassId: defaultValues.preferredConcessionClass,
-				preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod
-			});
+			const submissionPromise = submitOnboarding(
+				session.data.user.id,
+				{
+					status: "Pending",
+					submissionCount: 1,
+					rejectionReason: null,
+					class: reviewData.class,
+					gender: defaultValues.gender,
+					classId: defaultValues.class,
+					address: defaultValues.address,
+					lastName: defaultValues.lastName,
+					stationId: defaultValues.station,
+					firstName: defaultValues.firstName,
+					middleName: defaultValues.middleName,
+					dateOfBirth: new Date(defaultValues.dateOfBirth),
+					verificationDocUrl: defaultValues.verificationDocUrl,
+					preferredConcessionClassId: defaultValues.preferredConcessionClass,
+					preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod
+				},
+				isLegacyStudent
+			);
 
 			toast.promise(submissionPromise, {
 				error: "Failed to submit application",
@@ -312,6 +317,12 @@ const Review = ({ defaultValues, setCurrentStep }: ReviewProps) => {
 			const result = await submissionPromise;
 
 			if (result.isSuccess) {
+				if (isLegacyStudent) {
+					posthog.capture("onboarding_legacy_auto_approved", {
+						user_id: session.data.user.id,
+						station: reviewData.station.name
+					});
+				}
 				posthog.capture("onboarding_submitted_success", {
 					class: reviewData.class.code,
 					user_id: session.data.user.id,
