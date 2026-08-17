@@ -292,10 +292,21 @@ const AddressChangePage = () => {
 
 	useEffect(() => {
 		if (lastApplication?.status === "Rejected" && lastApplication.newAddress) {
-			const addressParts = lastApplication.newAddress.split(", ");
+			const usesPipe = lastApplication.newAddress.includes(" | ");
 
-			if (addressParts.length >= 4) {
-				const [building, area, city, pincode] = addressParts;
+			const addressParts = usesPipe ? lastApplication.newAddress.split(" | ") : lastApplication.newAddress.split(", ");
+
+			if (usesPipe ? addressParts.length >= 4 : addressParts.length >= 4) {
+				let building: string, area: string, city: string, pincode: string;
+
+				if (usesPipe || addressParts.length === 4) {
+					[building, area, city, pincode] = addressParts;
+				} else {
+					pincode = addressParts[addressParts.length - 1];
+					city = addressParts[addressParts.length - 2];
+					building = addressParts[0];
+					area = addressParts.slice(1, addressParts.length - 2).join(", ");
+				}
 
 				form.setValue("area", area.trim(), { shouldValidate: false });
 				form.setValue("city", city.trim(), { shouldValidate: false });
@@ -542,7 +553,7 @@ const AddressChangePage = () => {
 			slideButtonRef.current?.showSubmitting();
 		}
 
-		const newAddress = `${formData.building.trim()}, ${formData.area.trim()}, ${formData.city.trim()}, ${formData.pincode.trim()}`;
+		const newAddress = `${formData.building.trim()} | ${formData.area.trim()} | ${formData.city.trim()} | ${formData.pincode.trim()}`;
 
 		const submissionData: AddressChangeData = {
 			newAddress: newAddress,
@@ -914,14 +925,18 @@ const AddressChangePage = () => {
 												<p className="font-medium text-foreground/90">
 													{lastApplication.currentStation.name} ({lastApplication.currentStation.code})
 												</p>
-												<p className="text-sm text-muted-foreground">{lastApplication.currentAddress}</p>
+												<p className="text-sm text-muted-foreground">
+													{lastApplication.currentAddress.replaceAll(" | ", ", ")}
+												</p>
 											</div>
 											<div>
 												<p className="text-sm font-medium text-muted-foreground mb-1">To</p>
 												<p className="font-medium text-foreground/90">
 													{lastApplication.newStation.name} ({lastApplication.newStation.code})
 												</p>
-												<p className="text-sm text-muted-foreground">{lastApplication.newAddress}</p>
+												<p className="text-sm text-muted-foreground">
+													{lastApplication.newAddress.replaceAll(" | ", ", ")}
+												</p>
 											</div>
 										</div>
 									</div>
@@ -955,7 +970,7 @@ const AddressChangePage = () => {
 									<div className="space-y-2">
 										<Label className="text-sm font-medium">Current Address</Label>
 										<div className="flex text-sm items-center justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
-											<span className="truncate">{student.address}</span>
+											<span className="truncate">{student.address.replaceAll(" | ", ", ")}</span>
 										</div>
 									</div>
 								</div>
