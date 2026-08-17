@@ -157,7 +157,7 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 					item.student.middleName ? ` ${item.student.middleName}` : ""
 				} ${item.student.lastName}`;
 
-				const fullAddress = item.student.address || "Address not provided";
+				const fullAddress = (item.student.address || "Address not provided").replaceAll(" | ", ", ");
 
 				return [
 					serialNo,

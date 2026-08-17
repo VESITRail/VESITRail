@@ -421,7 +421,7 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 					<Separator />
 					<div className="space-y-1">
 						<p className="text-sm font-medium text-muted-foreground">Address</p>
-						<p className="font-medium">{defaultValues.address}</p>
+						<p className="font-medium">{defaultValues.address.replaceAll(" | ", ", ")}</p>
 					</div>
 				</CardContent>
 			</Card>
