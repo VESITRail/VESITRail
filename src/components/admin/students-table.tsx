@@ -384,7 +384,7 @@ const StudentDetailsDialog = ({
 														Address
 													</span>
 													<span className="text-sm text-right flex-1 ml-3 wrap-break-word">
-														{studentDetails.address}
+														{studentDetails.address.replaceAll(" | ", ", ")}
 													</span>
 												</div>
 											</div>
