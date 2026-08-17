@@ -256,14 +256,33 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 			};
 		}
 
+		if (address.includes(" | ")) {
+			const parts = address.split(" | ");
+			return {
+				building: parts[0] || "",
+				area: parts[1] || "",
+				city: parts[2] || "",
+				pincode: parts[3] || ""
+			};
+		}
+
 		const parts = address.split(",").map((part) => part.trim());
 
-		return {
-			building: parts[0] || "",
-			area: parts[1] || "",
-			city: parts[2] || "",
-			pincode: parts[3] || ""
-		};
+		if (parts.length <= 4) {
+			return {
+				building: parts[0] || "",
+				area: parts[1] || "",
+				city: parts[2] || "",
+				pincode: parts[3] || ""
+			};
+		}
+
+		const pincode = parts[parts.length - 1] || "";
+		const city = parts[parts.length - 2] || "";
+		const building = parts[0] || "";
+		const area = parts.slice(1, parts.length - 2).join(", ");
+
+		return { building, area, city, pincode };
 	};
 
 	const [hasUserInteracted, setHasUserInteracted] = useState<boolean>(false);
@@ -279,7 +298,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 		);
 
 		return allFieldsFilled
-			? `${components.building.trim()}, ${components.area.trim()}, ${components.city.trim()}, ${components.pincode.trim()}`
+			? `${components.building.trim()} | ${components.area.trim()} | ${components.city.trim()} | ${components.pincode.trim()}`
 			: "";
 	};
 

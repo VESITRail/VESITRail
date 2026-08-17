@@ -513,7 +513,7 @@ const AddressChangeRequestDetailsDialog = ({
 													<div className="flex-1">
 														<p className="text-xs font-medium text-muted-foreground mb-1">Current Address</p>
 														<div className="p-3 bg-muted/50 rounded-md">
-															<p className="text-sm">{requestDetails.currentAddress}</p>
+															<p className="text-sm">{requestDetails.currentAddress.replaceAll(" | ", ", ")}</p>
 														</div>
 													</div>
 												</div>
@@ -539,7 +539,7 @@ const AddressChangeRequestDetailsDialog = ({
 													<div className="flex-1">
 														<p className="text-xs font-medium text-muted-foreground mb-1">New Address</p>
 														<div className="p-3 bg-muted/50 rounded-md">
-															<p className="text-sm">{requestDetails.newAddress}</p>
+															<p className="text-sm">{requestDetails.newAddress.replaceAll(" | ", ", ")}</p>
 														</div>
 													</div>
 												</div>
