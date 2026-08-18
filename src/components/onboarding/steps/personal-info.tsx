@@ -338,9 +338,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 						control={form.control}
 						render={({ field }) => (
 							<FormItem className="space-y-1">
-								<FormLabel className="block">
-									Middle Name <span className="text-destructive">*</span>
-								</FormLabel>
+								<FormLabel className="block">Middle Name</FormLabel>
 
 								<FormControl>
 									<Input
@@ -364,9 +362,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 						control={form.control}
 						render={({ field }) => (
 							<FormItem className="space-y-1">
-								<FormLabel className="block">
-									Last Name <span className="text-destructive">*</span>
-								</FormLabel>
+								<FormLabel className="block">Last Name</FormLabel>
 
 								<FormControl>
 									<Input

@@ -296,10 +296,10 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 					gender: defaultValues.gender,
 					classId: defaultValues.class,
 					address: defaultValues.address,
-					lastName: defaultValues.lastName,
 					stationId: defaultValues.station,
 					firstName: defaultValues.firstName,
-					middleName: defaultValues.middleName,
+					lastName: defaultValues.lastName || null,
+					middleName: defaultValues.middleName || null,
 					dateOfBirth: new Date(defaultValues.dateOfBirth),
 					verificationDocUrl: defaultValues.verificationDocUrl,
 					preferredConcessionClassId: defaultValues.preferredConcessionClass,
@@ -406,7 +406,7 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Full Name</p>
 							<p className="font-medium">
-								{defaultValues.firstName} {defaultValues.middleName} {defaultValues.lastName}
+								{[defaultValues.firstName, defaultValues.middleName, defaultValues.lastName].filter(Boolean).join(" ")}
 							</p>
 						</div>
 						<div className="space-y-1">

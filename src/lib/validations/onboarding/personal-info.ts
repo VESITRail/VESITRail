@@ -12,21 +12,25 @@ const PersonalInfoSchema = z.object({
 
 	middleName: z
 		.string()
-		.min(1, "Middle name is required")
-		.min(2, "Middle name must be at least 2 characters")
-		.max(50, "Middle name cannot exceed 50 characters")
-		.regex(/^[a-zA-Z\s]+$/, "Only letters and spaces are allowed")
 		.transform((val) => val.trim())
-		.refine((val) => val.length > 0, "Middle name cannot be empty after trimming"),
+		.refine(
+			(val) => val === "" || (val.length >= 2 && val.length <= 50),
+			"Middle name must be between 2 and 50 characters"
+		)
+		.refine((val) => val === "" || /^[a-zA-Z\s]+$/.test(val), "Only letters and spaces are allowed")
+		.optional()
+		.or(z.literal("")),
 
 	lastName: z
 		.string()
-		.min(1, "Last name is required")
-		.min(2, "Last name must be at least 2 characters")
-		.max(50, "Last name cannot exceed 50 characters")
-		.regex(/^[a-zA-Z\s]+$/, "Only letters and spaces are allowed")
 		.transform((val) => val.trim())
-		.refine((val) => val.length > 0, "Last name cannot be empty after trimming"),
+		.refine(
+			(val) => val === "" || (val.length >= 2 && val.length <= 50),
+			"Last name must be between 2 and 50 characters"
+		)
+		.refine((val) => val === "" || /^[a-zA-Z\s]+$/.test(val), "Only letters and spaces are allowed")
+		.optional()
+		.or(z.literal("")),
 
 	gender: z.enum(["Male", "Female"], {
 		message: "Please select a valid gender"

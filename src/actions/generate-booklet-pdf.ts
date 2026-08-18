@@ -153,9 +153,9 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 				const certNumber = match ? parseInt(match[0], 10) : 0;
 				const serialNo = ((certNumber - 1) % 50) + 1;
 
-				const fullName = `${item.student.firstName}${
-					item.student.middleName ? ` ${item.student.middleName}` : ""
-				} ${item.student.lastName}`;
+				const fullName = [item.student.firstName, item.student.middleName, item.student.lastName]
+					.filter(Boolean)
+					.join(" ");
 
 				const fullAddress = (item.student.address || "Address not provided").replaceAll(" | ", ", ");
 

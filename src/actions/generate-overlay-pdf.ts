@@ -151,10 +151,8 @@ export const generateOverlayPDF = async (
 		};
 
 		writeText(eff(layout.left.gender), String(student.gender));
-		writeText(
-			eff(layout.left.student_name_left),
-			`${student.firstName} ${student.middleName} ${student.lastName}`.trim()
-		);
+		const studentFullName = [student.firstName, student.middleName, student.lastName].filter(Boolean).join(" ");
+		writeText(eff(layout.left.student_name_left), studentFullName);
 		writeText(eff(layout.left.class_left), application.concessionClass.name);
 		writeText(eff(layout.left.period_left), application.concessionPeriod.name);
 		writeMultilineText(eff(layout.left.from_station_left), student.station.name);
@@ -191,10 +189,7 @@ export const generateOverlayPDF = async (
 
 		writeText(eff(layout.left.date_of_issue_left), formatDate(now));
 
-		writeText(
-			eff(layout.right.student_name_right),
-			`${student.firstName} ${student.middleName} ${student.lastName}`.trim()
-		);
+		writeText(eff(layout.right.student_name_right), studentFullName);
 		writeText(eff(layout.right.age_years), String(age.years));
 		writeText(eff(layout.right.age_months), String(age.months));
 		writeText(eff(layout.right.date_of_birth), formatDate(student.dateOfBirth));

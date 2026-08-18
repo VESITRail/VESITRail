@@ -124,7 +124,7 @@ export const generateSampleOverlayPDF = async (
 			doc.text(lines, pt.x, pt.y);
 		};
 
-		const fullName = `${SAMPLE_DATA.firstName} ${SAMPLE_DATA.middleName} ${SAMPLE_DATA.lastName}`;
+		const fullName = [SAMPLE_DATA.firstName, SAMPLE_DATA.middleName, SAMPLE_DATA.lastName].filter(Boolean).join(" ");
 
 		writeText(eff(layout.left.gender), SAMPLE_DATA.gender);
 		writeText(eff(layout.left.student_name_left), fullName);

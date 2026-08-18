@@ -145,7 +145,8 @@ const StudentDetailsDialog = ({
 		toast.promise(approvePromise, {
 			loading: "Approving student...",
 			success: () => {
-				return `${toTitleCase(`${student.firstName} ${student.lastName}`)} has been approved successfully.`;
+				const studentName = [student.firstName, student.middleName, student.lastName].filter(Boolean).join(" ");
+				return `${toTitleCase(studentName)} has been approved successfully.`;
 			},
 			error: "Failed to approve student. Please try again.",
 			finally: () => {
@@ -197,7 +198,8 @@ const StudentDetailsDialog = ({
 		toast.promise(rejectPromise, {
 			loading: "Rejecting student...",
 			success: () => {
-				return `${toTitleCase(`${student.firstName} ${student.lastName}`)} has been rejected.`;
+				const studentName = [student.firstName, student.middleName, student.lastName].filter(Boolean).join(" ");
+				return `${toTitleCase(studentName)} has been rejected.`;
 			},
 			error: "Failed to reject student. Please try again.",
 			finally: () => {
@@ -343,7 +345,9 @@ const StudentDetailsDialog = ({
 										<div>
 											<h3 className="font-semibold text-lg">
 												{toTitleCase(
-													`${studentDetails.firstName} ${studentDetails.middleName} ${studentDetails.lastName}`
+													[studentDetails.firstName, studentDetails.middleName, studentDetails.lastName]
+														.filter(Boolean)
+														.join(" ")
 												)}
 											</h3>
 											<p className="text-sm text-muted-foreground">{studentDetails.user.email}</p>
@@ -780,8 +784,7 @@ const createColumns = (
 		accessorKey: "firstName",
 		cell: ({ row }) => {
 			const student = row.original;
-			const { firstName, lastName } = student;
-			const fullName = `${firstName} ${lastName}`;
+			const fullName = [student.firstName, student.middleName, student.lastName].filter(Boolean).join(" ");
 
 			return (
 				<div className="space-y-1">

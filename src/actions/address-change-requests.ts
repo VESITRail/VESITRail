@@ -32,9 +32,9 @@ export type AddressChangeRequestItem = Pick<
 > & {
 	student: {
 		userId: string;
-		lastName: string;
 		firstName: string;
-		middleName: string;
+		lastName: string | null;
+		middleName: string | null;
 		user: {
 			id: string;
 			name: string;
