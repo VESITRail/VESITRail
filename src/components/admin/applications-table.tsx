@@ -121,7 +121,7 @@ const createColumns = (
 		id: "studentName",
 		cell: ({ row }) => {
 			const student = row.original.student;
-			const fullName = `${student.firstName} ${student.lastName}`;
+			const fullName = [student.firstName, student.middleName, student.lastName].filter(Boolean).join(" ");
 
 			return (
 				<div className="space-y-1 text-center">
@@ -1223,7 +1223,15 @@ const ApplicationsTable = ({
 										<span className="text-sm font-medium text-muted-foreground">Student Name:</span>
 
 										<span className="text-sm font-medium text-foreground">
-											{toTitleCase(`${selectedApplication.student.firstName} ${selectedApplication.student.lastName}`)}
+											{toTitleCase(
+												[
+													selectedApplication.student.firstName,
+													selectedApplication.student.middleName,
+													selectedApplication.student.lastName
+												]
+													.filter(Boolean)
+													.join(" ")
+											)}
 										</span>
 									</div>
 

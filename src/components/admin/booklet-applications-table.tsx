@@ -1,8 +1,5 @@
 "use client";
 
-import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
-import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
-import { DamagedPageItem, BookletTableItem, BookletApplicationItem } from "@/actions/booklets";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
 import { toTitleCase } from "@/lib/utils";
@@ -10,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBooklet } from "@/generated/zod";
 import { FileText, ChevronLeft, AlertCircle, ChevronRight } from "lucide-react";
+import { DamagedPageItem, BookletTableItem, BookletApplicationItem } from "@/actions/booklets";
+import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
+import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
 
 type BookletApplicationsTableProps = {
 	isError: boolean;
@@ -147,8 +147,8 @@ const BookletApplicationsTable = ({
 						return null;
 					}
 
-					const { firstName, lastName } = item.student;
-					const fullName = `${firstName} ${lastName}`;
+					const { firstName, middleName, lastName } = item.student;
+					const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ");
 
 					return (
 						<div className="text-center">

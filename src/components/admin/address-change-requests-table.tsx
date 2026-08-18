@@ -453,7 +453,13 @@ const AddressChangeRequestDetailsDialog = ({
 											<h3 className="font-semibold text-lg">Address Change Request</h3>
 											<p className="text-sm text-muted-foreground">
 												{toTitleCase(
-													`${requestDetails.student.firstName} ${requestDetails.student.middleName} ${requestDetails.student.lastName}`
+													[
+														requestDetails.student.firstName,
+														requestDetails.student.middleName,
+														requestDetails.student.lastName
+													]
+														.filter(Boolean)
+														.join(" ")
 												)}
 											</p>
 										</div>
@@ -474,7 +480,13 @@ const AddressChangeRequestDetailsDialog = ({
 											<div>
 												<p className="text-sm font-medium">
 													{toTitleCase(
-														`${requestDetails.student.firstName} ${requestDetails.student.middleName} ${requestDetails.student.lastName}`
+														[
+															requestDetails.student.firstName,
+															requestDetails.student.middleName,
+															requestDetails.student.lastName
+														]
+															.filter(Boolean)
+															.join(" ")
 													)}
 												</p>
 												<p className="text-xs text-muted-foreground">{requestDetails.student.user.email}</p>
@@ -912,8 +924,8 @@ const AddressChangeRequestsTable = ({
 			let bValue: string | Date;
 
 			if (sortConfig.key === "studentName") {
-				aValue = `${a.student.firstName} ${a.student.middleName} ${a.student.lastName}`;
-				bValue = `${b.student.firstName} ${b.student.middleName} ${b.student.lastName}`;
+				aValue = [a.student.firstName, a.student.middleName, a.student.lastName].filter(Boolean).join(" ");
+				bValue = [b.student.firstName, b.student.middleName, b.student.lastName].filter(Boolean).join(" ");
 			} else {
 				aValue = a[sortConfig.key] as string | Date;
 				bValue = b[sortConfig.key] as string | Date;
@@ -952,7 +964,9 @@ const AddressChangeRequestsTable = ({
 				accessorKey: "studentName",
 				cell: ({ row }) => {
 					const request = row.original;
-					const fullName = `${request.student.firstName} ${request.student.lastName}`;
+					const fullName = [request.student.firstName, request.student.middleName, request.student.lastName]
+						.filter(Boolean)
+						.join(" ");
 
 					return (
 						<div className="space-y-1 text-center">

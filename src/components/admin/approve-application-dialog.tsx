@@ -296,7 +296,9 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 									<div>
 										<div className="text-xs text-muted-foreground mb-1">Student</div>
 										<div className="text-sm font-medium">
-											{application.student.firstName} {application.student.lastName}
+											{[application.student.firstName, application.student.middleName, application.student.lastName]
+												.filter(Boolean)
+												.join(" ")}
 										</div>
 									</div>
 									<div>
