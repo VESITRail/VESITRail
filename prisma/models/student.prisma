@@ -2,8 +2,8 @@ model Student {
   userId String @id
 
   firstName  String
-  middleName String
-  lastName   String
+  middleName String?
+  lastName   String?
 
   address            String
   gender             Gender
