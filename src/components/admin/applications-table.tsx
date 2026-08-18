@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
 	AdminApplication,
+	assignBookletToConcession,
 	reviewConcessionApplication,
-	approveConcessionWithBooklet,
 	getConcessionApplicationDetails
 } from "@/actions/concession";
 import { toast } from "sonner";
@@ -339,13 +339,15 @@ const ApplicationsTable = ({
 		setLocalApplications((prev) => prev.map((app) => (app.id === updatedApplication.id ? updatedApplication : app)));
 	}, []);
 
-	const [selectedApplication, setSelectedApplication] = useState<AdminApplication | null>(null);
 	const [isRejecting, setIsRejecting] = useState<boolean>(false);
+	const [isApproving, setIsApproving] = useState<boolean>(false);
 	const [rejectionReason, setRejectionReason] = useState<string>("");
-	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
 	const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
 	const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
+	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
+	const [showApproveConfirmDialog, setShowApproveConfirmDialog] = useState<boolean>(false);
 	const [showRejectionReasonDialog, setShowRejectionReasonDialog] = useState<boolean>(false);
+	const [selectedApplication, setSelectedApplication] = useState<AdminApplication | null>(null);
 	const [applicationDetails, setApplicationDetails] = useState<
 		| (AdminApplication & {
 				rejectionReason: string | null;
@@ -430,7 +432,7 @@ const ApplicationsTable = ({
 
 	const handleApprove = useCallback((application: AdminApplication) => {
 		setSelectedApplication(application);
-		setShowApproveDialog(true);
+		setShowApproveConfirmDialog(true);
 	}, []);
 
 	const handleReject = useCallback((application: AdminApplication) => {
@@ -445,7 +447,7 @@ const ApplicationsTable = ({
 		setShowRejectionReasonDialog(true);
 	}, []);
 
-	const handlePrint = useCallback(async (application: AdminApplication) => {
+	const executePDFGeneration = useCallback(async (application: AdminApplication) => {
 		const generatePDFPromise = async () => {
 			const res = await generateOverlayPDF(application.id);
 
@@ -477,24 +479,40 @@ const ApplicationsTable = ({
 		});
 	}, []);
 
-	const confirmApprove = async (applicationId: string, bookletId: string) => {
+	const handlePrint = useCallback(
+		async (application: AdminApplication) => {
+			if (!application.concessionBookletId) {
+				setSelectedApplication(application);
+				setShowApproveDialog(true);
+				return;
+			}
+
+			executePDFGeneration(application);
+		},
+		[executePDFGeneration]
+	);
+
+	const confirmApproveWithoutBooklet = async () => {
+		if (!selectedApplication) return;
+		setIsApproving(true);
+
 		const approvePromise = async () => {
-			const result = await approveConcessionWithBooklet(applicationId, adminId, bookletId);
+			const result = await reviewConcessionApplication(selectedApplication.id, adminId, "Approved");
 
 			if (result.isSuccess) {
-				const updatedApplication = {
-					...selectedApplication!,
+				const updatedApplication: AdminApplication = {
+					...selectedApplication,
 					reviewedAt: new Date(),
 					status: "Approved" as ApplicationStatus
 				};
 
 				posthog.capture("application_approved", {
-					booklet_id: bookletId,
-					application_id: applicationId,
-					application_type: selectedApplication?.applicationType
+					application_id: selectedApplication.id,
+					application_type: selectedApplication.applicationType
 				});
 
 				updateLocalApplication(updatedApplication);
+				setShowApproveConfirmDialog(false);
 				setSelectedApplication(null);
 
 				return updatedApplication;
@@ -510,7 +528,51 @@ const ApplicationsTable = ({
 		toast.promise(approvePromise, {
 			loading: "Approving application...",
 			error: "Failed to approve application",
-			success: "Application Approved Successfully"
+			success: "Application Approved Successfully",
+			finally: () => {
+				setIsApproving(false);
+			}
+		});
+	};
+
+	const confirmApprove = async (applicationId: string, bookletId: string) => {
+		const targetApplication = selectedApplication;
+		const approvePromise = async () => {
+			const result = await assignBookletToConcession(applicationId, adminId, bookletId);
+
+			if (result.isSuccess) {
+				const updatedApplication: AdminApplication = {
+					...(targetApplication || localApplications.find((app) => app.id === applicationId)!),
+					reviewedAt: new Date(),
+					status: "Approved" as ApplicationStatus,
+					concessionBookletId: bookletId,
+					pageOffset: result.data.pageOffset
+				};
+
+				posthog.capture("booklet_assigned", {
+					booklet_id: bookletId,
+					application_id: applicationId
+				});
+
+				updateLocalApplication(updatedApplication);
+				setSelectedApplication(null);
+
+				executePDFGeneration(updatedApplication);
+
+				return updatedApplication;
+			} else {
+				throw new Error(
+					result.error.type === "VALIDATION_ERROR"
+						? result.error.message
+						: "Unable to assign booklet page. Please try again."
+				);
+			}
+		};
+
+		toast.promise(approvePromise, {
+			loading: "Assigning booklet page...",
+			error: "Failed to assign booklet page",
+			success: "Booklet Page Assigned & Printing PDF"
 		});
 	};
 
@@ -1071,6 +1133,92 @@ const ApplicationsTable = ({
 					setSelectedApplication(null);
 				}}
 			/>
+
+			<Dialog open={showApproveConfirmDialog} onOpenChange={setShowApproveConfirmDialog}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader className="pb-2">
+						<div className="flex items-center gap-3">
+							<div className="flex items-center justify-center size-10 rounded-full bg-emerald-600 shrink-0 text-white">
+								<Check className="size-5" />
+							</div>
+
+							<div>
+								<DialogTitle className="text-lg font-semibold text-foreground">
+									Approve Concession Application
+								</DialogTitle>
+								<p className="text-sm text-muted-foreground mt-0.5">
+									Confirm approval for application #{selectedApplication?.shortId}
+								</p>
+							</div>
+						</div>
+					</DialogHeader>
+
+					{selectedApplication && (
+						<div className="space-y-3 py-2">
+							<div className="p-4 rounded-lg bg-muted/50 border text-sm space-y-2">
+								<div className="flex justify-between items-center">
+									<span className="text-muted-foreground">Student Name:</span>
+									<span className="font-medium text-foreground">
+										{toTitleCase(
+											[
+												selectedApplication.student.firstName,
+												selectedApplication.student.middleName,
+												selectedApplication.student.lastName
+											]
+												.filter(Boolean)
+												.join(" ")
+										)}
+									</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-muted-foreground">Class & Period:</span>
+									<span className="font-medium text-foreground">
+										{selectedApplication.concessionClass.name} • {selectedApplication.concessionPeriod.name}
+									</span>
+								</div>
+								<div className="flex justify-between items-center">
+									<span className="text-muted-foreground">Home Station:</span>
+									<span className="font-medium text-foreground">
+										{selectedApplication.station.name} ({selectedApplication.station.code})
+									</span>
+								</div>
+							</div>
+
+							<p className="text-xs text-muted-foreground">
+								Approving will notify the student via email & push notification. Booklet page will be assigned when
+								student collects the pass.
+							</p>
+						</div>
+					)}
+
+					<DialogFooter className="gap-2 pt-2">
+						<Button
+							variant="outline"
+							disabled={isApproving}
+							onClick={() => {
+								setShowApproveConfirmDialog(false);
+								setSelectedApplication(null);
+							}}
+						>
+							Cancel
+						</Button>
+						<Button
+							disabled={isApproving}
+							onClick={confirmApproveWithoutBooklet}
+							className="bg-emerald-600 hover:bg-emerald-700 text-white"
+						>
+							{isApproving ? (
+								<div className="flex items-center gap-2">
+									<Loader2 className="size-4 animate-spin" />
+									Approving...
+								</div>
+							) : (
+								"Confirm Approval"
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 			<Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
 				<DialogContent className="sm:max-w-lg">

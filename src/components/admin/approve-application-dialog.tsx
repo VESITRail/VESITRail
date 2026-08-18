@@ -276,7 +276,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		<Dialog open={isOpen} onOpenChange={handleClose}>
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle>Approve Application</DialogTitle>
+					<DialogTitle>Assign Booklet & Print Pass</DialogTitle>
 				</DialogHeader>
 
 				<div className="space-y-6">
@@ -478,7 +478,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 						onClick={handleApprove}
 						disabled={isApproving || !selectedBookletId || availableBooklets.length === 0}
 					>
-						{isApproving ? "Approving..." : "Approve Application"}
+						{isApproving ? "Assigning & Printing..." : "Assign & Print Pass"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
