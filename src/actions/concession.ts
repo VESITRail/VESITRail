@@ -260,9 +260,9 @@ export type AdminApplication = Pick<
 	"id" | "status" | "shortId" | "createdAt" | "reviewedAt" | "applicationType" | "rejectionReason" | "submissionCount"
 > & {
 	student: {
-		lastName: string;
 		firstName: string;
-		middleName: string;
+		lastName: string | null;
+		middleName: string | null;
 		user: {
 			email: string;
 		};
