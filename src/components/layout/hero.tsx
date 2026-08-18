@@ -59,8 +59,7 @@ const Hero = () => {
 								<AlertCircle className="size-4 text-destructive shrink-0" />
 
 								<p className="text-xs text-destructive font-medium">
-									Only <span className="bg-destructive text-white py-0.5 px-1.5 rounded">@ves.ac.in</span> emails
-									allowed
+									Only <span className="font-bold">@ves.ac.in</span> emails allowed
 								</p>
 							</div>
 						)

@@ -28,7 +28,7 @@ const Footer = () => {
 
 					<div className="flex flex-col gap-2 md:items-end md:text-right items-center text-left">
 						<Paragraph className="text-base text-foreground font-semibold tracking-tight text-center lg:text-right">
-							Made with ❤️ by VESITians for VESITians
+							Admin Incharge: Mrs Divya Nawar
 						</Paragraph>
 					</div>
 				</div>
