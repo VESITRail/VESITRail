@@ -257,7 +257,16 @@ export type AdminApplicationParams = {
 
 export type AdminApplication = Pick<
 	ConcessionApplication,
-	"id" | "status" | "shortId" | "createdAt" | "reviewedAt" | "applicationType" | "rejectionReason" | "submissionCount"
+	| "id"
+	| "status"
+	| "shortId"
+	| "createdAt"
+	| "reviewedAt"
+	| "pageOffset"
+	| "applicationType"
+	| "rejectionReason"
+	| "submissionCount"
+	| "concessionBookletId"
 > & {
 	student: {
 		firstName: string;
@@ -327,9 +336,11 @@ export const getAllApplications = async (
 				shortId: true,
 				createdAt: true,
 				reviewedAt: true,
+				pageOffset: true,
 				applicationType: true,
 				rejectionReason: true,
 				submissionCount: true,
+				concessionBookletId: true,
 				student: {
 					select: {
 						lastName: true,
@@ -752,7 +763,7 @@ export const reviewConcessionApplication = async (
 	}
 };
 
-export const approveConcessionWithBooklet = async (
+export const assignBookletToConcession = async (
 	applicationId: string,
 	adminId: string,
 	bookletId: string
@@ -778,8 +789,12 @@ export const approveConcessionWithBooklet = async (
 			throw new Error("Application not found");
 		}
 
-		if (application.status !== "Pending") {
-			throw new Error("Application has already been reviewed");
+		if (application.status !== "Approved" && application.status !== "Pending") {
+			throw new Error("Only approved applications can be assigned a booklet");
+		}
+
+		if (application.concessionBookletId) {
+			throw new Error("Booklet is already assigned to this application");
 		}
 
 		const result = await prisma.$transaction(async (tx) => {
@@ -819,9 +834,9 @@ export const approveConcessionWithBooklet = async (
 				data: {
 					status: "Approved",
 					pageOffset: nextPage,
-					reviewedById: adminId,
-					reviewedAt: new Date(),
-					concessionBookletId: bookletId
+					concessionBookletId: bookletId,
+					reviewedAt: application.reviewedAt || new Date(),
+					reviewedById: application.reviewedById || adminId
 				}
 			});
 
@@ -846,30 +861,32 @@ export const approveConcessionWithBooklet = async (
 			return updatedApplication;
 		});
 
-		sendConcessionNotification(result.studentId, applicationId, true, application.applicationType, undefined).catch(
-			(error) => {
-				console.error("Failed to send concession approval notification:", error);
-			}
-		);
-
 		revalidatePath("/dashboard/admin");
 		return success(result);
 	} catch (error) {
-		console.error("Error approving concession with booklet:", error);
-		const errorMessage = error instanceof Error ? error.message : "Failed to approve application";
+		console.error("Error assigning booklet to concession:", error);
+		const errorMessage = error instanceof Error ? error.message : "Failed to assign booklet";
 
 		if (errorMessage.includes("not found")) {
 			return failure(validationError(errorMessage, "applicationId"));
 		}
-		if (errorMessage.includes("already been reviewed")) {
+		if (errorMessage.includes("already")) {
 			return failure(validationError(errorMessage, "status"));
 		}
 		if (errorMessage.includes("not available") || errorMessage.includes("full")) {
 			return failure(validationError(errorMessage, "bookletId"));
 		}
 
-		return failure(databaseError("Failed to approve application"));
+		return failure(databaseError("Failed to assign booklet"));
 	}
+};
+
+export const approveConcessionWithBooklet = async (
+	applicationId: string,
+	adminId: string,
+	bookletId: string
+): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
+	return assignBookletToConcession(applicationId, adminId, bookletId);
 };
 
 export const getConcessionApplicationDetails = async (
@@ -892,9 +909,11 @@ export const getConcessionApplicationDetails = async (
 				shortId: true,
 				createdAt: true,
 				reviewedAt: true,
+				pageOffset: true,
 				applicationType: true,
 				rejectionReason: true,
 				submissionCount: true,
+				concessionBookletId: true,
 				student: {
 					select: {
 						lastName: true,
