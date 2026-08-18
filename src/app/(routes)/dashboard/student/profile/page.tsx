@@ -284,7 +284,7 @@ const StudentProfilePage = () => {
 					<Separator />
 					<div className="space-y-1">
 						<p className="text-sm font-medium text-muted-foreground">Address</p>
-						<p className="font-medium">{profileData.address || "N/A"}</p>
+						<p className="font-medium">{profileData.address ? profileData.address.replaceAll(" | ", ", ") : "N/A"}</p>
 					</div>
 				</CardContent>
 			</Card>
