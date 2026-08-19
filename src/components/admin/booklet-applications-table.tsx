@@ -2,10 +2,10 @@
 
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
-import { toTitleCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBooklet } from "@/generated/zod";
+import { toTitleCase, formatDateOfBirth } from "@/lib/utils";
 import { FileText, ChevronLeft, AlertCircle, ChevronRight } from "lucide-react";
 import { DamagedPageItem, BookletTableItem, BookletApplicationItem } from "@/actions/booklets";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
@@ -213,8 +213,8 @@ const BookletApplicationsTable = ({
 
 					return (
 						<div className="text-center">
-							<span className="text-sm" title={format(new Date(item.student.dateOfBirth), "dd/MM/yyyy")}>
-								{format(new Date(item.student.dateOfBirth), "dd/MM/yyyy")}
+							<span className="text-sm" title={formatDateOfBirth(item.student.dateOfBirth, "dd/MM/yyyy")}>
+								{formatDateOfBirth(item.student.dateOfBirth, "dd/MM/yyyy")}
 							</span>
 						</div>
 					);

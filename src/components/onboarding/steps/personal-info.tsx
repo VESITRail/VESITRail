@@ -6,12 +6,12 @@ import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { capitalizeWords, cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PersonalInfoSchema, type OnboardingSchema } from "@/lib/validations/onboarding";
 import { format, getDay, addMonths, subMonths, startOfMonth, getDaysInMonth } from "date-fns";
 import { Form, FormItem, FormField, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
+import { capitalizeWords, cn, formatDateOfBirth, formatDobForInput, normalizeDob } from "@/lib/utils";
 import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
 
 type PersonalInfoProps = {
@@ -434,7 +434,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 												)}
 											>
 												<CalendarIcon className="mr-2 h-4 w-4" />
-												{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
+												{field.value ? formatDateOfBirth(field.value, "PPP") : <span>Pick a date</span>}
 											</Button>
 										</PopoverTrigger>
 
@@ -442,9 +442,9 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 											<CustomCalendar
 												toYear={new Date().getFullYear() - 17}
 												fromYear={new Date().getFullYear() - 25}
-												selected={field.value ? new Date(field.value) : undefined}
+												selected={field.value ? (normalizeDob(field.value) ?? undefined) : undefined}
 												onSelect={(date) => {
-													field.onChange(date?.toISOString());
+													field.onChange(date ? formatDobForInput(date) : "");
 													setOpen(false);
 												}}
 											/>

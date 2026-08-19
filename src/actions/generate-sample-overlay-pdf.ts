@@ -1,11 +1,12 @@
 "use server";
 
-import { Result, success, failure, authError, AuthError, databaseError, DatabaseError } from "@/lib/result";
 import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { PDFDocument, degrees } from "pdf-lib";
+import { formatDateOfBirth, calcAgeFromDob } from "@/lib/utils";
+import { Result, success, failure, authError, AuthError, databaseError, DatabaseError } from "@/lib/result";
 
 type FormLayout = {
 	left: Record<string, { x: number; y: number }>;
@@ -99,7 +100,7 @@ export const generateSampleOverlayPDF = async (
 
 		const now = new Date();
 		const layout = config.value as FormLayout;
-		const age = calcAge(SAMPLE_DATA.dateOfBirth);
+		const age = calcAgeFromDob(SAMPLE_DATA.dateOfBirth);
 
 		const eff = (pt?: { x: number; y: number }) => (pt ? { x: anchorX + pt.x, y: anchorY + pt.y } : undefined);
 
@@ -144,7 +145,7 @@ export const generateSampleOverlayPDF = async (
 		writeText(eff(layout.right.student_name_right), fullName);
 		writeText(eff(layout.right.age_years), String(age.years));
 		writeText(eff(layout.right.age_months), String(age.months));
-		writeText(eff(layout.right.date_of_birth), formatDate(SAMPLE_DATA.dateOfBirth));
+		writeText(eff(layout.right.date_of_birth), formatDateOfBirth(SAMPLE_DATA.dateOfBirth, "dd/MM/yyyy"));
 		writeText(eff(layout.right.class_right), SAMPLE_DATA.className);
 		writeText(eff(layout.right.period_right), SAMPLE_DATA.periodName);
 		writeMultilineText(eff(layout.right.from_station_right), SAMPLE_DATA.stationName);

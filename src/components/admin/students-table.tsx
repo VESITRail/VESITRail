@@ -33,10 +33,10 @@ import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { StudentApprovalStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { getUserInitials, toTitleCase, formatDateOfBirth } from "@/lib/utils";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
@@ -379,7 +379,7 @@ const StudentDetailsDialog = ({
 														Birth Date
 													</span>
 													<span className="text-sm text-right flex-1 ml-3">
-														{format(new Date(studentDetails.dateOfBirth), "MMM dd, yyyy")}
+														{formatDateOfBirth(studentDetails.dateOfBirth, "MMM dd, yyyy")}
 													</span>
 												</div>
 

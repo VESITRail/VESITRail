@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeDob, formatDobForInput, calcAgeFromDob } from "@/lib/utils";
 
 const PersonalInfoSchema = z.object({
 	firstName: z
@@ -48,35 +49,29 @@ const PersonalInfoSchema = z.object({
 		.string()
 		.min(1, "Date of birth is required")
 		.refine((val) => {
-			const date = new Date(val);
-			return !isNaN(date.getTime());
+			const date = normalizeDob(val);
+			return date !== null;
 		}, "Please enter a valid date")
 		.refine((val) => {
-			const today = new Date();
-			const birthDate = new Date(val);
-			const age = today.getFullYear() - birthDate.getFullYear();
-			const monthDiff = today.getMonth() - birthDate.getMonth();
-
-			const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age;
-
-			return actualAge >= 17;
+			const birthDate = normalizeDob(val);
+			if (!birthDate) return false;
+			const { years } = calcAgeFromDob(birthDate);
+			return years >= 17;
 		}, "You must be at least 17 years old")
 		.refine((val) => {
-			const today = new Date();
-			const birthDate = new Date(val);
-			const age = today.getFullYear() - birthDate.getFullYear();
-			const monthDiff = today.getMonth() - birthDate.getMonth();
-
-			const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age;
-
-			return actualAge <= 25;
+			const birthDate = normalizeDob(val);
+			if (!birthDate) return false;
+			const { years } = calcAgeFromDob(birthDate);
+			return years <= 25;
 		}, "Age cannot exceed 25 years")
 		.refine((val) => {
+			const birthDate = normalizeDob(val);
+			if (!birthDate) return false;
 			const today = new Date();
-			const birthDate = new Date(val);
+			today.setHours(23, 59, 59, 999);
 			return birthDate <= today;
 		}, "Date of birth cannot be in the future")
-		.transform((val) => new Date(val).toISOString().split("T")[0])
+		.transform((val) => formatDobForInput(val))
 });
 
 export default PersonalInfoSchema;

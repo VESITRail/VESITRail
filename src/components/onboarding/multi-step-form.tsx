@@ -7,10 +7,10 @@ import { isFailure } from "@/lib/result";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { cn, formatFieldName } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
+import { cn, formatFieldName, formatDobForInput } from "@/lib/utils";
 import { Review, Document, TravelInfo, PersonalInfo, AcademicInfo } from "./steps";
 import { RefreshCw, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
@@ -150,13 +150,6 @@ const MultiStepForm = () => {
 				}
 
 				if (result.data) {
-					const formatDateForInput = (date: Date) => {
-						const year = date.getFullYear();
-						const month = String(date.getMonth() + 1).padStart(2, "0");
-						const day = String(date.getDate()).padStart(2, "0");
-						return `${year}-${month}-${day}`;
-					};
-
 					setFormData({
 						class: result.data.classId,
 						gender: result.data.gender,
@@ -168,7 +161,7 @@ const MultiStepForm = () => {
 						lastName: result.data.lastName || "",
 						middleName: result.data.middleName || "",
 						verificationDocUrl: result.data.verificationDocUrl,
-						dateOfBirth: formatDateForInput(result.data.dateOfBirth),
+						dateOfBirth: formatDobForInput(result.data.dateOfBirth),
 						preferredConcessionClass: result.data.preferredConcessionClassId,
 						preferredConcessionPeriod: result.data.preferredConcessionPeriodId
 					});
