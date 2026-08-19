@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { twMerge } from "tailwind-merge";
 import { clsx, type ClassValue } from "clsx";
 import { AuthErrorCode, authErrorMessages } from "@/types/error";
@@ -5,6 +6,56 @@ import type { ConcessionBookletStatusType } from "@/generated/zod";
 
 export const cn = (...inputs: ClassValue[]) => {
 	return twMerge(clsx(inputs));
+};
+
+export const normalizeDob = (dateInput: Date | string | null | undefined): Date | null => {
+	if (!dateInput) return null;
+
+	if (typeof dateInput === "string") {
+		const trimmed = dateInput.trim();
+		if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+			const [year, month, day] = trimmed.split("-").map(Number);
+			return new Date(year, month - 1, day);
+		}
+	}
+
+	const d = new Date(dateInput);
+	if (isNaN(d.getTime())) return null;
+
+	const utcHours = d.getUTCHours();
+	if (utcHours >= 12) {
+		const localDate = new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
+		return new Date(localDate.getUTCFullYear(), localDate.getUTCMonth(), localDate.getUTCDate());
+	}
+	return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+};
+
+export const formatDateOfBirth = (
+	dateInput: Date | string | null | undefined,
+	formatStr: string = "dd/MM/yyyy"
+): string => {
+	const normalized = normalizeDob(dateInput);
+	if (!normalized) return "";
+	return format(normalized, formatStr);
+};
+
+export const formatDobForInput = (dateInput: Date | string | null | undefined): string => {
+	return formatDateOfBirth(dateInput, "yyyy-MM-dd");
+};
+
+export const calcAgeFromDob = (dateInput: Date | string | null | undefined): { years: number; months: number } => {
+	const birth = normalizeDob(dateInput);
+	if (!birth) return { years: 0, months: 0 };
+
+	const today = new Date();
+	let years = today.getFullYear() - birth.getFullYear();
+	let months = today.getMonth() - birth.getMonth();
+	if (today.getDate() < birth.getDate()) months--;
+	if (months < 0) {
+		years--;
+		months += 12;
+	}
+	return { years, months };
 };
 
 export const formatFieldName = (field: string) => {
