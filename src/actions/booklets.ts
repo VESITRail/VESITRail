@@ -198,36 +198,82 @@ export const getBooklets = async (
 			].filter(Boolean);
 		}
 
-		const [booklets, totalCount] = await Promise.all([
-			prisma.concessionBooklet.findMany({
-				skip,
-				take: pageSize,
-				where: whereClause,
-				orderBy: {
-					bookletNumber: "desc"
-				},
-				include: {
-					_count: {
-						select: {
-							applications: true
-						}
+		const booklets = await prisma.concessionBooklet.findMany({
+			where: whereClause,
+			include: {
+				_count: {
+					select: {
+						applications: true
 					}
+				},
+				applications: {
+					select: {
+						createdAt: true
+					},
+					orderBy: {
+						createdAt: "desc"
+					},
+					take: 1
 				}
-			}),
-			prisma.concessionBooklet.count({
-				where: whereClause
-			})
-		]);
+			}
+		});
+
+		const totalCount = booklets.length;
+
+		const getStatusRank = (status: ConcessionBookletStatusType): number => {
+			switch (status) {
+				case "InUse":
+					return 1;
+				case "Available":
+					return 2;
+				case "Exhausted":
+					return 3;
+				case "Damaged":
+					return 4;
+				default:
+					return 5;
+			}
+		};
+
+		const sortedBooklets = booklets.sort((a, b) => {
+			const rankA = getStatusRank(a.status);
+			const rankB = getStatusRank(b.status);
+
+			if (rankA !== rankB) {
+				return rankA - rankB;
+			}
+
+			const lastUsedA = a.applications[0]?.createdAt
+				? new Date(a.applications[0].createdAt).getTime()
+				: new Date(a.updatedAt).getTime();
+			const lastUsedB = b.applications[0]?.createdAt
+				? new Date(b.applications[0].createdAt).getTime()
+				: new Date(b.updatedAt).getTime();
+
+			if (a.status === "InUse" || a.status === "Exhausted" || a.status === "Damaged") {
+				if (lastUsedA !== lastUsedB) {
+					return lastUsedB - lastUsedA;
+				}
+				return b.bookletNumber - a.bookletNumber;
+			}
+
+			return b.bookletNumber - a.bookletNumber;
+		});
 
 		const totalPages = Math.ceil(totalCount / pageSize);
 		const hasNextPage = page < totalPages;
 		const hasPreviousPage = page > 1;
 
+		const paginatedBooklets = sortedBooklets.slice(skip, skip + pageSize).map(({ applications, ...rest }) => ({
+			...rest,
+			lastUsedAt: applications[0]?.createdAt || null
+		}));
+
 		return success({
 			totalCount,
 			totalPages,
 			hasNextPage,
-			data: booklets,
+			data: paginatedBooklets,
 			hasPreviousPage,
 			currentPage: page
 		});
@@ -575,6 +621,14 @@ export const getAvailableBooklets = async (): Promise<Result<AvailableBooklet[],
 		const sortedBooklets = booklets.sort((a, b) => {
 			if (a.status === "InUse" && b.status === "Available") return -1;
 			if (a.status === "Available" && b.status === "InUse") return 1;
+
+			if (a.status === "InUse") {
+				const lastUsedA = a.applications[0]?.createdAt ? new Date(a.applications[0].createdAt).getTime() : 0;
+				const lastUsedB = b.applications[0]?.createdAt ? new Date(b.applications[0].createdAt).getTime() : 0;
+				if (lastUsedA !== lastUsedB) {
+					return lastUsedB - lastUsedA;
+				}
+			}
 
 			if (a._count.applications !== b._count.applications) {
 				return b._count.applications - a._count.applications;
