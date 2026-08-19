@@ -54,11 +54,11 @@ export type BookletApplicationItem = Pick<
 	ConcessionApplication,
 	"id" | "createdAt" | "status" | "applicationType" | "pageOffset"
 > & {
-	student: Pick<Student, "gender" | "address" | "lastName" | "firstName" | "middleName" | "dateOfBirth">;
 	derivedSerialNumber?: number;
 	derivedCertificateNo?: string;
 	station: Pick<Station, "name" | "code">;
 	concessionPeriod: Pick<ConcessionPeriod, "name" | "duration">;
+	student: Pick<Student, "gender" | "address" | "lastName" | "firstName" | "middleName" | "dateOfBirth">;
 	previousApplication?:
 		| (Pick<ConcessionApplication, "id" | "pageOffset"> & {
 				concessionBooklet?: Pick<ConcessionBooklet, "serialStartNumber"> | null;
