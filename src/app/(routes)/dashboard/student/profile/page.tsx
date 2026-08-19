@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useCallback, useEffect, useState } from "react";
-import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { getStudentProfile, StudentProfile } from "@/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getUserInitials, toTitleCase, formatDateOfBirth } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 import { User, Edit, Info, MapPin, XCircle, FileText, ExternalLink, AlertTriangle, GraduationCap } from "lucide-react";
@@ -273,7 +273,7 @@ const StudentProfilePage = () => {
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
 							<p className="font-medium">
-								{profileData.dateOfBirth && format(new Date(profileData.dateOfBirth), "MMMM dd, yyyy")}
+								{profileData.dateOfBirth && formatDateOfBirth(profileData.dateOfBirth, "MMMM dd, yyyy")}
 							</p>
 						</div>
 						<div className="space-y-1">
