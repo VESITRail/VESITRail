@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { formatDateOfBirth, normalizeDob } from "@/lib/utils";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
 import { useCallback, useEffect, useState, useRef } from "react";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
@@ -300,10 +301,10 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 					firstName: defaultValues.firstName,
 					lastName: defaultValues.lastName || null,
 					middleName: defaultValues.middleName || null,
-					dateOfBirth: new Date(defaultValues.dateOfBirth),
 					verificationDocUrl: defaultValues.verificationDocUrl,
 					preferredConcessionClassId: defaultValues.preferredConcessionClass,
-					preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod
+					preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
+					dateOfBirth: normalizeDob(defaultValues.dateOfBirth) || new Date(defaultValues.dateOfBirth)
 				},
 				isLegacyStudent
 			);
@@ -411,7 +412,7 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
-							<p className="font-medium">{format(new Date(defaultValues.dateOfBirth), "MMMM dd, yyyy")}</p>
+							<p className="font-medium">{formatDateOfBirth(defaultValues.dateOfBirth, "MMMM dd, yyyy")}</p>
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Gender</p>
