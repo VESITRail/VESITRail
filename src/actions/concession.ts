@@ -388,20 +388,8 @@ export const getAllApplications = async (
 			whereClause.OR = orConditions;
 		}
 
-		const totalCount = await prisma.concessionApplication.count({
-			where: whereClause
-		});
-
-		const totalPages = Math.ceil(totalCount / params.pageSize);
-		const skip = (params.page - 1) * params.pageSize;
-		const hasNextPage = params.page < totalPages;
-		const hasPreviousPage = params.page > 1;
-
 		const applications = await prisma.concessionApplication.findMany({
-			skip,
 			where: whereClause,
-			take: params.pageSize,
-			orderBy: { createdAt: "desc" },
 			select: {
 				id: true,
 				status: true,
@@ -449,13 +437,60 @@ export const getAllApplications = async (
 			}
 		});
 
+		const totalCount = applications.length;
+
+		const getStatusRank = (status: ConcessionApplicationStatusType): number => {
+			switch (status) {
+				case "Pending":
+					return 1;
+				case "Approved":
+					return 2;
+				case "Rejected":
+					return 3;
+				default:
+					return 4;
+			}
+		};
+
+		const sortedApplications = applications.sort((a, b) => {
+			const rankA = getStatusRank(a.status);
+			const rankB = getStatusRank(b.status);
+
+			if (rankA !== rankB) {
+				return rankA - rankB;
+			}
+
+			const timeA = new Date(a.createdAt).getTime();
+			const timeB = new Date(b.createdAt).getTime();
+
+			if (a.status === "Pending") {
+				if (timeA !== timeB) {
+					return timeA - timeB;
+				}
+				return a.shortId - b.shortId;
+			}
+
+			if (timeA !== timeB) {
+				return timeB - timeA;
+			}
+
+			return b.shortId - a.shortId;
+		});
+
+		const totalPages = Math.ceil(totalCount / params.pageSize);
+		const skip = (params.page - 1) * params.pageSize;
+		const hasNextPage = params.page < totalPages;
+		const hasPreviousPage = params.page > 1;
+
+		const paginatedApplications = sortedApplications.slice(skip, skip + params.pageSize);
+
 		const result: PaginatedResult<AdminApplication> = {
 			totalCount,
 			totalPages,
 			hasNextPage,
 			hasPreviousPage,
-			data: applications,
-			currentPage: params.page
+			currentPage: params.page,
+			data: paginatedApplications
 		};
 
 		return success(result);
