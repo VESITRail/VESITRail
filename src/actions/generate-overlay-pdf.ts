@@ -16,6 +16,7 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { PDFDocument, degrees } from "pdf-lib";
+import { formatDateOfBirth, calcAgeFromDob } from "@/lib/utils";
 
 type FormLayout = {
 	left: Record<string, { x: number; y: number }>;
@@ -123,8 +124,8 @@ export const generateOverlayPDF = async (
 
 		const now = new Date();
 		const student = application.student;
-		const age = calcAge(student.dateOfBirth);
 		const layout = config.value as FormLayout;
+		const age = calcAgeFromDob(student.dateOfBirth);
 		const { anchorX, anchorY } = application.concessionBooklet;
 
 		const eff = (pt?: { x: number; y: number }) => (pt ? { x: anchorX + pt.x, y: anchorY + pt.y } : undefined);
@@ -192,7 +193,7 @@ export const generateOverlayPDF = async (
 		writeText(eff(layout.right.student_name_right), studentFullName);
 		writeText(eff(layout.right.age_years), String(age.years));
 		writeText(eff(layout.right.age_months), String(age.months));
-		writeText(eff(layout.right.date_of_birth), formatDate(student.dateOfBirth));
+		writeText(eff(layout.right.date_of_birth), formatDateOfBirth(student.dateOfBirth, "dd/MM/yyyy"));
 		writeText(eff(layout.right.class_right), application.concessionClass.name);
 		writeText(eff(layout.right.period_right), application.concessionPeriod.name);
 		writeMultilineText(eff(layout.right.from_station_right), student.station.name);

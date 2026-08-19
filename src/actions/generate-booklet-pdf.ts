@@ -3,6 +3,7 @@
 import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { PDFDocument, degrees } from "pdf-lib";
+import { formatDateOfBirth } from "@/lib/utils";
 import { format, toZonedTime } from "date-fns-tz";
 import autoTable, { UserOptions } from "jspdf-autotable";
 import { Result, success, failure, validationError, ValidationError } from "@/lib/result";
@@ -166,7 +167,7 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 					fullName,
 					currentPassNo,
 					item.student.gender || "N/A",
-					format(new Date(item.student.dateOfBirth), "dd/MM/yyyy"),
+					formatDateOfBirth(item.student.dateOfBirth, "dd/MM/yyyy"),
 					item.concessionPeriod.name || "N/A",
 					`${item.station.name} (${item.station.code})`,
 					"Kurla (C)",
