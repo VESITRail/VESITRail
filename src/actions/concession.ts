@@ -311,9 +311,81 @@ export const getAllApplications = async (
 
 		if (params.searchQuery && params.searchQuery.trim()) {
 			const searchTerm = params.searchQuery.trim();
-			if (/^\d+$/.test(searchTerm)) {
-				whereClause.shortId = parseInt(searchTerm);
+			const isNumeric = /^\d+$/.test(searchTerm);
+
+			const orConditions: Prisma.ConcessionApplicationWhereInput[] = [
+				{
+					student: {
+						firstName: { contains: searchTerm, mode: "insensitive" }
+					}
+				},
+				{
+					student: {
+						middleName: { contains: searchTerm, mode: "insensitive" }
+					}
+				},
+				{
+					student: {
+						lastName: { contains: searchTerm, mode: "insensitive" }
+					}
+				},
+				{
+					student: {
+						user: {
+							email: { contains: searchTerm, mode: "insensitive" }
+						}
+					}
+				},
+				{
+					station: {
+						name: { contains: searchTerm, mode: "insensitive" }
+					}
+				},
+				{
+					station: {
+						code: { contains: searchTerm, mode: "insensitive" }
+					}
+				},
+				{
+					concessionClass: {
+						name: { contains: searchTerm, mode: "insensitive" }
+					}
+				},
+				{
+					concessionClass: {
+						code: { contains: searchTerm, mode: "insensitive" }
+					}
+				},
+				{
+					concessionPeriod: {
+						name: { contains: searchTerm, mode: "insensitive" }
+					}
+				}
+			];
+
+			if (isNumeric) {
+				orConditions.push({ shortId: parseInt(searchTerm, 10) });
 			}
+
+			const nameParts = searchTerm.split(/\s+/).filter(Boolean);
+			if (nameParts.length > 1) {
+				orConditions.push({
+					AND: [
+						{
+							student: {
+								firstName: { contains: nameParts[0], mode: "insensitive" }
+							}
+						},
+						{
+							student: {
+								lastName: { contains: nameParts[nameParts.length - 1], mode: "insensitive" }
+							}
+						}
+					]
+				});
+			}
+
+			whereClause.OR = orConditions;
 		}
 
 		const totalCount = await prisma.concessionApplication.count({

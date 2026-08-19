@@ -760,7 +760,7 @@ const ApplicationsTable = ({
 							value={localSearchQuery}
 							onKeyPress={handleSearchKeyPress}
 							className="pl-10 pr-20 h-10 w-full"
-							placeholder="Search by Application ID..."
+							placeholder="Search by ID, name, email, station..."
 							onChange={(e) => handleSearchChange(e.target.value)}
 						/>
 						<Button
@@ -785,7 +785,7 @@ const ApplicationsTable = ({
 								value={localSearchQuery}
 								className="pl-10 pr-20 h-10"
 								onKeyPress={handleSearchKeyPress}
-								placeholder="Search by Application ID..."
+								placeholder="Search by ID, name, email, station..."
 								onChange={(e) => handleSearchChange(e.target.value)}
 							/>
 							<Button
