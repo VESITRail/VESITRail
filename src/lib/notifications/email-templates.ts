@@ -36,7 +36,7 @@ export const generateEmailTemplate = (scenario: NotificationScenario, params: Em
 	}
 
 	if (params.submissionCount && params.submissionCount > 1) {
-		description += ` This is your ${getOrdinalNumber(params.submissionCount)} submission.`;
+		description += ` This was your ${getOrdinalNumber(params.submissionCount)} submission.`;
 	}
 
 	const html = `

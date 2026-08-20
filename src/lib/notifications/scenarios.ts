@@ -78,16 +78,17 @@ export const notificationScenarios: NotificationScenario[] = [
 		name: "Concession Application Approved",
 		push: {
 			title: "Concession Approved!",
-			body: "Your concession application has been approved."
+			body: "Your concession application is approved! Please collect your certificate at the Railway Concession Office (Ground Floor, Admin Office)."
 		},
 		inApp: {
 			title: "Concession Application Approved",
-			body: "Your concession application has been approved."
+			body: "Your concession application has been approved. Please collect your concession certificate at the Railway Concession Office, located on the ground floor of the Admin Office."
 		},
 		email: {
 			heading: "Concession Application Approved",
 			subject: "Your Concession Application Has Been Approved!",
-			description: "Excellent news! Your concession application has been approved.",
+			description:
+				"Excellent news! Your concession application has been approved.<br /><br />Please collect your physical concession certificate at the Railway Concession Office, located on the ground floor of the Admin Office.",
 			cta: {
 				text: "View Details",
 				url: "/dashboard/student"
