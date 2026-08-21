@@ -1,5 +1,13 @@
 "use client";
 
+import {
+	getBooklet,
+	BookletItem,
+	updateBooklet,
+	UpdateBookletInput,
+	AssignedPageStudent,
+	getBookletAssignedStudents
+} from "@/actions/booklets";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +20,6 @@ import { useState, useCallback, useEffect } from "react";
 import { BookOpen, ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
 import DamagedPagesManager from "@/components/admin/damaged-pages-manager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getBooklet, BookletItem, updateBooklet, UpdateBookletInput } from "@/actions/booklets";
 
 const UpdateBookletPage = () => {
 	const router = useRouter();
@@ -22,6 +29,7 @@ const UpdateBookletPage = () => {
 	const [loading, setLoading] = useState<boolean>(true);
 	const [isUpdating, setIsUpdating] = useState<boolean>(false);
 	const [booklet, setBooklet] = useState<BookletItem | null>(null);
+	const [assignedStudents, setAssignedStudents] = useState<Record<number, AssignedPageStudent>>({});
 
 	const [formData, setFormData] = useState<UpdateBookletInput>({
 		anchorX: 0,
@@ -102,7 +110,10 @@ const UpdateBookletPage = () => {
 		setLoading(true);
 
 		try {
-			const result = await getBooklet(bookletId);
+			const [result, assignedResult] = await Promise.all([
+				getBooklet(bookletId),
+				getBookletAssignedStudents(bookletId)
+			]);
 
 			if (result.isSuccess) {
 				const bookletData = result.data;
@@ -114,6 +125,9 @@ const UpdateBookletPage = () => {
 					serialStartNumber: bookletData.serialStartNumber,
 					damagedPages: Array.isArray(bookletData.damagedPages) ? bookletData.damagedPages : []
 				});
+				if (assignedResult.isSuccess) {
+					setAssignedStudents(assignedResult.data);
+				}
 			} else {
 				toast.error("Booklet Not Found", {
 					description: "The requested booklet could not be found."
@@ -380,6 +394,7 @@ const UpdateBookletPage = () => {
 					</div>
 
 					<DamagedPagesManager
+						assignedStudents={assignedStudents}
 						damagedPages={formData.damagedPages}
 						totalPages={booklet?.totalPages || 50}
 						onDamagedPagesChange={handleDamagedPagesChange}
