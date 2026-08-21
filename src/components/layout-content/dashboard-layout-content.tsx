@@ -211,7 +211,7 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 
 			const submissionText =
 				userRole.submissionCount && userRole.submissionCount > 1
-					? ` This is your ${userRole.submissionCount}${
+					? ` This was your ${userRole.submissionCount}${
 							userRole.submissionCount === 2 ? "nd" : userRole.submissionCount === 3 ? "rd" : "th"
 						} submission.`
 					: "";

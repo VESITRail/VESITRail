@@ -28,16 +28,9 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 
 		const { data: allItems, booklet } = result.data;
 
-		if (allItems.length === 0) {
-			return failure(validationError("No applications found for this booklet"));
-		}
-
 		const isDamagedPage = (item: BookletTableItem): item is DamagedPageItem => {
 			return "isDamaged" in item && item.isDamaged === true;
 		};
-
-		const applications = allItems.filter((item): item is BookletApplicationItem => !isDamagedPage(item));
-		const damagedPages = allItems.filter((item): item is DamagedPageItem => isDamagedPage(item));
 
 		const doc = new jsPDF({
 			unit: "mm",
@@ -50,53 +43,29 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 		const centerX = pageWidth / 2;
 
 		doc.setFont("helvetica", "bold");
-		doc.setFontSize(22);
-		doc.text("CENTRAL / WESTERN RAILWAY", centerX, 18, { align: "center" });
+		doc.setFontSize(9.5);
+		doc.text(`Serial Range: ${booklet.serialStartNumber} - ${booklet.serialEndNumber}`, 15, 12, {
+			align: "left"
+		});
+
+		doc.setFont("helvetica", "bold");
+		doc.setFontSize(16);
+		doc.text("CENTRAL / WESTERN RAILWAY", centerX, 17, { align: "center" });
+
+		doc.setFont("helvetica", "bold");
+		doc.setFontSize(11.5);
+		doc.text("Vivekanand Education Society's Institute of Technology", centerX, 24.5, { align: "center" });
 
 		doc.setFont("helvetica", "normal");
-		doc.setFontSize(12);
-		doc.text("Vivekanand Education Society's Institute of Technology", centerX, 26, { align: "center" });
-
-		doc.text("Hashu Adwani Memorial Complex, Collector's Colony, Chembur, Mumbai, Maharashtra 400071", centerX, 32, {
+		doc.setFontSize(10);
+		doc.text("Hashu Adwani Memorial Complex, Collector's Colony, Chembur, Mumbai, Maharashtra 400071", centerX, 30, {
 			align: "center"
 		});
 
 		doc.setLineWidth(1.2);
-		doc.line(15, 40, pageWidth - 15, 40);
+		doc.line(15, 36, pageWidth - 15, 36);
 		doc.setLineWidth(0.3);
-		doc.line(15, 41.5, pageWidth - 15, 41.5);
-
-		doc.setFont("helvetica", "bold");
-		doc.setFontSize(11);
-		doc.text("REPORT DETAILS", 15, 52);
-
-		doc.setFont("helvetica", "normal");
-		doc.setFontSize(10);
-
-		doc.text(`Total Applications: ${applications.length}`, 15, 60);
-		doc.text(`Serial Range: ${booklet.serialStartNumber} - ${booklet.serialEndNumber}`, 15, 67);
-
-		const istTime = toZonedTime(new Date(), "Asia/Kolkata");
-		doc.text(
-			`Generated: ${format(istTime, "dd/MM/yyyy 'at' HH:mm", {
-				timeZone: "Asia/Kolkata"
-			})}`,
-			pageWidth - 15,
-			60,
-			{ align: "right" }
-		);
-
-		const newApplicationsCount = applications.filter((app) => app.applicationType === "New").length;
-		const renewalCount = applications.length - newApplicationsCount;
-		doc.text(
-			`New: ${newApplicationsCount} | Renewal: ${renewalCount} | Cancelled: ${damagedPages.length}`,
-			pageWidth - 15,
-			67,
-			{ align: "right" }
-		);
-
-		doc.setLineWidth(0.5);
-		doc.line(15, 73, pageWidth - 15, 73);
+		doc.line(15, 37.2, pageWidth - 15, 37.2);
 
 		const getCurrentPassNo = async (application: BookletApplicationItem): Promise<string> => {
 			if (application.applicationType === "New") {
@@ -195,7 +164,7 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 					"Address"
 				]
 			],
-			startY: 79,
+			startY: 41,
 			body: tableData,
 			headStyles: {
 				fontSize: 9,
@@ -204,7 +173,7 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 				fontStyle: "bold",
 				textColor: [0, 0, 0],
 				fillColor: [220, 220, 220],
-				cellPadding: { top: 5, right: 3, bottom: 5, left: 3 }
+				cellPadding: { top: 3, right: 2.2, bottom: 3, left: 2.2 }
 			},
 			alternateRowStyles: {
 				fillColor: [245, 245, 245]
@@ -214,33 +183,33 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 			},
 			styles: {
 				fontSize: 8.5,
-				valign: "top",
 				lineWidth: 0.3,
+				valign: "middle",
 				halign: "center",
-				minCellHeight: 12,
+				minCellHeight: 7.2,
 				textColor: [0, 0, 0],
 				lineColor: [0, 0, 0],
 				overflow: "linebreak",
-				cellPadding: { top: 4, right: 3, bottom: 4, left: 3 }
+				cellPadding: { top: 2, right: 2.2, bottom: 2, left: 2.2 }
 			},
 			columnStyles: {
-				0: { halign: "center", cellWidth: 15 },
+				0: { halign: "center", cellWidth: 14 },
 				1: { halign: "center", cellWidth: 23 },
-				2: { halign: "center", cellWidth: 23 },
+				2: { halign: "center", cellWidth: 22 },
 				3: { halign: "left", cellWidth: 52 },
 				4: { halign: "center", cellWidth: 28 },
-				5: { halign: "center", cellWidth: 20 },
+				5: { halign: "center", cellWidth: 18 },
 				6: { halign: "center", cellWidth: 22 },
-				7: { halign: "center", cellWidth: 23 },
+				7: { halign: "center", cellWidth: 22 },
 				8: { halign: "center", cellWidth: 30 },
-				9: { halign: "center", cellWidth: 30 },
+				9: { halign: "center", cellWidth: 28 },
 				10: { halign: "left", overflow: "linebreak" }
 			},
 			tableLineWidth: 0.3,
 			showHead: "everyPage",
 			rowPageBreak: "avoid",
 			tableLineColor: [0, 0, 0],
-			margin: { left: 15, right: 15, bottom: 30 },
+			margin: { left: 15, right: 15, bottom: 24 },
 			tableWidth: "auto",
 			didDrawPage: (data) => {
 				const pageNumber = data.pageNumber;

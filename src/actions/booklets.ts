@@ -372,33 +372,51 @@ export const updateBooklet = async (
 			return failure(validationError("Serial number range overlaps with existing booklet"));
 		}
 
-		const applicationCount = existingBooklet._count?.applications || 0;
-		const damagedPagesCount = data.damagedPages.length;
+		const updatedBooklet = await prisma.$transaction(async (tx) => {
+			if (data.damagedPages.length > 0) {
+				await tx.concessionApplication.updateMany({
+					where: {
+						concessionBookletId: bookletId,
+						pageOffset: { in: data.damagedPages }
+					},
+					data: {
+						concessionBookletId: null,
+						pageOffset: null
+					}
+				});
+			}
 
-		const newStatus = calculateBookletStatus(applicationCount, damagedPagesCount, 50, data.isDamaged);
+			const remainingAppCount = await tx.concessionApplication.count({
+				where: { concessionBookletId: bookletId }
+			});
 
-		const updateData: Prisma.ConcessionBookletUpdateInput = {
-			status: newStatus,
-			anchorX: data.anchorX,
-			anchorY: data.anchorY,
-			damagedPages: data.damagedPages,
-			serialEndNumber: serialEndNumber,
-			serialStartNumber: data.serialStartNumber
-		};
+			const damagedPagesCount = data.damagedPages.length;
+			const newStatus = calculateBookletStatus(remainingAppCount, damagedPagesCount, 50, data.isDamaged);
 
-		const updatedBooklet = await prisma.concessionBooklet.update({
-			data: updateData,
-			where: { id: bookletId },
-			include: {
-				_count: {
-					select: {
-						applications: true
+			const updateData: Prisma.ConcessionBookletUpdateInput = {
+				status: newStatus,
+				anchorX: data.anchorX,
+				anchorY: data.anchorY,
+				damagedPages: data.damagedPages,
+				serialEndNumber: serialEndNumber,
+				serialStartNumber: data.serialStartNumber
+			};
+
+			return await tx.concessionBooklet.update({
+				data: updateData,
+				where: { id: bookletId },
+				include: {
+					_count: {
+						select: {
+							applications: true
+						}
 					}
 				}
-			}
+			});
 		});
 
 		revalidatePath("/dashboard/admin/booklets");
+		revalidatePath("/dashboard/admin");
 		return success(updatedBooklet);
 	} catch (error) {
 		console.error("Error updating booklet:", error);
@@ -655,20 +673,60 @@ export const getAvailableBooklets = async (): Promise<Result<AvailableBooklet[],
 	}
 };
 
+export type AssignedPageStudent = {
+	pageOffset: number;
+	studentName: string;
+	applicationId: string;
+};
+
+export const getBookletAssignedStudents = async (
+	bookletId: string
+): Promise<Result<Record<number, AssignedPageStudent>, DatabaseError>> => {
+	try {
+		const applications = await prisma.concessionApplication.findMany({
+			where: {
+				pageOffset: { not: null },
+				concessionBookletId: bookletId
+			},
+			select: {
+				id: true,
+				pageOffset: true,
+				student: {
+					select: {
+						firstName: true,
+						lastName: true,
+						middleName: true
+					}
+				}
+			}
+		});
+
+		const map: Record<number, AssignedPageStudent> = {};
+		for (const app of applications) {
+			if (app.pageOffset !== null && app.pageOffset !== undefined) {
+				const nameParts = [app.student.firstName, app.student.middleName, app.student.lastName].filter(Boolean);
+				map[app.pageOffset] = {
+					applicationId: app.id,
+					pageOffset: app.pageOffset,
+					studentName: nameParts.join(" ")
+				};
+			}
+		}
+
+		return success(map);
+	} catch (error) {
+		console.error("Error fetching assigned students for booklet:", error);
+		return failure(databaseError("Failed to fetch assigned students"));
+	}
+};
+
 export const updateBookletDamagedPages = async (
 	bookletId: string,
 	damagedPages: number[]
 ): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
 	try {
 		const booklet = await prisma.concessionBooklet.findUnique({
-			where: { id: bookletId },
-			include: {
-				_count: {
-					select: {
-						applications: true
-					}
-				}
-			}
+			where: { id: bookletId }
 		});
 
 		if (!booklet) {
@@ -683,33 +741,52 @@ export const updateBookletDamagedPages = async (
 
 		const uniquePages = [...new Set(validPages)].sort((a, b) => a - b);
 
-		const applicationCount = booklet._count?.applications || 0;
-		const damagedPagesCount = uniquePages.length;
-		const isManuallyDamaged = booklet.status === "Damaged";
+		const updatedBooklet = await prisma.$transaction(async (tx) => {
+			if (uniquePages.length > 0) {
+				await tx.concessionApplication.updateMany({
+					where: {
+						concessionBookletId: bookletId,
+						pageOffset: { in: uniquePages }
+					},
+					data: {
+						concessionBookletId: null,
+						pageOffset: null
+					}
+				});
+			}
 
-		const newStatus = calculateBookletStatus(
-			applicationCount,
-			damagedPagesCount,
-			booklet.totalPages,
-			isManuallyDamaged
-		);
+			const remainingAppCount = await tx.concessionApplication.count({
+				where: { concessionBookletId: bookletId }
+			});
 
-		const updatedBooklet = await prisma.concessionBooklet.update({
-			where: { id: bookletId },
-			data: {
-				status: newStatus,
-				damagedPages: uniquePages
-			},
-			include: {
-				_count: {
-					select: {
-						applications: true
+			const damagedPagesCount = uniquePages.length;
+			const isManuallyDamaged = booklet.status === "Damaged";
+
+			const newStatus = calculateBookletStatus(
+				remainingAppCount,
+				damagedPagesCount,
+				booklet.totalPages,
+				isManuallyDamaged
+			);
+
+			return await tx.concessionBooklet.update({
+				where: { id: bookletId },
+				data: {
+					status: newStatus,
+					damagedPages: uniquePages
+				},
+				include: {
+					_count: {
+						select: {
+							applications: true
+						}
 					}
 				}
-			}
+			});
 		});
 
 		revalidatePath("/dashboard/admin/booklets");
+		revalidatePath("/dashboard/admin");
 		return success(updatedBooklet);
 	} catch (error) {
 		console.error("Error updating damaged pages:", error);

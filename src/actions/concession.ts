@@ -908,9 +908,9 @@ export const assignBookletToConcession = async (
 			const booklet = await tx.concessionBooklet.findUnique({
 				where: { id: bookletId },
 				include: {
-					_count: {
+					applications: {
 						select: {
-							applications: true
+							pageOffset: true
 						}
 					}
 				}
@@ -924,15 +924,23 @@ export const assignBookletToConcession = async (
 				throw new Error("Booklet is not available for use");
 			}
 
-			const currentApplicationCount = booklet._count.applications;
 			const damagedPages = Array.isArray(booklet.damagedPages) ? booklet.damagedPages : [];
-
-			let nextPage = currentApplicationCount;
-			while (damagedPages.includes(nextPage) && nextPage < booklet.totalPages) {
-				nextPage++;
+			const assignedOffsets = new Set<number>();
+			for (const app of booklet.applications) {
+				if (app.pageOffset !== null && app.pageOffset !== undefined) {
+					assignedOffsets.add(app.pageOffset);
+				}
 			}
 
-			if (nextPage >= booklet.totalPages) {
+			let nextPage = -1;
+			for (let i = 0; i < booklet.totalPages; i++) {
+				if (!damagedPages.includes(i) && !assignedOffsets.has(i)) {
+					nextPage = i;
+					break;
+				}
+			}
+
+			if (nextPage === -1) {
 				throw new Error("Booklet is full");
 			}
 
@@ -947,7 +955,7 @@ export const assignBookletToConcession = async (
 				}
 			});
 
-			const newApplicationCount = currentApplicationCount + 1;
+			const newApplicationCount = booklet.applications.length + 1;
 			const damagedPagesCount = damagedPages.length;
 			const isManuallyDamaged = booklet.status === "Damaged";
 
@@ -1074,5 +1082,122 @@ export const getConcessionApplicationDetails = async (
 	} catch (error) {
 		console.error("Error fetching application details:", error);
 		return failure(databaseError("Failed to fetch application details"));
+	}
+};
+
+export type StudentConcessionHistoryItem = Pick<
+	ConcessionApplication,
+	| "id"
+	| "status"
+	| "shortId"
+	| "createdAt"
+	| "reviewedAt"
+	| "pageOffset"
+	| "applicationType"
+	| "rejectionReason"
+	| "submissionCount"
+> & {
+	derivedCertificateNo?: string;
+	station: Pick<Station, "id" | "code" | "name">;
+	concessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
+	concessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+	concessionBooklet?: {
+		serialStartNumber: string;
+	} | null;
+	reviewedBy?: {
+		user: {
+			name: string | null;
+		};
+	} | null;
+};
+
+export const getStudentConcessionHistory = async (
+	adminId: string,
+	studentUserId: string
+): Promise<Result<StudentConcessionHistoryItem[], AuthError | DatabaseError | ValidationError>> => {
+	try {
+		const admin = await prisma.admin.findUnique({
+			select: { isActive: true },
+			where: { userId: adminId }
+		});
+
+		if (!admin || !admin.isActive) {
+			return failure(authError("Unauthorized admin access"));
+		}
+
+		const applications = await prisma.concessionApplication.findMany({
+			where: { studentId: studentUserId },
+			orderBy: { createdAt: "desc" },
+			select: {
+				id: true,
+				status: true,
+				shortId: true,
+				createdAt: true,
+				reviewedAt: true,
+				pageOffset: true,
+				applicationType: true,
+				rejectionReason: true,
+				submissionCount: true,
+				station: {
+					select: {
+						id: true,
+						code: true,
+						name: true
+					}
+				},
+				concessionClass: {
+					select: {
+						id: true,
+						code: true,
+						name: true
+					}
+				},
+				concessionPeriod: {
+					select: {
+						id: true,
+						name: true,
+						duration: true
+					}
+				},
+				concessionBooklet: {
+					select: {
+						serialStartNumber: true
+					}
+				},
+				reviewedBy: {
+					select: {
+						user: {
+							select: {
+								name: true
+							}
+						}
+					}
+				}
+			}
+		});
+
+		const itemsWithCertificate: StudentConcessionHistoryItem[] = applications.map((app) => {
+			let derivedCertificateNo: string | undefined;
+
+			if (app.concessionBooklet && app.pageOffset !== null && app.pageOffset !== undefined) {
+				const serialStart = app.concessionBooklet.serialStartNumber;
+				const prefix = serialStart.replace(/\d+$/, "");
+				const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
+				const certificateNum = startNum + app.pageOffset;
+				derivedCertificateNo = `${prefix}${certificateNum
+					.toString()
+					.padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+			}
+
+			return {
+				...app,
+				derivedCertificateNo
+			};
+		});
+
+		return success(itemsWithCertificate);
+	} catch (error) {
+		console.error("Error fetching student concession history:", error);
+		return failure(databaseError("Failed to fetch student concession history"));
 	}
 };

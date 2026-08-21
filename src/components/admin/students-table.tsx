@@ -37,6 +37,7 @@ import { StudentApprovalStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getUserInitials, toTitleCase, formatDateOfBirth } from "@/lib/utils";
+import { StudentConcessionHistorySheet } from "./student-concession-history-sheet";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
@@ -857,12 +858,17 @@ const createColumns = (
 		}
 	},
 	{
-		size: 100,
+		size: 110,
 		id: "actions",
 		header: "Actions",
 		cell: ({ row }) => {
 			const student = row.original;
-			return <StudentDetailsDialog student={student} adminId={adminId} onStudentUpdate={onStudentUpdate} />;
+			return (
+				<div className="flex items-center gap-2">
+					<StudentDetailsDialog student={student} adminId={adminId} onStudentUpdate={onStudentUpdate} />
+					<StudentConcessionHistorySheet student={student} adminId={adminId} />
+				</div>
+			);
 		}
 	}
 ];
@@ -1209,7 +1215,10 @@ const StudentsTable = ({
 										<Skeleton className="h-4 w-20 mx-auto" />
 									</TableCell>
 									<TableCell className="p-4 text-center">
-										<Skeleton className="h-8 w-8 rounded mx-auto" />
+										<div className="flex items-center justify-center gap-2">
+											<Skeleton className="size-8 rounded" />
+											<Skeleton className="size-8 rounded" />
+										</div>
 									</TableCell>
 								</TableRow>
 							))}
