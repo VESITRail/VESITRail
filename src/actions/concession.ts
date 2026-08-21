@@ -908,9 +908,9 @@ export const assignBookletToConcession = async (
 			const booklet = await tx.concessionBooklet.findUnique({
 				where: { id: bookletId },
 				include: {
-					_count: {
+					applications: {
 						select: {
-							applications: true
+							pageOffset: true
 						}
 					}
 				}
@@ -924,15 +924,23 @@ export const assignBookletToConcession = async (
 				throw new Error("Booklet is not available for use");
 			}
 
-			const currentApplicationCount = booklet._count.applications;
 			const damagedPages = Array.isArray(booklet.damagedPages) ? booklet.damagedPages : [];
-
-			let nextPage = currentApplicationCount;
-			while (damagedPages.includes(nextPage) && nextPage < booklet.totalPages) {
-				nextPage++;
+			const assignedOffsets = new Set<number>();
+			for (const app of booklet.applications) {
+				if (app.pageOffset !== null && app.pageOffset !== undefined) {
+					assignedOffsets.add(app.pageOffset);
+				}
 			}
 
-			if (nextPage >= booklet.totalPages) {
+			let nextPage = -1;
+			for (let i = 0; i < booklet.totalPages; i++) {
+				if (!damagedPages.includes(i) && !assignedOffsets.has(i)) {
+					nextPage = i;
+					break;
+				}
+			}
+
+			if (nextPage === -1) {
 				throw new Error("Booklet is full");
 			}
 
@@ -947,7 +955,7 @@ export const assignBookletToConcession = async (
 				}
 			});
 
-			const newApplicationCount = currentApplicationCount + 1;
+			const newApplicationCount = booklet.applications.length + 1;
 			const damagedPagesCount = damagedPages.length;
 			const isManuallyDamaged = booklet.status === "Damaged";
 
