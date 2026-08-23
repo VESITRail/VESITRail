@@ -452,10 +452,7 @@ const BookletsTable = ({
 								<Skeleton className="h-6 w-20 mx-auto rounded-full" />
 							</TableCell>
 							<TableCell className="text-center">
-								<Skeleton className="h-6 w-24 mx-auto rounded-full" />
-							</TableCell>
-							<TableCell className="text-center">
-								<Skeleton className="h-4 w-8 mx-auto" />
+								<Skeleton className="h-4 w-20 mx-auto" />
 							</TableCell>
 							<TableCell className="text-center">
 								<Skeleton className="h-4 w-8 mx-auto" />
