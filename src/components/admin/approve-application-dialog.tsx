@@ -13,7 +13,7 @@ import { AdminApplication } from "@/actions/concession";
 import { useState, useEffect, useCallback } from "react";
 import { ExternalLink, AlertCircle } from "lucide-react";
 import { ConcessionBookletStatusType } from "@/generated/zod";
-import { AvailableBooklet, getAvailableBooklets } from "@/actions/booklets";
+import { AvailableBooklet, getAvailableBooklets, getBookletAssignedStudents } from "@/actions/booklets";
 import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
 
 type ApproveApplicationDialogProps = {
@@ -174,7 +174,6 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 	const loadBookletAssignedOffsets = useCallback(
 		async (bookletId: string) => {
 			try {
-				const { getBookletAssignedStudents } = await import("@/actions/booklets");
 				const result = await getBookletAssignedStudents(bookletId);
 				if (result.isSuccess) {
 					const map = new Map<number, { studentName: string; shortId: number }>();
