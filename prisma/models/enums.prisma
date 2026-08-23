@@ -23,7 +23,6 @@ enum StudentApprovalStatus {
 
 enum ConcessionBookletStatus {
   InUse
-  Damaged
   Available
   Exhausted
 }
