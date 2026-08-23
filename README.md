@@ -80,7 +80,7 @@ _A modern web application for VESIT students to apply for and manage railway con
   <tr>
     <td><strong>File Upload & PDF</strong></td>
     <td>
-      <img src="https://img.shields.io/badge/Cloudinary-3448C5?logo=cloudinary&logoColor=white" alt="Cloudinary">
+      <img src="https://img.shields.io/badge/Cloudflare_R2-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare R2">
       <img src="https://img.shields.io/badge/jsPDF-FF6B6B?logoColor=white" alt="jsPDF">
     </td>
   </tr>
