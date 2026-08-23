@@ -23,8 +23,7 @@ export type CreateBookletInput = {
 export type UpdateBookletInput = {
 	anchorX: number;
 	anchorY: number;
-	isDamaged: boolean;
-	damagedPages: number[];
+	isExhausted: boolean;
 	serialStartNumber: string;
 };
 
@@ -84,7 +83,7 @@ export type PaginatedBookletApplicationsResult = {
 	data: BookletTableItem[];
 	booklet: Pick<
 		ConcessionBooklet,
-		"id" | "status" | "totalPages" | "damagedPages" | "bookletNumber" | "serialEndNumber" | "serialStartNumber"
+		"id" | "status" | "totalPages" | "bookletNumber" | "serialEndNumber" | "serialStartNumber"
 	> & {
 		_count: {
 			applications: number;
@@ -99,7 +98,7 @@ export type BookletApplicationPaginationParams = {
 
 export type AvailableBooklet = Pick<
 	ConcessionBooklet,
-	"id" | "status" | "totalPages" | "damagedPages" | "bookletNumber" | "serialStartNumber"
+	"id" | "status" | "totalPages" | "bookletNumber" | "serialStartNumber" | "serialEndNumber"
 > & {
 	_count: {
 		applications: number;
@@ -228,8 +227,6 @@ export const getBooklets = async (
 					return 2;
 				case "Exhausted":
 					return 3;
-				case "Damaged":
-					return 4;
 				default:
 					return 5;
 			}
@@ -250,7 +247,7 @@ export const getBooklets = async (
 				? new Date(b.applications[0].createdAt).getTime()
 				: new Date(b.updatedAt).getTime();
 
-			if (a.status === "InUse" || a.status === "Exhausted" || a.status === "Damaged") {
+			if (a.status === "InUse" || a.status === "Exhausted") {
 				if (lastUsedA !== lastUsedB) {
 					return lastUsedB - lastUsedA;
 				}
@@ -273,9 +270,9 @@ export const getBooklets = async (
 			totalCount,
 			totalPages,
 			hasNextPage,
-			data: paginatedBooklets,
 			hasPreviousPage,
-			currentPage: page
+			currentPage: page,
+			data: paginatedBooklets
 		});
 	} catch (error) {
 		console.error("Error fetching booklets:", error);
@@ -373,31 +370,17 @@ export const updateBooklet = async (
 		}
 
 		const updatedBooklet = await prisma.$transaction(async (tx) => {
-			if (data.damagedPages.length > 0) {
-				await tx.concessionApplication.updateMany({
-					where: {
-						concessionBookletId: bookletId,
-						pageOffset: { in: data.damagedPages }
-					},
-					data: {
-						concessionBookletId: null,
-						pageOffset: null
-					}
-				});
-			}
-
 			const remainingAppCount = await tx.concessionApplication.count({
 				where: { concessionBookletId: bookletId }
 			});
 
-			const damagedPagesCount = data.damagedPages.length;
-			const newStatus = calculateBookletStatus(remainingAppCount, damagedPagesCount, 50, data.isDamaged);
+			const isAutoExhausted = remainingAppCount >= 50;
+			const newStatus = calculateBookletStatus(remainingAppCount, 50, data.isExhausted || isAutoExhausted);
 
 			const updateData: Prisma.ConcessionBookletUpdateInput = {
 				status: newStatus,
 				anchorX: data.anchorX,
 				anchorY: data.anchorY,
-				damagedPages: data.damagedPages,
 				serialEndNumber: serialEndNumber,
 				serialStartNumber: data.serialStartNumber
 			};
@@ -459,7 +442,6 @@ export const getBookletApplications = async (
 				id: true,
 				status: true,
 				totalPages: true,
-				damagedPages: true,
 				bookletNumber: true,
 				serialEndNumber: true,
 				serialStartNumber: true,
@@ -550,32 +532,38 @@ export const getBookletApplications = async (
 			};
 		});
 
-		const damagedPages = Array.isArray(booklet.damagedPages) ? booklet.damagedPages : [];
+		const assignedOffsets = new Set(
+			applicationsWithDerivedData
+				.filter((app) => app.pageOffset !== null && app.pageOffset !== undefined)
+				.map((app) => app.pageOffset!)
+		);
 
-		const damagedPageItems: DamagedPageItem[] = damagedPages.map((pageOffset) => {
-			const serialStart = booklet.serialStartNumber;
-			const prefix = serialStart.replace(/\d+$/, "");
-			const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-			const certificateNum = startNum + pageOffset;
-			const serialNumber = `${prefix}${certificateNum
-				.toString()
-				.padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+		const isExhausted = booklet.status === "Exhausted";
+		const maxAssignedOffset = assignedOffsets.size > 0 ? Math.max(...assignedOffsets) : -1;
 
-			return {
-				serialNumber,
-				isDamaged: true as const,
-				pageNumber: pageOffset + 1,
-				id: `damaged-${booklet.id}-${pageOffset}`
-			};
-		});
+		const upperBound = isExhausted ? booklet.totalPages - 1 : maxAssignedOffset;
 
-		const damagedPageOffsets = new Set(damagedPages);
-		const filteredApplications = applicationsWithDerivedData.filter((app) => {
-			const appPageOffset = app.pageOffset ?? 0;
-			return typeof appPageOffset === "number" && !damagedPageOffsets.has(appPageOffset);
-		});
+		const damagedPageItems: DamagedPageItem[] = [];
+		for (let i = 0; i <= upperBound; i++) {
+			if (!assignedOffsets.has(i)) {
+				const serialStart = booklet.serialStartNumber;
+				const prefix = serialStart.replace(/\d+$/, "");
+				const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
+				const certificateNum = startNum + i;
+				const serialNumber = `${prefix}${certificateNum
+					.toString()
+					.padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
 
-		const allItems: BookletTableItem[] = [...filteredApplications, ...damagedPageItems].sort((a, b) => {
+				damagedPageItems.push({
+					serialNumber,
+					pageNumber: i + 1,
+					isDamaged: true as const,
+					id: `damaged-${booklet.id}-${i}`
+				});
+			}
+		}
+
+		const allItems: BookletTableItem[] = [...applicationsWithDerivedData, ...damagedPageItems].sort((a, b) => {
 			const pageA = "derivedSerialNumber" in a ? a.derivedSerialNumber || 0 : "pageNumber" in a ? a.pageNumber : 0;
 			const pageB = "derivedSerialNumber" in b ? b.derivedSerialNumber || 0 : "pageNumber" in b ? b.pageNumber : 0;
 			return pageA - pageB;
@@ -594,8 +582,8 @@ export const getBookletApplications = async (
 			totalCount,
 			totalPages,
 			hasNextPage,
-			data: paginatedItems,
 			hasPreviousPage,
+			data: paginatedItems,
 			currentPage: params.page
 		});
 	} catch (error) {
@@ -616,8 +604,8 @@ export const getAvailableBooklets = async (): Promise<Result<AvailableBooklet[],
 				id: true,
 				status: true,
 				totalPages: true,
-				damagedPages: true,
 				bookletNumber: true,
+				serialEndNumber: true,
 				serialStartNumber: true,
 				_count: {
 					select: {
@@ -660,8 +648,8 @@ export const getAvailableBooklets = async (): Promise<Result<AvailableBooklet[],
 			status: booklet.status,
 			_count: booklet._count,
 			totalPages: booklet.totalPages,
-			damagedPages: booklet.damagedPages,
 			bookletNumber: booklet.bookletNumber,
+			serialEndNumber: booklet.serialEndNumber,
 			serialStartNumber: booklet.serialStartNumber,
 			lastUsedAt: booklet.applications[0]?.createdAt || null
 		}));
@@ -674,6 +662,7 @@ export const getAvailableBooklets = async (): Promise<Result<AvailableBooklet[],
 };
 
 export type AssignedPageStudent = {
+	shortId: number;
 	pageOffset: number;
 	studentName: string;
 	applicationId: string;
@@ -690,6 +679,7 @@ export const getBookletAssignedStudents = async (
 			},
 			select: {
 				id: true,
+				shortId: true,
 				pageOffset: true,
 				student: {
 					select: {
@@ -706,6 +696,7 @@ export const getBookletAssignedStudents = async (
 			if (app.pageOffset !== null && app.pageOffset !== undefined) {
 				const nameParts = [app.student.firstName, app.student.middleName, app.student.lastName].filter(Boolean);
 				map[app.pageOffset] = {
+					shortId: app.shortId,
 					applicationId: app.id,
 					pageOffset: app.pageOffset,
 					studentName: nameParts.join(" ")
@@ -717,80 +708,6 @@ export const getBookletAssignedStudents = async (
 	} catch (error) {
 		console.error("Error fetching assigned students for booklet:", error);
 		return failure(databaseError("Failed to fetch assigned students"));
-	}
-};
-
-export const updateBookletDamagedPages = async (
-	bookletId: string,
-	damagedPages: number[]
-): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
-	try {
-		const booklet = await prisma.concessionBooklet.findUnique({
-			where: { id: bookletId }
-		});
-
-		if (!booklet) {
-			return failure(validationError("Booklet not found"));
-		}
-
-		const validPages = damagedPages.filter((page) => page >= 0 && page < booklet.totalPages);
-
-		if (validPages.length !== damagedPages.length) {
-			return failure(validationError("Invalid page numbers provided"));
-		}
-
-		const uniquePages = [...new Set(validPages)].sort((a, b) => a - b);
-
-		const updatedBooklet = await prisma.$transaction(async (tx) => {
-			if (uniquePages.length > 0) {
-				await tx.concessionApplication.updateMany({
-					where: {
-						concessionBookletId: bookletId,
-						pageOffset: { in: uniquePages }
-					},
-					data: {
-						concessionBookletId: null,
-						pageOffset: null
-					}
-				});
-			}
-
-			const remainingAppCount = await tx.concessionApplication.count({
-				where: { concessionBookletId: bookletId }
-			});
-
-			const damagedPagesCount = uniquePages.length;
-			const isManuallyDamaged = booklet.status === "Damaged";
-
-			const newStatus = calculateBookletStatus(
-				remainingAppCount,
-				damagedPagesCount,
-				booklet.totalPages,
-				isManuallyDamaged
-			);
-
-			return await tx.concessionBooklet.update({
-				where: { id: bookletId },
-				data: {
-					status: newStatus,
-					damagedPages: uniquePages
-				},
-				include: {
-					_count: {
-						select: {
-							applications: true
-						}
-					}
-				}
-			});
-		});
-
-		revalidatePath("/dashboard/admin/booklets");
-		revalidatePath("/dashboard/admin");
-		return success(updatedBooklet);
-	} catch (error) {
-		console.error("Error updating damaged pages:", error);
-		return failure(databaseError("Failed to update damaged pages"));
 	}
 };
 
@@ -814,15 +731,9 @@ export const recalculateBookletStatus = async (
 		}
 
 		const applicationCount = booklet._count?.applications || 0;
-		const damagedPagesCount = Array.isArray(booklet.damagedPages) ? booklet.damagedPages.length : 0;
-		const isManuallyDamaged = booklet.status === "Damaged";
+		const isManuallyExhausted = booklet.status === "Exhausted";
 
-		const newStatus = calculateBookletStatus(
-			applicationCount,
-			damagedPagesCount,
-			booklet.totalPages,
-			isManuallyDamaged
-		);
+		const newStatus = calculateBookletStatus(applicationCount, booklet.totalPages, isManuallyExhausted);
 
 		if (newStatus === booklet.status) {
 			return success(booklet);
@@ -866,15 +777,9 @@ export const recalculateAllBookletStatuses = async (): Promise<Result<{ updated:
 
 		for (const booklet of booklets) {
 			const applicationCount = booklet._count?.applications || 0;
-			const damagedPagesCount = Array.isArray(booklet.damagedPages) ? booklet.damagedPages.length : 0;
-			const isManuallyDamaged = booklet.status === "Damaged";
+			const isManuallyExhausted = booklet.status === "Exhausted";
 
-			const newStatus = calculateBookletStatus(
-				applicationCount,
-				damagedPagesCount,
-				booklet.totalPages,
-				isManuallyDamaged
-			);
+			const newStatus = calculateBookletStatus(applicationCount, booklet.totalPages, isManuallyExhausted);
 
 			if (newStatus !== booklet.status) {
 				await prisma.concessionBooklet.update({
