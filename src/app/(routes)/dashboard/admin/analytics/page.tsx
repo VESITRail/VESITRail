@@ -187,7 +187,11 @@ const AdminAnalyticsPage = () => {
 						</Select>
 					</div>
 
-					<Button disabled={isLoading || isExporting} onClick={handleExportPDF} className="gap-2">
+					<Button
+						onClick={handleExportPDF}
+						disabled={isLoading || isExporting}
+						className="gap-2 inline-flex items-center"
+					>
 						{isExporting ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
 						<span>{isExporting ? "Exporting..." : "Export PDF"}</span>
 					</Button>
