@@ -11,22 +11,21 @@ import { Combobox } from "@/components/ui/combobox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminApplication } from "@/actions/concession";
 import { useState, useEffect, useCallback } from "react";
-import { ExternalLink, AlertTriangle } from "lucide-react";
+import { ExternalLink, AlertCircle } from "lucide-react";
 import { ConcessionBookletStatusType } from "@/generated/zod";
-import { AvailableBooklet, getAvailableBooklets, updateBookletDamagedPages } from "@/actions/booklets";
+import { AvailableBooklet, getAvailableBooklets, getBookletAssignedStudents } from "@/actions/booklets";
 import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
 
 type ApproveApplicationDialogProps = {
 	isOpen: boolean;
 	onClose: () => void;
 	application: AdminApplication | null;
-	onApprove: (applicationId: string, bookletId: string) => Promise<void>;
+	onApprove: (applicationId: string, bookletId: string, pageOffset: number) => Promise<void>;
 };
 
 const StatusBadge = ({ status }: { status: ConcessionBookletStatusType }) => {
 	const variants = {
 		InUse: "bg-primary text-white",
-		Damaged: "bg-red-600 text-white",
 		Exhausted: "bg-gray-600 text-white",
 		Available: "bg-green-600 text-white"
 	};
@@ -43,31 +42,108 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 	application
 }) => {
 	const router = useRouter();
+	const [slipInput, setSlipInput] = useState<string>("");
+	const [slipError, setSlipError] = useState<string>("");
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isApproving, setIsApproving] = useState<boolean>(false);
 	const [nextSerialNumber, setNextSerialNumber] = useState<string>("");
 	const [selectedBookletId, setSelectedBookletId] = useState<string>("");
-	const [isMarkingDamaged, setIsMarkingDamaged] = useState<boolean>(false);
 	const [availableBooklets, setAvailableBooklets] = useState<AvailableBooklet[]>([]);
+	const [assignedOffsets, setAssignedOffsets] = useState<Map<number, { studentName: string; shortId: number }>>(
+		new Map()
+	);
 
-	const calculateNextSerialNumber = useCallback((booklet: AvailableBooklet) => {
+	const getBookletSerialInfo = useCallback((booklet: AvailableBooklet) => {
 		const serialStart = booklet.serialStartNumber;
 		const prefix = serialStart.replace(/\d+$/, "");
 		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-		const damagedPages = Array.isArray(booklet.damagedPages) ? booklet.damagedPages : [];
-
-		let nextPage = booklet._count.applications;
-		while (damagedPages.includes(nextPage) && nextPage < booklet.totalPages) {
-			nextPage++;
-		}
-
-		const nextNum = startNum + nextPage;
-		const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 3;
-
-		const nextSerial = `${prefix}${nextNum.toString().padStart(paddingLength, "0")}`;
-		setNextSerialNumber(nextSerial);
-		return nextPage;
+		const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 2;
+		return { prefix, startNum, paddingLength };
 	}, []);
+
+	const offsetToSerialNumber = useCallback(
+		(offset: number, booklet: AvailableBooklet): string => {
+			const { prefix, startNum, paddingLength } = getBookletSerialInfo(booklet);
+			const num = startNum + offset;
+			return `${prefix}${num.toString().padStart(paddingLength, "0")}`;
+		},
+		[getBookletSerialInfo]
+	);
+
+	const offsetToSlipDisplay = useCallback(
+		(offset: number, booklet: AvailableBooklet): string => {
+			const { startNum } = getBookletSerialInfo(booklet);
+			const currNum = startNum + offset;
+			const isUnderHundred = startNum % 100 <= 50 && startNum % 100 > 0;
+
+			if (currNum % 100 === 0) {
+				return "100";
+			}
+			if (isUnderHundred) {
+				return (currNum % 100).toString().padStart(2, "0");
+			}
+			return (currNum % 100).toString();
+		},
+		[getBookletSerialInfo]
+	);
+
+	const getBookletRange = useCallback(
+		(booklet: AvailableBooklet) => {
+			const minSlip = offsetToSlipDisplay(0, booklet);
+			const maxSlip = offsetToSlipDisplay(booklet.totalPages - 1, booklet);
+			const rangeLabel = `${minSlip} to ${maxSlip}`;
+			const placeholder = `e.g., ${minSlip}`;
+			const maxInputLength = Math.max(minSlip.length, maxSlip.length, 2);
+
+			return {
+				minSlip,
+				maxSlip,
+				rangeLabel,
+				placeholder,
+				maxInputLength
+			};
+		},
+		[offsetToSlipDisplay]
+	);
+
+	const slipInputToOffset = useCallback(
+		(input: string, booklet: AvailableBooklet): number | null => {
+			const trimmed = input.trim();
+			if (!trimmed) return null;
+
+			const { startNum } = getBookletSerialInfo(booklet);
+			const endNum = startNum + booklet.totalPages - 1;
+
+			let inputNum = parseInt(trimmed, 10);
+			if (isNaN(inputNum)) return null;
+
+			if ((trimmed === "00" || trimmed === "0") && endNum % 100 === 0) {
+				inputNum = 100;
+			}
+
+			for (let offset = 0; offset < booklet.totalPages; offset++) {
+				const slip = offsetToSlipDisplay(offset, booklet);
+				if (slip === trimmed || parseInt(slip, 10) === inputNum) {
+					return offset;
+				}
+			}
+
+			return null;
+		},
+		[getBookletSerialInfo, offsetToSlipDisplay]
+	);
+
+	const calculateNextFreeSlip = useCallback(
+		(booklet: AvailableBooklet, offsets: Map<number, { studentName: string; shortId: number }>): string => {
+			for (let i = 0; i < booklet.totalPages; i++) {
+				if (!offsets.has(i)) {
+					return offsetToSlipDisplay(i, booklet);
+				}
+			}
+			return "";
+		},
+		[offsetToSlipDisplay]
+	);
 
 	const loadAvailableBooklets = useCallback(async () => {
 		setIsLoading(true);
@@ -79,7 +155,6 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 				if (result.data.length > 0) {
 					const latestBooklet = result.data[0];
 					setSelectedBookletId(latestBooklet.id);
-					calculateNextSerialNumber(latestBooklet);
 				}
 			} else {
 				toast.error("Failed to Load Booklets", {
@@ -94,27 +169,55 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		} finally {
 			setIsLoading(false);
 		}
-	}, [calculateNextSerialNumber]);
+	}, []);
+
+	const loadBookletAssignedOffsets = useCallback(
+		async (bookletId: string) => {
+			try {
+				const result = await getBookletAssignedStudents(bookletId);
+				if (result.isSuccess) {
+					const map = new Map<number, { studentName: string; shortId: number }>();
+					for (const [key, value] of Object.entries(result.data)) {
+						map.set(Number(key), { studentName: value.studentName, shortId: value.shortId });
+					}
+					setAssignedOffsets(map);
+
+					const selectedBooklet = availableBooklets.find((b) => b.id === bookletId);
+					if (selectedBooklet) {
+						const nextFree = calculateNextFreeSlip(selectedBooklet, map);
+						setSlipInput(nextFree);
+						setSlipError("");
+
+						if (nextFree) {
+							const offset = slipInputToOffset(nextFree, selectedBooklet);
+							if (offset !== null) {
+								setNextSerialNumber(offsetToSerialNumber(offset, selectedBooklet));
+							}
+						} else {
+							setNextSerialNumber("");
+						}
+					}
+				}
+			} catch (error) {
+				console.error("Error loading assigned offsets:", error);
+			}
+		},
+		[availableBooklets, calculateNextFreeSlip, slipInputToOffset, offsetToSerialNumber]
+	);
 
 	const generateBookletSearchTerms = (booklet: AvailableBooklet) => {
 		const serialStart = booklet.serialStartNumber;
 		const prefix = serialStart.replace(/\d+$/, "");
-		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-		const endNum = startNum + 49;
-		const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 3;
-		const serialEnd = `${prefix}${endNum.toString().padStart(paddingLength, "0")}`;
+		const serialEnd = booklet.serialEndNumber || "";
 
 		const statusText = booklet.status === "InUse" ? "in use" : "available";
-		const damagedCount = Array.isArray(booklet.damagedPages) ? booklet.damagedPages.length : 0;
 		const usageText = `${booklet._count.applications}/${booklet.totalPages} used`;
-		const damageText = damagedCount > 0 ? `${damagedCount} damaged` : "no damage";
 
 		const searchTerms = [
 			prefix,
 			usageText,
 			serialEnd,
 			statusText,
-			damageText,
 			serialStart,
 			`#${booklet.bookletNumber}`,
 			booklet.status.toLowerCase(),
@@ -122,8 +225,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 			booklet.bookletNumber.toString(),
 			`booklet ${booklet.bookletNumber}`,
 			`${booklet._count.applications} used`,
-			`${damagedCount} damaged pages`,
-			`${booklet.totalPages - booklet._count.applications - damagedCount} remaining`
+			`${booklet.totalPages - booklet._count.applications} remaining`
 		].join(" ");
 
 		return searchTerms;
@@ -131,9 +233,41 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
 	const handleBookletChange = (bookletId: string) => {
 		setSelectedBookletId(bookletId);
-		const selectedBooklet = availableBooklets.find((b) => b.id === bookletId);
-		if (selectedBooklet) {
-			calculateNextSerialNumber(selectedBooklet);
+		setSlipInput("");
+		setSlipError("");
+		setNextSerialNumber("");
+		setAssignedOffsets(new Map());
+		loadBookletAssignedOffsets(bookletId);
+	};
+
+	const handleSlipInputChange = (value: string) => {
+		const selectedBooklet = availableBooklets.find((b) => b.id === selectedBookletId);
+		const rangeInfo = selectedBooklet ? getBookletRange(selectedBooklet) : null;
+
+		const maxLen = rangeInfo ? rangeInfo.maxInputLength : 3;
+		const cleaned = value.replace(/\D/g, "").slice(0, maxLen);
+		setSlipInput(cleaned);
+		setSlipError("");
+
+		if (!selectedBooklet || !cleaned) {
+			setNextSerialNumber("");
+			return;
+		}
+
+		const offset = slipInputToOffset(cleaned, selectedBooklet);
+		if (offset === null) {
+			const label = rangeInfo ? rangeInfo.rangeLabel : "valid range";
+			setSlipError(`Enter a number between ${label}`);
+			setNextSerialNumber("");
+			return;
+		}
+
+		const serial = offsetToSerialNumber(offset, selectedBooklet);
+		setNextSerialNumber(serial);
+
+		if (assignedOffsets.has(offset)) {
+			const assigned = assignedOffsets.get(offset)!;
+			setSlipError(`Voucher #${cleaned} is already assigned to ${assigned.studentName} (#${assigned.shortId})`);
 		}
 	};
 
@@ -145,9 +279,25 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 			return;
 		}
 
+		const selectedBooklet = availableBooklets.find((b) => b.id === selectedBookletId);
+		if (!selectedBooklet) return;
+
+		const offset = slipInputToOffset(slipInput, selectedBooklet);
+		if (offset === null) {
+			const { rangeLabel } = getBookletRange(selectedBooklet);
+			setSlipError(`Please enter a valid slip number (${rangeLabel})`);
+			return;
+		}
+
+		if (assignedOffsets.has(offset)) {
+			const assigned = assignedOffsets.get(offset)!;
+			setSlipError(`Voucher #${slipInput} is already assigned to ${assigned.studentName} (#${assigned.shortId})`);
+			return;
+		}
+
 		setIsApproving(true);
 		try {
-			await onApprove(application.id, selectedBookletId);
+			await onApprove(application.id, selectedBookletId, offset);
 			onClose();
 		} catch (error) {
 			console.error("Error approving application:", error);
@@ -157,110 +307,13 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 	};
 
 	const handleClose = () => {
-		setSelectedBookletId("");
+		setSlipInput("");
+		setSlipError("");
 		setNextSerialNumber("");
+		setSelectedBookletId("");
 		setAvailableBooklets([]);
+		setAssignedOffsets(new Map());
 		onClose();
-	};
-
-	const handleMarkCurrentPageAsDamaged = async () => {
-		const selectedBooklet = availableBooklets.find((b) => b.id === selectedBookletId);
-		if (!selectedBooklet) return;
-
-		setIsMarkingDamaged(true);
-		try {
-			const damagedPages = Array.isArray(selectedBooklet.damagedPages) ? selectedBooklet.damagedPages : [];
-
-			const currentPageOffset = calculateNextSerialNumber(selectedBooklet);
-
-			if (damagedPages.includes(currentPageOffset)) {
-				toast.error("Page Already Marked", {
-					description: "This page is already marked as damaged."
-				});
-				setIsMarkingDamaged(false);
-				return;
-			}
-
-			const updatedDamagedPages = [...damagedPages, currentPageOffset].sort((a, b) => a - b);
-
-			const result = await updateBookletDamagedPages(selectedBookletId, updatedDamagedPages);
-
-			if (result.isSuccess) {
-				const humanPageNumber = currentPageOffset + 1;
-				const updatedBooklet = result.data;
-				const totalUsedPages = updatedBooklet._count.applications + updatedDamagedPages.length;
-				const isNowExhausted = totalUsedPages >= updatedBooklet.totalPages;
-
-				if (isNowExhausted) {
-					toast.success("Page Marked & Booklet Exhausted", {
-						description: `Page ${humanPageNumber} marked as damaged. Booklet is now exhausted. Loading next available booklet...`
-					});
-
-					setIsLoading(true);
-					setAvailableBooklets([]);
-					setSelectedBookletId("");
-					setNextSerialNumber("");
-
-					await loadAvailableBooklets();
-				} else {
-					setAvailableBooklets((prev) =>
-						prev.map((b) => (b.id === selectedBookletId ? { ...b, damagedPages: updatedBooklet.damagedPages } : b))
-					);
-
-					calculateNextSerialNumber({
-						...selectedBooklet,
-						damagedPages: updatedBooklet.damagedPages
-					});
-
-					toast.success("Page Marked as Damaged", {
-						description: `Page ${humanPageNumber} has been marked as damaged.`
-					});
-				}
-			} else {
-				toast.error("Failed to Mark as Damaged", {
-					description: "Could not mark the page as damaged. Please try again."
-				});
-			}
-		} catch (error) {
-			console.error("Error marking page as damaged:", error);
-			toast.error("Error", {
-				description: "An unexpected error occurred."
-			});
-		} finally {
-			setIsMarkingDamaged(false);
-		}
-	};
-
-	const groupConsecutivePages = (pages: number[]): string[] => {
-		if (pages.length === 0) return [];
-
-		const sorted = [...pages].sort((a, b) => a - b);
-
-		let end = sorted[0];
-		let start = sorted[0];
-		const groups: string[] = [];
-
-		const formatPageNumber = (num: number) => {
-			return (num + 1).toString().padStart(2, "0");
-		};
-
-		for (let i = 1; i <= sorted.length; i++) {
-			if (i < sorted.length && sorted[i] === end + 1) {
-				end = sorted[i];
-			} else {
-				if (start === end) {
-					groups.push(formatPageNumber(start));
-				} else {
-					groups.push(`${formatPageNumber(start)}-${formatPageNumber(end)}`);
-				}
-				if (i < sorted.length) {
-					start = sorted[i];
-					end = sorted[i];
-				}
-			}
-		}
-
-		return groups;
 	};
 
 	useEffect(() => {
@@ -270,7 +323,23 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		}
 	}, [isOpen, application, loadAvailableBooklets]);
 
+	useEffect(() => {
+		if (selectedBookletId && availableBooklets.length > 0) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- loadBookletAssignedOffsets is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern.
+			loadBookletAssignedOffsets(selectedBookletId);
+		}
+	}, [selectedBookletId, availableBooklets, loadBookletAssignedOffsets]);
+
 	const selectedBooklet = availableBooklets.find((b) => b.id === selectedBookletId);
+	const bookletRangeInfo = selectedBooklet ? getBookletRange(selectedBooklet) : null;
+
+	const isSlipValid = (() => {
+		if (!slipInput.trim() || !selectedBooklet) return false;
+		const offset = slipInputToOffset(slipInput, selectedBooklet);
+		if (offset === null) return false;
+		if (assignedOffsets.has(offset)) return false;
+		return true;
+	})();
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleClose}>
@@ -321,14 +390,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 									<div className="space-y-3">
 										<div className="space-y-2">
 											<Skeleton className="h-4 w-32" />
-											<div className="grid grid-cols-5 gap-3 items-end">
-												<div className="col-span-3">
-													<Skeleton className="h-12 w-full" />
-												</div>
-												<div className="col-span-2">
-													<Skeleton className="h-12 w-full" />
-												</div>
-											</div>
+											<Skeleton className="h-12 w-full" />
 										</div>
 										<div className="bg-muted/30 rounded-lg p-3 space-y-2">
 											<div className="flex justify-between">
@@ -338,17 +400,6 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 											<div className="flex justify-between">
 												<Skeleton className="h-3 w-16" />
 												<Skeleton className="h-3 w-24" />
-											</div>
-											<div className="space-y-2">
-												<Skeleton className="h-3 w-24" />
-												<div className="bg-background/50 rounded-md p-2 border">
-													<div className="flex gap-1.5">
-														<Skeleton className="h-6 w-16" />
-														<Skeleton className="h-6 w-20" />
-														<Skeleton className="h-6 w-12" />
-														<Skeleton className="h-6 w-16" />
-													</div>
-												</div>
 											</div>
 										</div>
 									</div>
@@ -386,7 +437,6 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 									searchPlaceholder="Search by booklet number, serial, status..."
 									renderOption={(option) => {
 										const booklet = option.data as AvailableBooklet;
-										const damagedCount = Array.isArray(booklet.damagedPages) ? booklet.damagedPages.length : 0;
 
 										return (
 											<div className="flex items-center justify-between w-full min-w-0">
@@ -394,9 +444,6 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 												<div className="flex items-center gap-2 ml-3 shrink-0">
 													<span className="text-xs text-muted-foreground whitespace-nowrap">
 														{booklet._count.applications}/{booklet.totalPages} used
-														{damagedCount > 0 && (
-															<span className="text-destructive ml-1">• {damagedCount} damaged</span>
-														)}
 													</span>
 													<StatusBadge status={booklet.status} />
 												</div>
@@ -407,35 +454,57 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 							)}
 						</div>
 
-						{selectedBooklet && (
+						{selectedBooklet && bookletRangeInfo && (
 							<div className="space-y-3">
 								<div className="space-y-2">
-									<Label htmlFor="serial-number" className="text-sm font-medium">
-										Next Serial Number
+									<Label htmlFor="slip-number" className="text-sm font-medium">
+										Voucher Slip Number
 									</Label>
-									<div className="flex gap-4">
-										<Input
-											readOnly
-											id="serial-number"
-											value={nextSerialNumber}
-											className="font-mono bg-muted/50 text-center text-lg font-semibold"
-										/>
-
-										<Button variant="destructive" disabled={isMarkingDamaged} onClick={handleMarkCurrentPageAsDamaged}>
-											<AlertTriangle className="size-3 mr-1" />
-											{isMarkingDamaged ? "Marking..." : "Mark as Damaged"}
-										</Button>
+									<div className="grid grid-cols-5 gap-3 items-end">
+										<div className="col-span-2">
+											<Input
+												autoFocus
+												id="slip-number"
+												value={slipInput}
+												autoComplete="off"
+												placeholder={bookletRangeInfo.placeholder}
+												maxLength={bookletRangeInfo.maxInputLength}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSlipInputChange(e.target.value)}
+												onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+													if (e.key === "Enter" && isSlipValid) {
+														e.preventDefault();
+														handleApprove();
+													}
+												}}
+												className={`font-mono text-center text-lg font-semibold ${slipError ? "border-destructive" : ""}`}
+											/>
+										</div>
+										<div className="col-span-3">
+											<div className="h-9 px-3 py-2 bg-muted/50 rounded-md flex items-center">
+												<span className="font-mono text-sm text-muted-foreground">
+													{nextSerialNumber || "Enter slip number"}
+												</span>
+											</div>
+										</div>
 									</div>
+
+									{slipError ? (
+										<div className="flex items-center gap-1.5 text-xs text-destructive">
+											<AlertCircle className="size-3.5 shrink-0" />
+											<span>{slipError}</span>
+										</div>
+									) : (
+										<div className="text-xs text-muted-foreground">
+											Enter the voucher slip number ({bookletRangeInfo.rangeLabel})
+										</div>
+									)}
 								</div>
+
 								<div className="bg-muted/30 rounded-lg p-3 space-y-2 text-xs">
 									<div className="flex justify-between">
 										<span className="text-muted-foreground">Serial Range:</span>
 										<span className="font-mono">
-											{selectedBooklet.serialStartNumber} -{" "}
-											{selectedBooklet.serialStartNumber.replace(/\d+$/, "") +
-												(parseInt(selectedBooklet.serialStartNumber.match(/\d+$/)?.[0] || "0") + 49)
-													.toString()
-													.padStart(selectedBooklet.serialStartNumber.match(/\d+$/)?.[0]?.length || 3, "0")}
+											{selectedBooklet.serialStartNumber} - {selectedBooklet.serialEndNumber}
 										</span>
 									</div>
 
@@ -445,25 +514,6 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 											{selectedBooklet._count.applications}/{selectedBooklet.totalPages} pages used
 										</span>
 									</div>
-
-									{Array.isArray(selectedBooklet.damagedPages) && selectedBooklet.damagedPages.length > 0 && (
-										<div className="space-y-2">
-											<div className="text-muted-foreground">Damaged Pages:</div>
-											<div className="bg-background/50 rounded-md p-2 border border-destructive/20">
-												<div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
-													{groupConsecutivePages(selectedBooklet.damagedPages).map((group, index) => (
-														<Badge
-															key={index}
-															variant="outline"
-															className="text-xs font-mono px-2 py-0.5 bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20 transition-colors"
-														>
-															{group}
-														</Badge>
-													))}
-												</div>
-											</div>
-										</div>
-									)}
 								</div>
 							</div>
 						)}
@@ -476,7 +526,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 					</Button>
 					<Button
 						onClick={handleApprove}
-						disabled={isApproving || !selectedBookletId || availableBooklets.length === 0}
+						disabled={isApproving || !selectedBookletId || availableBooklets.length === 0 || !isSlipValid}
 					>
 						{isApproving ? "Assigning & Printing..." : "Assign & Print Pass"}
 					</Button>

@@ -347,8 +347,11 @@ const BookletApplicationsTable = ({
 								<TableCell className="p-4 text-center align-middle">
 									<span className="font-mono text-sm">{damagedItem.serialNumber}</span>
 								</TableCell>
-								<TableCell colSpan={7} className="p-4 text-center align-middle font-medium">
-									Damaged
+								<TableCell
+									colSpan={columns.length - 2}
+									className="p-4 text-center align-middle font-medium text-destructive"
+								>
+									Cancelled
 								</TableCell>
 							</TableRow>
 						);

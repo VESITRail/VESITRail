@@ -60,7 +60,6 @@ type SortOrder = "asc" | "desc";
 const StatusBadge = ({ status }: { status: ConcessionBookletStatusType }) => {
 	const variants = {
 		InUse: "bg-primary text-white",
-		Damaged: "bg-red-600 text-white",
 		Exhausted: "bg-gray-600 text-white",
 		Available: "bg-green-600 text-white"
 	};
@@ -361,21 +360,6 @@ const BookletsTable = ({
 				)
 			},
 			{
-				size: 100,
-				id: "damagedPages",
-				accessorKey: "damagedPages",
-				meta: { displayName: "Damaged Pages" },
-				header: () => <div className="text-center">Damaged</div>,
-				cell: ({ row }) => {
-					const damagedCount = Array.isArray(row.original.damagedPages) ? row.original.damagedPages.length : 0;
-					return (
-						<div className="text-center">
-							<span className={`font-medium ${damagedCount > 0 ? "text-destructive" : ""}`}>{damagedCount}</span>
-						</div>
-					);
-				}
-			},
-			{
 				id: "createdAt",
 				accessorKey: "createdAt",
 				meta: { displayName: "Created" },
@@ -468,10 +452,7 @@ const BookletsTable = ({
 								<Skeleton className="h-6 w-20 mx-auto rounded-full" />
 							</TableCell>
 							<TableCell className="text-center">
-								<Skeleton className="h-6 w-24 mx-auto rounded-full" />
-							</TableCell>
-							<TableCell className="text-center">
-								<Skeleton className="h-4 w-8 mx-auto" />
+								<Skeleton className="h-4 w-20 mx-auto" />
 							</TableCell>
 							<TableCell className="text-center">
 								<Skeleton className="h-4 w-8 mx-auto" />
@@ -587,7 +568,6 @@ const BookletsTable = ({
 									<SelectItem value="all">All Status</SelectItem>
 									<SelectItem value="Available">Available</SelectItem>
 									<SelectItem value="InUse">In Use</SelectItem>
-									<SelectItem value="Damaged">Damaged</SelectItem>
 									<SelectItem value="Exhausted">Exhausted</SelectItem>
 								</SelectContent>
 							</Select>

@@ -873,7 +873,8 @@ export const reviewConcessionApplication = async (
 export const assignBookletToConcession = async (
 	applicationId: string,
 	adminId: string,
-	bookletId: string
+	bookletId: string,
+	pageOffset: number
 ): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
 	try {
 		const admin = await prisma.admin.findUnique({
@@ -924,7 +925,10 @@ export const assignBookletToConcession = async (
 				throw new Error("Booklet is not available for use");
 			}
 
-			const damagedPages = Array.isArray(booklet.damagedPages) ? booklet.damagedPages : [];
+			if (pageOffset < 0 || pageOffset >= booklet.totalPages) {
+				throw new Error(`Page offset must be between 0 and ${booklet.totalPages - 1}`);
+			}
+
 			const assignedOffsets = new Set<number>();
 			for (const app of booklet.applications) {
 				if (app.pageOffset !== null && app.pageOffset !== undefined) {
@@ -932,23 +936,15 @@ export const assignBookletToConcession = async (
 				}
 			}
 
-			let nextPage = -1;
-			for (let i = 0; i < booklet.totalPages; i++) {
-				if (!damagedPages.includes(i) && !assignedOffsets.has(i)) {
-					nextPage = i;
-					break;
-				}
-			}
-
-			if (nextPage === -1) {
-				throw new Error("Booklet is full");
+			if (assignedOffsets.has(pageOffset)) {
+				throw new Error("Slip number is already assigned in this booklet");
 			}
 
 			const updatedApplication = await tx.concessionApplication.update({
 				where: { id: applicationId },
 				data: {
 					status: "Approved",
-					pageOffset: nextPage,
+					pageOffset: pageOffset,
 					concessionBookletId: bookletId,
 					reviewedAt: application.reviewedAt || new Date(),
 					reviewedById: application.reviewedById || adminId
@@ -956,15 +952,8 @@ export const assignBookletToConcession = async (
 			});
 
 			const newApplicationCount = booklet.applications.length + 1;
-			const damagedPagesCount = damagedPages.length;
-			const isManuallyDamaged = booklet.status === "Damaged";
 
-			const newBookletStatus = calculateBookletStatus(
-				newApplicationCount,
-				damagedPagesCount,
-				booklet.totalPages,
-				isManuallyDamaged
-			);
+			const newBookletStatus = calculateBookletStatus(newApplicationCount, booklet.totalPages);
 
 			await tx.concessionBooklet.update({
 				where: { id: bookletId },
@@ -991,6 +980,9 @@ export const assignBookletToConcession = async (
 		if (errorMessage.includes("not available") || errorMessage.includes("full")) {
 			return failure(validationError(errorMessage, "bookletId"));
 		}
+		if (errorMessage.includes("Slip number")) {
+			return failure(validationError(errorMessage, "pageOffset"));
+		}
 
 		return failure(databaseError("Failed to assign booklet"));
 	}
@@ -999,9 +991,10 @@ export const assignBookletToConcession = async (
 export const approveConcessionWithBooklet = async (
 	applicationId: string,
 	adminId: string,
-	bookletId: string
+	bookletId: string,
+	pageOffset: number
 ): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
-	return assignBookletToConcession(applicationId, adminId, bookletId);
+	return assignBookletToConcession(applicationId, adminId, bookletId, pageOffset);
 };
 
 export const getConcessionApplicationDetails = async (

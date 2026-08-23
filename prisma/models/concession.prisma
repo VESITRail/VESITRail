@@ -31,14 +31,15 @@ model ConcessionApplication {
   reviewedBy          Admin?                 @relation(fields: [reviewedById], references: [userId])
   concessionBooklet   ConcessionBooklet?     @relation(fields: [concessionBookletId], references: [id])
   previousApplication ConcessionApplication? @relation("RenewalChain", fields: [previousApplicationId], references: [id])
+
+  @@unique([concessionBookletId, pageOffset])
 }
 
 model ConcessionBooklet {
   id String @id @default(uuid())
 
-  totalPages    Int   @default(50)
-  damagedPages  Int[] @default([])
-  bookletNumber Int   @unique @default(autoincrement())
+  totalPages    Int @default(50)
+  bookletNumber Int @unique @default(autoincrement())
 
   anchorX           Float
   anchorY           Float

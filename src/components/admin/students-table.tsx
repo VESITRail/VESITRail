@@ -554,7 +554,7 @@ const StudentDetailsDialog = ({
 													</span>
 													<span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-600/15 text-emerald-600 dark:text-emerald-400 border border-emerald-600/20">
 														<CheckCircle2 className="size-3" />
-														Auto-Approved
+														Auto Approved
 													</span>
 												</div>
 											) : studentDetails.status === "Rejected" ? (

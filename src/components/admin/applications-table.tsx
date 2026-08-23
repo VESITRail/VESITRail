@@ -535,10 +535,10 @@ const ApplicationsTable = ({
 		});
 	};
 
-	const confirmApprove = async (applicationId: string, bookletId: string) => {
+	const confirmApprove = async (applicationId: string, bookletId: string, pageOffset: number) => {
 		const targetApplication = selectedApplication;
 		const approvePromise = async () => {
-			const result = await assignBookletToConcession(applicationId, adminId, bookletId);
+			const result = await assignBookletToConcession(applicationId, adminId, bookletId, pageOffset);
 
 			if (result.isSuccess) {
 				const updatedApplication: AdminApplication = {
