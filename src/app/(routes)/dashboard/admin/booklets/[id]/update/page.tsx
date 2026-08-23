@@ -1,13 +1,6 @@
 "use client";
 
-import {
-	getBooklet,
-	BookletItem,
-	updateBooklet,
-	UpdateBookletInput,
-	AssignedPageStudent,
-	getBookletAssignedStudents
-} from "@/actions/booklets";
+import { getBooklet, BookletItem, updateBooklet, UpdateBookletInput } from "@/actions/booklets";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +11,6 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 import { BookOpen, ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
-import DamagedPagesManager from "@/components/admin/damaged-pages-manager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const UpdateBookletPage = () => {
@@ -29,13 +21,11 @@ const UpdateBookletPage = () => {
 	const [loading, setLoading] = useState<boolean>(true);
 	const [isUpdating, setIsUpdating] = useState<boolean>(false);
 	const [booklet, setBooklet] = useState<BookletItem | null>(null);
-	const [assignedStudents, setAssignedStudents] = useState<Record<number, AssignedPageStudent>>({});
 
 	const [formData, setFormData] = useState<UpdateBookletInput>({
 		anchorX: 0,
 		anchorY: 0,
-		isDamaged: false,
-		damagedPages: [],
+		isExhausted: false,
 		serialStartNumber: ""
 	});
 
@@ -44,6 +34,8 @@ const UpdateBookletPage = () => {
 		anchorY?: string;
 		serialStartNumber?: string;
 	}>({});
+
+	const [isAutoExhausted, setIsAutoExhausted] = useState<boolean>(false);
 
 	const calculateSerialEndNumber = useCallback((startNumber: string): string => {
 		const upperStart = startNumber.toUpperCase();
@@ -110,24 +102,21 @@ const UpdateBookletPage = () => {
 		setLoading(true);
 
 		try {
-			const [result, assignedResult] = await Promise.all([
-				getBooklet(bookletId),
-				getBookletAssignedStudents(bookletId)
-			]);
+			const result = await getBooklet(bookletId);
 
 			if (result.isSuccess) {
 				const bookletData = result.data;
 				setBooklet(bookletData);
+
+				const autoExhausted = bookletData._count.applications >= bookletData.totalPages;
+				setIsAutoExhausted(autoExhausted);
+
 				setFormData({
 					anchorX: bookletData.anchorX || 0,
 					anchorY: bookletData.anchorY || 0,
-					isDamaged: bookletData.status === "Damaged",
-					serialStartNumber: bookletData.serialStartNumber,
-					damagedPages: Array.isArray(bookletData.damagedPages) ? bookletData.damagedPages : []
+					isExhausted: bookletData.status === "Exhausted",
+					serialStartNumber: bookletData.serialStartNumber
 				});
-				if (assignedResult.isSuccess) {
-					setAssignedStudents(assignedResult.data);
-				}
 			} else {
 				toast.error("Booklet Not Found", {
 					description: "The requested booklet could not be found."
@@ -149,10 +138,6 @@ const UpdateBookletPage = () => {
 		// eslint-disable-next-line react-hooks/set-state-in-effect -- fetchBooklet is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
 		fetchBooklet();
 	}, [fetchBooklet]);
-
-	const handleDamagedPagesChange = useCallback((damagedPages: number[]) => {
-		setFormData((prev) => ({ ...prev, damagedPages }));
-	}, []);
 
 	const handleSubmit = async () => {
 		if (!validateForm()) {
@@ -384,21 +369,19 @@ const UpdateBookletPage = () => {
 
 					<div className="flex items-center justify-between p-4 border rounded-lg">
 						<div className="space-y-0.5">
-							<Label className="text-sm">Mark as Damaged</Label>
-							<div className="text-sm text-muted-foreground">Check this if the booklet is damaged or unusable</div>
+							<Label className="text-sm">Mark as Exhausted</Label>
+							<div className="text-sm text-muted-foreground">
+								{isAutoExhausted
+									? "Booklet is full and cannot be reopened"
+									: "Mark as exhausted if remaining pages are unusable"}
+							</div>
 						</div>
 						<Switch
-							checked={formData.isDamaged}
-							onCheckedChange={(checked) => handleInputChange("isDamaged", checked)}
+							disabled={isAutoExhausted}
+							checked={formData.isExhausted}
+							onCheckedChange={(checked) => handleInputChange("isExhausted", checked)}
 						/>
 					</div>
-
-					<DamagedPagesManager
-						assignedStudents={assignedStudents}
-						damagedPages={formData.damagedPages}
-						totalPages={booklet?.totalPages || 50}
-						onDamagedPagesChange={handleDamagedPagesChange}
-					/>
 
 					<div className="flex justify-end gap-4 py-1">
 						<Button variant="outline" disabled={isUpdating} onClick={handleCancel}>

@@ -97,7 +97,6 @@ const BookletApplicationsPage = () => {
 		booklet: {
 			id: "",
 			totalPages: 50,
-			damagedPages: [],
 			bookletNumber: 0,
 			status: "Available",
 			serialEndNumber: "",
