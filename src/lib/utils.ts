@@ -225,21 +225,18 @@ export const isValidErrorCode = (code: string): code is AuthErrorCode => {
 
 export const calculateBookletStatus = (
 	applicationCount: number,
-	damagedPagesCount: number,
 	totalPages: number = 50,
-	isManuallyDamaged: boolean = false
+	isManuallyExhausted: boolean = false
 ): ConcessionBookletStatusType => {
-	if (isManuallyDamaged) {
-		return "Damaged";
-	}
-
-	const totalUsedPages = applicationCount + damagedPagesCount;
-
-	if (totalUsedPages >= totalPages) {
+	if (isManuallyExhausted) {
 		return "Exhausted";
 	}
 
-	if (totalUsedPages > 0) {
+	if (applicationCount >= totalPages) {
+		return "Exhausted";
+	}
+
+	if (applicationCount > 0) {
 		return "InUse";
 	}
 
