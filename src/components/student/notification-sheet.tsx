@@ -71,7 +71,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 			if (page === 1) {
 				setLoading(true);
 				try {
-					await markAllNotificationsAsRead(session.user.id);
+					await markAllNotificationsAsRead();
 					setUnreadCount(0);
 				} catch (error) {
 					console.error("Error marking all notifications as read:", error);
@@ -86,7 +86,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 					pageSize
 				};
 
-				const result = await getNotifications(session.user.id, params);
+				const result = await getNotifications(params);
 
 				if (result.isSuccess) {
 					const { data, unreadCount: unread, hasNextPage: hasNext } = result.data;
@@ -136,7 +136,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 
 		if (!notification.isRead) {
 			try {
-				const result = await markNotificationAsRead(session.user.id, notification.id);
+				const result = await markNotificationAsRead(notification.id);
 				if (result.isSuccess) {
 					setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n)));
 					setUnreadCount((prev) => Math.max(0, prev - 1));
@@ -162,7 +162,7 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 
 		const fetchInitialUnreadCount = async () => {
 			try {
-				const result = await getUnreadNotificationCount(session.user.id);
+				const result = await getUnreadNotificationCount();
 				if (result.isSuccess && isMounted) {
 					setUnreadCount(result.data.count);
 				}

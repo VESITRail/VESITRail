@@ -139,7 +139,7 @@ const AddressChangeRequestDetailsDialog = ({
 		setIsApproving(true);
 
 		const approvePromise = async () => {
-			const result = await reviewAddressChangeRequest(requestDetails.id, adminId, "Approved");
+			const result = await reviewAddressChangeRequest(requestDetails.id, "Approved");
 
 			if (result.isSuccess) {
 				const updatedRequest = {
@@ -193,7 +193,7 @@ const AddressChangeRequestDetailsDialog = ({
 		setIsRejecting(true);
 
 		const rejectPromise = async () => {
-			const result = await reviewAddressChangeRequest(requestDetails.id, adminId, "Rejected", finalReason);
+			const result = await reviewAddressChangeRequest(requestDetails.id, "Rejected", finalReason);
 
 			if (result.isSuccess) {
 				const updatedRequest = {

@@ -287,27 +287,23 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 				return;
 			}
 
-			const submissionPromise = submitOnboarding(
-				session.data.user.id,
-				{
-					status: "Pending",
-					submissionCount: 1,
-					rejectionReason: null,
-					class: reviewData.class,
-					gender: defaultValues.gender,
-					classId: defaultValues.class,
-					address: defaultValues.address,
-					stationId: defaultValues.station,
-					firstName: defaultValues.firstName,
-					lastName: defaultValues.lastName || null,
-					middleName: defaultValues.middleName || null,
-					verificationDocUrl: defaultValues.verificationDocUrl,
-					preferredConcessionClassId: defaultValues.preferredConcessionClass,
-					preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
-					dateOfBirth: normalizeDob(defaultValues.dateOfBirth) || new Date(defaultValues.dateOfBirth)
-				},
-				isLegacyStudent
-			);
+			const submissionPromise = submitOnboarding({
+				status: "Pending",
+				submissionCount: 1,
+				rejectionReason: null,
+				class: reviewData.class,
+				gender: defaultValues.gender,
+				classId: defaultValues.class,
+				address: defaultValues.address,
+				stationId: defaultValues.station,
+				firstName: defaultValues.firstName,
+				lastName: defaultValues.lastName || null,
+				middleName: defaultValues.middleName || null,
+				verificationDocUrl: defaultValues.verificationDocUrl,
+				preferredConcessionClassId: defaultValues.preferredConcessionClass,
+				preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
+				dateOfBirth: normalizeDob(defaultValues.dateOfBirth) || new Date(defaultValues.dateOfBirth)
+			});
 
 			toast.promise(submissionPromise, {
 				error: "Failed to submit application",

@@ -1,8 +1,18 @@
 "use server";
 
+import {
+	Result,
+	success,
+	failure,
+	AuthError,
+	databaseError,
+	DatabaseError,
+	validationError,
+	ValidationError
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-guard";
 import { Year, Class, Branch, Station, Student, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
-import { Result, success, failure, databaseError, DatabaseError, validationError, ValidationError } from "@/lib/result";
 
 export type LegacyStudentData = {
 	stationId: string;
@@ -47,7 +57,12 @@ export type OnboardingData = Pick<
 	};
 };
 
-export const getReviewData = async (data: ReviewData): Promise<Result<Review, ValidationError | DatabaseError>> => {
+export const getReviewData = async (
+	data: ReviewData
+): Promise<Result<Review, AuthError | ValidationError | DatabaseError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
 		const [_class, station, concessionClass, concessionPeriod] = await Promise.all([
 			prisma.class.findUnique({
@@ -89,10 +104,14 @@ export const getReviewData = async (data: ReviewData): Promise<Result<Review, Va
 	}
 };
 
-export const getExistingStudentData = async (userId: string): Promise<Result<OnboardingData | null, DatabaseError>> => {
+export const getExistingStudentData = async (): Promise<Result<OnboardingData | null, AuthError | DatabaseError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
+		const targetUserId = authResult.data.userId;
 		const student = await prisma.student.findUnique({
-			where: { userId },
+			where: { userId: targetUserId },
 			select: {
 				status: true,
 				gender: true,
@@ -137,10 +156,14 @@ export const getExistingStudentData = async (userId: string): Promise<Result<Onb
 	}
 };
 
-export const getLegacyStudentByEmail = async (email: string): Promise<Result<LegacyStudentData, DatabaseError>> => {
+export const getLegacyStudentByEmail = async (): Promise<Result<LegacyStudentData, AuthError | DatabaseError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
+		const targetEmail = authResult.data.email.toLowerCase();
 		const legacyStudent = await prisma.legacyStudent.findUnique({
-			where: { email: email.toLowerCase() },
+			where: { email: targetEmail },
 			select: {
 				stationId: true,
 				station: {
@@ -157,33 +180,42 @@ export const getLegacyStudentByEmail = async (email: string): Promise<Result<Leg
 };
 
 export const submitOnboarding = async (
-	studentId: string,
-	data: OnboardingData,
-	isLegacyStudent: boolean = false
-): Promise<Result<Student, DatabaseError>> => {
+	data: OnboardingData
+): Promise<Result<Student, AuthError | DatabaseError | ValidationError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
+	if (!data) {
+		return failure(validationError("Onboarding data is required"));
+	}
+
 	try {
+		const targetUserId = authResult.data.userId;
 		const { class: _classData, ...dbData } = data;
 
-		const shouldAutoApprove = isLegacyStudent;
+		const legacyRecord = await prisma.legacyStudent.findUnique({
+			where: { email: authResult.data.email.toLowerCase() }
+		});
+		const shouldAutoApprove = Boolean(legacyRecord);
 		const status = shouldAutoApprove ? "Approved" : "Pending";
 
 		const student = await prisma.student.upsert({
-			where: { userId: studentId },
+			where: { userId: targetUserId },
 			create: {
 				...dbData,
 				status,
-				userId: studentId,
+				userId: targetUserId,
 				submissionCount: 1,
 				rejectionReason: null,
 				...(shouldAutoApprove && { reviewedAt: new Date() })
 			},
 			update: {
 				...dbData,
-				reviewedAt: null,
-				status: "Pending",
 				reviewedById: null,
 				rejectionReason: null,
-				submissionCount: { increment: 1 }
+				submissionCount: { increment: 1 },
+				reviewedAt: shouldAutoApprove ? new Date() : null,
+				status: shouldAutoApprove ? "Approved" : "Pending"
 			}
 		});
 

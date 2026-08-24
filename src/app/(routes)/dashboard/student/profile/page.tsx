@@ -27,7 +27,7 @@ const StudentProfilePage = () => {
 			try {
 				setIsLoading(true);
 
-				const result = await getStudentProfile(session.data.user.id);
+				const result = await getStudentProfile();
 
 				if (result.isSuccess) {
 					setProfileData(result.data);

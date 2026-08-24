@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-guard";
 import type { Notification } from "@/generated/zod";
 import { Result, success, failure, authError, AuthError, DatabaseError, databaseError } from "@/lib/result";
 
@@ -22,23 +23,18 @@ export type NotificationPaginationParams = {
 };
 
 export const getNotifications = async (
-	userId: string,
 	params: NotificationPaginationParams
 ): Promise<Result<PaginatedNotificationsResult, DatabaseError | AuthError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
 		const { page, pageSize } = params;
 		const skip = (page - 1) * pageSize;
-
-		const user = await prisma.user.findUnique({
-			where: { id: userId }
-		});
-
-		if (!user) {
-			return failure(authError("User not found"));
-		}
+		const targetUserId = authResult.data.userId;
 
 		const whereClause = {
-			userId: userId
+			userId: targetUserId
 		};
 
 		const [notifications, totalCount, unreadCount] = await Promise.all([
@@ -64,7 +60,7 @@ export const getNotifications = async (
 			prisma.notification.count({
 				where: {
 					isRead: false,
-					userId: userId
+					userId: targetUserId
 				}
 			})
 		]);
@@ -89,13 +85,17 @@ export const getNotifications = async (
 };
 
 export const markNotificationAsRead = async (
-	userId: string,
 	notificationId: string
 ): Promise<Result<{ success: boolean }, DatabaseError | AuthError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
+		const targetUserId = authResult.data.userId;
+
 		const notification = await prisma.notification.findFirst({
 			where: {
-				userId: userId,
+				userId: targetUserId,
 				id: notificationId
 			}
 		});
@@ -116,21 +116,18 @@ export const markNotificationAsRead = async (
 	}
 };
 
-export const markAllNotificationsAsRead = async (
-	userId: string
-): Promise<Result<{ success: boolean; count: number }, DatabaseError | AuthError>> => {
-	try {
-		const user = await prisma.user.findUnique({
-			where: { id: userId }
-		});
+export const markAllNotificationsAsRead = async (): Promise<
+	Result<{ success: boolean; count: number }, DatabaseError | AuthError>
+> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
 
-		if (!user) {
-			return failure(authError("User not found"));
-		}
+	try {
+		const targetUserId = authResult.data.userId;
 
 		const result = await prisma.notification.updateMany({
 			where: {
-				userId: userId,
+				userId: targetUserId,
 				isRead: false
 			},
 			data: {
@@ -145,22 +142,17 @@ export const markAllNotificationsAsRead = async (
 	}
 };
 
-export const getUnreadNotificationCount = async (
-	userId: string
-): Promise<Result<{ count: number }, DatabaseError | AuthError>> => {
-	try {
-		const user = await prisma.user.findUnique({
-			where: { id: userId }
-		});
+export const getUnreadNotificationCount = async (): Promise<Result<{ count: number }, DatabaseError | AuthError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
 
-		if (!user) {
-			return failure(authError("User not found"));
-		}
+	try {
+		const targetUserId = authResult.data.userId;
 
 		const count = await prisma.notification.count({
 			where: {
 				isRead: false,
-				userId: userId
+				userId: targetUserId
 			}
 		});
 

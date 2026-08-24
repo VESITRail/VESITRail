@@ -77,10 +77,8 @@ const StatusBadge = ({ status }: { status: StudentApprovalStatusType }) => {
 
 const StudentDetailsDialog = ({
 	student,
-	adminId,
 	onStudentUpdate
 }: {
-	adminId: string;
 	student: StudentListItem;
 	onStudentUpdate?: (updatedStudent: StudentDetails) => void;
 }) => {
@@ -123,7 +121,6 @@ const StudentDetailsDialog = ({
 
 		const approvePromise = async () => {
 			const result = await approveStudent({
-				reviewedById: adminId,
 				studentId: student.userId
 			});
 
@@ -171,7 +168,6 @@ const StudentDetailsDialog = ({
 
 		const rejectPromise = async () => {
 			const result = await rejectStudent({
-				reviewedById: adminId,
 				studentId: student.userId,
 				rejectionReason: finalReason
 			});
@@ -865,7 +861,7 @@ const createColumns = (
 			const student = row.original;
 			return (
 				<div className="flex items-center gap-2">
-					<StudentDetailsDialog student={student} adminId={adminId} onStudentUpdate={onStudentUpdate} />
+					<StudentDetailsDialog student={student} onStudentUpdate={onStudentUpdate} />
 					<StudentConcessionHistorySheet student={student} adminId={adminId} />
 				</div>
 			);

@@ -64,7 +64,6 @@ export const useFcm = (userId?: string) => {
 
 				const result = await saveFcmToken({
 					token,
-					userId,
 					deviceId,
 					platform: getPlatform()
 				});
@@ -171,7 +170,7 @@ export const useFcm = (userId?: string) => {
 				if (userId) {
 					const deviceId = localStorage.getItem("fcm_device_id");
 					if (deviceId) {
-						await removeFcmTokenForDevice(userId, deviceId);
+						await removeFcmTokenForDevice(deviceId);
 						localStorage.removeItem("fcm_device_id");
 					}
 				}
@@ -193,7 +192,7 @@ export const useFcm = (userId?: string) => {
 			}
 
 			if (userId) {
-				await updatePushNotificationStatus(userId, false);
+				await updatePushNotificationStatus(false);
 			}
 
 			setState((prev) => ({
@@ -334,7 +333,7 @@ export const useFcm = (userId?: string) => {
 		try {
 			if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {
 				if (userId) {
-					await updatePushNotificationStatus(userId, false);
+					await updatePushNotificationStatus(false);
 				}
 				setState((prev) => ({
 					...prev,
@@ -350,28 +349,28 @@ export const useFcm = (userId?: string) => {
 			if (currentPermission === "granted") {
 				const tokenGenerated = await generateToken();
 				if (!tokenGenerated && userId) {
-					await updatePushNotificationStatus(userId, false);
+					await updatePushNotificationStatus(false);
 				}
 			} else if (currentPermission === "default") {
 				const permissionGranted = await requestPermission();
 				if (permissionGranted) {
 					const tokenGenerated = await generateToken();
 					if (!tokenGenerated && userId) {
-						await updatePushNotificationStatus(userId, false);
+						await updatePushNotificationStatus(false);
 					}
 				} else {
 					if (userId) {
-						await updatePushNotificationStatus(userId, false);
+						await updatePushNotificationStatus(false);
 					}
 				}
 			} else {
 				if (userId) {
 					const deviceId = localStorage.getItem("fcm_device_id");
 					if (deviceId) {
-						await removeFcmTokenForDevice(userId, deviceId);
+						await removeFcmTokenForDevice(deviceId);
 						localStorage.removeItem("fcm_device_id");
 					}
-					await updatePushNotificationStatus(userId, false);
+					await updatePushNotificationStatus(false);
 				}
 
 				setState((prev) => ({
@@ -383,7 +382,7 @@ export const useFcm = (userId?: string) => {
 		} catch (error) {
 			console.error("Failed to initialize FCM:", error);
 			if (userId) {
-				await updatePushNotificationStatus(userId, false);
+				await updatePushNotificationStatus(false);
 			}
 			setState((prev) => ({
 				...prev,
@@ -406,7 +405,7 @@ export const useFcm = (userId?: string) => {
 				return false;
 			}
 
-			const result = await disablePushNotifications(userId);
+			const result = await disablePushNotifications();
 
 			if (result.isSuccess) {
 				setState((prev) => ({

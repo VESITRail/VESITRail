@@ -187,7 +187,7 @@ const AddressChangePage = () => {
 		if (isPending || !data?.user?.id) return;
 
 		try {
-			const result = await getStudentAddressAndStation(data.user.id);
+			const result = await getStudentAddressAndStation();
 
 			if (result.isSuccess) {
 				setStudent(result.data);
@@ -210,7 +210,7 @@ const AddressChangePage = () => {
 		setLoading(true);
 
 		try {
-			const result = await getLastAddressChangeApplication(data.user.id);
+			const result = await getLastAddressChangeApplication();
 
 			if (!result.isSuccess) {
 				setCanApply(false);
@@ -557,7 +557,6 @@ const AddressChangePage = () => {
 
 		const submissionData: AddressChangeData = {
 			newAddress: newAddress,
-			studentId: data.user.id,
 			currentAddress: student.address,
 			newStationId: formData.newStationId,
 			currentStationId: student.station.id,

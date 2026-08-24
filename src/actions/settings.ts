@@ -1,16 +1,22 @@
 "use server";
 
-import { Result, success, failure, databaseError, DatabaseError } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { Student } from "@/generated/zod";
 import { StudentPreferences } from "./utils";
+import { requireAuth, requireStudent } from "@/lib/auth-guard";
+import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 
 export type UpdatePreferencesData = Pick<Student, "preferredConcessionClassId" | "preferredConcessionPeriodId">;
 
-export const getStudentPreferences = async (studentId: string): Promise<Result<StudentPreferences, DatabaseError>> => {
+export const getStudentPreferences = async (): Promise<Result<StudentPreferences, AuthError | DatabaseError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
+		const targetStudentId = studentResult.data.studentId;
+
 		const student = await prisma.student.findUnique({
-			where: { userId: studentId },
+			where: { userId: targetStudentId },
 			select: {
 				status: true,
 				preferredConcessionClass: {
@@ -51,13 +57,17 @@ export const getStudentPreferences = async (studentId: string): Promise<Result<S
 };
 
 export const updateStudentPreferences = async (
-	studentId: string,
 	data: UpdatePreferencesData
-): Promise<Result<StudentPreferences, DatabaseError>> => {
+): Promise<Result<StudentPreferences, AuthError | DatabaseError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
+		const targetStudentId = studentResult.data.studentId;
+
 		const student = await prisma.student.findUnique({
 			select: { status: true },
-			where: { userId: studentId }
+			where: { userId: targetStudentId }
 		});
 
 		if (!student) {
@@ -92,7 +102,7 @@ export const updateStudentPreferences = async (
 		}
 
 		const updatedStudent = await prisma.student.update({
-			where: { userId: studentId },
+			where: { userId: targetStudentId },
 			data: {
 				preferredConcessionClassId: data.preferredConcessionClassId,
 				preferredConcessionPeriodId: data.preferredConcessionPeriodId
@@ -122,11 +132,16 @@ export const updateStudentPreferences = async (
 	}
 };
 
-export async function updateNotificationPreferences(
-	userId: string,
-	preferences: { pushEnabled?: boolean; emailEnabled?: boolean }
-): Promise<Result<{ success: boolean }, DatabaseError>> {
+export async function updateNotificationPreferences(preferences: {
+	pushEnabled?: boolean;
+	emailEnabled?: boolean;
+}): Promise<Result<{ success: boolean }, AuthError | DatabaseError>> {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
+		const targetUserId = authResult.data.userId;
+
 		const updateData: {
 			pushNotificationsEnabled?: boolean;
 			emailNotificationsEnabled?: boolean;
@@ -141,7 +156,7 @@ export async function updateNotificationPreferences(
 
 		await prisma.user.update({
 			data: updateData,
-			where: { id: userId }
+			where: { id: targetUserId }
 		});
 
 		return success({ success: true });
@@ -151,12 +166,17 @@ export async function updateNotificationPreferences(
 	}
 }
 
-export async function getNotificationPreferences(
-	userId: string
-): Promise<Result<{ pushEnabled: boolean; emailEnabled: boolean }, DatabaseError>> {
+export async function getNotificationPreferences(): Promise<
+	Result<{ pushEnabled: boolean; emailEnabled: boolean }, AuthError | DatabaseError>
+> {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
+		const targetUserId = authResult.data.userId;
+
 		const user = await prisma.user.findUnique({
-			where: { id: userId },
+			where: { id: targetUserId },
 			select: {
 				pushNotificationsEnabled: true,
 				emailNotificationsEnabled: true

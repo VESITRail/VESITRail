@@ -45,7 +45,7 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 				return;
 			}
 
-			const allRolesResult = await checkAllUserRoles(session.data.user.id);
+			const allRolesResult = await checkAllUserRoles();
 
 			if (isFailure(allRolesResult)) {
 				toast.error("Access Verification Failed", {
@@ -69,7 +69,7 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 				setShowRoleSelection(false);
 			}
 
-			const result = await checkUserRole(session.data.user.id);
+			const result = await checkUserRole();
 
 			if (isFailure(result)) {
 				toast.error("Access Verification Failed", {

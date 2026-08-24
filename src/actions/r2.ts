@@ -1,9 +1,21 @@
 "use server";
 
+import {
+	Result,
+	success,
+	failure,
+	AuthError,
+	authError,
+	databaseError,
+	DatabaseError,
+	validationError,
+	ValidationError
+} from "@/lib/result";
 import { nanoid } from "nanoid";
+import prisma from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-guard";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Client, DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { Result, success, failure, AuthError, authError, databaseError, DatabaseError } from "@/lib/result";
 
 const r2Client = new S3Client({
 	region: "auto",
@@ -30,10 +42,49 @@ export type R2UploadUrl = {
 	uploadUrl: string;
 };
 
-export const deleteR2File = async (key: string): Promise<Result<DeleteR2File, AuthError | DatabaseError>> => {
+export const deleteR2File = async (
+	key: string
+): Promise<Result<DeleteR2File, AuthError | DatabaseError | ValidationError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
 		if (!key) {
-			return failure(authError("File key is required"));
+			return failure(validationError("File key is required"));
+		}
+
+		if (!/^[a-zA-Z0-9_-]+\.pdf$/.test(key)) {
+			return failure(validationError("Invalid file key format"));
+		}
+
+		const admin = await prisma.admin.findUnique({
+			where: { userId: authResult.data.userId },
+			select: { isActive: true }
+		});
+
+		const isAdmin = admin?.isActive === true;
+
+		if (!isAdmin) {
+			const [otherStudentDoc, otherAddressChangeDoc] = await Promise.all([
+				prisma.student.findFirst({
+					where: {
+						verificationDocUrl: { contains: key },
+						userId: { not: authResult.data.userId }
+					},
+					select: { userId: true }
+				}),
+				prisma.addressChange.findFirst({
+					where: {
+						verificationDocUrl: { contains: key },
+						studentId: { not: authResult.data.userId }
+					},
+					select: { id: true }
+				})
+			]);
+
+			if (otherStudentDoc || otherAddressChangeDoc) {
+				return failure(authError("You do not have permission to delete this file", "FORBIDDEN"));
+			}
 		}
 
 		const command = new DeleteObjectCommand({
@@ -53,10 +104,19 @@ export const deleteR2File = async (key: string): Promise<Result<DeleteR2File, Au
 	}
 };
 
-export const getUploadUrl = async (fileType: string): Promise<Result<R2UploadUrl, AuthError | DatabaseError>> => {
+export const getUploadUrl = async (
+	fileType: string
+): Promise<Result<R2UploadUrl, AuthError | DatabaseError | ValidationError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
 		if (!fileType) {
-			return failure(authError("File type is required"));
+			return failure(validationError("File type is required"));
+		}
+
+		if (fileType !== "application/pdf") {
+			return failure(validationError("Only PDF files are allowed"));
 		}
 
 		const key = `${nanoid()}.pdf`;

@@ -40,7 +40,7 @@ const Preferences = () => {
 
 			try {
 				const [preferencesResult, classesResult, periodsResult] = await Promise.all([
-					getStudentPreferences(data.user.id),
+					getStudentPreferences(),
 					getConcessionClasses(),
 					getConcessionPeriods()
 				]);
@@ -98,7 +98,7 @@ const Preferences = () => {
 			preferredConcessionPeriodId: selectedPeriodId
 		};
 
-		const submissionPromise = updateStudentPreferences(data.user.id, updateData);
+		const submissionPromise = updateStudentPreferences(updateData);
 
 		toast.promise(submissionPromise, {
 			loading: "Updating your preferences...",

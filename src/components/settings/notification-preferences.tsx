@@ -39,7 +39,7 @@ const NotificationPreferences = () => {
 			}
 
 			try {
-				const result = await getNotificationPreferences(data.user.id);
+				const result = await getNotificationPreferences();
 
 				if (result.isSuccess) {
 					setPushNotificationsEnabled(result.data.pushEnabled);
@@ -138,7 +138,7 @@ const NotificationPreferences = () => {
 			posthog.capture("notification_preference_toggled", { preference_type: "email", enabled });
 
 			toast.promise(
-				updateNotificationPreferences(data.user.id, { emailEnabled: enabled }).then((result) => {
+				updateNotificationPreferences({ emailEnabled: enabled }).then((result) => {
 					if (!result.isSuccess) {
 						setEmailNotificationsEnabled(previousValue);
 						throw new Error("Failed to update preferences");

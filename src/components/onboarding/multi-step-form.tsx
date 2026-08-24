@@ -137,7 +137,7 @@ const MultiStepForm = () => {
 			if (isPending || !session?.user?.id) return;
 
 			try {
-				const result = await getExistingStudentData(session.user.id);
+				const result = await getExistingStudentData();
 
 				if (isFailure(result)) {
 					console.error("Failed to load existing data:", result.error);
@@ -184,7 +184,7 @@ const MultiStepForm = () => {
 					}
 				} else {
 					if (session.user.email) {
-						const legacyResult = await getLegacyStudentByEmail(session.user.email);
+						const legacyResult = await getLegacyStudentByEmail();
 
 						if (legacyResult.isSuccess && legacyResult.data) {
 							setLegacyStudentData(legacyResult.data);
@@ -218,7 +218,7 @@ const MultiStepForm = () => {
 		};
 
 		loadExistingData();
-	}, [session?.user?.id, isPending]);
+	}, [session?.user?.id, session?.user?.email, isPending]);
 
 	useEffect(() => {
 		if (stepsContainerRef.current && activeStepRef.current) {

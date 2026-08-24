@@ -497,7 +497,7 @@ const ApplicationsTable = ({
 		setIsApproving(true);
 
 		const approvePromise = async () => {
-			const result = await reviewConcessionApplication(selectedApplication.id, adminId, "Approved");
+			const result = await reviewConcessionApplication(selectedApplication.id, "Approved");
 
 			if (result.isSuccess) {
 				const updatedApplication: AdminApplication = {
@@ -538,7 +538,7 @@ const ApplicationsTable = ({
 	const confirmApprove = async (applicationId: string, bookletId: string, pageOffset: number) => {
 		const targetApplication = selectedApplication;
 		const approvePromise = async () => {
-			const result = await assignBookletToConcession(applicationId, adminId, bookletId, pageOffset);
+			const result = await assignBookletToConcession(applicationId, bookletId, pageOffset);
 
 			if (result.isSuccess) {
 				const updatedApplication: AdminApplication = {
@@ -592,7 +592,7 @@ const ApplicationsTable = ({
 		setIsRejecting(true);
 
 		const rejectPromise = async () => {
-			const result = await reviewConcessionApplication(selectedApplication.id, adminId, "Rejected", finalReason);
+			const result = await reviewConcessionApplication(selectedApplication.id, "Rejected", finalReason);
 
 			if (result.isSuccess) {
 				const updatedApplication = {
