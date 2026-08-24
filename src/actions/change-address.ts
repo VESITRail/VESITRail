@@ -2,25 +2,29 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireStudent } from "@/lib/auth-guard";
 import { Student, Station, AddressChange } from "@/generated/zod";
 import { Result, failure, success, AppError, authError, databaseError, validationError } from "@/lib/result";
 
 export type AddressChangeData = Pick<
 	AddressChange,
-	"studentId" | "newAddress" | "newStationId" | "currentAddress" | "currentStationId" | "verificationDocUrl"
+	"newAddress" | "newStationId" | "currentAddress" | "currentStationId" | "verificationDocUrl"
 >;
 
 export type StudentAddressAndStation = Pick<Student, "address"> & {
 	station: Pick<Station, "id" | "code" | "name">;
 };
 
-export const getStudentAddressAndStation = async (
-	studentId: string
-): Promise<Result<StudentAddressAndStation, AppError>> => {
+export const getStudentAddressAndStation = async (): Promise<Result<StudentAddressAndStation, AppError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
+		const targetStudentId = studentResult.data.studentId;
+
 		const student = await prisma.student.findUnique({
 			where: {
-				userId: studentId
+				userId: targetStudentId
 			},
 			select: {
 				status: true,
@@ -55,27 +59,19 @@ export const getStudentAddressAndStation = async (
 export const submitAddressChangeApplication = async (
 	data: AddressChangeData
 ): Promise<Result<AddressChange, AppError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
+		const targetStudentId = studentResult.data.studentId;
+
 		if (data.newStationId === data.currentStationId) {
 			return failure(validationError("New station cannot be the same as current station", "newStationId"));
 		}
 
-		const student = await prisma.student.findUnique({
-			select: { status: true },
-			where: { userId: data.studentId }
-		});
-
-		if (!student) {
-			return failure(databaseError("Student not found"));
-		}
-
-		if (student.status !== "Approved") {
-			return failure(authError("Student is not approved", "FORBIDDEN"));
-		}
-
 		const existingApplication = await prisma.addressChange.findFirst({
 			where: {
-				studentId: data.studentId
+				studentId: targetStudentId
 			},
 			orderBy: {
 				createdAt: "desc"
@@ -89,7 +85,7 @@ export const submitAddressChangeApplication = async (
 				data: {
 					status: "Pending",
 					submissionCount: 1,
-					studentId: data.studentId,
+					studentId: targetStudentId,
 					newAddress: data.newAddress,
 					newStationId: data.newStationId,
 					currentAddress: data.currentAddress,
@@ -126,26 +122,16 @@ export const submitAddressChangeApplication = async (
 	}
 };
 
-export const getLastAddressChangeApplication = async (
-	studentId: string
-): Promise<Result<AddressChange | null, AppError>> => {
+export const getLastAddressChangeApplication = async (): Promise<Result<AddressChange | null, AppError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
-		const student = await prisma.student.findUnique({
-			select: { status: true },
-			where: { userId: studentId }
-		});
-
-		if (!student) {
-			return failure(databaseError("Student not found"));
-		}
-
-		if (student.status !== "Approved") {
-			return failure(authError("Student is not approved", "FORBIDDEN"));
-		}
+		const targetStudentId = studentResult.data.studentId;
 
 		const lastApplication = await prisma.addressChange.findFirst({
 			where: {
-				studentId: studentId
+				studentId: targetStudentId
 			},
 			include: {
 				newStation: {

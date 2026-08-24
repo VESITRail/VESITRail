@@ -14,6 +14,7 @@ import {
 import prisma from "@/lib/prisma";
 import { deleteR2File } from "./r2";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth-guard";
 import type { Prisma } from "@/generated/prisma/client";
 import { sendAddressChangeNotification } from "@/lib/notifications";
 import { AddressChange, AddressChangeStatusType } from "@/generated/zod";
@@ -95,7 +96,10 @@ export type AddressChangeRequestPaginationParams = {
 
 export const getAddressChangeRequests = async (
 	params: AddressChangeRequestPaginationParams
-): Promise<Result<PaginatedAddressChangeRequestsResult, DatabaseError>> => {
+): Promise<Result<PaginatedAddressChangeRequestsResult, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const { page, pageSize, statusFilter, searchQuery } = params;
 		const skip = (page - 1) * pageSize;
@@ -265,27 +269,18 @@ export const getAddressChangeRequests = async (
 
 export const reviewAddressChangeRequest = async (
 	requestId: string,
-	adminId: string,
 	status: "Approved" | "Rejected",
 	rejectionReason?: string
 ): Promise<Result<AddressChange, DatabaseError | ValidationError | AuthError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		if (status === "Rejected" && (!rejectionReason || !rejectionReason.trim())) {
 			return failure(validationError("Rejection reason is required when rejecting", "rejectionReason"));
 		}
 
-		const admin = await prisma.admin.findUnique({
-			where: { userId: adminId },
-			select: { isActive: true }
-		});
-
-		if (!admin) {
-			return failure(authError("Admin not found"));
-		}
-
-		if (!admin.isActive) {
-			return failure(authError("Admin account is not active"));
-		}
+		const verifiedAdminId = adminResult.data.userId;
 
 		const addressChangeRequest = await prisma.addressChange.findUnique({
 			where: { id: requestId },
@@ -307,8 +302,8 @@ export const reviewAddressChangeRequest = async (
 				where: { id: requestId },
 				data: {
 					status,
-					reviewedById: adminId,
 					reviewedAt: new Date(),
+					reviewedById: verifiedAdminId,
 					rejectionReason: status === "Rejected" ? rejectionReason?.trim() : null
 				},
 				include: {
@@ -325,13 +320,18 @@ export const reviewAddressChangeRequest = async (
 				const oldVerificationDocUrl = addressChangeRequest.student.verificationDocUrl;
 
 				if (oldVerificationDocUrl) {
+					const isR2Url = process.env.R2_PUBLIC_URL && oldVerificationDocUrl.startsWith(process.env.R2_PUBLIC_URL);
 					const urlParts = oldVerificationDocUrl.split("/");
 					const fileKey = urlParts[urlParts.length - 1];
+					const isValidKey = /^[a-zA-Z0-9_-]+\.pdf$/.test(fileKey);
 
-					const deleteResult = await deleteR2File(fileKey);
-
-					if (!deleteResult.isSuccess) {
-						console.error("Failed to delete old verification document:", deleteResult.error);
+					if (isR2Url && isValidKey) {
+						const deleteResult = await deleteR2File(fileKey);
+						if (!deleteResult.isSuccess) {
+							console.error("Failed to delete old verification document:", deleteResult.error);
+						}
+					} else {
+						console.warn("Skipping R2 deletion for untrusted URL or invalid file key:", oldVerificationDocUrl);
 					}
 				}
 
@@ -381,7 +381,10 @@ export const reviewAddressChangeRequest = async (
 
 export const getAddressChangeRequestDetails = async (
 	requestId: string
-): Promise<Result<AddressChangeRequestItem, DatabaseError | ValidationError>> => {
+): Promise<Result<AddressChangeRequestItem, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const request = await prisma.addressChange.findUnique({
 			where: { id: requestId },
