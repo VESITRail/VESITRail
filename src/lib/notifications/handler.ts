@@ -1,7 +1,6 @@
 import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import { getMessaging } from "firebase-admin/messaging";
-import { getNotificationPreferences } from "@/actions/settings";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getNotificationScenario, type NotificationScenario } from "./scenarios";
 import { generateEmailTemplate, type EmailTemplateParams } from "./email-templates";
@@ -68,7 +67,9 @@ export const sendNotification = async (payload: NotificationPayload): Promise<Re
 				user: {
 					select: {
 						name: true,
-						email: true
+						email: true,
+						pushNotificationsEnabled: true,
+						emailNotificationsEnabled: true
 					}
 				}
 			}
@@ -79,14 +80,8 @@ export const sendNotification = async (payload: NotificationPayload): Promise<Re
 			return failure(validationError("Student not found"));
 		}
 
-		const notificationPrefsResult = await getNotificationPreferences(payload.studentId);
-
-		if (!notificationPrefsResult.isSuccess) {
-			console.error("Failed to get notification preferences:", notificationPrefsResult.error);
-			return failure(notificationPrefsResult.error);
-		}
-
-		const { pushEnabled, emailEnabled } = notificationPrefsResult.data;
+		const pushEnabled = student.user.pushNotificationsEnabled;
+		const emailEnabled = student.user.emailNotificationsEnabled;
 
 		const isStudentNotification = payload.scenarioId.startsWith("student_");
 

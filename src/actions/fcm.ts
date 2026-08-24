@@ -1,36 +1,37 @@
 "use server";
 
+import {
+	Result,
+	success,
+	failure,
+	AuthError,
+	databaseError,
+	DatabaseError,
+	validationError,
+	ValidationError
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-guard";
 import { FcmPlatformType } from "@/generated/zod";
-import { Result, success, failure, databaseError, DatabaseError, validationError, ValidationError } from "@/lib/result";
 
 export type FcmTokenData = {
 	token: string;
-	userId: string;
 	deviceId?: string;
 	platform: FcmPlatformType;
 };
 
 export const saveFcmToken = async (
 	data: FcmTokenData
-): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
+): Promise<Result<{ success: boolean }, AuthError | DatabaseError | ValidationError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
 		if (!data.token?.trim()) {
 			return failure(validationError("FCM token is required"));
 		}
 
-		if (!data.userId?.trim()) {
-			return failure(validationError("User ID is required"));
-		}
-
-		const user = await prisma.user.findUnique({
-			select: { id: true },
-			where: { id: data.userId }
-		});
-
-		if (!user) {
-			return failure(validationError("User not found"));
-		}
+		const targetUserId = authResult.data.userId;
 
 		await prisma.$transaction(async (tx) => {
 			await tx.fcmToken.deleteMany({
@@ -41,13 +42,13 @@ export const saveFcmToken = async (
 				await tx.fcmToken.upsert({
 					where: {
 						userId_deviceId: {
-							userId: data.userId,
+							userId: targetUserId,
 							deviceId: data.deviceId
 						}
 					},
 					create: {
 						token: data.token,
-						userId: data.userId,
+						userId: targetUserId,
 						platform: data.platform,
 						deviceId: data.deviceId
 					},
@@ -61,14 +62,14 @@ export const saveFcmToken = async (
 					data: {
 						deviceId: null,
 						token: data.token,
-						userId: data.userId,
+						userId: targetUserId,
 						platform: data.platform
 					}
 				});
 			}
 
 			await tx.user.update({
-				where: { id: data.userId },
+				where: { id: targetUserId },
 				data: { pushNotificationsEnabled: true }
 			});
 		});
@@ -80,16 +81,17 @@ export const saveFcmToken = async (
 	}
 };
 
-export const disablePushNotifications = async (
-	userId: string
-): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
+export const disablePushNotifications = async (): Promise<
+	Result<{ success: boolean }, AuthError | DatabaseError | ValidationError>
+> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
-		if (!userId?.trim()) {
-			return failure(validationError("User ID is required"));
-		}
+		const targetUserId = authResult.data.userId;
 
 		await prisma.user.update({
-			where: { id: userId },
+			where: { id: targetUserId },
 			data: { pushNotificationsEnabled: false }
 		});
 
@@ -101,21 +103,21 @@ export const disablePushNotifications = async (
 };
 
 export const removeFcmTokenForDevice = async (
-	userId: string,
 	deviceId: string
-): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
-	try {
-		if (!userId?.trim()) {
-			return failure(validationError("User ID is required"));
-		}
+): Promise<Result<{ success: boolean }, AuthError | DatabaseError | ValidationError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
 
+	try {
 		if (!deviceId?.trim()) {
 			return failure(validationError("Device ID is required"));
 		}
 
+		const targetUserId = authResult.data.userId;
+
 		await prisma.fcmToken.deleteMany({
 			where: {
-				userId,
+				userId: targetUserId,
 				deviceId
 			}
 		});
@@ -128,16 +130,16 @@ export const removeFcmTokenForDevice = async (
 };
 
 export const updatePushNotificationStatus = async (
-	userId: string,
 	enabled: boolean
-): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
+): Promise<Result<{ success: boolean }, AuthError | DatabaseError | ValidationError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
-		if (!userId?.trim()) {
-			return failure(validationError("User ID is required"));
-		}
+		const targetUserId = authResult.data.userId;
 
 		await prisma.user.update({
-			where: { id: userId },
+			where: { id: targetUserId },
 			data: { pushNotificationsEnabled: enabled }
 		});
 

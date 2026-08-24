@@ -4,9 +4,10 @@ import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { toTitleCase } from "@/lib/utils";
 import { subMonths, subYears } from "date-fns";
+import { requireAdmin } from "@/lib/auth-guard";
 import { format, toZonedTime } from "date-fns-tz";
 import autoTable, { UserOptions } from "jspdf-autotable";
-import { Result, success, failure, databaseError, type DatabaseError } from "@/lib/result";
+import { Result, success, failure, AuthError, databaseError, type DatabaseError } from "@/lib/result";
 
 declare module "jspdf" {
 	interface jsPDF {
@@ -192,7 +193,10 @@ const fetchAdminAnalyticsRaw = async (timeRange: TimeRangeFilter, searchQuery?: 
 
 export const getAdminAnalytics = async (
 	params: AnalyticsPaginationParams
-): Promise<Result<PaginatedAnalyticsResult, DatabaseError>> => {
+): Promise<Result<PaginatedAnalyticsResult, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const { timeRange, searchQuery, page = 1, pageSize = 10 } = params;
 		const { combinedStats, filteredContributions } = await fetchAdminAnalyticsRaw(timeRange, searchQuery);
@@ -224,7 +228,10 @@ export type ExportAnalyticsPDFParams = {
 
 export const generateAdminAnalyticsPDF = async (
 	params: ExportAnalyticsPDFParams
-): Promise<Result<string, DatabaseError>> => {
+): Promise<Result<string, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const { timeRange, searchQuery } = params;
 		const { combinedStats, filteredContributions } = await fetchAdminAnalyticsRaw(timeRange, searchQuery);

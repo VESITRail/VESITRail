@@ -1,8 +1,9 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { requireStudent } from "@/lib/auth-guard";
 import { sortByRomanKey, sortByYearOrder } from "@/lib/utils";
-import { Result, success, failure, databaseError, DatabaseError } from "@/lib/result";
+import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 import { Year, Class, Branch, Station, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
 
 export type StudentStation = Pick<Station, "id" | "code" | "name">;
@@ -12,10 +13,15 @@ export type StudentPreferences = {
 	preferredConcessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
 };
 
-export const getStudentPreferences = async (studentId: string): Promise<Result<StudentPreferences, DatabaseError>> => {
+export const getStudentPreferences = async (): Promise<Result<StudentPreferences, AuthError | DatabaseError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
+		const targetStudentId = studentResult.data.studentId;
+
 		const student = await prisma.student.findUnique({
-			where: { userId: studentId },
+			where: { userId: targetStudentId },
 			select: {
 				status: true,
 				preferredConcessionClass: {
@@ -136,10 +142,15 @@ export const getConcessionPeriods = async (): Promise<Result<ConcessionPeriod[],
 	}
 };
 
-export const getStudentStation = async (studentId: string): Promise<Result<StudentStation, DatabaseError>> => {
+export const getStudentStation = async (): Promise<Result<StudentStation, AuthError | DatabaseError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
+		const targetStudentId = studentResult.data.studentId;
+
 		const student = await prisma.student.findUnique({
-			where: { userId: studentId },
+			where: { userId: targetStudentId },
 			select: {
 				status: true,
 				station: {

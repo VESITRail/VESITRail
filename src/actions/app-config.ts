@@ -1,11 +1,15 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { Result, success, failure, databaseError, DatabaseError } from "@/lib/result";
+import { requireAdmin, requireAuth } from "@/lib/auth-guard";
+import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 
 const FORM_LAYOUT_KEY = "form_layout";
 
-export async function getFormLayoutConfig(): Promise<Result<Record<string, unknown>, DatabaseError>> {
+export async function getFormLayoutConfig(): Promise<Result<Record<string, unknown>, AuthError | DatabaseError>> {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
 		const config = await prisma.appConfig.findUnique({
 			where: { key: FORM_LAYOUT_KEY }
@@ -27,7 +31,10 @@ export async function getFormLayoutConfig(): Promise<Result<Record<string, unkno
 
 export async function updateFormLayoutConfig(
 	configData: Record<string, unknown>
-): Promise<Result<{ success: boolean }, DatabaseError>> {
+): Promise<Result<{ success: boolean }, AuthError | DatabaseError>> {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		await prisma.appConfig.upsert({
 			where: { key: FORM_LAYOUT_KEY },

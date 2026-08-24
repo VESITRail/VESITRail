@@ -1,8 +1,9 @@
 "use server";
 
-import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 import prisma from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-guard";
 import { StudentApprovalStatusType } from "@/generated/zod";
+import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 
 export type UserRole = {
 	rejectionReason?: string;
@@ -22,10 +23,15 @@ export type UserRoles = {
 	};
 };
 
-export const checkUserRole = async (userId: string): Promise<Result<UserRole, AuthError | DatabaseError>> => {
+export const checkUserRole = async (): Promise<Result<UserRole, AuthError | DatabaseError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
+		const targetUserId = authResult.data.userId;
+
 		const admin = await prisma.admin.findUnique({
-			where: { userId },
+			where: { userId: targetUserId },
 			select: { isActive: true }
 		});
 
@@ -41,7 +47,7 @@ export const checkUserRole = async (userId: string): Promise<Result<UserRole, Au
 		}
 
 		const student = await prisma.student.findUnique({
-			where: { userId },
+			where: { userId: targetUserId },
 			select: {
 				status: true,
 				rejectionReason: true,
@@ -68,15 +74,20 @@ export const checkUserRole = async (userId: string): Promise<Result<UserRole, Au
 	}
 };
 
-export const checkAllUserRoles = async (userId: string): Promise<Result<UserRoles, AuthError | DatabaseError>> => {
+export const checkAllUserRoles = async (): Promise<Result<UserRoles, AuthError | DatabaseError>> => {
+	const authResult = await requireAuth();
+	if (!authResult.isSuccess) return authResult;
+
 	try {
+		const targetUserId = authResult.data.userId;
+
 		const [admin, student] = await Promise.all([
 			prisma.admin.findUnique({
-				where: { userId },
+				where: { userId: targetUserId },
 				select: { isActive: true }
 			}),
 			prisma.student.findUnique({
-				where: { userId },
+				where: { userId: targetUserId },
 				select: {
 					status: true,
 					rejectionReason: true,

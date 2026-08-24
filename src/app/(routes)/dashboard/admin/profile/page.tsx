@@ -26,7 +26,7 @@ const AdminProfilePage = () => {
 			try {
 				setIsLoading(true);
 
-				const result = await getAdminProfile(session.data.user.id);
+				const result = await getAdminProfile();
 
 				if (result.isSuccess) {
 					setProfileData(result.data);

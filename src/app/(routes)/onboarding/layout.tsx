@@ -25,7 +25,7 @@ const OnboardingLayoutContent = ({ children }: { children: React.ReactNode }) =>
 			hasCheckedRef.current = true;
 
 			try {
-				const result = await checkAllUserRoles(session.data.user.id);
+				const result = await checkAllUserRoles();
 
 				if (isFailure(result)) {
 					console.error("Failed to check user roles:", result.error);

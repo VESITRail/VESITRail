@@ -1,8 +1,9 @@
 "use server";
 
+import prisma from "@/lib/prisma";
+import { requireAdmin, requireStudent } from "@/lib/auth-guard";
 import { Result, success, failure, AuthError, authError, DatabaseError, databaseError } from "@/lib/result";
 import { Year, User, Class, Admin, Branch, Student, Station, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
-import prisma from "@/lib/prisma";
 
 export type AdminProfile = Admin & {
 	user: User;
@@ -21,13 +22,16 @@ export type StudentProfile = Student & {
 	preferredConcessionPeriod: ConcessionPeriod;
 };
 
-export const getStudentProfile = async (
-	studentId: string
-): Promise<Result<StudentProfile, AuthError | DatabaseError>> => {
+export const getStudentProfile = async (): Promise<Result<StudentProfile, AuthError | DatabaseError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
+		const targetStudentId = studentResult.data.studentId;
+
 		const student = await prisma.student.findUnique({
 			where: {
-				userId: studentId
+				userId: targetStudentId
 			},
 			include: {
 				class: {
@@ -57,11 +61,16 @@ export const getStudentProfile = async (
 	}
 };
 
-export const getAdminProfile = async (adminId: string): Promise<Result<AdminProfile, AuthError | DatabaseError>> => {
+export const getAdminProfile = async (): Promise<Result<AdminProfile, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
+		const targetAdminId = adminResult.data.userId;
+
 		const admin = await prisma.admin.findUnique({
 			where: {
-				userId: adminId
+				userId: targetAdminId
 			},
 			include: {
 				user: true
@@ -79,17 +88,17 @@ export const getAdminProfile = async (adminId: string): Promise<Result<AdminProf
 		const [studentsCount, applicationsCount, addressChangesCount] = await Promise.all([
 			prisma.student.count({
 				where: {
-					reviewedById: adminId
+					reviewedById: targetAdminId
 				}
 			}),
 			prisma.concessionApplication.count({
 				where: {
-					reviewedById: adminId
+					reviewedById: targetAdminId
 				}
 			}),
 			prisma.addressChange.count({
 				where: {
-					reviewedById: adminId
+					reviewedById: targetAdminId
 				}
 			})
 		]);
