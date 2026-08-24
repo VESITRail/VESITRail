@@ -4,6 +4,7 @@ import {
 	Result,
 	success,
 	failure,
+	AuthError,
 	databaseError,
 	validationError,
 	type DatabaseError,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth-guard";
 import type { Prisma } from "@/generated/prisma/client";
 import { sendStudentAccountNotification } from "@/lib/notifications";
 import type { Student, StudentApprovalStatusType } from "@/generated/zod";
@@ -140,7 +142,10 @@ export type StudentPaginationParams = {
 
 export const getStudents = async (
 	params: StudentPaginationParams
-): Promise<Result<PaginatedStudentsResult, DatabaseError>> => {
+): Promise<Result<PaginatedStudentsResult, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const { page, pageSize, statusFilter, searchQuery } = params;
 		const skip = (page - 1) * pageSize;
@@ -324,7 +329,10 @@ export const getStudents = async (
 
 export const getStudentDetails = async (
 	studentId: string
-): Promise<Result<StudentDetails, DatabaseError | ValidationError>> => {
+): Promise<Result<StudentDetails, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const student = await prisma.student.findUnique({
 			where: { userId: studentId },
@@ -419,12 +427,14 @@ export const getStudentDetails = async (
 
 export type ApproveStudentData = {
 	studentId: string;
-	reviewedById: string;
 };
 
 export const approveStudent = async (
 	data: ApproveStudentData
-): Promise<Result<StudentDetails, DatabaseError | ValidationError>> => {
+): Promise<Result<StudentDetails, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const student = await prisma.student.findUnique({
 			select: { status: true },
@@ -445,7 +455,7 @@ export const approveStudent = async (
 				status: "Approved",
 				rejectionReason: null,
 				reviewedAt: new Date(),
-				reviewedById: data.reviewedById
+				reviewedById: adminResult.data.userId
 			},
 			select: {
 				userId: true,
@@ -538,13 +548,15 @@ export const approveStudent = async (
 
 export type RejectStudentData = {
 	studentId: string;
-	reviewedById: string;
 	rejectionReason: string;
 };
 
 export const rejectStudent = async (
 	data: RejectStudentData
-): Promise<Result<StudentDetails, DatabaseError | ValidationError>> => {
+): Promise<Result<StudentDetails, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		if (!data.rejectionReason || data.rejectionReason.trim().length === 0) {
 			return failure(validationError("Rejection reason is required"));
@@ -568,7 +580,7 @@ export const rejectStudent = async (
 			data: {
 				status: "Rejected",
 				reviewedAt: new Date(),
-				reviewedById: data.reviewedById,
+				reviewedById: adminResult.data.userId,
 				rejectionReason: data.rejectionReason.trim()
 			},
 			select: {
