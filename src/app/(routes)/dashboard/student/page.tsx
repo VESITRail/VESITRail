@@ -61,7 +61,7 @@ const Student = () => {
 						: filters.applicationType || typeFilter) as ConcessionApplicationTypeType
 				};
 
-				const result = await getConcessions(data.user.id, params);
+				const result = await getConcessions(params);
 
 				if (result.isSuccess) {
 					setPaginationData(result.data);

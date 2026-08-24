@@ -8,11 +8,21 @@ import {
 	ConcessionApplication,
 	ConcessionBookletStatusType
 } from "@/generated/zod";
+import {
+	Result,
+	success,
+	failure,
+	AuthError,
+	databaseError,
+	DatabaseError,
+	validationError,
+	ValidationError
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth-guard";
 import type { Prisma } from "@/generated/prisma/client";
 import { calculateSerialEndNumber, calculateBookletStatus } from "@/lib/utils";
-import { Result, success, failure, databaseError, DatabaseError, validationError, ValidationError } from "@/lib/result";
 
 export type CreateBookletInput = {
 	anchorX: number;
@@ -108,7 +118,10 @@ export type AvailableBooklet = Pick<
 
 export const createBooklet = async (
 	data: CreateBookletInput
-): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+): Promise<Result<BookletItem, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const serialStartNumber = data.serialStartNumber.toUpperCase().replace(/\s+/g, "");
 
@@ -161,7 +174,10 @@ export const createBooklet = async (
 
 export const getBooklets = async (
 	params: BookletPaginationParams
-): Promise<Result<PaginatedBookletsResult, DatabaseError>> => {
+): Promise<Result<PaginatedBookletsResult, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const { page, pageSize, statusFilter, searchQuery } = params;
 		const skip = (page - 1) * pageSize;
@@ -282,7 +298,10 @@ export const getBooklets = async (
 
 export const deleteBooklet = async (
 	bookletId: string
-): Promise<Result<{ success: boolean }, DatabaseError | ValidationError>> => {
+): Promise<Result<{ success: boolean }, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const booklet = await prisma.concessionBooklet.findUnique({
 			where: { id: bookletId },
@@ -318,7 +337,10 @@ export const deleteBooklet = async (
 export const updateBooklet = async (
 	bookletId: string,
 	data: UpdateBookletInput
-): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+): Promise<Result<BookletItem, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const existingBooklet = await prisma.concessionBooklet.findUnique({
 			where: { id: bookletId },
@@ -407,7 +429,12 @@ export const updateBooklet = async (
 	}
 };
 
-export const getBooklet = async (bookletId: string): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+export const getBooklet = async (
+	bookletId: string
+): Promise<Result<BookletItem, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const booklet = await prisma.concessionBooklet.findUnique({
 			where: { id: bookletId },
@@ -434,7 +461,10 @@ export const getBooklet = async (bookletId: string): Promise<Result<BookletItem,
 export const getBookletApplications = async (
 	bookletId: string,
 	params: BookletApplicationPaginationParams
-): Promise<Result<PaginatedBookletApplicationsResult, DatabaseError | ValidationError>> => {
+): Promise<Result<PaginatedBookletApplicationsResult, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const booklet = await prisma.concessionBooklet.findUnique({
 			where: { id: bookletId },
@@ -592,7 +622,10 @@ export const getBookletApplications = async (
 	}
 };
 
-export const getAvailableBooklets = async (): Promise<Result<AvailableBooklet[], DatabaseError>> => {
+export const getAvailableBooklets = async (): Promise<Result<AvailableBooklet[], AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const booklets = await prisma.concessionBooklet.findMany({
 			where: {
@@ -670,7 +703,10 @@ export type AssignedPageStudent = {
 
 export const getBookletAssignedStudents = async (
 	bookletId: string
-): Promise<Result<Record<number, AssignedPageStudent>, DatabaseError>> => {
+): Promise<Result<Record<number, AssignedPageStudent>, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const applications = await prisma.concessionApplication.findMany({
 			where: {
@@ -713,7 +749,10 @@ export const getBookletAssignedStudents = async (
 
 export const recalculateBookletStatus = async (
 	bookletId: string
-): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+): Promise<Result<BookletItem, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const booklet = await prisma.concessionBooklet.findUnique({
 			where: { id: bookletId },
@@ -761,7 +800,12 @@ export const recalculateBookletStatus = async (
 	}
 };
 
-export const recalculateAllBookletStatuses = async (): Promise<Result<{ updated: number }, DatabaseError>> => {
+export const recalculateAllBookletStatuses = async (): Promise<
+	Result<{ updated: number }, AuthError | DatabaseError>
+> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const booklets = await prisma.concessionBooklet.findMany({
 			include: {
@@ -804,7 +848,10 @@ export const updateBookletAnchorCoordinates = async (
 	bookletId: string,
 	anchorX: number,
 	anchorY: number
-): Promise<Result<BookletItem, DatabaseError | ValidationError>> => {
+): Promise<Result<BookletItem, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const booklet = await prisma.concessionBooklet.findUnique({
 			where: { id: bookletId }

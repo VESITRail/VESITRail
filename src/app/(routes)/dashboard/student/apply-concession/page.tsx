@@ -152,10 +152,7 @@ const ConcessionApplicationForm = () => {
 			if (isPending || !data?.user?.id) return;
 
 			try {
-				const [prefResult, stationResult] = await Promise.all([
-					getStudentPreferences(data.user.id),
-					getStudentStation(data.user.id)
-				]);
+				const [prefResult, stationResult] = await Promise.all([getStudentPreferences(), getStudentStation()]);
 
 				if (prefResult.error || stationResult.error) {
 					toast.error("Details Not Loading", {
@@ -195,7 +192,7 @@ const ConcessionApplicationForm = () => {
 			setLoading(true);
 
 			try {
-				const result = await getLastApplication(data.user.id);
+				const result = await getLastApplication();
 
 				if (result.error) {
 					setCanApply(false);

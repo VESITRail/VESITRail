@@ -21,8 +21,8 @@ import {
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { calculateBookletStatus } from "@/lib/utils";
 import type { Prisma } from "@/generated/prisma/client";
+import { requireAdmin, requireStudent } from "@/lib/auth-guard";
 import { sendConcessionNotification } from "@/lib/notifications";
 
 export type Concession =
@@ -66,24 +66,14 @@ export type PaginatedResult<T> = {
 };
 
 export const getConcessions = async (
-	studentId: string,
 	params: PaginationParams
 ): Promise<Result<PaginatedResult<Concession>, AuthError | DatabaseError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
-		const student = await prisma.student.findUnique({
-			select: { status: true },
-			where: { userId: studentId }
-		});
-
-		if (!student) {
-			return failure(authError("Student not found"));
-		}
-
-		if (student.status !== "Approved") {
-			return failure(authError("Student is not approved"));
-		}
-
-		const whereClause: Prisma.ConcessionApplicationWhereInput = { studentId };
+		const targetStudentId = studentResult.data.studentId;
+		const whereClause: Prisma.ConcessionApplicationWhereInput = { studentId: targetStudentId };
 
 		if (params.statusFilter && params.statusFilter !== "all") {
 			whereClause.status = params.statusFilter;
@@ -189,23 +179,15 @@ export const getConcessions = async (
 	}
 };
 
-export const getLastApplication = async (studentId: string): Promise<Result<Concession, AuthError | DatabaseError>> => {
+export const getLastApplication = async (): Promise<Result<Concession, AuthError | DatabaseError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
-		const student = await prisma.student.findUnique({
-			select: { status: true },
-			where: { userId: studentId }
-		});
-
-		if (!student) {
-			return failure(authError("Student not found"));
-		}
-
-		if (student.status !== "Approved") {
-			return failure(authError("Student is not approved"));
-		}
+		const targetStudentId = studentResult.data.studentId;
 
 		const lastApplication = await prisma.concessionApplication.findFirst({
-			where: { studentId },
+			where: { studentId: targetStudentId },
 			orderBy: { createdAt: "desc" },
 			select: {
 				id: true,
@@ -285,20 +267,10 @@ export const getAllApplications = async (
 	adminId: string,
 	params: AdminApplicationParams
 ): Promise<Result<PaginatedResult<AdminApplication>, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
-		const admin = await prisma.admin.findUnique({
-			select: { isActive: true },
-			where: { userId: adminId }
-		});
-
-		if (!admin) {
-			return failure(authError("Admin not found"));
-		}
-
-		if (!admin.isActive) {
-			return failure(authError("Admin is not active"));
-		}
-
 		const whereClause: Prisma.ConcessionApplicationWhereInput = {};
 
 		if (params.statusFilter && params.statusFilter !== "all") {
@@ -503,23 +475,15 @@ export const getAllApplications = async (
 export const submitConcessionApplication = async (
 	data: ConcessionApplicationData
 ): Promise<Result<Concession, AuthError | DatabaseError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
-		const student = await prisma.student.findUnique({
-			select: { status: true },
-			where: { userId: data.studentId }
-		});
-
-		if (!student) {
-			return failure(authError("Student not found"));
-		}
-
-		if (student.status !== "Approved") {
-			return failure(authError("Student is not approved"));
-		}
+		const targetStudentId = studentResult.data.studentId;
 
 		const existingApplication = await prisma.concessionApplication.findFirst({
 			where: {
-				studentId: data.studentId
+				studentId: targetStudentId
 			},
 			orderBy: {
 				createdAt: "desc"
@@ -533,7 +497,7 @@ export const submitConcessionApplication = async (
 				data: {
 					status: "Pending",
 					submissionCount: 1,
-					studentId: data.studentId,
+					studentId: targetStudentId,
 					stationId: data.stationId,
 					applicationType: data.applicationType,
 					concessionClassId: data.concessionClassId,
@@ -700,6 +664,9 @@ export const submitConcessionResubmission = async (
 	applicationId: string,
 	data: Omit<ConcessionApplicationData, "studentId">
 ): Promise<Result<Concession, AuthError | DatabaseError | ValidationError>> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
 	try {
 		const existingApplication = await prisma.concessionApplication.findUnique({
 			where: { id: applicationId },
@@ -708,6 +675,10 @@ export const submitConcessionResubmission = async (
 
 		if (!existingApplication) {
 			return failure(validationError("Application not found", "applicationId"));
+		}
+
+		if (existingApplication.studentId !== studentResult.data.studentId) {
+			return failure(authError("Unauthorized access to application", "FORBIDDEN"));
 		}
 
 		if (existingApplication.status !== "Rejected") {
@@ -807,26 +778,15 @@ export const submitConcessionResubmission = async (
 
 export const reviewConcessionApplication = async (
 	applicationId: string,
-	adminId: string,
 	status: "Approved" | "Rejected",
 	rejectionReason?: string
 ): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		if (status === "Rejected" && (!rejectionReason || !rejectionReason.trim())) {
 			return failure(validationError("Rejection reason is required when rejecting", "rejectionReason"));
-		}
-
-		const admin = await prisma.admin.findUnique({
-			where: { userId: adminId },
-			select: { isActive: true }
-		});
-
-		if (!admin) {
-			return failure(authError("Admin not found"));
-		}
-
-		if (!admin.isActive) {
-			return failure(authError("Admin account is not active"));
 		}
 
 		const application = await prisma.concessionApplication.findUnique({
@@ -845,7 +805,7 @@ export const reviewConcessionApplication = async (
 			where: { id: applicationId },
 			data: {
 				status,
-				reviewedById: adminId,
+				reviewedById: adminResult.data.userId,
 				reviewedAt: new Date(),
 				rejectionReason: status === "Rejected" ? rejectionReason?.trim() : null
 			}
@@ -872,40 +832,32 @@ export const reviewConcessionApplication = async (
 
 export const assignBookletToConcession = async (
 	applicationId: string,
-	adminId: string,
 	bookletId: string,
 	pageOffset: number
 ): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
-		const admin = await prisma.admin.findUnique({
-			where: { userId: adminId },
-			select: { isActive: true }
-		});
-
-		if (!admin) {
-			return failure(authError("Admin not found"));
-		}
-
-		if (!admin.isActive) {
-			return failure(authError("Admin account is not active"));
-		}
-		const application = await prisma.concessionApplication.findUnique({
-			where: { id: applicationId }
-		});
-
-		if (!application) {
-			throw new Error("Application not found");
-		}
-
-		if (application.status !== "Approved" && application.status !== "Pending") {
-			throw new Error("Only approved applications can be assigned a booklet");
-		}
-
-		if (application.concessionBookletId) {
-			throw new Error("Booklet is already assigned to this application");
-		}
+		const verifiedAdminId = adminResult.data.userId;
 
 		const result = await prisma.$transaction(async (tx) => {
+			const application = await tx.concessionApplication.findUnique({
+				where: { id: applicationId }
+			});
+
+			if (!application) {
+				throw new Error("Application not found");
+			}
+
+			if (application.status !== "Approved" && application.status !== "Pending") {
+				throw new Error("Only approved applications can be assigned a booklet");
+			}
+
+			if (application.concessionBookletId) {
+				throw new Error("Booklet is already assigned to this application");
+			}
+
 			const booklet = await tx.concessionBooklet.findUnique({
 				where: { id: bookletId },
 				include: {
@@ -944,16 +896,15 @@ export const assignBookletToConcession = async (
 				where: { id: applicationId },
 				data: {
 					status: "Approved",
+					reviewedAt: new Date(),
 					pageOffset: pageOffset,
-					concessionBookletId: bookletId,
-					reviewedAt: application.reviewedAt || new Date(),
-					reviewedById: application.reviewedById || adminId
+					reviewedById: verifiedAdminId,
+					concessionBookletId: bookletId
 				}
 			});
 
-			const newApplicationCount = booklet.applications.length + 1;
-
-			const newBookletStatus = calculateBookletStatus(newApplicationCount, booklet.totalPages);
+			const newAssignedCount = assignedOffsets.size + 1;
+			const newBookletStatus = newAssignedCount >= booklet.totalPages ? "Exhausted" : "InUse";
 
 			await tx.concessionBooklet.update({
 				where: { id: bookletId },
@@ -966,21 +917,31 @@ export const assignBookletToConcession = async (
 		});
 
 		revalidatePath("/dashboard/admin");
+		revalidatePath(`/dashboard/admin/booklets/${bookletId}`);
+
 		return success(result);
 	} catch (error) {
 		console.error("Error assigning booklet to concession:", error);
-		const errorMessage = error instanceof Error ? error.message : "Failed to assign booklet";
 
-		if (errorMessage.includes("not found")) {
-			return failure(validationError(errorMessage, "applicationId"));
+		if (error instanceof Error) {
+			const errorMessage = error.message;
+
+			if (
+				errorMessage.includes("already assigned") ||
+				errorMessage.includes("already been reviewed") ||
+				errorMessage.includes("exhausted") ||
+				errorMessage.includes("out of bounds")
+			) {
+				return failure(validationError(errorMessage, "pageOffset"));
+			}
+
+			if (errorMessage.includes("not found")) {
+				return failure(validationError(errorMessage, "applicationId"));
+			}
 		}
-		if (errorMessage.includes("already")) {
-			return failure(validationError(errorMessage, "status"));
-		}
-		if (errorMessage.includes("not available") || errorMessage.includes("full")) {
-			return failure(validationError(errorMessage, "bookletId"));
-		}
-		if (errorMessage.includes("Slip number")) {
+
+		if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+			const errorMessage = `Page offset ${pageOffset} is already assigned in this booklet`;
 			return failure(validationError(errorMessage, "pageOffset"));
 		}
 
@@ -990,11 +951,10 @@ export const assignBookletToConcession = async (
 
 export const approveConcessionWithBooklet = async (
 	applicationId: string,
-	adminId: string,
 	bookletId: string,
 	pageOffset: number
 ): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
-	return assignBookletToConcession(applicationId, adminId, bookletId, pageOffset);
+	return assignBookletToConcession(applicationId, bookletId, pageOffset);
 };
 
 export const getConcessionApplicationDetails = async (
@@ -1005,9 +965,12 @@ export const getConcessionApplicationDetails = async (
 			rejectionReason: string | null;
 			submissionCount: number;
 		},
-		DatabaseError | ValidationError
+		AuthError | DatabaseError | ValidationError
 	>
 > => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
 		const application = await prisma.concessionApplication.findUnique({
 			where: { id: applicationId },
@@ -1108,16 +1071,10 @@ export const getStudentConcessionHistory = async (
 	adminId: string,
 	studentUserId: string
 ): Promise<Result<StudentConcessionHistoryItem[], AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
-		const admin = await prisma.admin.findUnique({
-			select: { isActive: true },
-			where: { userId: adminId }
-		});
-
-		if (!admin || !admin.isActive) {
-			return failure(authError("Unauthorized admin access"));
-		}
-
 		const applications = await prisma.concessionApplication.findMany({
 			where: { studentId: studentUserId },
 			orderBy: { createdAt: "desc" },
