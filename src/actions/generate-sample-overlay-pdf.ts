@@ -2,11 +2,10 @@
 
 import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { PDFDocument, degrees } from "pdf-lib";
+import { requireAdmin } from "@/lib/auth-guard";
 import { formatDateOfBirth, calcAgeFromDob } from "@/lib/utils";
-import { Result, success, failure, authError, AuthError, databaseError, DatabaseError } from "@/lib/result";
+import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 
 type FormLayout = {
 	left: Record<string, { x: number; y: number }>;
@@ -42,19 +41,6 @@ const addMonths = (date: Date, months: number) => {
 	return d;
 };
 
-const calcAge = (dob: Date) => {
-	const today = new Date();
-	const birth = new Date(dob);
-	let years = today.getFullYear() - birth.getFullYear();
-	let months = today.getMonth() - birth.getMonth();
-	if (today.getDate() < birth.getDate()) months--;
-	if (months < 0) {
-		years--;
-		months += 12;
-	}
-	return { years, months };
-};
-
 const SAMPLE_DATA = {
 	gender: "Male",
 	classCode: "II",
@@ -76,23 +62,10 @@ export const generateSampleOverlayPDF = async (
 	anchorX: number,
 	anchorY: number
 ): Promise<Result<string, AuthError | DatabaseError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
 	try {
-		const session = await auth.api.getSession({
-			headers: await headers()
-		});
-
-		if (!session?.user?.id) {
-			return failure(authError("Authentication required", "UNAUTHORIZED"));
-		}
-
-		const admin = await prisma.admin.findUnique({
-			where: { userId: session.user.id }
-		});
-
-		if (!admin) {
-			return failure(authError("Admin access required", "FORBIDDEN"));
-		}
-
 		const config = await prisma.appConfig.findUnique({
 			where: { key: "form_layout" }
 		});
