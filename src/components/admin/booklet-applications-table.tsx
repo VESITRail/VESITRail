@@ -99,6 +99,21 @@ const BookletApplicationsTable = ({
 				}
 			},
 			{
+				size: 80,
+				id: "date",
+				accessorKey: "createdAt",
+				header: () => <div className="text-center">Date</div>,
+				cell: ({ row }) => {
+					const item = row.original;
+
+					if (isDamagedPage(item)) {
+						return null;
+					}
+
+					return <div className="text-center text-sm">{format(new Date(item.createdAt), "dd/MM/yyyy")}</div>;
+				}
+			},
+			{
 				size: 100,
 				id: "certificateNo",
 				header: () => <div className="text-center">Certificate</div>,
@@ -119,21 +134,6 @@ const BookletApplicationsTable = ({
 							</span>
 						</div>
 					);
-				}
-			},
-			{
-				size: 80,
-				id: "date",
-				accessorKey: "createdAt",
-				header: () => <div className="text-center">Date</div>,
-				cell: ({ row }) => {
-					const item = row.original;
-
-					if (isDamagedPage(item)) {
-						return null;
-					}
-
-					return <div className="text-center text-sm">{format(new Date(item.createdAt), "dd/MM/yyyy")}</div>;
 				}
 			},
 			{
@@ -345,10 +345,13 @@ const BookletApplicationsTable = ({
 									{match ? ((parseInt(match[0], 10) - 1) % 50) + 1 : 1}
 								</TableCell>
 								<TableCell className="p-4 text-center align-middle">
+									<span className="text-muted-foreground">-</span>
+								</TableCell>
+								<TableCell className="p-4 text-center align-middle">
 									<span className="font-mono text-sm">{damagedItem.serialNumber}</span>
 								</TableCell>
 								<TableCell
-									colSpan={columns.length - 2}
+									colSpan={columns.length - 3}
 									className="p-4 text-center align-middle font-medium text-destructive"
 								>
 									Cancelled
