@@ -287,52 +287,51 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 				return;
 			}
 
-			const submissionPromise = submitOnboarding({
-				status: "Pending",
-				submissionCount: 1,
-				rejectionReason: null,
-				class: reviewData.class,
-				gender: defaultValues.gender,
-				classId: defaultValues.class,
-				address: defaultValues.address,
-				stationId: defaultValues.station,
-				firstName: defaultValues.firstName,
-				lastName: defaultValues.lastName || null,
-				middleName: defaultValues.middleName || null,
-				verificationDocUrl: defaultValues.verificationDocUrl,
-				preferredConcessionClassId: defaultValues.preferredConcessionClass,
-				preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
-				dateOfBirth: normalizeDob(defaultValues.dateOfBirth) || new Date(defaultValues.dateOfBirth)
-			});
+			const submitPromise = (async () => {
+				const result = await submitOnboarding({
+					status: "Pending",
+					submissionCount: 1,
+					rejectionReason: null,
+					class: reviewData.class,
+					gender: defaultValues.gender,
+					classId: defaultValues.class,
+					address: defaultValues.address,
+					stationId: defaultValues.station,
+					firstName: defaultValues.firstName,
+					lastName: defaultValues.lastName || null,
+					middleName: defaultValues.middleName || null,
+					verificationDocUrl: defaultValues.verificationDocUrl,
+					preferredConcessionClassId: defaultValues.preferredConcessionClass,
+					preferredConcessionPeriodId: defaultValues.preferredConcessionPeriod,
+					dateOfBirth: normalizeDob(defaultValues.dateOfBirth) || new Date(defaultValues.dateOfBirth)
+				});
 
-			toast.promise(submissionPromise, {
-				error: "Failed to submit application",
+				if (!result.isSuccess) {
+					throw new Error(result.error?.message || "Failed to submit application");
+				}
+
+				return result.data;
+			})();
+
+			await toast.promise(submitPromise, {
+				error: (error) => (error instanceof Error ? error.message : "Failed to submit application"),
 				loading: "Submitting your application...",
 				success: "Application submitted successfully! Redirecting..."
 			});
 
-			const result = await submissionPromise;
-
-			if (result.isSuccess) {
-				if (isLegacyStudent) {
-					posthog.capture("onboarding_legacy_auto_approved", {
-						user_id: session.data.user.id,
-						station: reviewData.station.name
-					});
-				}
-				posthog.capture("onboarding_submitted_success", {
-					class: reviewData.class.code,
+			if (isLegacyStudent) {
+				posthog.capture("onboarding_legacy_auto_approved", {
 					user_id: session.data.user.id,
-					station: reviewData.station.name,
-					concession_class: reviewData.concessionClass.name,
-					concession_period: reviewData.concessionPeriod.name
+					station: reviewData.station.name
 				});
-				router.push("/dashboard/student");
 			} else {
-				posthog.capture("onboarding_submitted_failed", {
-					error: result instanceof Error ? result.message : "Unknown error"
+				posthog.capture("onboarding_submitted_success", {
+					user_id: session.data.user.id,
+					station: reviewData.station.name
 				});
 			}
+
+			router.push("/dashboard/student");
 		} catch (error) {
 			posthog.capture("onboarding_submit_error", {
 				error: error instanceof Error ? error.message : "Unknown error"

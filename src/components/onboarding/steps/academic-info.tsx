@@ -208,7 +208,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 									</FormControl>
 									<SelectContent>
 										{years.map((year) => (
-											<SelectItem key={year.id} value={year.id}>
+											<SelectItem key={year.id} value={year.id} isUnavailable={!year.isActive}>
 												{year.name} ({year.code})
 											</SelectItem>
 										))}
@@ -240,7 +240,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 									</FormControl>
 									<SelectContent>
 										{branches.map((branch) => (
-											<SelectItem key={branch.id} value={branch.id}>
+											<SelectItem key={branch.id} value={branch.id} isUnavailable={!branch.isActive}>
 												{branch.name} ({branch.code})
 											</SelectItem>
 										))}
@@ -290,7 +290,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 								</FormControl>
 								<SelectContent>
 									{filteredClasses.map((class_) => (
-										<SelectItem key={class_.id} value={class_.id}>
+										<SelectItem key={class_.id} value={class_.id} isUnavailable={!class_.isActive}>
 											{class_.code}
 										</SelectItem>
 									))}

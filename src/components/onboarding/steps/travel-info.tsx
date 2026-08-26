@@ -239,20 +239,24 @@ const TravelInfo = ({ errors, setFormData, defaultValues, legacyStudentData }: T
 														{stations.map((station) => (
 															<CommandItem
 																key={station.id}
+																isUnavailable={!station.isActive}
 																value={`${station.name} (${station.code})`}
 																onSelect={() => {
+																	if (!station.isActive) return;
 																	handleFieldChange("station", station.id);
 																	setOpen(false);
 																}}
-																className="cursor-pointer"
+																className={cn("cursor-pointer", !station.isActive && "opacity-50 cursor-not-allowed")}
 															>
-																<CheckIcon
-																	className={cn(
-																		"mr-2 h-4 w-4 shrink-0",
-																		field.value === station.id ? "opacity-100" : "opacity-0"
-																	)}
-																/>
-																<span className="truncate">{`${station.name} (${station.code})`}</span>
+																<div className="flex items-center gap-2">
+																	<CheckIcon
+																		className={cn(
+																			"h-4 w-4 shrink-0",
+																			field.value === station.id ? "opacity-100" : "opacity-0"
+																		)}
+																	/>
+																	<span className="truncate">{`${station.name} (${station.code})`}</span>
+																</div>
 															</CommandItem>
 														))}
 													</CommandGroup>
@@ -290,7 +294,11 @@ const TravelInfo = ({ errors, setFormData, defaultValues, legacyStudentData }: T
 										</FormControl>
 										<SelectContent>
 											{concessionClasses.map((concessionClass) => (
-												<SelectItem key={concessionClass.id} value={concessionClass.id}>
+												<SelectItem
+													key={concessionClass.id}
+													value={concessionClass.id}
+													isUnavailable={!concessionClass.isActive}
+												>
 													{concessionClass.name} ({concessionClass.code})
 												</SelectItem>
 											))}
@@ -324,7 +332,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues, legacyStudentData }: T
 										</FormControl>
 										<SelectContent>
 											{concessionPeriods.map((period) => (
-												<SelectItem key={period.id} value={period.id}>
+												<SelectItem key={period.id} value={period.id} isUnavailable={!period.isActive}>
 													{period.name} ({period.duration} {period.duration === 1 ? "month" : "months"})
 												</SelectItem>
 											))}
