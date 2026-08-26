@@ -167,7 +167,7 @@ const AddressChangePage = () => {
 			const result = await getStations();
 
 			if (result.isSuccess) {
-				setStations(result.data.filter((station: Station) => station.isActive));
+				setStations(result.data);
 			} else {
 				toast.error("Stations Not Loading", {
 					description: "Unable to load station data. Please try again."
@@ -563,63 +563,68 @@ const AddressChangePage = () => {
 			verificationDocUrl: formData.verificationDocUrl
 		};
 
-		const submitPromise = submitAddressChangeApplication(submissionData);
 		const isResubmission = lastApplication?.status === "Rejected";
 
-		toast.promise(submitPromise, {
-			loading: isResubmission ? "Resubmitting address change request..." : "Submitting address change request...",
-			error: isResubmission ? "Failed to resubmit address change request" : "Failed to submit address change request",
-			success: isResubmission
-				? "Address change request resubmitted successfully!"
-				: "Address change request submitted successfully!"
-		});
-
 		try {
-			const result = await submitPromise;
+			const submitPromise = (async () => {
+				const result = await submitAddressChangeApplication(submissionData);
+				if (!result.isSuccess) {
+					throw new Error(
+						result.error.message ||
+							(isResubmission ? "Failed to resubmit address change request" : "Failed to submit address change request")
+					);
+				}
+				return result.data;
+			})();
 
-			if (result.isSuccess) {
-				const oldStationObj = stations.find((s) => s.id === student.station.id);
-				const newStationObj = stations.find((s) => s.id === formData.newStationId);
+			toast.promise(submitPromise, {
+				loading: isResubmission ? "Resubmitting address change request..." : "Submitting address change request...",
+				error: (error) =>
+					error instanceof Error
+						? error.message
+						: isResubmission
+							? "Failed to resubmit address change request"
+							: "Failed to submit address change request",
+				success: isResubmission
+					? "Address change request resubmitted successfully!"
+					: "Address change request submitted successfully!"
+			});
 
-				posthog.capture("address_change_submitted_success", {
-					old_station: oldStationObj ? `${oldStationObj.name} (${oldStationObj.code})` : student.station.id,
-					new_station: newStationObj ? `${newStationObj.name} (${newStationObj.code})` : formData.newStationId
-				});
+			const oldStationObj = stations.find((s) => s.id === student.station.id);
+			const newStationObj = stations.find((s) => s.id === formData.newStationId);
 
-				setCanApply(false);
-				setStatus({
-					icon: Clock,
-					iconBg: "bg-yellow-600",
-					iconColor: "text-white",
-					title: "Address Change Under Review",
-					description:
-						"Your address change request is currently being reviewed. Please wait for approval before submitting a new request."
-				});
-			} else {
-				posthog.capture("address_change_submitted_failed");
+			posthog.capture("address_change_submitted_success", {
+				old_station: oldStationObj ? `${oldStationObj.name} (${oldStationObj.code})` : student.station.id,
+				new_station: newStationObj ? `${newStationObj.name} (${newStationObj.code})` : formData.newStationId
+			});
 
-				setStatus({
-					icon: XCircle,
-					iconColor: "text-white",
-					iconBg: "bg-destructive",
-					title: "Submission Failed",
-					description:
-						"We couldn't process your address change request at the moment. Please try again or contact support if the issue persists.",
-					button: {
-						icon: Mail,
-						href: "/#contact",
-						label: "Contact Support"
-					}
-				});
-			}
+			setCanApply(false);
+			setStatus({
+				icon: Clock,
+				iconBg: "bg-yellow-600",
+				iconColor: "text-white",
+				title: "Address Change Under Review",
+				description:
+					"Your address change request is currently being reviewed. Please wait for approval before submitting a new request."
+			});
 		} catch (error) {
-			posthog.capture("address_change_submit_error");
+			posthog.capture("address_change_submitted_failed");
 
-			if (error instanceof Error) {
-				console.error("Unexpected error:", error.message);
-			} else {
-				console.error("Unknown error:", error);
-			}
+			setStatus({
+				icon: XCircle,
+				iconColor: "text-white",
+				iconBg: "bg-destructive",
+				title: "Submission Failed",
+				description:
+					error instanceof Error
+						? error.message
+						: "We couldn't process your address change request at the moment. Please try again or contact support if the issue persists.",
+				button: {
+					icon: Mail,
+					href: "/#contact",
+					label: "Contact Support"
+				}
+			});
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -632,7 +637,10 @@ const AddressChangePage = () => {
 		}
 	};
 
+	const isNewStationActive = stations.some((s) => s.id === form.watch("newStationId") && s.isActive);
+
 	const isFormValid =
+		isNewStationActive &&
 		form.watch("newStationId") &&
 		form.watch("building")?.trim() &&
 		form.watch("area")?.trim() &&
@@ -1027,8 +1035,11 @@ const AddressChangePage = () => {
 																	{availableStations.map((station) => (
 																		<CommandItem
 																			key={station.id}
+																			isUnavailable={!station.isActive}
 																			value={`${station.name} (${station.code})`}
 																			onSelect={() => {
+																				if (!station.isActive) return;
+
 																				form.setValue("newStationId", station.id, {
 																					shouldDirty: true,
 																					shouldTouch: true,
@@ -1041,15 +1052,20 @@ const AddressChangePage = () => {
 
 																				setOpen(false);
 																			}}
-																			className="cursor-pointer"
+																			className={cn(
+																				"cursor-pointer",
+																				!station.isActive && "opacity-50 cursor-not-allowed"
+																			)}
 																		>
-																			<Check
-																				className={cn(
-																					"mr-2 size-4 shrink-0",
-																					field.value === station.id ? "opacity-100" : "opacity-0"
-																				)}
-																			/>
-																			<span className="truncate">{`${station.name} (${station.code})`}</span>
+																			<div className="flex items-center gap-2">
+																				<Check
+																					className={cn(
+																						"size-4 shrink-0",
+																						field.value === station.id ? "opacity-100" : "opacity-0"
+																					)}
+																				/>
+																				<span className="truncate">{`${station.name} (${station.code})`}</span>
+																			</div>
 																		</CommandItem>
 																	))}
 																</CommandGroup>

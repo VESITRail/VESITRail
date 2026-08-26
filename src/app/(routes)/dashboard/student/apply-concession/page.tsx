@@ -21,6 +21,12 @@ import {
 	getStudentPreferences
 } from "@/actions/utils";
 import {
+	Concession,
+	getLastApplication,
+	submitConcessionApplication,
+	submitConcessionResubmission
+} from "@/actions/concession";
+import {
 	AlertDialog,
 	AlertDialogTitle,
 	AlertDialogCancel,
@@ -49,7 +55,6 @@ import { ConcessionApplicationType } from "@/generated/prisma/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Concession, getLastApplication, submitConcessionApplication } from "@/actions/concession";
 import { ConcessionClass, ConcessionPeriod, ConcessionApplicationStatusType } from "@/generated/zod";
 import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
 import { Dialog, DialogTitle, DialogHeader, DialogTrigger, DialogContent } from "@/components/ui/dialog";
@@ -299,9 +304,9 @@ const ConcessionApplicationForm = () => {
 		checkApplicationStatus();
 	}, [data?.user?.id, isPending]);
 
-	const selectedClassExists = concessionClasses.some((c) => c.id === selectedConcessionClass);
+	const selectedClassIsActive = concessionClasses.some((c) => c.id === selectedConcessionClass && c.isActive);
 
-	const selectedPeriodExists = concessionPeriods.some((p) => p.id === selectedConcessionPeriod);
+	const selectedPeriodIsActive = concessionPeriods.some((p) => p.id === selectedConcessionPeriod && p.isActive);
 
 	const handleSubmit = async () => {
 		if (!student || !data?.user?.id || !selectedConcessionClass || !selectedConcessionPeriod) {
@@ -337,47 +342,56 @@ const ConcessionApplicationForm = () => {
 			previousApplicationId: selectedApplicationType === "Renewal" ? lastApplication?.id || null : null
 		};
 
-		const submissionPromise = submitConcessionApplication(applicationData);
-
 		const isResubmission = lastApplication?.status === "Rejected";
 
-		toast.promise(submissionPromise, {
-			loading: isResubmission ? "Resubmitting your application..." : "Submitting your application...",
-			success: isResubmission
-				? "Application resubmitted successfully! Redirecting..."
-				: "Application submitted successfully! Redirecting...",
-			error: (error) =>
-				error.message || (isResubmission ? "Failed to resubmit application" : "Failed to submit application")
-		});
-
 		try {
-			const result = await submissionPromise;
+			const submissionPromise = (async () => {
+				const result =
+					isResubmission && lastApplication?.id
+						? await submitConcessionResubmission(lastApplication.id, {
+								stationId: applicationData.stationId,
+								applicationType: applicationData.applicationType,
+								concessionClassId: applicationData.concessionClassId,
+								concessionPeriodId: applicationData.concessionPeriodId,
+								previousApplicationId: applicationData.previousApplicationId
+							})
+						: await submitConcessionApplication(applicationData);
 
-			if (result.isSuccess) {
-				posthog.capture("concession_submitted_success", {
-					class: selectedClass?.name,
-					period: selectedPeriod?.name,
-					station: student.station.name,
-					application_type: selectedApplicationType
-				});
-				router.push("/dashboard/student");
-			} else {
-				posthog.capture("concession_submitted_failed", {
-					class: selectedClass?.name,
-					period: selectedPeriod?.name,
-					station: student.station.name,
-					application_type: selectedApplicationType
-				});
-				const isResubmission = lastApplication?.status === "Rejected";
-				toast.error(isResubmission ? "Resubmission Failed" : "Submission Failed", {
-					description: isResubmission
-						? "Unable to resubmit your application. Please try again."
-						: "Unable to submit your application. Please try again."
-				});
-			}
+				if (!result.isSuccess) {
+					throw new Error(
+						result.error.message || (isResubmission ? "Failed to resubmit application" : "Failed to submit application")
+					);
+				}
+
+				return result.data;
+			})();
+
+			toast.promise(submissionPromise, {
+				loading: isResubmission ? "Resubmitting your application..." : "Submitting your application...",
+				success: isResubmission
+					? "Application resubmitted successfully! Redirecting..."
+					: "Application submitted successfully! Redirecting...",
+				error: (error) =>
+					error instanceof Error
+						? error.message
+						: isResubmission
+							? "Failed to resubmit application"
+							: "Failed to submit application"
+			});
+
+			posthog.capture("concession_submitted_success", {
+				class: selectedClass?.name,
+				period: selectedPeriod?.name,
+				station: student.station.name,
+				application_type: selectedApplicationType
+			});
+			router.push("/dashboard/student");
 		} catch (error) {
-			posthog.capture("concession_submit_error", {
-				error: error instanceof Error ? error.message : String(error)
+			posthog.capture("concession_submitted_failed", {
+				class: selectedClass?.name,
+				period: selectedPeriod?.name,
+				station: student.station.name,
+				application_type: selectedApplicationType
 			});
 			console.error("Submission error:", error);
 		} finally {
@@ -392,7 +406,7 @@ const ConcessionApplicationForm = () => {
 		}
 	};
 
-	const isFormValid = selectedConcessionClass && selectedConcessionPeriod;
+	const isFormValid = Boolean(selectedClassIsActive && selectedPeriodIsActive);
 
 	if (isPending || loading || loadingOptions || !student) {
 		return (
@@ -697,7 +711,7 @@ const ConcessionApplicationForm = () => {
 										});
 										setSelectedConcessionClass(value);
 									}}
-									value={selectedClassExists ? selectedConcessionClass : undefined}
+									value={selectedClassIsActive ? selectedConcessionClass : undefined}
 								>
 									<SelectTrigger className="w-full h-10!">
 										<SelectValue placeholder="Select concession class" />
@@ -705,7 +719,7 @@ const ConcessionApplicationForm = () => {
 
 									<SelectContent>
 										{concessionClasses.map((cls) => (
-											<SelectItem key={cls.id} value={cls.id}>
+											<SelectItem key={cls.id} value={cls.id} isUnavailable={!cls.isActive}>
 												{cls.name} ({cls.code})
 											</SelectItem>
 										))}
@@ -727,7 +741,7 @@ const ConcessionApplicationForm = () => {
 										});
 										setSelectedConcessionPeriod(value);
 									}}
-									value={selectedPeriodExists ? selectedConcessionPeriod : undefined}
+									value={selectedPeriodIsActive ? selectedConcessionPeriod : undefined}
 								>
 									<SelectTrigger className="w-full h-10!">
 										<SelectValue placeholder="Select concession period" />
@@ -735,7 +749,7 @@ const ConcessionApplicationForm = () => {
 
 									<SelectContent>
 										{concessionPeriods.map((period) => (
-											<SelectItem key={period.id} value={period.id}>
+											<SelectItem key={period.id} value={period.id} isUnavailable={!period.isActive}>
 												{period.name} ({period.duration} {period.duration === 1 ? "month" : "months"})
 											</SelectItem>
 										))}
