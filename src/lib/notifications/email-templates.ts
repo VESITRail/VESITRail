@@ -27,7 +27,12 @@ export const generateEmailTemplate = (scenario: NotificationScenario, params: Em
 	const heading = scenario.email.heading;
 	let description = scenario.email.description;
 
-	if (scenario.category === "address_change" && params.fromStation && params.toStation) {
+	if (
+		scenario.category === "address_change" &&
+		scenario.type === "approval" &&
+		params.fromStation &&
+		params.toStation
+	) {
 		description += ` Your journey details have been updated from ${params.fromStation} to ${params.toStation}.`;
 	}
 
@@ -172,10 +177,16 @@ const generateInfoBox = (scenario: NotificationScenario, params: EmailTemplatePa
 
 	if (scenario.category === "address_change") {
 		if (params.fromStation) {
-			infoItems.push({ label: "From Station", value: params.fromStation });
+			infoItems.push({
+				label: scenario.type === "approval" ? "Previous Station" : "Current Station",
+				value: params.fromStation
+			});
 		}
 		if (params.toStation) {
-			infoItems.push({ label: "To Station", value: params.toStation });
+			infoItems.push({
+				label: scenario.type === "approval" ? "New Station" : "Requested Station",
+				value: params.toStation
+			});
 		}
 	}
 
