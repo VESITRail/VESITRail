@@ -474,12 +474,36 @@ export const getAllApplications = async (
 
 export const submitConcessionApplication = async (
 	data: ConcessionApplicationData
-): Promise<Result<Concession, AuthError | DatabaseError>> => {
+): Promise<Result<Concession, AuthError | DatabaseError | ValidationError>> => {
 	const studentResult = await requireStudent();
 	if (!studentResult.isSuccess) return studentResult;
 
 	try {
 		const targetStudentId = studentResult.data.studentId;
+
+		const [station, concessionClass, concessionPeriod] = await Promise.all([
+			prisma.station.findFirst({
+				where: { id: data.stationId, isActive: true }
+			}),
+			prisma.concessionClass.findFirst({
+				where: { id: data.concessionClassId, isActive: true }
+			}),
+			prisma.concessionPeriod.findFirst({
+				where: { id: data.concessionPeriodId, isActive: true }
+			})
+		]);
+
+		if (!station) {
+			return failure(validationError("Selected station is currently unavailable", "stationId"));
+		}
+
+		if (!concessionClass) {
+			return failure(validationError("Selected concession class is currently unavailable", "concessionClassId"));
+		}
+
+		if (!concessionPeriod) {
+			return failure(validationError("Selected concession period is currently unavailable", "concessionPeriodId"));
+		}
 
 		const existingApplication = await prisma.concessionApplication.findFirst({
 			where: {
@@ -689,6 +713,30 @@ export const submitConcessionResubmission = async (
 			return failure(authError("Student is not approved"));
 		}
 
+		const [station, concessionClass, concessionPeriod] = await Promise.all([
+			prisma.station.findFirst({
+				where: { id: data.stationId, isActive: true }
+			}),
+			prisma.concessionClass.findFirst({
+				where: { id: data.concessionClassId, isActive: true }
+			}),
+			prisma.concessionPeriod.findFirst({
+				where: { id: data.concessionPeriodId, isActive: true }
+			})
+		]);
+
+		if (!station) {
+			return failure(validationError("Selected station is currently unavailable", "stationId"));
+		}
+
+		if (!concessionClass) {
+			return failure(validationError("Selected concession class is currently unavailable", "concessionClassId"));
+		}
+
+		if (!concessionPeriod) {
+			return failure(validationError("Selected concession period is currently unavailable", "concessionPeriodId"));
+		}
+
 		const updatedApplication = await prisma.concessionApplication.update({
 			where: { id: applicationId },
 			data: {
@@ -697,9 +745,11 @@ export const submitConcessionResubmission = async (
 				reviewedById: null,
 				rejectionReason: null,
 				stationId: data.stationId,
+				applicationType: data.applicationType,
 				submissionCount: { increment: 1 },
 				concessionClassId: data.concessionClassId,
-				concessionPeriodId: data.concessionPeriodId
+				concessionPeriodId: data.concessionPeriodId,
+				previousApplicationId: data.previousApplicationId
 			},
 			select: {
 				id: true,

@@ -193,6 +193,46 @@ export const submitOnboarding = async (
 		const targetUserId = authResult.data.userId;
 		const { class: _classData, ...dbData } = data;
 
+		const [_class, station, concessionClass, concessionPeriod] = await Promise.all([
+			prisma.class.findFirst({
+				where: {
+					isActive: true,
+					id: dbData.classId,
+					year: { isActive: true },
+					branch: { isActive: true }
+				}
+			}),
+			prisma.station.findFirst({
+				where: { id: dbData.stationId, isActive: true }
+			}),
+			prisma.concessionClass.findFirst({
+				where: { id: dbData.preferredConcessionClassId, isActive: true }
+			}),
+			prisma.concessionPeriod.findFirst({
+				where: { id: dbData.preferredConcessionPeriodId, isActive: true }
+			})
+		]);
+
+		if (!_class) {
+			return failure(validationError("Selected class, year, or branch is currently unavailable", "classId"));
+		}
+
+		if (!station) {
+			return failure(validationError("Selected station is currently unavailable", "stationId"));
+		}
+
+		if (!concessionClass) {
+			return failure(
+				validationError("Selected preferred concession class is currently unavailable", "preferredConcessionClassId")
+			);
+		}
+
+		if (!concessionPeriod) {
+			return failure(
+				validationError("Selected preferred concession period is currently unavailable", "preferredConcessionPeriodId")
+			);
+		}
+
 		const legacyRecord = await prisma.legacyStudent.findUnique({
 			where: { email: authResult.data.email.toLowerCase() }
 		});

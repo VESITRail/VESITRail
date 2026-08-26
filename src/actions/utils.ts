@@ -64,7 +64,7 @@ export const getStudentPreferences = async (): Promise<Result<StudentPreferences
 export const getYears = async (): Promise<Result<Year[], DatabaseError>> => {
 	try {
 		const years = await prisma.year.findMany({
-			where: { isActive: true }
+			orderBy: [{ isActive: "desc" }]
 		});
 
 		return success(sortByYearOrder(years));
@@ -77,7 +77,7 @@ export const getYears = async (): Promise<Result<Year[], DatabaseError>> => {
 export const getBranches = async (): Promise<Result<Branch[], DatabaseError>> => {
 	try {
 		const branches = await prisma.branch.findMany({
-			where: { isActive: true }
+			orderBy: [{ isActive: "desc" }, { name: "asc" }]
 		});
 
 		return success(branches);
@@ -90,8 +90,7 @@ export const getBranches = async (): Promise<Result<Branch[], DatabaseError>> =>
 export const getClasses = async (): Promise<Result<Class[], DatabaseError>> => {
 	try {
 		const classes = await prisma.class.findMany({
-			orderBy: { code: "asc" },
-			where: { isActive: true }
+			orderBy: [{ isActive: "desc" }, { code: "asc" }]
 		});
 
 		return success(classes);
@@ -104,8 +103,7 @@ export const getClasses = async (): Promise<Result<Class[], DatabaseError>> => {
 export const getStations = async (): Promise<Result<Station[], DatabaseError>> => {
 	try {
 		const stations = await prisma.station.findMany({
-			orderBy: { name: "asc" },
-			where: { isActive: true }
+			orderBy: [{ isActive: "desc" }, { name: "asc" }]
 		});
 
 		return success(stations);
@@ -118,7 +116,7 @@ export const getStations = async (): Promise<Result<Station[], DatabaseError>> =
 export const getConcessionClasses = async (): Promise<Result<ConcessionClass[], DatabaseError>> => {
 	try {
 		const classes = await prisma.concessionClass.findMany({
-			where: { isActive: true }
+			orderBy: [{ isActive: "desc" }]
 		});
 
 		return success(sortByRomanKey(classes, "code"));
@@ -131,8 +129,7 @@ export const getConcessionClasses = async (): Promise<Result<ConcessionClass[], 
 export const getConcessionPeriods = async (): Promise<Result<ConcessionPeriod[], DatabaseError>> => {
 	try {
 		const periods = await prisma.concessionPeriod.findMany({
-			where: { isActive: true },
-			orderBy: { duration: "asc" }
+			orderBy: [{ isActive: "desc" }, { duration: "asc" }]
 		});
 
 		return success(periods);

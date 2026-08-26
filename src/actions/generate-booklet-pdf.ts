@@ -113,9 +113,10 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 
 				return [
 					serialNo,
+					"-",
 					item.serialNumber,
 					{
-						colSpan: 9,
+						colSpan: 8,
 						content: "Cancelled",
 						styles: { halign: "center" as const, fontStyle: "bold" as const }
 					}
@@ -135,8 +136,8 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 
 				return [
 					serialNo,
-					certificateNo,
 					format(new Date(item.createdAt), "dd/MM/yyyy"),
+					certificateNo,
 					fullName,
 					currentPassNo,
 					item.student.gender || "N/A",
@@ -156,8 +157,8 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 			head: [
 				[
 					"Sr. No.",
-					"Certificate",
 					"Date",
+					"Certificate",
 					"Student Name",
 					"Current Pass",
 					"Gender",
@@ -198,8 +199,8 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 			},
 			columnStyles: {
 				0: { halign: "center", cellWidth: 14 },
-				1: { halign: "center", cellWidth: 23 },
-				2: { halign: "center", cellWidth: 22 },
+				1: { halign: "center", cellWidth: 22 },
+				2: { halign: "center", cellWidth: 23 },
 				3: { halign: "left", cellWidth: 52 },
 				4: { halign: "center", cellWidth: 28 },
 				5: { halign: "center", cellWidth: 18 },

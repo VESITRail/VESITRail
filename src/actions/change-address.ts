@@ -69,6 +69,14 @@ export const submitAddressChangeApplication = async (
 			return failure(validationError("New station cannot be the same as current station", "newStationId"));
 		}
 
+		const station = await prisma.station.findFirst({
+			where: { id: data.newStationId, isActive: true }
+		});
+
+		if (!station) {
+			return failure(validationError("Selected new station is currently unavailable", "newStationId"));
+		}
+
 		const existingApplication = await prisma.addressChange.findFirst({
 			where: {
 				studentId: targetStudentId

@@ -1,10 +1,19 @@
 "use server";
 
+import {
+	Result,
+	success,
+	failure,
+	AuthError,
+	databaseError,
+	DatabaseError,
+	validationError,
+	ValidationError
+} from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { Student } from "@/generated/zod";
 import { StudentPreferences } from "./utils";
 import { requireAuth, requireStudent } from "@/lib/auth-guard";
-import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 
 export type UpdatePreferencesData = Pick<Student, "preferredConcessionClassId" | "preferredConcessionPeriodId">;
 
@@ -58,7 +67,7 @@ export const getStudentPreferences = async (): Promise<Result<StudentPreferences
 
 export const updateStudentPreferences = async (
 	data: UpdatePreferencesData
-): Promise<Result<StudentPreferences, AuthError | DatabaseError>> => {
+): Promise<Result<StudentPreferences, AuthError | DatabaseError | ValidationError>> => {
 	const studentResult = await requireStudent();
 	if (!studentResult.isSuccess) return studentResult;
 
@@ -94,11 +103,15 @@ export const updateStudentPreferences = async (
 		]);
 
 		if (!concessionClass) {
-			return failure(databaseError("Invalid concession class selected"));
+			return failure(
+				validationError("Selected concession class is currently unavailable", "preferredConcessionClassId")
+			);
 		}
 
 		if (!concessionPeriod) {
-			return failure(databaseError("Invalid concession period selected"));
+			return failure(
+				validationError("Selected concession period is currently unavailable", "preferredConcessionPeriodId")
+			);
 		}
 
 		const updatedStudent = await prisma.student.update({

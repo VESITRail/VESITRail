@@ -25,13 +25,6 @@ const Preferences = () => {
 	const [selectedClassId, setSelectedClassId] = useState<string>("");
 	const [selectedPeriodId, setSelectedPeriodId] = useState<string>("");
 
-	const hasChanges =
-		preferences &&
-		(selectedClassId !== preferences.preferredConcessionClass.id ||
-			selectedPeriodId !== preferences.preferredConcessionPeriod.id);
-
-	const isFormValid = selectedClassId && selectedPeriodId;
-
 	useEffect(() => {
 		const fetchData = async () => {
 			if (isPending || !data?.user?.id) return;
@@ -45,10 +38,38 @@ const Preferences = () => {
 					getConcessionPeriods()
 				]);
 
+				const fetchedClasses = classesResult.isSuccess && classesResult.data ? classesResult.data : [];
+				const fetchedPeriods = periodsResult.isSuccess && periodsResult.data ? periodsResult.data : [];
+
+				if (classesResult.isSuccess && classesResult.data) {
+					setConcessionClasses(classesResult.data);
+				} else {
+					toast.error("Classes Not Loading", {
+						description: "Unable to load your concession classes. Please try again."
+					});
+				}
+
+				if (periodsResult.isSuccess && periodsResult.data) {
+					setConcessionPeriods(periodsResult.data);
+				} else {
+					toast.error("Periods Not Loading", {
+						description: "Unable to load your concession periods. Please try again."
+					});
+				}
+
 				if (preferencesResult.isSuccess && preferencesResult.data) {
 					setPreferences(preferencesResult.data);
-					setSelectedClassId(preferencesResult.data.preferredConcessionClass.id);
-					setSelectedPeriodId(preferencesResult.data.preferredConcessionPeriod.id);
+
+					const prefClassId = preferencesResult.data.preferredConcessionClass.id;
+					const prefPeriodId = preferencesResult.data.preferredConcessionPeriod.id;
+
+					const activeClass =
+						fetchedClasses.find((c) => c.id === prefClassId && c.isActive) || fetchedClasses.find((c) => c.isActive);
+					const activePeriod =
+						fetchedPeriods.find((p) => p.id === prefPeriodId && p.isActive) || fetchedPeriods.find((p) => p.isActive);
+
+					setSelectedClassId(activeClass?.id || prefClassId);
+					setSelectedPeriodId(activePeriod?.id || prefPeriodId);
 				} else {
 					toast.error("Preferences Not Loading", {
 						description: "Unable to load your preferences. Please try again."
@@ -98,38 +119,38 @@ const Preferences = () => {
 			preferredConcessionPeriodId: selectedPeriodId
 		};
 
-		const submissionPromise = updateStudentPreferences(updateData);
-
-		toast.promise(submissionPromise, {
-			loading: "Updating your preferences...",
-			success: "Preferences updated successfully!",
-			error: (error) => error.error || "Failed to update preferences"
-		});
-
 		try {
-			const result = await submissionPromise;
-
-			if (result.isSuccess && result.data) {
+			const savePromise = (async () => {
+				const result = await updateStudentPreferences(updateData);
+				if (!result.isSuccess) {
+					throw new Error(result.error.message || "Failed to update preferences");
+				}
 				setPreferences(result.data);
-			}
-		} catch (error) {
-			if (error instanceof Error) {
-				console.error("Update Failed:", error.message);
-			} else {
-				console.error("Unknown Update Error:", error);
-			}
+				return result.data;
+			})();
 
-			toast.error("Update Failed", {
-				description: "Unable to update your information. Please try again."
+			toast.promise(savePromise, {
+				loading: "Updating your preferences...",
+				success: "Preferences updated successfully!",
+				error: (error) => (error instanceof Error ? error.message : "Failed to update preferences")
 			});
+		} catch (error) {
+			console.error("Update Failed:", error);
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-	const selectedClassExists = concessionClasses.some((c) => c.id === selectedClassId);
+	const selectedClassIsActive = concessionClasses.some((c) => c.id === selectedClassId && c.isActive);
 
-	const selectedPeriodExists = concessionPeriods.some((p) => p.id === selectedPeriodId);
+	const selectedPeriodIsActive = concessionPeriods.some((p) => p.id === selectedPeriodId && p.isActive);
+
+	const hasChanges =
+		preferences &&
+		(selectedClassId !== preferences.preferredConcessionClass.id ||
+			selectedPeriodId !== preferences.preferredConcessionPeriod.id);
+
+	const isFormValid = Boolean(selectedClassIsActive && selectedPeriodIsActive);
 
 	if (isPending || loading) {
 		return (
@@ -217,7 +238,7 @@ const Preferences = () => {
 							</Label>
 							<Select
 								disabled={isSubmitting}
-								value={selectedClassExists ? selectedClassId : undefined}
+								value={selectedClassIsActive ? selectedClassId : undefined}
 								onValueChange={(value) => {
 									setSelectedClassId(value);
 									posthog.capture("preference_changed", { preference_type: "concession_class" });
@@ -233,7 +254,7 @@ const Preferences = () => {
 										</SelectItem>
 									) : (
 										concessionClasses.map((cls) => (
-											<SelectItem key={cls.id} value={cls.id}>
+											<SelectItem key={cls.id} value={cls.id} isUnavailable={!cls.isActive}>
 												{cls.name} ({cls.code})
 											</SelectItem>
 										))
@@ -248,7 +269,7 @@ const Preferences = () => {
 							</Label>
 							<Select
 								disabled={isSubmitting}
-								value={selectedPeriodExists ? selectedPeriodId : undefined}
+								value={selectedPeriodIsActive ? selectedPeriodId : undefined}
 								onValueChange={(value) => {
 									setSelectedPeriodId(value);
 									posthog.capture("preference_changed", { preference_type: "concession_period" });
@@ -264,7 +285,7 @@ const Preferences = () => {
 										</SelectItem>
 									) : (
 										concessionPeriods.map((period) => (
-											<SelectItem key={period.id} value={period.id}>
+											<SelectItem key={period.id} value={period.id} isUnavailable={!period.isActive}>
 												{period.name} ({period.duration} {period.duration === 1 ? "month" : "months"})
 											</SelectItem>
 										))
