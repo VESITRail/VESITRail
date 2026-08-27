@@ -33,6 +33,7 @@ import { Separator } from "../ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EditStudentDrawer } from "./edit-student-drawer";
 import { StudentApprovalStatusType } from "@/generated/zod";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -523,17 +524,6 @@ const StudentDetailsDialog = ({
 										</div>
 
 										<div className="space-y-4">
-											{studentDetails.reviewedAt && (
-												<div className="flex justify-between items-start">
-													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
-														Reviewed Date
-													</span>
-													<span className="text-sm text-right">
-														{format(new Date(studentDetails.reviewedAt), "MMM dd, yyyy")}
-													</span>
-												</div>
-											)}
-
 											{studentDetails.reviewedBy ? (
 												<div className="flex justify-between items-start">
 													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
@@ -561,6 +551,17 @@ const StudentDetailsDialog = ({
 													<span className="text-sm text-right text-muted-foreground">System</span>
 												</div>
 											) : null}
+
+											{studentDetails.reviewedAt && (
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
+														Reviewed Date
+													</span>
+													<span className="text-sm text-right">
+														{format(new Date(studentDetails.reviewedAt), "MMM dd, yyyy")}
+													</span>
+												</div>
+											)}
 										</div>
 									</div>
 
@@ -854,7 +855,7 @@ const createColumns = (
 		}
 	},
 	{
-		size: 110,
+		size: 140,
 		id: "actions",
 		header: "Actions",
 		cell: ({ row }) => {
@@ -862,6 +863,7 @@ const createColumns = (
 			return (
 				<div className="flex items-center gap-2">
 					<StudentDetailsDialog student={student} onStudentUpdate={onStudentUpdate} />
+					<EditStudentDrawer student={student} onStudentUpdate={onStudentUpdate} />
 					<StudentConcessionHistorySheet student={student} adminId={adminId} />
 				</div>
 			);
@@ -1212,6 +1214,7 @@ const StudentsTable = ({
 									</TableCell>
 									<TableCell className="p-4 text-center">
 										<div className="flex items-center justify-center gap-2">
+											<Skeleton className="size-8 rounded" />
 											<Skeleton className="size-8 rounded" />
 											<Skeleton className="size-8 rounded" />
 										</div>

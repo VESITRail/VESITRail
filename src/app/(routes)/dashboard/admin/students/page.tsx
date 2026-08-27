@@ -125,9 +125,19 @@ const Students = () => {
 				student.userId === updatedStudent.userId
 					? {
 							...student,
+							class: updatedStudent.class,
 							status: updatedStudent.status,
+							gender: updatedStudent.gender,
+							station: updatedStudent.station,
+							lastName: updatedStudent.lastName,
+							firstName: updatedStudent.firstName,
+							middleName: updatedStudent.middleName,
 							reviewedAt: updatedStudent.reviewedAt,
-							rejectionReason: updatedStudent.rejectionReason
+							rejectionReason: updatedStudent.rejectionReason,
+							user: {
+								...student.user,
+								name: updatedStudent.user.name
+							}
 						}
 					: student
 			)
