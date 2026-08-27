@@ -729,7 +729,7 @@ const ConcessionApplicationForm = () => {
 
 							<div className="space-y-3.5">
 								<Label htmlFor="concession-period" className="text-sm font-medium">
-									Concession Period
+									Concession Period <span className="text-destructive">*</span>
 								</Label>
 
 								<Select
