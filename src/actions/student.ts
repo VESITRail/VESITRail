@@ -12,10 +12,12 @@ import {
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { normalizeDob, capitalizeWords } from "@/lib/utils";
 import { requireAdmin } from "@/lib/auth-guard";
 import type { Prisma } from "@/generated/prisma/client";
 import { sendStudentAccountNotification } from "@/lib/notifications";
 import type { Student, StudentApprovalStatusType } from "@/generated/zod";
+import { UpdateStudentActionSchema, type UpdateStudentActionInput } from "@/lib/validations/admin/edit-student";
 
 export type StudentListItem = Pick<
 	Student,
@@ -671,5 +673,157 @@ export const rejectStudent = async (
 	} catch (error) {
 		console.error("Error while rejecting student:", error);
 		return failure(databaseError("Failed to reject student"));
+	}
+};
+
+export const updateStudentDetails = async (
+	data: UpdateStudentActionInput
+): Promise<Result<StudentDetails, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
+	try {
+		const validationResult = UpdateStudentActionSchema.safeParse(data);
+		if (!validationResult.success) {
+			const firstError = validationResult.error.issues[0]?.message || "Invalid student data";
+			return failure(validationError(firstError));
+		}
+
+		const validatedData = validationResult.data;
+
+		const existingStudent = await prisma.student.findUnique({
+			select: { userId: true },
+			where: { userId: validatedData.studentId }
+		});
+
+		if (!existingStudent) {
+			return failure(validationError("Student not found"));
+		}
+
+		const targetClass = await prisma.class.findFirst({
+			where: {
+				id: validatedData.class,
+				yearId: validatedData.year,
+				branchId: validatedData.branch
+			}
+		});
+
+		if (!targetClass) {
+			return failure(validationError("Selected class does not match the chosen year and branch"));
+		}
+
+		const birthDate = normalizeDob(validatedData.dateOfBirth);
+		if (!birthDate) {
+			return failure(validationError("Invalid date of birth"));
+		}
+
+		const firstName = capitalizeWords(validatedData.firstName.trim());
+		const middleName = validatedData.middleName?.trim() ? capitalizeWords(validatedData.middleName.trim()) : null;
+		const lastName = validatedData.lastName?.trim() ? capitalizeWords(validatedData.lastName.trim()) : null;
+
+		const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ");
+
+		const updatedStudent = await prisma.$transaction(async (tx) => {
+			await tx.user.update({
+				where: { id: validatedData.studentId },
+				data: {
+					name: fullName
+				}
+			});
+
+			return tx.student.update({
+				where: { userId: validatedData.studentId },
+				data: {
+					dateOfBirth: birthDate,
+					gender: validatedData.gender,
+					classId: validatedData.class,
+					firstName,
+					middleName,
+					lastName
+				},
+				select: {
+					userId: true,
+					gender: true,
+					status: true,
+					address: true,
+					lastName: true,
+					firstName: true,
+					createdAt: true,
+					middleName: true,
+					reviewedAt: true,
+					dateOfBirth: true,
+					rejectionReason: true,
+					submissionCount: true,
+					verificationDocUrl: true,
+					user: {
+						select: {
+							id: true,
+							name: true,
+							email: true,
+							image: true
+						}
+					},
+					class: {
+						select: {
+							id: true,
+							code: true,
+							year: {
+								select: {
+									id: true,
+									code: true,
+									name: true
+								}
+							},
+							branch: {
+								select: {
+									id: true,
+									code: true,
+									name: true
+								}
+							}
+						}
+					},
+					station: {
+						select: {
+							id: true,
+							code: true,
+							name: true
+						}
+					},
+					preferredConcessionClass: {
+						select: {
+							id: true,
+							code: true,
+							name: true
+						}
+					},
+					preferredConcessionPeriod: {
+						select: {
+							id: true,
+							name: true,
+							duration: true
+						}
+					},
+					reviewedBy: {
+						select: {
+							userId: true,
+							user: {
+								select: {
+									id: true,
+									name: true,
+									email: true
+								}
+							}
+						}
+					}
+				}
+			});
+		});
+
+		revalidatePath("/dashboard/admin/students");
+		return success(updatedStudent);
+	} catch (error) {
+		console.error("Error while updating student details:", error);
+		return failure(databaseError("Failed to update student details"));
 	}
 };
