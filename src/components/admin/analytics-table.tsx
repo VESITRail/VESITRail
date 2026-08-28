@@ -70,8 +70,8 @@ const AnalyticsTable = ({
 	);
 
 	return (
-		<div className="space-y-4">
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+		<div className="w-full h-full flex flex-col space-y-4 min-h-0 overflow-hidden">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
 				<div className="relative flex-1 max-w-sm">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
 					<Input
@@ -91,7 +91,7 @@ const AnalyticsTable = ({
 					</Button>
 				</div>
 
-				<div className="text-sm text-muted-foreground flex items-center gap-1.5">
+				<div className="text-sm text-muted-foreground flex items-center gap-1.5 shrink-0">
 					Total Admins:{" "}
 					{isLoading ? (
 						<Skeleton className="h-4 w-8" />
@@ -101,128 +101,145 @@ const AnalyticsTable = ({
 				</div>
 			</div>
 
-			<div className="rounded-lg border bg-card">
-				<Table>
-					<TableHeader>
-						<TableRow className="hover:bg-transparent border-border/50">
-							<TableHead className="font-semibold h-12 text-center px-4">Sr. No.</TableHead>
-							<TableHead className="font-semibold h-12 text-left px-4">Admin</TableHead>
-							<TableHead className="font-semibold h-12 text-center px-4">Students Reviewed</TableHead>
-							<TableHead className="font-semibold h-12 text-center px-4">Address Changes</TableHead>
-							<TableHead className="font-semibold h-12 text-center px-4">Applications Reviewed</TableHead>
-							<TableHead className="font-semibold h-12 text-center px-4">Total Contribution</TableHead>
-						</TableRow>
-					</TableHeader>
-
-					<TableBody>
-						{isLoading ? (
-							Array.from({ length: 5 }).map((_, index) => (
-								<TableRow key={index} className="hover:bg-muted/50 border-border/50">
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-5 w-8 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-left">
-										<div className="flex items-center gap-3">
-											<Skeleton className="size-9 rounded-lg shrink-0" />
-											<div className="space-y-1">
-												<Skeleton className="h-4 w-32" />
-												<Skeleton className="h-3 w-44" />
-											</div>
-										</div>
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-5 w-12 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-5 w-12 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-5 w-12 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-5 w-12 mx-auto" />
-									</TableCell>
+			<div className="flex-1 min-h-0 rounded-lg border bg-card overflow-hidden flex flex-col">
+				{isLoading || (!isError && data.length > 0) ? (
+					<div className="overflow-auto flex-1 min-h-0">
+						<Table>
+							<TableHeader className="sticky top-0 bg-card z-10">
+								<TableRow className="hover:bg-transparent border-border/50">
+									<TableHead className="font-semibold h-12 text-center px-4">Sr. No.</TableHead>
+									<TableHead className="font-semibold h-12 text-left px-4">Admin</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4">Students Reviewed</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4">Address Changes</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4">Applications Reviewed</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4">Total Contribution</TableHead>
 								</TableRow>
-							))
-						) : isError ? (
-							<TableRow>
-								<TableCell colSpan={6} className="h-48 text-center p-4">
-									<div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-										<div className="p-4 rounded-full bg-destructive/10 text-destructive">
-											<AlertCircle className="size-8" />
-										</div>
+							</TableHeader>
 
-										<p className="font-medium text-base text-foreground">Failed to Load Admin Analytics</p>
-										<p className="text-sm">There was an error loading the contribution records.</p>
-									</div>
-								</TableCell>
-							</TableRow>
-						) : data.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={6} className="h-64">
-									<div className="flex flex-col items-center justify-center space-y-6 py-8">
-										<div className="flex flex-col items-center space-y-4">
-											<div className="p-4 rounded-full bg-primary">
-												<Inbox className="size-8 text-white" />
-											</div>
+							<TableBody>
+								{isLoading
+									? Array.from({ length: 5 }).map((_, index) => (
+											<TableRow key={index} className="hover:bg-muted/50 border-border/50">
+												<TableCell className="p-4 text-center">
+													<Skeleton className="h-5 w-8 mx-auto" />
+												</TableCell>
+												<TableCell className="p-4 text-left">
+													<div className="flex items-center gap-3">
+														<Skeleton className="size-9 rounded-lg shrink-0" />
+														<div className="space-y-1">
+															<Skeleton className="h-4 w-32" />
+															<Skeleton className="h-3 w-44" />
+														</div>
+													</div>
+												</TableCell>
+												<TableCell className="p-4 text-center">
+													<Skeleton className="h-5 w-12 mx-auto" />
+												</TableCell>
+												<TableCell className="p-4 text-center">
+													<Skeleton className="h-5 w-12 mx-auto" />
+												</TableCell>
+												<TableCell className="p-4 text-center">
+													<Skeleton className="h-5 w-12 mx-auto" />
+												</TableCell>
+												<TableCell className="p-4 text-center">
+													<Skeleton className="h-5 w-12 mx-auto" />
+												</TableCell>
+											</TableRow>
+										))
+									: data.map((item, index) => (
+											<TableRow key={item.adminId} className="hover:bg-muted/50 border-border/50">
+												<TableCell className="p-4 text-center font-medium text-foreground">
+													{(currentPage - 1) * pageSize + index + 1}
+												</TableCell>
 
-											<div className="space-y-2 text-center">
-												<h3 className="text-lg font-semibold text-foreground">No admins found</h3>
+												<TableCell className="p-4 text-left">
+													<div className="flex items-center gap-3">
+														<Avatar className="size-9 rounded-lg shrink-0">
+															<AvatarImage src={item.image || undefined} alt={toTitleCase(item.name)} />
+															<AvatarFallback className="rounded-lg">
+																{getUserInitials("Admin", item.name)}
+															</AvatarFallback>
+														</Avatar>
 
-												<p className="text-sm text-muted-foreground max-w-md">
-													{searchQuery || localSearchQuery
-														? `No admins found for "${searchQuery || localSearchQuery}".`
-														: "No admin contribution records found."}
-												</p>
-											</div>
-										</div>
-									</div>
-								</TableCell>
-							</TableRow>
-						) : (
-							data.map((item, index) => (
-								<TableRow key={item.adminId} className="hover:bg-muted/50 border-border/50">
-									<TableCell className="p-4 text-center font-medium text-foreground">
-										{(currentPage - 1) * pageSize + index + 1}
-									</TableCell>
+														<div className="flex flex-col min-w-0">
+															<span className="font-medium text-foreground truncate">{toTitleCase(item.name)}</span>
+															<span className="text-xs text-muted-foreground truncate">{item.email}</span>
+														</div>
+													</div>
+												</TableCell>
 
-									<TableCell className="p-4 text-left">
-										<div className="flex items-center gap-3">
-											<Avatar className="size-9 rounded-lg shrink-0">
-												<AvatarImage src={item.image || undefined} alt={toTitleCase(item.name)} />
-												<AvatarFallback className="rounded-lg">{getUserInitials("Admin", item.name)}</AvatarFallback>
-											</Avatar>
+												<TableCell className="p-4 text-center font-medium text-foreground">
+													{item.studentsCount.toLocaleString()}
+												</TableCell>
 
-											<div className="flex flex-col min-w-0">
-												<span className="font-medium text-foreground truncate">{toTitleCase(item.name)}</span>
-												<span className="text-xs text-muted-foreground truncate">{item.email}</span>
-											</div>
-										</div>
-									</TableCell>
+												<TableCell className="p-4 text-center font-medium text-foreground">
+													{item.addressChangesCount.toLocaleString()}
+												</TableCell>
 
-									<TableCell className="p-4 text-center font-medium text-foreground">
-										{item.studentsCount.toLocaleString()}
-									</TableCell>
+												<TableCell className="p-4 text-center font-medium text-foreground">
+													{item.applicationsCount.toLocaleString()}
+												</TableCell>
 
-									<TableCell className="p-4 text-center font-medium text-foreground">
-										{item.addressChangesCount.toLocaleString()}
-									</TableCell>
-
-									<TableCell className="p-4 text-center font-medium text-foreground">
-										{item.applicationsCount.toLocaleString()}
-									</TableCell>
-
-									<TableCell className="p-4 text-center font-medium text-foreground">
-										{item.totalContribution.toLocaleString()}
-									</TableCell>
+												<TableCell className="p-4 text-center font-medium text-foreground">
+													{item.totalContribution.toLocaleString()}
+												</TableCell>
+											</TableRow>
+										))}
+							</TableBody>
+						</Table>
+					</div>
+				) : (
+					<div className="flex-1 min-h-0 flex flex-col">
+						<Table>
+							<TableHeader className="bg-card">
+								<TableRow className="hover:bg-transparent border-border/50">
+									<TableHead className="font-semibold h-12 text-center px-4">Sr. No.</TableHead>
+									<TableHead className="font-semibold h-12 text-left px-4">Admin</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4">Students Reviewed</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4">Address Changes</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4">Applications Reviewed</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4">Total Contribution</TableHead>
 								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
+							</TableHeader>
+						</Table>
+
+						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+							{isError ? (
+								<div className="flex flex-col items-center space-y-4">
+									<div className="p-4 rounded-full bg-destructive/10 text-destructive">
+										<AlertCircle className="size-8" />
+									</div>
+
+									<div className="space-y-2 text-center">
+										<h3 className="text-lg font-semibold text-foreground">Failed to Load Admin Analytics</h3>
+										<p className="text-sm text-muted-foreground max-w-md">
+											There was an error loading the contribution records.
+										</p>
+									</div>
+								</div>
+							) : (
+								<div className="flex flex-col items-center space-y-4">
+									<div className="p-4 rounded-full bg-primary">
+										<Inbox className="size-8 text-white" />
+									</div>
+
+									<div className="space-y-2 text-center">
+										<h3 className="text-lg font-semibold text-foreground">No admins found</h3>
+
+										<p className="text-sm text-muted-foreground max-w-md">
+											{searchQuery || localSearchQuery
+												? `No admins found for "${searchQuery || localSearchQuery}".`
+												: "No admin contribution records found."}
+										</p>
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				)}
 			</div>
 
-			<div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
+			<div className="shrink-0 flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
 				<div className="text-sm text-muted-foreground order-2 sm:order-1">
 					{isLoading ? (
 						<Skeleton className="h-5 w-52" />

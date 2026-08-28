@@ -262,53 +262,37 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 		if (isLoading) {
 			return (
 				<TableBody>
-					{Array.from({ length: 8 }).map((_, index) => (
+					{Array.from({ length: 15 }).map((_, index) => (
 						<TableRow key={index} className="hover:bg-transparent border-border/50">
-							{columns.map((_, colIndex) => (
-								<TableCell key={colIndex} className="text-center p-4 align-middle">
-									<div className="flex justify-center">
-										<Skeleton className="h-4 w-full max-w-[80%]" />
-									</div>
-								</TableCell>
-							))}
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-6 mx-auto" />
+							</TableCell>
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-16 mx-auto" />
+							</TableCell>
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-16 mx-auto" />
+							</TableCell>
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-32 mx-auto" />
+							</TableCell>
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-28 mx-auto" />
+							</TableCell>
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-12 mx-auto" />
+							</TableCell>
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-16 mx-auto" />
+							</TableCell>
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-16 mx-auto" />
+							</TableCell>
+							<TableCell className="text-center p-4 align-middle">
+								<Skeleton className="h-4 w-20 mx-auto" />
+							</TableCell>
 						</TableRow>
 					))}
-				</TableBody>
-			);
-		}
-
-		if (isError) {
-			return (
-				<TableBody className="h-64">
-					<TableRow className="hover:bg-transparent">
-						<TableCell className="text-center py-12 align-middle" colSpan={table.getHeaderGroups()[0].headers.length}>
-							<div className="flex flex-col items-center gap-2">
-								<AlertCircle className="size-8 text-destructive" />
-								<span className="text-lg font-medium">Error Loading Applications</span>
-								<span className="text-sm text-muted-foreground">
-									Please try again later or contact support if the problem persists.
-								</span>
-							</div>
-						</TableCell>
-					</TableRow>
-				</TableBody>
-			);
-		}
-
-		if (applications.length === 0) {
-			return (
-				<TableBody className="h-64">
-					<TableRow className="hover:bg-transparent">
-						<TableCell className="text-center py-12 align-middle" colSpan={table.getHeaderGroups()[0].headers.length}>
-							<div className="flex flex-col items-center gap-2">
-								<div className="p-4 rounded-full bg-primary">
-									<FileText className="size-8 text-white" />
-								</div>
-								<span className="text-lg font-medium">No Applications Found</span>
-								<span className="text-sm text-muted-foreground">This booklet has no applications yet.</span>
-							</div>
-						</TableCell>
-					</TableRow>
 				</TableBody>
 			);
 		}
@@ -360,26 +344,74 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 
 	return (
 		<div className="w-full h-full rounded-lg border bg-card overflow-hidden flex flex-col min-h-0">
-			<div className="overflow-auto flex-1 min-h-0">
-				<Table>
-					<TableHeader className="sticky top-0 bg-card z-10">
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
-								{headerGroup.headers.map((header) => (
-									<TableHead
-										key={header.id}
-										style={{ width: `${header.getSize()}px` }}
-										className="text-center font-semibold h-12 px-2 whitespace-nowrap"
-									>
-										{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-									</TableHead>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					{renderTableContent()}
-				</Table>
-			</div>
+			{isLoading || (!isError && applications.length > 0) ? (
+				<div className="overflow-auto flex-1 min-h-0">
+					<Table>
+						<TableHeader className="sticky top-0 bg-card z-10">
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
+									{headerGroup.headers.map((header) => (
+										<TableHead
+											key={header.id}
+											style={{ width: `${header.getSize()}px` }}
+											className="text-center font-semibold h-12 px-2 whitespace-nowrap"
+										>
+											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
+									))}
+								</TableRow>
+							))}
+						</TableHeader>
+						{renderTableContent()}
+					</Table>
+				</div>
+			) : (
+				<div className="flex-1 min-h-0 flex flex-col">
+					<Table>
+						<TableHeader className="bg-card">
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
+									{headerGroup.headers.map((header) => (
+										<TableHead
+											key={header.id}
+											style={{ width: `${header.getSize()}px` }}
+											className="text-center font-semibold h-12 px-2 whitespace-nowrap"
+										>
+											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
+									))}
+								</TableRow>
+							))}
+						</TableHeader>
+					</Table>
+
+					<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+						{isError ? (
+							<div className="flex flex-col items-center space-y-4">
+								<div className="p-4 rounded-full bg-destructive/10 text-destructive">
+									<AlertCircle className="size-8" />
+								</div>
+								<div className="space-y-2 text-center">
+									<h3 className="text-lg font-semibold text-foreground">Error Loading Applications</h3>
+									<p className="text-sm text-muted-foreground max-w-md">
+										Please try again later or contact support if the problem persists.
+									</p>
+								</div>
+							</div>
+						) : (
+							<div className="flex flex-col items-center space-y-4">
+								<div className="p-4 rounded-full bg-primary">
+									<FileText className="size-8 text-white" />
+								</div>
+								<div className="space-y-2 text-center">
+									<h3 className="text-lg font-semibold text-foreground">No Applications Found</h3>
+									<p className="text-sm text-muted-foreground max-w-md">This booklet has no applications yet.</p>
+								</div>
+							</div>
+						)}
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };
