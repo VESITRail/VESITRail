@@ -160,8 +160,8 @@ const AdminAnalyticsPage = () => {
 	}, [loadAnalytics]);
 
 	return (
-		<div className="py-8 px-6 lg:px-8 space-y-6">
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+		<div className="h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] flex flex-col p-6 lg:px-8 space-y-4 overflow-hidden">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
 				<div className="space-y-1">
 					<h1 className="text-2xl font-semibold text-foreground">Analytics</h1>
 					<p className="text-sm text-muted-foreground">
@@ -169,7 +169,7 @@ const AdminAnalyticsPage = () => {
 					</p>
 				</div>
 
-				<div className="flex flex-wrap items-center gap-3">
+				<div className="flex flex-wrap items-center gap-3 shrink-0">
 					<div className="flex items-center gap-2">
 						<Calendar className="size-4 text-muted-foreground shrink-0" />
 						<Select value={timeRange} onValueChange={(val) => handleTimeRangeChange(val as TimeRangeFilter)}>
@@ -198,9 +198,9 @@ const AdminAnalyticsPage = () => {
 				</div>
 			</div>
 
-			<Separator className="my-6" />
+			<Separator className="shrink-0" />
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
 				<Card className="hover:shadow-md transition-shadow">
 					<CardContent className="px-4">
 						<div className="flex items-center gap-3">
@@ -264,8 +264,8 @@ const AdminAnalyticsPage = () => {
 				</Card>
 			</div>
 
-			<div className="space-y-4 pt-4">
-				<div className="flex items-center justify-between">
+			<div className="flex-1 min-h-0 overflow-hidden flex flex-col space-y-3">
+				<div className="flex items-center justify-between shrink-0">
 					<h2 className="text-lg font-semibold text-foreground">Admin Contributions</h2>
 				</div>
 

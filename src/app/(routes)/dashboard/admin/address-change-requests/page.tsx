@@ -139,20 +139,41 @@ const AddressChangeRequests = () => {
 
 	if (isPending) {
 		return (
-			<div className="py-8 px-6 lg:px-8 space-y-6">
-				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+			<div className="h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] flex flex-col p-6 lg:px-8 space-y-4 overflow-hidden">
+				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
 					<div className="space-y-2">
 						<Skeleton className="h-8 w-64" />
 						<Skeleton className="h-4 w-96" />
 					</div>
 				</div>
 
-				<Separator className="my-6" />
+				<Separator className="shrink-0" />
 
-				<div className="space-y-4">
-					{Array.from({ length: 10 }).map((_, index) => (
-						<Skeleton key={index} className="h-16 w-full" />
-					))}
+				<div className="flex-1 min-h-0 overflow-hidden flex flex-col space-y-4">
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
+						<Skeleton className="h-10 w-64" />
+						<div className="flex gap-3">
+							<Skeleton className="h-10 w-36" />
+							<Skeleton className="h-10 w-28" />
+						</div>
+					</div>
+
+					<div className="flex-1 min-h-0 rounded-lg border bg-card p-6 overflow-hidden">
+						<div className="space-y-4">
+							{Array.from({ length: 8 }).map((_, index) => (
+								<Skeleton key={index} className="h-12 w-full" />
+							))}
+						</div>
+					</div>
+
+					<div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between shrink-0">
+						<Skeleton className="h-5 w-52" />
+						<div className="flex items-center gap-3">
+							<Skeleton className="size-8" />
+							<Skeleton className="h-6 w-20" />
+							<Skeleton className="size-8" />
+						</div>
+					</div>
 				</div>
 			</div>
 		);
@@ -163,17 +184,17 @@ const AddressChangeRequests = () => {
 	}
 
 	return (
-		<div className="py-8 px-6 lg:px-8 space-y-6">
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+		<div className="h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] flex flex-col p-6 lg:px-8 space-y-4 overflow-hidden">
+			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
 				<div className="space-y-2">
 					<h1 className="text-2xl font-semibold">Address Change Requests</h1>
 					<p className="text-muted-foreground">Review and manage student address change requests</p>
 				</div>
 			</div>
 
-			<Separator className="my-4" />
+			<Separator className="shrink-0" />
 
-			<div className="my-7">
+			<div className="flex-1 min-h-0 overflow-hidden flex flex-col">
 				<AddressChangeRequestsTable
 					isError={isError}
 					isLoading={isLoading}

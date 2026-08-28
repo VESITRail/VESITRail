@@ -18,10 +18,15 @@ function BookletApplicationsSkeleton() {
 			<div className="space-y-2 shrink-0">
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-2">
-						<Skeleton className="size-8" />
+						<Button size="sm" disabled variant="ghost" className="size-8 p-0 text-muted-foreground">
+							<ArrowLeft className="size-4" />
+						</Button>
 						<Skeleton className="h-8 w-64" />
 					</div>
-					<Skeleton className="h-9 w-36" />
+					<Button disabled className="flex items-center gap-2">
+						<Download className="size-4" />
+						Download PDF
+					</Button>
 				</div>
 				<div className="flex items-center justify-between text-sm text-muted-foreground">
 					<p className="text-sm text-muted-foreground font-normal">View and manage applications under this booklet</p>

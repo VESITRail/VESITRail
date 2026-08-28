@@ -151,37 +151,32 @@ const Students = () => {
 
 	if (isPending) {
 		return (
-			<div className="py-8 px-6 lg:px-8 space-y-6">
-				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+			<div className="h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] flex flex-col p-6 lg:px-8 space-y-4 overflow-hidden">
+				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
 					<div className="space-y-2">
-						<div className="flex items-center gap-3">
-							<Skeleton className="size-8 rounded-lg" />
-							<Skeleton className="h-8 w-48" />
-						</div>
-						<Skeleton className="h-4 w-64" />
+						<Skeleton className="h-8 w-48" />
+						<Skeleton className="h-4 w-96" />
 					</div>
 				</div>
 
-				<Separator className="my-6" />
+				<Separator className="shrink-0" />
 
-				<div className="space-y-4">
-					<div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+				<div className="flex-1 min-h-0 overflow-hidden flex flex-col space-y-4">
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-center shrink-0">
 						<Skeleton className="h-10 flex-1 max-w-sm" />
 						<Skeleton className="h-10 w-36" />
 						<Skeleton className="h-10 w-28" />
 					</div>
 
-					<div className="rounded-lg border bg-card">
-						<div className="p-4">
-							<div className="space-y-3">
-								{Array.from({ length: 5 }).map((_, i) => (
-									<Skeleton key={i} className="h-12 w-full" />
-								))}
-							</div>
+					<div className="flex-1 min-h-0 rounded-lg border bg-card p-6 overflow-hidden">
+						<div className="space-y-4">
+							{Array.from({ length: 8 }).map((_, i) => (
+								<Skeleton key={i} className="h-12 w-full" />
+							))}
 						</div>
 					</div>
 
-					<div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
+					<div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between shrink-0">
 						<Skeleton className="h-5 w-40" />
 						<div className="flex items-center gap-3">
 							<Skeleton className="h-8 w-8" />
@@ -199,8 +194,8 @@ const Students = () => {
 	}
 
 	return (
-		<div className="py-8 px-6 lg:px-8 space-y-6">
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+		<div className="h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] flex flex-col p-6 lg:px-8 space-y-4 overflow-hidden">
+			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
 				<div className="space-y-2">
 					<Heading3 className="text-2xl font-semibold">Manage Students</Heading3>
 
@@ -210,9 +205,9 @@ const Students = () => {
 				</div>
 			</div>
 
-			<Separator className="my-4" />
+			<Separator className="shrink-0" />
 
-			<div className="my-7">
+			<div className="flex-1 min-h-0 overflow-hidden flex flex-col">
 				<StudentsTable
 					isError={isError}
 					isLoading={isLoading}
