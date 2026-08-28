@@ -2,11 +2,10 @@
 
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBooklet } from "@/generated/zod";
+import { FileText, AlertCircle } from "lucide-react";
 import { toTitleCase, formatDateOfBirth } from "@/lib/utils";
-import { FileText, ChevronLeft, AlertCircle, ChevronRight } from "lucide-react";
 import { DamagedPageItem, BookletTableItem, BookletApplicationItem } from "@/actions/booklets";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
@@ -14,27 +13,12 @@ import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel 
 type BookletApplicationsTableProps = {
 	isError: boolean;
 	isLoading: boolean;
-	totalCount: number;
-	totalPages: number;
-	currentPage: number;
-	hasNextPage: boolean;
-	hasPreviousPage: boolean;
+	totalCount?: number;
 	applications: BookletTableItem[];
-	onPageChange: (page: number) => void;
 	booklet: Pick<ConcessionBooklet, "id" | "bookletNumber" | "serialStartNumber" | "serialEndNumber">;
 };
 
-const BookletApplicationsTable = ({
-	isError,
-	isLoading,
-	totalCount,
-	totalPages,
-	currentPage,
-	hasNextPage,
-	applications,
-	onPageChange,
-	hasPreviousPage
-}: BookletApplicationsTableProps) => {
+const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletApplicationsTableProps) => {
 	"use no memo";
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
@@ -375,66 +359,27 @@ const BookletApplicationsTable = ({
 	};
 
 	return (
-		<div className="w-full space-y-6">
-			<div className="rounded-lg border bg-card overflow-hidden">
-				<div className="overflow-auto max-h-[70vh]">
-					<Table>
-						<TableHeader className="sticky top-0 bg-card z-10">
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
-									{headerGroup.headers.map((header) => (
-										<TableHead
-											key={header.id}
-											style={{ width: `${header.getSize()}px` }}
-											className="text-center font-semibold h-12 px-2 whitespace-nowrap"
-										>
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-										</TableHead>
-									))}
-								</TableRow>
-							))}
-						</TableHeader>
-						{renderTableContent()}
-					</Table>
-				</div>
+		<div className="w-full h-full rounded-lg border bg-card overflow-hidden flex flex-col min-h-0">
+			<div className="overflow-auto flex-1 min-h-0">
+				<Table>
+					<TableHeader className="sticky top-0 bg-card z-10">
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
+								{headerGroup.headers.map((header) => (
+									<TableHead
+										key={header.id}
+										style={{ width: `${header.getSize()}px` }}
+										className="text-center font-semibold h-12 px-2 whitespace-nowrap"
+									>
+										{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+									</TableHead>
+								))}
+							</TableRow>
+						))}
+					</TableHeader>
+					{renderTableContent()}
+				</Table>
 			</div>
-
-			{!isLoading && !isError && applications.length > 0 && (
-				<div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
-					<div className="text-sm text-muted-foreground order-2 sm:order-1">
-						Showing {(currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount}{" "}
-						application(s)
-					</div>
-
-					<div className="flex items-center justify-center gap-3 order-1 sm:order-2">
-						<Button
-							size="sm"
-							variant="outline"
-							className="size-8 p-0"
-							disabled={!hasPreviousPage}
-							onClick={() => onPageChange(currentPage - 1)}
-						>
-							<ChevronLeft className="size-4" />
-						</Button>
-
-						<div className="flex items-center gap-2 px-3">
-							<span className="text-sm font-medium text-foreground">{totalPages === 0 ? 0 : currentPage}</span>
-							<span className="text-sm text-muted-foreground">of</span>
-							<span className="text-sm font-medium text-foreground">{totalPages}</span>
-						</div>
-
-						<Button
-							size="sm"
-							variant="outline"
-							className="size-8 p-0"
-							disabled={!hasNextPage}
-							onClick={() => onPageChange(currentPage + 1)}
-						>
-							<ChevronRight className="size-4" />
-						</Button>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 };
