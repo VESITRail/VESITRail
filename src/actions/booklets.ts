@@ -84,12 +84,8 @@ export type DamagedPageItem = {
 
 export type BookletTableItem = BookletApplicationItem | DamagedPageItem;
 
-export type PaginatedBookletApplicationsResult = {
+export type BookletApplicationsResult = {
 	totalCount: number;
-	totalPages: number;
-	currentPage: number;
-	hasNextPage: boolean;
-	hasPreviousPage: boolean;
 	data: BookletTableItem[];
 	booklet: Pick<
 		ConcessionBooklet,
@@ -101,10 +97,7 @@ export type PaginatedBookletApplicationsResult = {
 	};
 };
 
-export type BookletApplicationPaginationParams = {
-	page: number;
-	pageSize: number;
-};
+export type PaginatedBookletApplicationsResult = BookletApplicationsResult;
 
 export type AvailableBooklet = Pick<
 	ConcessionBooklet,
@@ -459,9 +452,8 @@ export const getBooklet = async (
 };
 
 export const getBookletApplications = async (
-	bookletId: string,
-	params: BookletApplicationPaginationParams
-): Promise<Result<PaginatedBookletApplicationsResult, AuthError | DatabaseError | ValidationError>> => {
+	bookletId: string
+): Promise<Result<BookletApplicationsResult, AuthError | DatabaseError | ValidationError>> => {
 	const adminResult = await requireAdmin();
 	if (!adminResult.isSuccess) return adminResult;
 
@@ -599,22 +591,10 @@ export const getBookletApplications = async (
 			return pageA - pageB;
 		});
 
-		const totalCount = allItems.length;
-		const totalPages = Math.ceil(totalCount / params.pageSize);
-		const skip = (params.page - 1) * params.pageSize;
-		const hasNextPage = params.page < totalPages;
-		const hasPreviousPage = params.page > 1;
-
-		const paginatedItems = allItems.slice(skip, skip + params.pageSize);
-
 		return success({
 			booklet,
-			totalCount,
-			totalPages,
-			hasNextPage,
-			hasPreviousPage,
-			data: paginatedItems,
-			currentPage: params.page
+			data: allItems,
+			totalCount: allItems.length
 		});
 	} catch (error) {
 		console.error("Error fetching booklet applications:", error);
