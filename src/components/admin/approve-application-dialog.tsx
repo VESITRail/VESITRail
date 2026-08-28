@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminApplication } from "@/actions/concession";
-import { useState, useEffect, useCallback } from "react";
 import { ExternalLink, AlertCircle } from "lucide-react";
 import { ConcessionBookletStatusType } from "@/generated/zod";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { AvailableBooklet, getAvailableBooklets, getBookletAssignedStudents } from "@/actions/booklets";
 import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
 
@@ -133,18 +133,6 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		[getBookletSerialInfo, offsetToSlipDisplay]
 	);
 
-	const calculateNextFreeSlip = useCallback(
-		(booklet: AvailableBooklet, offsets: Map<number, { studentName: string; shortId: number }>): string => {
-			for (let i = 0; i < booklet.totalPages; i++) {
-				if (!offsets.has(i)) {
-					return offsetToSlipDisplay(i, booklet);
-				}
-			}
-			return "";
-		},
-		[offsetToSlipDisplay]
-	);
-
 	const loadAvailableBooklets = useCallback(async () => {
 		setIsLoading(true);
 		try {
@@ -171,39 +159,20 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		}
 	}, []);
 
-	const loadBookletAssignedOffsets = useCallback(
-		async (bookletId: string) => {
-			try {
-				const result = await getBookletAssignedStudents(bookletId);
-				if (result.isSuccess) {
-					const map = new Map<number, { studentName: string; shortId: number }>();
-					for (const [key, value] of Object.entries(result.data)) {
-						map.set(Number(key), { studentName: value.studentName, shortId: value.shortId });
-					}
-					setAssignedOffsets(map);
-
-					const selectedBooklet = availableBooklets.find((b) => b.id === bookletId);
-					if (selectedBooklet) {
-						const nextFree = calculateNextFreeSlip(selectedBooklet, map);
-						setSlipInput(nextFree);
-						setSlipError("");
-
-						if (nextFree) {
-							const offset = slipInputToOffset(nextFree, selectedBooklet);
-							if (offset !== null) {
-								setNextSerialNumber(offsetToSerialNumber(offset, selectedBooklet));
-							}
-						} else {
-							setNextSerialNumber("");
-						}
-					}
+	const loadBookletAssignedOffsets = useCallback(async (bookletId: string) => {
+		try {
+			const result = await getBookletAssignedStudents(bookletId);
+			if (result.isSuccess) {
+				const map = new Map<number, { studentName: string; shortId: number }>();
+				for (const [key, value] of Object.entries(result.data)) {
+					map.set(Number(key), { studentName: value.studentName, shortId: value.shortId });
 				}
-			} catch (error) {
-				console.error("Error loading assigned offsets:", error);
+				setAssignedOffsets(map);
 			}
-		},
-		[availableBooklets, calculateNextFreeSlip, slipInputToOffset, offsetToSerialNumber]
-	);
+		} catch (error) {
+			console.error("Error loading assigned offsets:", error);
+		}
+	}, []);
 
 	const generateBookletSearchTerms = (booklet: AvailableBooklet) => {
 		const serialStart = booklet.serialStartNumber;
@@ -211,11 +180,9 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 		const serialEnd = booklet.serialEndNumber || "";
 
 		const statusText = booklet.status === "InUse" ? "in use" : "available";
-		const usageText = `${booklet._count.applications}/${booklet.totalPages} used`;
 
 		const searchTerms = [
 			prefix,
-			usageText,
 			serialEnd,
 			statusText,
 			serialStart,
@@ -223,9 +190,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 			booklet.status.toLowerCase(),
 			`${booklet.totalPages} total`,
 			booklet.bookletNumber.toString(),
-			`booklet ${booklet.bookletNumber}`,
-			`${booklet._count.applications} used`,
-			`${booklet.totalPages - booklet._count.applications} remaining`
+			`booklet ${booklet.bookletNumber}`
 		].join(" ");
 
 		return searchTerms;
@@ -267,7 +232,9 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
 		if (assignedOffsets.has(offset)) {
 			const assigned = assignedOffsets.get(offset)!;
-			setSlipError(`Voucher #${cleaned} is already assigned to ${assigned.studentName} (#${assigned.shortId})`);
+			setSlipError(
+				`Voucher #${cleaned} is already assigned to ${assigned.studentName} (Application #${assigned.shortId})`
+			);
 		}
 	};
 
@@ -291,7 +258,9 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
 		if (assignedOffsets.has(offset)) {
 			const assigned = assignedOffsets.get(offset)!;
-			setSlipError(`Voucher #${slipInput} is already assigned to ${assigned.studentName} (#${assigned.shortId})`);
+			setSlipError(
+				`Voucher #${slipInput} is already assigned to ${assigned.studentName} (Application #${assigned.shortId})`
+			);
 			return;
 		}
 
@@ -332,6 +301,23 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 
 	const selectedBooklet = availableBooklets.find((b) => b.id === selectedBookletId);
 	const bookletRangeInfo = selectedBooklet ? getBookletRange(selectedBooklet) : null;
+
+	const { issuedCount, damagedCount, remainingCount } = useMemo(() => {
+		if (!selectedBooklet) return { issuedCount: 0, damagedCount: 0, remainingCount: 0 };
+		const isExhausted = selectedBooklet.status === "Exhausted";
+		const maxOffset = assignedOffsets.size > 0 ? Math.max(...Array.from(assignedOffsets.keys())) : -1;
+		const upperBound = isExhausted ? selectedBooklet.totalPages - 1 : maxOffset;
+
+		let damaged = 0;
+		for (let i = 0; i <= upperBound; i++) {
+			if (!assignedOffsets.has(i)) {
+				damaged++;
+			}
+		}
+		const issued = assignedOffsets.size;
+		const remaining = Math.max(0, selectedBooklet.totalPages - issued - damaged);
+		return { issuedCount: issued, damagedCount: damaged, remainingCount: remaining };
+	}, [selectedBooklet, assignedOffsets]);
 
 	const isSlipValid = (() => {
 		if (!slipInput.trim() || !selectedBooklet) return false;
@@ -379,145 +365,163 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 						</div>
 					)}
 
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="booklet-select" className="text-sm font-medium">
-								Select Booklet
-							</Label>
-							{isLoading ? (
-								<div className="space-y-4">
-									<Skeleton className="h-10 w-full" />
-									<div className="space-y-3">
-										<div className="space-y-2">
-											<Skeleton className="h-4 w-32" />
-											<Skeleton className="h-12 w-full" />
-										</div>
-										<div className="bg-muted/30 rounded-lg p-3 space-y-2">
-											<div className="flex justify-between">
-												<Skeleton className="h-3 w-20" />
-												<Skeleton className="h-3 w-40" />
-											</div>
-											<div className="flex justify-between">
-												<Skeleton className="h-3 w-16" />
-												<Skeleton className="h-3 w-24" />
-											</div>
-										</div>
+					{isLoading ? (
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label htmlFor="booklet-select" className="text-sm font-medium">
+									Select Booklet
+								</Label>
+								<Skeleton className="h-10 w-full" />
+							</div>
+
+							<div className="space-y-4">
+								<div className="bg-muted/30 rounded-lg p-3 space-y-2 text-xs">
+									<div className="flex justify-between items-center">
+										<span className="text-muted-foreground">Serial Range:</span>
+										<Skeleton className="h-4 w-28" />
+									</div>
+									<div className="flex justify-between items-center">
+										<span className="text-muted-foreground">Usage:</span>
+										<Skeleton className="h-4 w-52" />
 									</div>
 								</div>
-							) : availableBooklets.length === 0 ? (
-								<div className="space-y-3">
-									<div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-										No available booklets found. Please create a new booklet first.
-									</div>
-									<Button
-										variant="outline"
-										className="w-full"
-										onClick={() => {
-											router.push("/dashboard/admin/booklets");
-										}}
-									>
-										<ExternalLink className="size-4" />
-										Go to Booklets Management
-									</Button>
-								</div>
-							) : (
-								<Combobox
-									options={availableBooklets.map((booklet) => ({
-										data: booklet,
-										value: booklet.id,
-										label: `Booklet #${booklet.bookletNumber}`,
-										searchTerms: generateBookletSearchTerms(booklet)
-									}))}
-									className="w-full"
-									value={selectedBookletId}
-									showFullOptionInTrigger={true}
-									onValueChange={handleBookletChange}
-									placeholder="Search and select a booklet..."
-									emptyText="No booklets found matching your search."
-									searchPlaceholder="Search by booklet number, serial, status..."
-									renderOption={(option) => {
-										const booklet = option.data as AvailableBooklet;
 
-										return (
-											<div className="flex items-center justify-between w-full min-w-0">
-												<span className="font-medium">Booklet #{booklet.bookletNumber}</span>
-												<div className="flex items-center gap-2 ml-3 shrink-0">
-													<span className="text-xs text-muted-foreground whitespace-nowrap">
-														{booklet._count.applications}/{booklet.totalPages} used
-													</span>
-													<StatusBadge status={booklet.status} />
-												</div>
-											</div>
-										);
-									}}
-								/>
-							)}
-						</div>
-
-						{selectedBooklet && bookletRangeInfo && (
-							<div className="space-y-3">
 								<div className="space-y-2">
 									<Label htmlFor="slip-number" className="text-sm font-medium">
 										Voucher Slip Number
 									</Label>
 									<div className="grid grid-cols-5 gap-3 items-end">
 										<div className="col-span-2">
-											<Input
-												autoFocus
-												id="slip-number"
-												value={slipInput}
-												autoComplete="off"
-												placeholder={bookletRangeInfo.placeholder}
-												maxLength={bookletRangeInfo.maxInputLength}
-												onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSlipInputChange(e.target.value)}
-												onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-													if (e.key === "Enter" && isSlipValid) {
-														e.preventDefault();
-														handleApprove();
-													}
-												}}
-												className={`font-mono text-center text-lg font-semibold ${slipError ? "border-destructive" : ""}`}
-											/>
+											<Skeleton className="h-10 w-full" />
 										</div>
 										<div className="col-span-3">
-											<div className="h-9 px-3 py-2 bg-muted/50 rounded-md flex items-center">
-												<span className="font-mono text-sm text-muted-foreground">
-													{nextSerialNumber || "Enter slip number"}
-												</span>
-											</div>
+											<Skeleton className="h-10 w-full" />
 										</div>
 									</div>
-
-									{slipError ? (
-										<div className="flex items-center gap-1.5 text-xs text-destructive">
-											<AlertCircle className="size-3.5 shrink-0" />
-											<span>{slipError}</span>
-										</div>
-									) : (
-										<div className="text-xs text-muted-foreground">
-											Enter the voucher slip number ({bookletRangeInfo.rangeLabel})
-										</div>
-									)}
-								</div>
-
-								<div className="bg-muted/30 rounded-lg p-3 space-y-2 text-xs">
-									<div className="flex justify-between">
-										<span className="text-muted-foreground">Serial Range:</span>
-										<span className="font-mono">
-											{selectedBooklet.serialStartNumber} - {selectedBooklet.serialEndNumber}
-										</span>
-									</div>
-
-									<div className="flex justify-between">
-										<span className="text-muted-foreground">Usage:</span>
-										<span>
-											{selectedBooklet._count.applications}/{selectedBooklet.totalPages} pages used
-										</span>
+									<div className="text-xs text-muted-foreground">
+										<Skeleton className="h-4 w-60" />
 									</div>
 								</div>
 							</div>
-						)}
-					</div>
+						</div>
+					) : (
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label htmlFor="booklet-select" className="text-sm font-medium">
+									Select Booklet
+								</Label>
+								{availableBooklets.length === 0 ? (
+									<div className="space-y-3">
+										<div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+											No available booklets found. Please create a new booklet first.
+										</div>
+										<Button
+											variant="outline"
+											className="w-full"
+											onClick={() => {
+												router.push("/dashboard/admin/booklets");
+											}}
+										>
+											<ExternalLink className="size-4" />
+											Go to Booklets Management
+										</Button>
+									</div>
+								) : (
+									<Combobox
+										options={availableBooklets.map((booklet) => ({
+											data: booklet,
+											value: booklet.id,
+											label: `Booklet #${booklet.bookletNumber}`,
+											searchTerms: generateBookletSearchTerms(booklet)
+										}))}
+										className="w-full h-10"
+										value={selectedBookletId}
+										showFullOptionInTrigger={true}
+										onValueChange={handleBookletChange}
+										placeholder="Search and select a booklet..."
+										emptyText="No booklets found matching your search."
+										searchPlaceholder="Search by booklet number, serial, status..."
+										renderOption={(option) => {
+											const booklet = option.data as AvailableBooklet;
+
+											return (
+												<div className="flex items-center justify-between w-full min-w-0">
+													<span className="font-medium">Booklet #{booklet.bookletNumber}</span>
+													<div className="flex items-center gap-2 ml-3 shrink-0">
+														<StatusBadge status={booklet.status} />
+													</div>
+												</div>
+											);
+										}}
+									/>
+								)}
+							</div>
+
+							{selectedBooklet && bookletRangeInfo && (
+								<div className="space-y-4">
+									<div className="bg-muted/30 rounded-lg p-3 space-y-2 text-xs">
+										<div className="flex justify-between">
+											<span className="text-muted-foreground">Serial Range:</span>
+											<span className="font-mono">
+												{selectedBooklet.serialStartNumber} - {selectedBooklet.serialEndNumber}
+											</span>
+										</div>
+
+										<div className="flex justify-between">
+											<span className="text-muted-foreground">Usage:</span>
+											<span>
+												{issuedCount} issued · {damagedCount} damaged · {remainingCount} remaining
+											</span>
+										</div>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="slip-number" className="text-sm font-medium">
+											Voucher Slip Number
+										</Label>
+										<div className="grid grid-cols-5 gap-3 items-end">
+											<div className="col-span-2">
+												<Input
+													autoFocus
+													id="slip-number"
+													value={slipInput}
+													autoComplete="off"
+													placeholder={bookletRangeInfo.placeholder}
+													maxLength={bookletRangeInfo.maxInputLength}
+													onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSlipInputChange(e.target.value)}
+													onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+														if (e.key === "Enter" && isSlipValid) {
+															e.preventDefault();
+															handleApprove();
+														}
+													}}
+													className={`font-mono text-center text-lg font-semibold h-10 ${slipError ? "border-destructive" : ""}`}
+												/>
+											</div>
+											<div className="col-span-3">
+												<div className="h-10 px-3 py-2 bg-muted/50 rounded-md flex items-center">
+													<span className="font-mono text-sm text-muted-foreground">
+														{nextSerialNumber || "Enter slip number"}
+													</span>
+												</div>
+											</div>
+										</div>
+
+										{slipError ? (
+											<div className="flex items-center gap-1.5 text-xs text-destructive">
+												<AlertCircle className="size-3.5 shrink-0" />
+												<span>{slipError}</span>
+											</div>
+										) : (
+											<div className="text-xs text-muted-foreground">
+												Enter the voucher slip number ({bookletRangeInfo.rangeLabel})
+											</div>
+										)}
+									</div>
+								</div>
+							)}
+						</div>
+					)}
 				</div>
 
 				<DialogFooter className="gap-4 pt-2">
