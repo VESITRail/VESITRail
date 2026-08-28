@@ -1,10 +1,5 @@
 "use client";
 
-import {
-	getBookletApplications,
-	BookletApplicationPaginationParams,
-	PaginatedBookletApplicationsResult
-} from "@/actions/booklets";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -15,64 +10,44 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 import { generateBookletPDF } from "@/actions/generate-booklet-pdf";
 import BookletApplicationsTable from "@/components/admin/booklet-applications-table";
+import { getBookletApplications, BookletApplicationsResult } from "@/actions/booklets";
 
 function BookletApplicationsSkeleton() {
 	return (
-		<div className="space-y-6">
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-				<div className="space-y-2">
+		<div className="h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] flex flex-col p-6 lg:px-8 space-y-4 overflow-hidden">
+			<div className="space-y-2 shrink-0">
+				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-2">
-						<Skeleton className="size-8" />
+						<Button size="sm" disabled variant="ghost" className="size-8 p-0 text-muted-foreground">
+							<ArrowLeft className="size-4" />
+						</Button>
 						<Skeleton className="h-8 w-64" />
 					</div>
-					<Skeleton className="h-4 w-48" />
+					<Button disabled className="flex items-center gap-2">
+						<Download className="size-4" />
+						Download PDF
+					</Button>
 				</div>
-				<Skeleton className="h-10 w-32" />
+				<div className="flex items-center justify-between text-sm text-muted-foreground">
+					<p className="text-sm text-muted-foreground font-normal">View and manage applications under this booklet</p>
+					<Skeleton className="h-4 w-28" />
+				</div>
 			</div>
 
-			<Skeleton className="h-px w-full" />
+			<Separator className="shrink-0" />
 
-			<div className="rounded-lg border bg-card">
-				<div className="p-6">
-					<div className="space-y-4">
-						<div className="flex items-center space-x-4 border-b pb-3">
-							<Skeleton className="h-4 w-16" />
-							<Skeleton className="h-4 w-20" />
-							<Skeleton className="h-4 w-24" />
-							<Skeleton className="h-4 w-32" />
-							<Skeleton className="h-4 w-24" />
-							<Skeleton className="h-4 w-16" />
-							<Skeleton className="h-4 w-20" />
-							<Skeleton className="h-4 w-20" />
-							<Skeleton className="h-4 w-24" />
-							<Skeleton className="h-4 w-48" />
-						</div>
-
-						{Array.from({ length: 10 }).map((_, index) => (
-							<div key={index} className="flex items-center space-x-4 py-3 border-b border-border/30 last:border-b-0">
-								<Skeleton className="h-4 w-16" />
-								<Skeleton className="h-4 w-20" />
-								<Skeleton className="h-4 w-24" />
-								<Skeleton className="h-4 w-32" />
-								<Skeleton className="h-4 w-24" />
-								<Skeleton className="h-4 w-16" />
-								<Skeleton className="h-4 w-20" />
-								<Skeleton className="h-4 w-20" />
-								<Skeleton className="h-4 w-24" />
-								<Skeleton className="h-4 w-48" />
-							</div>
-						))}
-					</div>
-
-					<div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between pt-6">
-						<Skeleton className="h-5 w-48" />
-						<div className="flex items-center gap-3">
-							<Skeleton className="size-8" />
-							<Skeleton className="h-6 w-20" />
-							<Skeleton className="size-8" />
-						</div>
-					</div>
-				</div>
+			<div className="flex-1 min-h-0 overflow-hidden">
+				<BookletApplicationsTable
+					isError={false}
+					isLoading={true}
+					booklet={{
+						id: "",
+						bookletNumber: 0,
+						serialStartNumber: "",
+						serialEndNumber: ""
+					}}
+					applications={[]}
+				/>
 			</div>
 		</div>
 	);
@@ -87,13 +62,9 @@ const BookletApplicationsPage = () => {
 	const [isError, setIsError] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
-	const [paginationData, setPaginationData] = useState<PaginatedBookletApplicationsResult>({
+	const [bookletData, setBookletData] = useState<BookletApplicationsResult>({
 		data: [],
 		totalCount: 0,
-		totalPages: 0,
-		currentPage: 1,
-		hasNextPage: false,
-		hasPreviousPage: false,
 		booklet: {
 			id: "",
 			totalPages: 50,
@@ -107,51 +78,36 @@ const BookletApplicationsPage = () => {
 		}
 	});
 
-	const loadApplications = useCallback(
-		async (page: number = 1, pageSize: number = 10) => {
-			if (isPending || !data?.user?.id || !bookletId) return;
+	const loadApplications = useCallback(async () => {
+		if (isPending || !data?.user?.id || !bookletId) return;
 
-			setIsError(false);
-			setIsLoading(true);
+		setIsError(false);
+		setIsLoading(true);
 
-			try {
-				const params: BookletApplicationPaginationParams = {
-					page,
-					pageSize
-				};
+		try {
+			const result = await getBookletApplications(bookletId);
 
-				const result = await getBookletApplications(bookletId, params);
-
-				if (result.isSuccess) {
-					setPaginationData(result.data);
-				} else {
-					setIsError(true);
-					toast.error("Failed to load applications", {
-						description: result.error.message
-					});
-				}
-			} catch (error) {
-				console.error("Error loading applications:", error);
+			if (result.isSuccess) {
+				setBookletData(result.data);
+			} else {
 				setIsError(true);
 				toast.error("Failed to load applications", {
-					description: "An unexpected error occurred"
+					description: result.error.message
 				});
-			} finally {
-				setIsLoading(false);
 			}
-		},
-		[isPending, data?.user?.id, bookletId]
-	);
-
-	const handlePageChange = useCallback(
-		(page: number) => {
-			loadApplications(page);
-		},
-		[loadApplications]
-	);
+		} catch (error) {
+			console.error("Error loading applications:", error);
+			setIsError(true);
+			toast.error("Failed to load applications", {
+				description: "An unexpected error occurred"
+			});
+		} finally {
+			setIsLoading(false);
+		}
+	}, [isPending, data?.user?.id, bookletId]);
 
 	const handleGeneratePDF = useCallback(async () => {
-		if (!paginationData.booklet || paginationData.data.length === 0) {
+		if (!bookletData.booklet || bookletData.data.length === 0) {
 			toast.error("No Applications Found", {
 				description: "Cannot generate PDF for empty booklet"
 			});
@@ -198,7 +154,7 @@ const BookletApplicationsPage = () => {
 				setIsGeneratingPDF(false);
 			}
 		});
-	}, [bookletId, paginationData.booklet, paginationData.data.length]);
+	}, [bookletId, bookletData.booklet, bookletData.data.length]);
 
 	useEffect(() => {
 		// eslint-disable-next-line react-hooks/set-state-in-effect -- loadApplications is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
@@ -206,11 +162,7 @@ const BookletApplicationsPage = () => {
 	}, [loadApplications]);
 
 	if (isPending) {
-		return (
-			<div className="py-8 px-6 lg:px-8">
-				<BookletApplicationsSkeleton />
-			</div>
-		);
+		return <BookletApplicationsSkeleton />;
 	}
 
 	if (!data?.user?.id) {
@@ -218,9 +170,9 @@ const BookletApplicationsPage = () => {
 	}
 
 	return (
-		<div className="py-8 px-6 lg:px-8 space-y-6">
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-				<div className="space-y-2">
+		<div className="h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] flex flex-col p-6 lg:px-8 space-y-4 overflow-hidden">
+			<div className="space-y-2 shrink-0">
+				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-2">
 						<Button
 							size="sm"
@@ -235,38 +187,39 @@ const BookletApplicationsPage = () => {
 							{isLoading ? (
 								<Skeleton className="h-8 w-64" />
 							) : (
-								`Booklet #${paginationData.booklet.bookletNumber} Applications`
+								`Booklet #${bookletData.booklet.bookletNumber} Applications`
 							)}
 						</h1>
 					</div>
 
-					<p className="text-muted-foreground">View and manage applications under this booklet</p>
+					<Button
+						onClick={handleGeneratePDF}
+						className="flex items-center gap-2"
+						disabled={isGeneratingPDF || isLoading || bookletData.data.length === 0}
+					>
+						<Download className="size-4" />
+						{isGeneratingPDF ? "Generating..." : "Download PDF"}
+					</Button>
 				</div>
 
-				<Button
-					onClick={handleGeneratePDF}
-					className="flex items-center gap-2"
-					disabled={isGeneratingPDF || paginationData.data.length === 0}
-				>
-					<Download className="size-4" />
-					{isGeneratingPDF ? "Generating..." : "Download PDF"}
-				</Button>
+				<div className="flex items-center justify-between text-sm text-muted-foreground">
+					<p className="text-sm text-muted-foreground font-normal">View and manage applications under this booklet</p>
+					{isLoading ? (
+						<Skeleton className="h-4 w-28" />
+					) : !isError && bookletData.data.length > 0 ? (
+						<p className="text-sm text-muted-foreground font-normal">Total: {bookletData.totalCount} records</p>
+					) : null}
+				</div>
 			</div>
 
-			<Separator className="my-4" />
+			<Separator className="shrink-0" />
 
-			<div className="my-7">
+			<div className="flex-1 min-h-0 overflow-hidden">
 				<BookletApplicationsTable
 					isError={isError}
 					isLoading={isLoading}
-					onPageChange={handlePageChange}
-					booklet={paginationData.booklet}
-					applications={paginationData.data}
-					totalCount={paginationData.totalCount}
-					totalPages={paginationData.totalPages}
-					currentPage={paginationData.currentPage}
-					hasNextPage={paginationData.hasNextPage}
-					hasPreviousPage={paginationData.hasPreviousPage}
+					booklet={bookletData.booklet}
+					applications={bookletData.data}
 				/>
 			</div>
 		</div>

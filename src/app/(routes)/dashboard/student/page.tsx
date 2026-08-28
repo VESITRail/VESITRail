@@ -119,8 +119,8 @@ const Student = () => {
 	);
 
 	return (
-		<div className="py-8 px-6 lg:px-8 space-y-6">
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+		<div className="h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] flex flex-col p-6 lg:px-8 space-y-4 overflow-hidden">
+			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
 				<div className="space-y-2">
 					<Heading3 className="text-2xl font-semibold">
 						Welcome,{" "}
@@ -136,7 +136,7 @@ const Student = () => {
 					</Small>
 				</div>
 
-				<Button asChild className="w-full sm:w-auto">
+				<Button asChild className="w-full sm:w-auto shrink-0">
 					<Link href="/dashboard/student/apply-concession">
 						<PlusCircle className="mr-2 size-4" />
 						New Concession
@@ -144,9 +144,9 @@ const Student = () => {
 				</Button>
 			</div>
 
-			<Separator className="my-4" />
+			<Separator className="shrink-0" />
 
-			<div className="my-7">
+			<div className="flex-1 min-h-0 overflow-hidden flex flex-col">
 				<ApplicationsTable
 					isError={isError}
 					isLoading={isLoading}

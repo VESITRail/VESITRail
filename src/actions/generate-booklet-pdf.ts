@@ -21,10 +21,7 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 	if (!adminResult.isSuccess) return adminResult;
 
 	try {
-		const result = await getBookletApplications(bookletId, {
-			page: 1,
-			pageSize: 1000
-		});
+		const result = await getBookletApplications(bookletId);
 
 		if (!result.isSuccess) {
 			return failure(validationError("Failed to fetch applications"));

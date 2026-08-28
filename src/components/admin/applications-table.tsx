@@ -966,83 +966,85 @@ const ApplicationsTable = ({
 
 	if (isLoading) {
 		return (
-			<div className="w-full space-y-6">
-				{renderFilters()}
+			<div className="w-full h-full flex flex-col space-y-4 min-h-0 overflow-hidden">
+				<div className="shrink-0">{renderFilters()}</div>
 
-				<div className="rounded-lg border bg-card">
-					<Table>
-						<TableHeader>
-							<TableRow className="hover:bg-transparent border-border/50">
-								<TableHead className="font-semibold h-12 text-center px-4 w-20">
-									<Skeleton className="h-4 w-12 mx-auto" />
-								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-25">
-									<Skeleton className="h-4 w-16 mx-auto" />
-								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-50">
-									<Skeleton className="h-4 w-24 mx-auto" />
-								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
-									<Skeleton className="h-4 w-12 mx-auto" />
-								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-30">
-									<Skeleton className="h-4 w-14 mx-auto" />
-								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-50">
-									<Skeleton className="h-4 w-16 mx-auto" />
-								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
-									<Skeleton className="h-4 w-20 mx-auto" />
-								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-45">
-									<Skeleton className="h-4 w-20 mx-auto" />
-								</TableHead>
-								<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
-									<Skeleton className="h-4 w-20 mx-auto" />
-								</TableHead>
-							</TableRow>
-						</TableHeader>
-
-						<TableBody>
-							{Array.from({ length: 10 }).map((_, index) => (
-								<TableRow key={index} className="hover:bg-muted/50 border-border/50">
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-4 w-6 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
+				<div className="flex-1 min-h-0 rounded-lg border bg-card overflow-hidden flex flex-col">
+					<div className="overflow-auto flex-1 min-h-0">
+						<Table>
+							<TableHeader className="sticky top-0 bg-card z-10">
+								<TableRow className="hover:bg-transparent border-border/50">
+									<TableHead className="font-semibold h-12 text-center px-4 w-20">
 										<Skeleton className="h-4 w-12 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<div className="space-y-1">
-											<Skeleton className="h-4 w-32 mx-auto" />
-											<Skeleton className="h-3 w-24 mx-auto" />
-										</div>
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-6 w-16 rounded-md mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-6 w-16 rounded-full mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-4 w-28 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-4 w-20 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
-										<Skeleton className="h-4 w-32 mx-auto" />
-									</TableCell>
-									<TableCell className="p-4 text-center">
+									</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4 w-20">
+										<Skeleton className="h-4 w-16 mx-auto" />
+									</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4 w-50">
 										<Skeleton className="h-4 w-24 mx-auto" />
-									</TableCell>
+									</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
+										<Skeleton className="h-4 w-12 mx-auto" />
+									</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4 w-30">
+										<Skeleton className="h-4 w-14 mx-auto" />
+									</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4 w-50">
+										<Skeleton className="h-4 w-16 mx-auto" />
+									</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
+										<Skeleton className="h-4 w-20 mx-auto" />
+									</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4 w-45">
+										<Skeleton className="h-4 w-20 mx-auto" />
+									</TableHead>
+									<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
+										<Skeleton className="h-4 w-20 mx-auto" />
+									</TableHead>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+							</TableHeader>
+
+							<TableBody>
+								{Array.from({ length: 10 }).map((_, index) => (
+									<TableRow key={index} className="hover:bg-muted/50 border-border/50">
+										<TableCell className="p-4 text-center">
+											<Skeleton className="h-4 w-6 mx-auto" />
+										</TableCell>
+										<TableCell className="p-4 text-center">
+											<Skeleton className="h-4 w-12 mx-auto" />
+										</TableCell>
+										<TableCell className="p-4 text-center">
+											<div className="space-y-1">
+												<Skeleton className="h-4 w-32 mx-auto" />
+												<Skeleton className="h-3 w-24 mx-auto" />
+											</div>
+										</TableCell>
+										<TableCell className="p-4 text-center">
+											<Skeleton className="h-6 w-16 rounded-md mx-auto" />
+										</TableCell>
+										<TableCell className="p-4 text-center">
+											<Skeleton className="h-6 w-16 rounded-full mx-auto" />
+										</TableCell>
+										<TableCell className="p-4 text-center">
+											<Skeleton className="h-4 w-28 mx-auto" />
+										</TableCell>
+										<TableCell className="p-4 text-center">
+											<Skeleton className="h-4 w-20 mx-auto" />
+										</TableCell>
+										<TableCell className="p-4 text-center">
+											<Skeleton className="h-4 w-32 mx-auto" />
+										</TableCell>
+										<TableCell className="p-4 text-center">
+											<Skeleton className="h-4 w-24 mx-auto" />
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
 				</div>
 
-				{renderPagination()}
+				<div className="shrink-0">{renderPagination()}</div>
 			</div>
 		);
 	}
@@ -1053,7 +1055,7 @@ const ApplicationsTable = ({
 				icon={XCircle}
 				iconColor="text-white"
 				iconBg="bg-destructive"
-				containerClassName="min-h-[63vh]"
+				containerClassName="h-full w-full min-h-0"
 				title="Failed to Fetch Applications"
 				description="We couldn't load your application data. Please check your connection or try again shortly."
 			/>
@@ -1061,68 +1063,90 @@ const ApplicationsTable = ({
 	}
 
 	return (
-		<div className="w-full space-y-6">
-			{renderFilters()}
+		<div className="w-full h-full flex flex-col space-y-4 min-h-0 overflow-hidden">
+			<div className="shrink-0">{renderFilters()}</div>
 
-			<div className="rounded-lg border bg-card">
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
-								{headerGroup.headers.map((header) => {
-									return (
-										<TableHead
-											key={header.id}
-											style={{ width: header.getSize() }}
-											className={`font-semibold h-12 text-center ${header.id === "serialNo" ? "px-6" : "px-4"}`}
-										>
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-										</TableHead>
-									);
-								})}
-							</TableRow>
-						))}
-					</TableHeader>
+			<div className="flex-1 min-h-0 rounded-lg border bg-card overflow-hidden flex flex-col">
+				{table.getRowModel().rows?.length ? (
+					<div className="overflow-auto flex-1 min-h-0">
+						<Table>
+							<TableHeader className="sticky top-0 bg-card z-10">
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
+										{headerGroup.headers.map((header) => {
+											return (
+												<TableHead
+													key={header.id}
+													style={{ width: header.getSize() }}
+													className={`font-semibold h-12 text-center ${header.id === "serialNo" ? "px-6" : "px-4"}`}
+												>
+													{header.isPlaceholder
+														? null
+														: flexRender(header.column.columnDef.header, header.getContext())}
+												</TableHead>
+											);
+										})}
+									</TableRow>
+								))}
+							</TableHeader>
 
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id} className="hover:bg-muted/50 border-border/50">
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id} className="p-4 text-center">
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell colSpan={columns.length} className="h-64">
-									<div className="flex flex-col items-center justify-center space-y-6 py-8">
-										<div className="flex flex-col items-center space-y-4">
-											<div className="p-4 rounded-full bg-primary">
-												<Inbox className="size-8 text-white" />
-											</div>
+							<TableBody>
+								{table.getRowModel().rows.map((row) => (
+									<TableRow key={row.id} className="hover:bg-muted/50 border-border/50">
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id} className="p-4 text-center">
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</TableCell>
+										))}
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
+				) : (
+					<div className="flex-1 min-h-0 flex flex-col">
+						<Table>
+							<TableHeader className="bg-card">
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
+										{headerGroup.headers.map((header) => (
+											<TableHead
+												key={header.id}
+												style={{ width: header.getSize() }}
+												className={`font-semibold h-12 text-center ${header.id === "serialNo" ? "px-6" : "px-4"}`}
+											>
+												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										))}
+									</TableRow>
+								))}
+							</TableHeader>
+						</Table>
 
-											<div className="space-y-2 text-center">
-												<h3 className="text-lg font-semibold text-foreground">No applications found</h3>
+						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+							<div className="flex flex-col items-center space-y-4">
+								<div className="p-4 rounded-full bg-primary">
+									<Inbox className="size-8 text-white" />
+								</div>
 
-												<p className="text-sm text-muted-foreground max-w-md">
-													{localSearchQuery
-														? `No applications found for "${localSearchQuery}".`
-														: "No concession applications have been submitted yet."}
-												</p>
-											</div>
-										</div>
-									</div>
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
+								<div className="space-y-2 text-center">
+									<h3 className="text-lg font-semibold text-foreground">No applications found</h3>
+
+									<p className="text-sm text-muted-foreground max-w-md">
+										{localSearchQuery
+											? `No applications found for "${localSearchQuery}".`
+											: selectedStatus !== "all" || selectedType !== "all"
+												? "No applications match your current filter criteria."
+												: "No concession applications have been submitted yet."}
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
 			</div>
 
-			{!isLoading && !isError && renderPagination()}
+			{!isLoading && !isError && <div className="shrink-0">{renderPagination()}</div>}
 
 			<ApproveApplicationDialog
 				isOpen={showApproveDialog}
