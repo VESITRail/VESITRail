@@ -241,8 +241,8 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 				</Button>
 			</DrawerTrigger>
 
-			<DrawerContent className="sm:max-w-md w-full h-full flex flex-col bg-background border-l">
-				<DrawerHeader className="border-b pb-4 px-6">
+			<DrawerContent className="w-full sm:max-w-md h-full max-h-dvh flex flex-col bg-background border-l overflow-hidden">
+				<DrawerHeader className="border-b pb-4 px-6 shrink-0">
 					<div className="flex items-center gap-3">
 						<div className="size-9 bg-primary/20 rounded-lg flex items-center justify-center">
 							<Pencil className="size-4.5" />
@@ -257,7 +257,7 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 				</DrawerHeader>
 
 				{isLoadingDetails ? (
-					<div className="flex-1 px-6 py-4 space-y-6">
+					<div className="flex-1 min-h-0 px-6 py-4 space-y-6 overflow-y-auto">
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
 								<Skeleton className="size-4" />
@@ -313,8 +313,8 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 						</div>
 					</div>
 				) : (
-					<ScrollArea className="flex-1 px-6 py-4">
-						<div className="space-y-6 pb-6">
+					<ScrollArea className="flex-1 min-h-0 h-full">
+						<div className="space-y-6 px-6 py-4 pb-6">
 							<div className="space-y-4">
 								<div className="flex items-center gap-2 text-sm font-medium text-muted-foreground uppercase tracking-wide">
 									<User className="size-4" />
@@ -577,7 +577,7 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 					</ScrollArea>
 				)}
 
-				<DrawerFooter className="border-t p-4 flex flex-row justify-end gap-3 bg-background">
+				<DrawerFooter className="border-t p-4 flex flex-row justify-end gap-3 bg-background shrink-0 mt-auto">
 					<DrawerClose asChild>
 						<Button variant="outline" disabled={isSaving}>
 							Cancel
