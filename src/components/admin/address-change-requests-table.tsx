@@ -1133,48 +1133,6 @@ const AddressChangeRequestsTable = ({
 			);
 		}
 
-		if (isError) {
-			return (
-				<TableRow>
-					<TableCell colSpan={columns.length} className="h-64">
-						<div className="flex flex-col items-center space-y-4">
-							<div className="p-4 rounded-full bg-muted/50">
-								<XCircle className="size-8 text-destructive" />
-							</div>
-
-							<h3 className="text-lg font-semibold text-foreground">
-								Failed to load address change requests. Please try again.
-							</h3>
-						</div>
-					</TableCell>
-				</TableRow>
-			);
-		}
-
-		if (sortedRequests.length === 0) {
-			return (
-				<TableRow>
-					<TableCell colSpan={columns.length} className="h-64">
-						<div className="flex flex-col items-center justify-center space-y-6 py-8">
-							<div className="flex flex-col items-center space-y-4">
-								<div className="p-4 rounded-full bg-primary">
-									<MapPin className="size-8 text-white" />
-								</div>
-
-								<div className="space-y-2 text-center">
-									<h3 className="text-lg font-semibold text-foreground">No address change requests found</h3>
-
-									<p className="text-sm text-muted-foreground max-w-md">
-										No address change requests match your current search and filter criteria.
-									</p>
-								</div>
-							</div>
-						</div>
-					</TableCell>
-				</TableRow>
-			);
-		}
-
 		return table.getRowModel().rows.map((row) => (
 			<TableRow
 				key={row.id}
@@ -1191,8 +1149,8 @@ const AddressChangeRequestsTable = ({
 	};
 
 	return (
-		<div className="space-y-4">
-			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+		<div className="w-full h-full flex flex-col space-y-4 min-h-0 overflow-hidden">
+			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0">
 				<div className="flex-1 md:max-w-sm">
 					{isLoading ? (
 						<Skeleton className="h-10 w-full" />
@@ -1217,7 +1175,7 @@ const AddressChangeRequestsTable = ({
 					)}
 				</div>
 
-				<div className="flex gap-3">
+				<div className="flex gap-3 shrink-0">
 					{isLoading ? (
 						<>
 							<Skeleton className="h-10 w-36" />
@@ -1268,65 +1226,126 @@ const AddressChangeRequestsTable = ({
 				</div>
 			</div>
 
-			<div className="rounded-lg border bg-card">
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHead key={header.id} className="font-semibold h-12 text-center px-4">
-										{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-									</TableHead>
+			<div className="flex-1 min-h-0 rounded-lg border bg-card overflow-hidden flex flex-col">
+				{isLoading || (!isError && sortedRequests.length > 0) ? (
+					<div className="overflow-auto flex-1 min-h-0">
+						<Table>
+							<TableHeader className="sticky top-0 bg-card z-10">
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
+										{headerGroup.headers.map((header) => (
+											<TableHead key={header.id} className="font-semibold h-12 text-center px-4">
+												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										))}
+									</TableRow>
 								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>{renderTableContent()}</TableBody>
-				</Table>
+							</TableHeader>
+							<TableBody>{renderTableContent()}</TableBody>
+						</Table>
+					</div>
+				) : (
+					<div className="flex-1 min-h-0 flex flex-col">
+						<Table>
+							<TableHeader className="bg-card">
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
+										{headerGroup.headers.map((header) => (
+											<TableHead key={header.id} className="font-semibold h-12 text-center px-4">
+												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										))}
+									</TableRow>
+								))}
+							</TableHeader>
+						</Table>
+
+						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+							{isError ? (
+								<div className="flex flex-col items-center space-y-4">
+									<div className="p-4 rounded-full bg-destructive/10 text-destructive">
+										<XCircle className="size-8" />
+									</div>
+
+									<div className="space-y-2 text-center">
+										<h3 className="text-lg font-semibold text-foreground">Failed to load address change requests</h3>
+										<p className="text-sm text-muted-foreground max-w-md">
+											We couldn&apos;t load the request data. Please check your connection or try again.
+										</p>
+									</div>
+								</div>
+							) : (
+								<div className="flex flex-col items-center space-y-4">
+									<div className="p-4 rounded-full bg-primary">
+										<MapPin className="size-8 text-white" />
+									</div>
+
+									<div className="space-y-2 text-center">
+										<h3 className="text-lg font-semibold text-foreground">No address change requests found</h3>
+
+										<p className="text-sm text-muted-foreground max-w-md">
+											No address change requests match your current search and filter criteria.
+										</p>
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				)}
 			</div>
 
-			{!isLoading && !isError && (
-				<div className="flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
-					<div className="text-sm text-muted-foreground order-2 sm:order-1">
-						{totalCount > 0 ? (
-							<>
-								Showing {(currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount}{" "}
-								request(s)
-							</>
-						) : (
-							"Showing 0 of 0 requests"
-						)}
-					</div>
-
-					<div className="flex items-center justify-center gap-3 order-1 sm:order-2">
-						<Button
-							size="sm"
-							variant="outline"
-							className="size-8 p-0"
-							disabled={!hasPreviousPage}
-							onClick={() => onPageChange(currentPage - 1)}
-						>
-							<ChevronLeft className="size-4" />
-						</Button>
-
-						<div className="flex items-center gap-2 px-3">
-							<span className="text-sm font-medium text-foreground">{totalPages === 0 ? 0 : currentPage}</span>
-							<span className="text-sm text-muted-foreground">of</span>
-							<span className="text-sm font-medium text-foreground">{totalPages}</span>
-						</div>
-
-						<Button
-							size="sm"
-							variant="outline"
-							className="size-8 p-0"
-							disabled={!hasNextPage}
-							onClick={() => onPageChange(currentPage + 1)}
-						>
-							<ChevronRight className="size-4" />
-						</Button>
-					</div>
+			<div className="shrink-0 flex flex-col gap-4 sm:flex-row items-center sm:justify-between">
+				<div className="text-sm text-muted-foreground order-2 sm:order-1">
+					{isLoading ? (
+						<Skeleton className="h-5 w-52" />
+					) : totalCount > 0 ? (
+						<>
+							Showing {(currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount}{" "}
+							request(s)
+						</>
+					) : (
+						"Showing 0 of 0 requests"
+					)}
 				</div>
-			)}
+
+				<div className="flex items-center justify-center gap-3 order-1 sm:order-2">
+					{isLoading ? (
+						<>
+							<Skeleton className="size-8" />
+							<Skeleton className="h-6 w-20" />
+							<Skeleton className="size-8" />
+						</>
+					) : (
+						<>
+							<Button
+								size="sm"
+								variant="outline"
+								className="size-8 p-0"
+								disabled={!hasPreviousPage}
+								onClick={() => onPageChange(currentPage - 1)}
+							>
+								<ChevronLeft className="size-4" />
+							</Button>
+
+							<div className="flex items-center gap-2 px-3">
+								<span className="text-sm font-medium text-foreground">{totalPages === 0 ? 0 : currentPage}</span>
+								<span className="text-sm text-muted-foreground">of</span>
+								<span className="text-sm font-medium text-foreground">{totalPages}</span>
+							</div>
+
+							<Button
+								size="sm"
+								variant="outline"
+								className="size-8 p-0"
+								disabled={!hasNextPage}
+								onClick={() => onPageChange(currentPage + 1)}
+							>
+								<ChevronRight className="size-4" />
+							</Button>
+						</>
+					)}
+				</div>
+			</div>
 		</div>
 	);
 };
