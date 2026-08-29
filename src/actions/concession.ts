@@ -31,6 +31,7 @@ export type Concession =
 			| "id"
 			| "status"
 			| "shortId"
+			| "issuedAt"
 			| "createdAt"
 			| "reviewedAt"
 			| "applicationType"
@@ -101,6 +102,7 @@ export const getConcessions = async (
 				id: true,
 				status: true,
 				shortId: true,
+				issuedAt: true,
 				createdAt: true,
 				reviewedAt: true,
 				applicationType: true,
@@ -132,6 +134,7 @@ export const getConcessions = async (
 						id: true,
 						status: true,
 						shortId: true,
+						issuedAt: true,
 						createdAt: true,
 						reviewedAt: true,
 						applicationType: true,
@@ -193,6 +196,7 @@ export const getLastApplication = async (): Promise<Result<Concession, AuthError
 				id: true,
 				status: true,
 				shortId: true,
+				issuedAt: true,
 				createdAt: true,
 				reviewedAt: true,
 				applicationType: true,
@@ -242,6 +246,7 @@ export type AdminApplication = Pick<
 	| "id"
 	| "status"
 	| "shortId"
+	| "issuedAt"
 	| "createdAt"
 	| "reviewedAt"
 	| "pageOffset"
@@ -264,7 +269,6 @@ export type AdminApplication = Pick<
 };
 
 export const getAllApplications = async (
-	adminId: string,
 	params: AdminApplicationParams
 ): Promise<Result<PaginatedResult<AdminApplication>, AuthError | DatabaseError>> => {
 	const adminResult = await requireAdmin();
@@ -366,6 +370,7 @@ export const getAllApplications = async (
 				id: true,
 				status: true,
 				shortId: true,
+				issuedAt: true,
 				createdAt: true,
 				reviewedAt: true,
 				pageOffset: true,
@@ -417,10 +422,12 @@ export const getAllApplications = async (
 					return 1;
 				case "Approved":
 					return 2;
-				case "Rejected":
+				case "Issued":
 					return 3;
-				default:
+				case "Rejected":
 					return 4;
+				default:
+					return 5;
 			}
 		};
 
@@ -516,7 +523,7 @@ export const submitConcessionApplication = async (
 
 		let application: Concession;
 
-		if (!existingApplication || existingApplication.status === "Approved") {
+		if (!existingApplication || existingApplication.status === "Approved" || existingApplication.status === "Issued") {
 			application = await prisma.concessionApplication.create({
 				data: {
 					status: "Pending",
@@ -532,6 +539,7 @@ export const submitConcessionApplication = async (
 					id: true,
 					status: true,
 					shortId: true,
+					issuedAt: true,
 					createdAt: true,
 					reviewedAt: true,
 					applicationType: true,
@@ -563,6 +571,7 @@ export const submitConcessionApplication = async (
 							id: true,
 							status: true,
 							shortId: true,
+							issuedAt: true,
 							createdAt: true,
 							reviewedAt: true,
 							applicationType: true,
@@ -599,19 +608,21 @@ export const submitConcessionApplication = async (
 					id: existingApplication.id
 				},
 				data: {
-					status: "Pending",
+					issuedAt: null,
 					reviewedAt: null,
+					status: "Pending",
 					reviewedById: null,
 					rejectionReason: null,
 					stationId: data.stationId,
+					submissionCount: { increment: 1 },
 					concessionClassId: data.concessionClassId,
-					concessionPeriodId: data.concessionPeriodId,
-					submissionCount: { increment: 1 }
+					concessionPeriodId: data.concessionPeriodId
 				},
 				select: {
 					id: true,
 					status: true,
 					shortId: true,
+					issuedAt: true,
 					createdAt: true,
 					reviewedAt: true,
 					applicationType: true,
@@ -643,6 +654,7 @@ export const submitConcessionApplication = async (
 							id: true,
 							status: true,
 							shortId: true,
+							issuedAt: true,
 							createdAt: true,
 							reviewedAt: true,
 							applicationType: true,
@@ -740,8 +752,9 @@ export const submitConcessionResubmission = async (
 		const updatedApplication = await prisma.concessionApplication.update({
 			where: { id: applicationId },
 			data: {
-				status: "Pending",
+				issuedAt: null,
 				reviewedAt: null,
+				status: "Pending",
 				reviewedById: null,
 				rejectionReason: null,
 				stationId: data.stationId,
@@ -755,6 +768,7 @@ export const submitConcessionResubmission = async (
 				id: true,
 				status: true,
 				shortId: true,
+				issuedAt: true,
 				createdAt: true,
 				reviewedAt: true,
 				applicationType: true,
@@ -786,6 +800,7 @@ export const submitConcessionResubmission = async (
 						id: true,
 						status: true,
 						shortId: true,
+						issuedAt: true,
 						createdAt: true,
 						reviewedAt: true,
 						applicationType: true,
@@ -855,8 +870,8 @@ export const reviewConcessionApplication = async (
 			where: { id: applicationId },
 			data: {
 				status,
-				reviewedById: adminResult.data.userId,
 				reviewedAt: new Date(),
+				reviewedById: adminResult.data.userId,
 				rejectionReason: status === "Rejected" ? rejectionReason?.trim() : null
 			}
 		});
@@ -945,8 +960,8 @@ export const assignBookletToConcession = async (
 			const updatedApplication = await tx.concessionApplication.update({
 				where: { id: applicationId },
 				data: {
-					status: "Approved",
-					reviewedAt: new Date(),
+					status: "Issued",
+					issuedAt: new Date(),
 					pageOffset: pageOffset,
 					reviewedById: verifiedAdminId,
 					concessionBookletId: bookletId
@@ -1028,6 +1043,7 @@ export const getConcessionApplicationDetails = async (
 				id: true,
 				status: true,
 				shortId: true,
+				issuedAt: true,
 				createdAt: true,
 				reviewedAt: true,
 				pageOffset: true,
@@ -1096,6 +1112,7 @@ export type StudentConcessionHistoryItem = Pick<
 	| "id"
 	| "status"
 	| "shortId"
+	| "issuedAt"
 	| "createdAt"
 	| "reviewedAt"
 	| "pageOffset"
@@ -1118,7 +1135,6 @@ export type StudentConcessionHistoryItem = Pick<
 };
 
 export const getStudentConcessionHistory = async (
-	adminId: string,
 	studentUserId: string
 ): Promise<Result<StudentConcessionHistoryItem[], AuthError | DatabaseError | ValidationError>> => {
 	const adminResult = await requireAdmin();
@@ -1132,6 +1148,7 @@ export const getStudentConcessionHistory = async (
 				id: true,
 				status: true,
 				shortId: true,
+				issuedAt: true,
 				createdAt: true,
 				reviewedAt: true,
 				pageOffset: true,

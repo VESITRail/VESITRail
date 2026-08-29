@@ -9,6 +9,7 @@ import {
 	History,
 	FileText,
 	CheckCircle,
+	TicketCheck,
 	AlertTriangle,
 	type LucideIcon
 } from "lucide-react";
@@ -66,8 +67,9 @@ const ApplicationTypeBadge = ({ type }: { type: ConcessionApplicationType }) => 
 const StatusBadge = ({ status }: { status: ConcessionApplicationStatusType }) => {
 	const variants: Record<ConcessionApplicationStatusType, string> = {
 		Rejected: "bg-red-600 text-white",
-		Pending: "bg-amber-600 text-white",
-		Approved: "bg-green-600 text-white"
+		Issued: "bg-green-600 text-white",
+		Approved: "bg-primary text-white",
+		Pending: "bg-amber-600 text-white"
 	};
 
 	return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
@@ -243,11 +245,26 @@ const ConcessionApplicationForm = () => {
 							break;
 
 						case "Approved":
-							if (application.reviewedAt) {
-								const validity = calculateConcessionValidity(
-									new Date(application.reviewedAt),
-									application.concessionPeriod.duration
-								);
+							setCanApply(false);
+							setStatus({
+								icon: TicketCheck,
+								iconBg: "bg-primary",
+								iconColor: "text-white",
+								title: "Concession Approved",
+								description:
+									"Your concession application has been approved! Please visit the Railway Concession Office (Ground Floor, Admin Office) to collect your physical certificate."
+							});
+							break;
+
+						case "Issued": {
+							const issueDate = application.issuedAt
+								? new Date(application.issuedAt)
+								: application.reviewedAt
+									? new Date(application.reviewedAt)
+									: null;
+
+							if (issueDate) {
+								const validity = calculateConcessionValidity(issueDate, application.concessionPeriod.duration);
 
 								if (validity.isValid) {
 									setCanApply(false);
@@ -266,7 +283,7 @@ const ConcessionApplicationForm = () => {
 									setCanApply(true);
 								}
 							} else {
-								console.error("Approved application missing reviewedAt:", application.id);
+								console.error("Issued application missing issue date:", application.id);
 
 								setCanApply(false);
 								setStatus({
@@ -275,10 +292,11 @@ const ConcessionApplicationForm = () => {
 									iconColor: "text-white",
 									title: "Data Verification Required",
 									description:
-										"Your approved application needs verification. Please contact support before applying for a new concession."
+										"Your issued application needs verification. Please contact support before applying for a new concession."
 								});
 							}
 							break;
+						}
 
 						default:
 							setStatus(null);

@@ -68,8 +68,9 @@ type ConcessionPeriod = AdminApplication["concessionPeriod"];
 const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
 	const variants = {
 		Rejected: "bg-red-600 text-white",
-		Pending: "bg-amber-600 text-white",
-		Approved: "bg-green-600 text-white"
+		Issued: "bg-green-600 text-white",
+		Approved: "bg-primary text-white",
+		Pending: "bg-amber-600 text-white"
 	};
 
 	return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
@@ -233,14 +234,14 @@ const createColumns = (
 
 			return (
 				<div className="flex items-center justify-center gap-2">
-					{status === "Approved" && (
+					{(status === "Approved" || status === "Issued") && (
 						<Button
 							size="sm"
 							variant="default"
 							className="size-8 p-0"
-							title="Print Application"
-							aria-label="Print application"
 							onClick={() => onPrint && onPrint(application)}
+							title={status === "Issued" ? "Print Overlay PDF" : "Assign Booklet & Print"}
+							aria-label={status === "Issued" ? "Print overlay PDF" : "Assign booklet and print"}
 						>
 							<Printer className="size-4" />
 						</Button>
@@ -289,7 +290,6 @@ const createColumns = (
 ];
 
 type ApplicationsTableProps = {
-	adminId: string;
 	isError: boolean;
 	isLoading: boolean;
 	totalCount: number;
@@ -307,7 +307,6 @@ type ApplicationsTableProps = {
 };
 
 const ApplicationsTable = ({
-	adminId,
 	isError,
 	isLoading,
 	totalCount,
@@ -543,10 +542,11 @@ const ApplicationsTable = ({
 			if (result.isSuccess) {
 				const updatedApplication: AdminApplication = {
 					...(targetApplication || localApplications.find((app) => app.id === applicationId)!),
-					reviewedAt: new Date(),
-					status: "Approved" as ApplicationStatus,
+					issuedAt: new Date(),
 					concessionBookletId: bookletId,
-					pageOffset: result.data.pageOffset
+					pageOffset: result.data.pageOffset,
+					status: "Issued" as ApplicationStatus,
+					reviewedAt: targetApplication?.reviewedAt || new Date()
 				};
 
 				posthog.capture("booklet_assigned", {
@@ -831,6 +831,7 @@ const ApplicationsTable = ({
 									<SelectItem value="all">All Status</SelectItem>
 									<SelectItem value="Pending">Pending</SelectItem>
 									<SelectItem value="Approved">Approved</SelectItem>
+									<SelectItem value="Issued">Issued</SelectItem>
 									<SelectItem value="Rejected">Rejected</SelectItem>
 								</SelectContent>
 							</Select>
@@ -913,6 +914,7 @@ const ApplicationsTable = ({
 								<SelectItem value="all">All Status</SelectItem>
 								<SelectItem value="Pending">Pending</SelectItem>
 								<SelectItem value="Approved">Approved</SelectItem>
+								<SelectItem value="Issued">Issued</SelectItem>
 								<SelectItem value="Rejected">Rejected</SelectItem>
 							</SelectContent>
 						</Select>

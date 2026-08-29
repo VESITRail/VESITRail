@@ -198,7 +198,6 @@ const AddressChangeRequests = () => {
 				<AddressChangeRequestsTable
 					isError={isError}
 					isLoading={isLoading}
-					adminId={data.user.id}
 					searchQuery={searchQuery}
 					requests={paginationData.data}
 					onPageChange={handlePageChange}
