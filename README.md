@@ -232,7 +232,7 @@ VESITRail is built as a Progressive Web App (PWA):
 
 ## Contributing
 
-Contributions are welcome. Please read our [Contributing Guidelines](CONTRIBUTING.md) for workflow details.
+Contributions are welcome. Please read our [Contributing Guidelines](.github/CONTRIBUTING.md) for workflow details.
 
 ### Development Workflow
 
@@ -271,7 +271,7 @@ pnpm exec playwright test --ui
 This project is released under the **VESITRail Community License v1.0** (custom, source-available, restricted deployment). Only **Vivekanand Education Society's Institute of Technology (VESIT)** is authorized to deploy operational instances. External contributors are welcome to submit improvements under the same license.
 
 - License: See [`LICENSE`](LICENSE)
-- Contributing: See [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Contributing: See [`CONTRIBUTING.md`](./.github/CONTRIBUTING.md)
 - Code of Conduct: See [`CODE_OF_CONDUCT.md`](./.github/CODE_OF_CONDUCT.md)
 - Security Policy: See [`SECURITY.md`](./.github/SECURITY.md)
 

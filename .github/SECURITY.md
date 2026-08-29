@@ -121,4 +121,4 @@ All contributors are expected to adhere to the following standards:
 
 For security-related inquiries, contact the maintainer team at **vesit.railwayconcession@ves.ac.in**.
 
-For general contribution guidelines, refer to the [Contributing Guide](../CONTRIBUTING.md). For the project's code of conduct, see the [Code of Conduct](CODE_OF_CONDUCT.md).
+For general contribution guidelines, refer to the [Contributing Guide](CONTRIBUTING.md). For the project's code of conduct, see the [Code of Conduct](CODE_OF_CONDUCT.md).
