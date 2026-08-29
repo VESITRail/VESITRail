@@ -20,13 +20,14 @@ const StatusBadge = ({ status }: { status: ConcessionApplicationStatusType }) =>
 	const variants = {
 		Rejected: "bg-red-600 text-white",
 		Pending: "bg-amber-600 text-white",
-		Approved: "bg-green-600 text-white"
+		Approved: "bg-primary text-white",
+		Issued: "bg-green-600 text-white"
 	};
 
 	return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
 };
 
-export const StudentConcessionHistorySheet = ({ student, adminId }: { adminId: string; student: StudentListItem }) => {
+export const StudentConcessionHistorySheet = ({ student }: { student: StudentListItem }) => {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const [hasError, setHasError] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<number>(1);
@@ -53,7 +54,7 @@ export const StudentConcessionHistorySheet = ({ student, adminId }: { adminId: s
 		setHasError(false);
 
 		try {
-			const result = await getStudentConcessionHistory(adminId, student.userId);
+			const result = await getStudentConcessionHistory(student.userId);
 
 			if (result.isSuccess) {
 				setHistory(result.data);
@@ -68,7 +69,7 @@ export const StudentConcessionHistorySheet = ({ student, adminId }: { adminId: s
 		} finally {
 			setIsLoading(false);
 		}
-	}, [isOpen, adminId, student.userId]);
+	}, [isOpen, student.userId]);
 
 	useEffect(() => {
 		if (isOpen) {
@@ -370,8 +371,14 @@ export const StudentConcessionHistorySheet = ({ student, adminId }: { adminId: s
 														) : app.status === "Approved" ? (
 															<span className="text-muted-foreground text-xs">
 																{app.reviewedBy?.user?.name
-																	? `Approved by ${toTitleCase(app.reviewedBy.user.name)}`
-																	: "Approved"}
+																	? `Approved by ${toTitleCase(app.reviewedBy.user.name)} (Awaiting Pickup)`
+																	: "Approved (Awaiting Pickup)"}
+															</span>
+														) : app.status === "Issued" ? (
+															<span className="text-muted-foreground text-xs">
+																{app.reviewedBy?.user?.name
+																	? `Issued by ${toTitleCase(app.reviewedBy.user.name)}`
+																	: "Issued"}
 															</span>
 														) : (
 															<span className="text-muted-foreground text-xs">Pending Review</span>

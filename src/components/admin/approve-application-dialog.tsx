@@ -92,7 +92,7 @@ const ApproveApplicationDialog: React.FC<ApproveApplicationDialogProps> = ({
 			const minSlip = offsetToSlipDisplay(0, booklet);
 			const maxSlip = offsetToSlipDisplay(booklet.totalPages - 1, booklet);
 			const rangeLabel = `${minSlip} to ${maxSlip}`;
-			const placeholder = `e.g., ${minSlip}`;
+			const placeholder = "Slip No.";
 			const maxInputLength = Math.max(minSlip.length, maxSlip.length, 2);
 
 			return {

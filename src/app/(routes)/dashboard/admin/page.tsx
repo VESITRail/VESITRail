@@ -56,7 +56,7 @@ const Admin = () => {
 					searchQuery: filters.searchQuery || searchQuery
 				};
 
-				const result = await getAllApplications(data.user.id, params);
+				const result = await getAllApplications(params);
 
 				if (result.isSuccess) {
 					setPaginationData(result.data);
@@ -187,7 +187,6 @@ const Admin = () => {
 				<ApplicationsTable
 					isError={isError}
 					isLoading={isLoading}
-					adminId={data?.user?.id ?? ""}
 					onPageChange={handlePageChange}
 					applications={paginationData.data}
 					onFilterChange={handleFilterChange}
