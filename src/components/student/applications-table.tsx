@@ -30,8 +30,9 @@ type PreviousApplication = NonNullable<Concession>["previousApplication"];
 const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
 	const variants = {
 		Rejected: "bg-red-600 text-white",
-		Pending: "bg-amber-600 text-white",
-		Approved: "bg-green-600 text-white"
+		Issued: "bg-green-600 text-white",
+		Approved: "bg-primary text-white",
+		Pending: "bg-amber-600 text-white"
 	};
 
 	return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
@@ -449,6 +450,7 @@ const ApplicationsTable = ({
 								<SelectItem value="all">All Status</SelectItem>
 								<SelectItem value="Pending">Pending</SelectItem>
 								<SelectItem value="Approved">Approved</SelectItem>
+								<SelectItem value="Issued">Issued</SelectItem>
 								<SelectItem value="Rejected">Rejected</SelectItem>
 							</SelectContent>
 						</Select>
