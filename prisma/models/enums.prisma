@@ -33,6 +33,7 @@ enum ConcessionApplicationType {
 }
 
 enum ConcessionApplicationStatus {
+  Issued
   Pending
   Approved
   Rejected
