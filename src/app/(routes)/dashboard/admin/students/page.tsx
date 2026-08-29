@@ -211,7 +211,6 @@ const Students = () => {
 				<StudentsTable
 					isError={isError}
 					isLoading={isLoading}
-					adminId={data.user.id}
 					searchQuery={searchQuery}
 					students={paginationData.data}
 					onPageChange={handlePageChange}

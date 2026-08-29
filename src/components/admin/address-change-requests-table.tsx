@@ -86,10 +86,8 @@ const StatusBadge = ({ status }: { status: AddressChangeStatusType }) => {
 
 const AddressChangeRequestDetailsDialog = ({
 	request,
-	adminId,
 	onRequestUpdate
 }: {
-	adminId: string;
 	request: AddressChangeRequestItem;
 	onRequestUpdate?: (updatedRequest: AddressChangeRequestItem) => void;
 }) => {
@@ -830,7 +828,6 @@ const AddressChangeRequestDetailsDialog = ({
 };
 
 type AddressChangeRequestsTableProps = {
-	adminId: string;
 	isError: boolean;
 	isLoading: boolean;
 	totalCount: number;
@@ -847,7 +844,6 @@ type AddressChangeRequestsTableProps = {
 };
 
 const AddressChangeRequestsTable = ({
-	adminId,
 	isError,
 	requests,
 	isLoading,
@@ -1069,16 +1065,12 @@ const AddressChangeRequestsTable = ({
 				header: () => <div className="text-center">Actions</div>,
 				cell: ({ row }) => (
 					<div className="flex justify-center">
-						<AddressChangeRequestDetailsDialog
-							adminId={adminId}
-							request={row.original}
-							onRequestUpdate={onRequestUpdate}
-						/>
+						<AddressChangeRequestDetailsDialog request={row.original} onRequestUpdate={onRequestUpdate} />
 					</div>
 				)
 			}
 		],
-		[adminId, handleSort, onRequestUpdate, currentPage]
+		[handleSort, onRequestUpdate, currentPage]
 	);
 
 	const table = useReactTable({

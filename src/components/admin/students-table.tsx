@@ -761,7 +761,6 @@ const StudentDetailsDialog = ({
 const createColumns = (
 	onSortChange: (column: string) => void,
 	currentPage: number,
-	adminId: string,
 	onStudentUpdate?: (updatedStudent: StudentDetails) => void
 ): ColumnDef<StudentListItem>[] => [
 	{
@@ -864,7 +863,7 @@ const createColumns = (
 				<div className="flex items-center gap-2">
 					<StudentDetailsDialog student={student} onStudentUpdate={onStudentUpdate} />
 					<EditStudentDrawer student={student} onStudentUpdate={onStudentUpdate} />
-					<StudentConcessionHistorySheet student={student} adminId={adminId} />
+					<StudentConcessionHistorySheet student={student} />
 				</div>
 			);
 		}
@@ -872,7 +871,6 @@ const createColumns = (
 ];
 
 type StudentsTableProps = {
-	adminId: string;
 	isError: boolean;
 	isLoading: boolean;
 	totalCount: number;
@@ -890,7 +888,6 @@ type StudentsTableProps = {
 
 const StudentsTable = ({
 	isError,
-	adminId,
 	students,
 	isLoading,
 	totalCount,
@@ -996,7 +993,7 @@ const StudentsTable = ({
 		setLocalSearchQuery(searchQuery);
 	}, [searchQuery]);
 
-	const columns = createColumns(onSortChange, currentPage, adminId, onStudentUpdate);
+	const columns = createColumns(onSortChange, currentPage, onStudentUpdate);
 
 	const table = useReactTable<StudentListItem>({
 		state: {
