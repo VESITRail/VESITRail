@@ -154,7 +154,7 @@ erDiagram
 - **`ConcessionApplication`**: Central application record.
   - Identification: UUID `id` + auto-incrementing integer `shortId` for human-friendly reference.
   - Types: `New` or `Renewal`.
-  - Statuses: `Pending`, `Approved`, `Rejected` (`ConcessionApplicationStatus`).
+  - Statuses: `Pending`, `Approved`, `Issued`, `Rejected` (`ConcessionApplicationStatus`).
   - Booklet Linkage: References `concessionBookletId` and 0-indexed `pageOffset` within the booklet. Enforces uniqueness on `@@unique([concessionBookletId, pageOffset])`.
   - Renewal Auditing: Self-referencing 1:1 relation (`previousApplicationId` -> `renewalApplication`) forming an immutable history chain.
   - Resubmission Support: `submissionCount` and `rejectionReason`.
