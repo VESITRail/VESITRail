@@ -154,7 +154,7 @@ _A modern web application for VESIT students to apply for and manage railway con
 
 ## Documentation
 
-For detailed architectural information, system design, and technical specifications, see [ARCHITECTURE.md](ARCHITECTURE.md).
+For detailed architectural information, system design, and technical specifications, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ### Key Features Overview
 
