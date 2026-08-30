@@ -2,23 +2,44 @@
 
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBooklet } from "@/generated/zod";
-import { FileText, AlertCircle } from "lucide-react";
-import { toTitleCase, formatDateOfBirth } from "@/lib/utils";
-import { DamagedPageItem, BookletTableItem, BookletApplicationItem } from "@/actions/booklets";
+import { FileText, AlertCircle, ArrowRightLeft, Plus, X } from "lucide-react";
+import { toTitleCase, formatDateOfBirth, cn, formatSlipNumber } from "@/lib/utils";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
+import { DamagedPageItem, BookletTableItem, BookletApplicationItem, StagedSlotInfo } from "@/actions/booklets";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
 
 type BookletApplicationsTableProps = {
 	isError: boolean;
 	isLoading: boolean;
 	totalCount?: number;
+	isReorderMode?: boolean;
+	isCapacityFull?: boolean;
+	stagedSlots?: StagedSlotInfo[];
 	applications: BookletTableItem[];
-	booklet: Pick<ConcessionBooklet, "id" | "bookletNumber" | "serialStartNumber" | "serialEndNumber">;
+	onInsertDamaged?: (offset: number) => void;
+	onRemoveDamaged?: (offset: number) => void;
+	onMoveClick?: (slot: StagedSlotInfo) => void;
+	booklet: Pick<ConcessionBooklet, "id" | "bookletNumber" | "serialStartNumber" | "serialEndNumber"> & {
+		totalPages?: number;
+	};
 };
 
-const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletApplicationsTableProps) => {
+const BookletApplicationsTable = ({
+	booklet,
+	isError,
+	isLoading,
+	stagedSlots,
+	onMoveClick,
+	applications,
+	isCapacityFull,
+	onInsertDamaged,
+	onRemoveDamaged,
+	isReorderMode = false
+}: BookletApplicationsTableProps) => {
 	"use no memo";
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
@@ -44,7 +65,11 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 		return derivedCertificateNo;
 	};
 
-	const columns: ColumnDef<BookletTableItem>[] = useMemo(() => {
+	const isDamagedPage = (item: BookletTableItem | null): item is DamagedPageItem => {
+		return !!item && "isDamaged" in item && item.isDamaged === true;
+	};
+
+	const viewColumns: ColumnDef<BookletTableItem>[] = useMemo(() => {
 		const getCurrentPassNo = (application: BookletApplicationItem): string => {
 			if (application.applicationType === "New") {
 				return "New";
@@ -53,10 +78,6 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 				return generatePreviousCertificateNo(application.previousApplication);
 			}
 			return "N/A";
-		};
-
-		const isDamagedPage = (item: BookletTableItem): item is DamagedPageItem => {
-			return "isDamaged" in item && item.isDamaged === true;
 		};
 
 		return [
@@ -79,7 +100,7 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 						serialNo = ((certNumber - 1) % 50) + 1;
 					}
 
-					return <div className="font-medium text-foreground text-center">{serialNo}</div>;
+					return <div className="font-normal text-foreground text-center">{serialNo}</div>;
 				}
 			},
 			{
@@ -89,12 +110,12 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 				header: () => <div className="text-center">Date</div>,
 				cell: ({ row }) => {
 					const item = row.original;
-
-					if (isDamagedPage(item)) {
-						return null;
-					}
-
-					return <div className="text-center text-sm">{format(new Date(item.createdAt), "dd/MM/yyyy")}</div>;
+					if (isDamagedPage(item)) return null;
+					return (
+						<div className="text-center text-sm font-normal text-foreground">
+							{format(new Date(item.createdAt), "dd/MM/yyyy")}
+						</div>
+					);
 				}
 			},
 			{
@@ -106,14 +127,14 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 					if (isDamagedPage(item)) {
 						return (
 							<div className="text-center">
-								<span className="font-mono text-sm">{item.serialNumber}</span>
+								<span className="font-mono text-sm font-semibold text-foreground">{item.serialNumber}</span>
 							</div>
 						);
 					}
 					const certificateNo = generateCertificateNo(item);
 					return (
 						<div className="text-center">
-							<span className="font-mono text-sm block truncate" title={certificateNo}>
+							<span className="font-mono text-sm font-semibold text-foreground block truncate" title={certificateNo}>
 								{certificateNo}
 							</span>
 						</div>
@@ -126,17 +147,14 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 				header: () => <div className="text-center">Student Name</div>,
 				cell: ({ row }) => {
 					const item = row.original;
-
-					if (isDamagedPage(item)) {
-						return null;
-					}
+					if (isDamagedPage(item)) return null;
 
 					const { firstName, middleName, lastName } = item.student;
 					const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ");
 
 					return (
 						<div className="text-center">
-							<span title={fullName} className="font-medium block truncate">
+							<span title={fullName} className="font-semibold text-foreground block truncate">
 								{toTitleCase(fullName.length > 20 ? `${fullName.slice(0, 20)}...` : fullName)}
 							</span>
 						</div>
@@ -149,15 +167,12 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 				header: () => <div className="text-center">Current Pass</div>,
 				cell: ({ row }) => {
 					const item = row.original;
-
-					if (isDamagedPage(item)) {
-						return null;
-					}
+					if (isDamagedPage(item)) return null;
 
 					const currentPassNo = getCurrentPassNo(item);
 					return (
 						<div className="text-center">
-							<span className="font-mono text-sm block truncate" title={currentPassNo}>
+							<span className="font-mono text-sm font-normal text-foreground block truncate" title={currentPassNo}>
 								{currentPassNo}
 							</span>
 						</div>
@@ -170,14 +185,11 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 				header: () => <div className="text-center">Gender</div>,
 				cell: ({ row }) => {
 					const item = row.original;
-
-					if (isDamagedPage(item)) {
-						return null;
-					}
+					if (isDamagedPage(item)) return null;
 
 					return (
 						<div className="text-center">
-							<span className="font-medium" title={item.student.gender}>
+							<span className="font-normal text-foreground" title={item.student.gender}>
 								{item.student.gender}
 							</span>
 						</div>
@@ -190,14 +202,14 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 				header: () => <div className="text-center">Date of Birth</div>,
 				cell: ({ row }) => {
 					const item = row.original;
-
-					if (isDamagedPage(item)) {
-						return null;
-					}
+					if (isDamagedPage(item)) return null;
 
 					return (
 						<div className="text-center">
-							<span className="text-sm" title={formatDateOfBirth(item.student.dateOfBirth, "dd/MM/yyyy")}>
+							<span
+								className="text-sm font-normal text-foreground"
+								title={formatDateOfBirth(item.student.dateOfBirth, "dd/MM/yyyy")}
+							>
 								{formatDateOfBirth(item.student.dateOfBirth, "dd/MM/yyyy")}
 							</span>
 						</div>
@@ -210,14 +222,11 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 				header: () => <div className="text-center">Period</div>,
 				cell: ({ row }) => {
 					const item = row.original;
-
-					if (isDamagedPage(item)) {
-						return null;
-					}
+					if (isDamagedPage(item)) return null;
 
 					return (
 						<div className="text-center">
-							<span className="font-medium block truncate" title={item.concessionPeriod.name}>
+							<span className="font-normal text-foreground block truncate" title={item.concessionPeriod.name}>
 								{item.concessionPeriod.name}
 							</span>
 						</div>
@@ -230,15 +239,12 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 				header: () => <div className="text-center">Home Station</div>,
 				cell: ({ row }) => {
 					const item = row.original;
-
-					if (isDamagedPage(item)) {
-						return null;
-					}
+					if (isDamagedPage(item)) return null;
 
 					const stationText = `${item.station.name} (${item.station.code})`;
 					return (
 						<div className="text-center">
-							<span className="font-medium block truncate" title={stationText}>
+							<span className="font-normal text-foreground block truncate" title={stationText}>
 								{stationText}
 							</span>
 						</div>
@@ -248,17 +254,15 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 		];
 	}, []);
 
-	const table = useReactTable({
-		columns,
+	const viewTable = useReactTable({
 		data: applications,
+		columns: viewColumns,
+		state: { columnVisibility },
 		getCoreRowModel: getCoreRowModel(),
-		onColumnVisibilityChange: setColumnVisibility,
-		state: {
-			columnVisibility
-		}
+		onColumnVisibilityChange: setColumnVisibility
 	});
 
-	const renderTableContent = () => {
+	const renderViewTableContent = () => {
 		if (isLoading) {
 			return (
 				<TableBody>
@@ -299,9 +303,9 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 
 		return (
 			<TableBody>
-				{table.getRowModel().rows.map((row) => {
+				{viewTable.getRowModel().rows.map((row) => {
 					const item = row.original;
-					const isDamaged = "isDamaged" in item && item.isDamaged === true;
+					const isDamaged = isDamagedPage(item);
 
 					if (isDamaged) {
 						const damagedItem = item as DamagedPageItem;
@@ -319,7 +323,7 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 									<span className="font-mono text-sm">{damagedItem.serialNumber}</span>
 								</TableCell>
 								<TableCell
-									colSpan={columns.length - 3}
+									colSpan={viewColumns.length - 3}
 									className="p-4 text-center align-middle font-medium text-destructive"
 								>
 									Cancelled
@@ -342,13 +346,195 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 		);
 	};
 
+	const renderReorderTableContent = () => {
+		if (!stagedSlots || stagedSlots.length === 0) return null;
+
+		return (
+			<TableBody>
+				{stagedSlots.map((slot) => {
+					const offset = slot.offset;
+					const item = slot.item;
+					const isDamaged = isDamagedPage(item);
+					const isOccupied = !!item && !isDamaged;
+					const isModified = !!slot.isModified;
+					const slipNo = formatSlipNumber(offset, booklet.serialStartNumber);
+
+					const serialStart = booklet.serialStartNumber;
+					const prefix = serialStart.replace(/\d+$/, "");
+					const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
+					const certNum = startNum + offset;
+					const certSerial = `${prefix}${certNum.toString().padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+
+					let origSlipNo: string | null = null;
+					if (isModified && slot.originalOffset !== undefined && slot.originalOffset !== null) {
+						origSlipNo = formatSlipNumber(slot.originalOffset, booklet.serialStartNumber);
+					}
+
+					return (
+						<TableRow key={offset} className="hover:bg-muted/50 border-border/50 transition-colors">
+							<TableCell className="p-3 text-center align-middle">
+								<span className="font-mono font-normal text-foreground text-sm">{slipNo}</span>
+							</TableCell>
+
+							<TableCell className="p-3 text-center align-middle font-mono text-sm font-semibold text-foreground">
+								{certSerial}
+							</TableCell>
+
+							<TableCell className="p-3 text-center align-middle">
+								{isOccupied ? (
+									(() => {
+										const app = item as BookletApplicationItem;
+										const fullName = [app.student.firstName, app.student.middleName, app.student.lastName]
+											.filter(Boolean)
+											.join(" ");
+										return (
+											<span className="font-semibold text-foreground block truncate max-w-45 mx-auto" title={fullName}>
+												{toTitleCase(fullName)}
+											</span>
+										);
+									})()
+								) : isDamaged ? (
+									<span className="font-semibold text-destructive">Cancelled</span>
+								) : (
+									<span className="text-muted-foreground/60 italic text-sm font-normal">Empty Slot</span>
+								)}
+							</TableCell>
+
+							<TableCell className="p-3 text-center align-middle text-sm">
+								{isOccupied ? (
+									(() => {
+										const app = item as BookletApplicationItem;
+										return (
+											<span className="text-foreground font-normal">
+												{app.station.name} ({app.concessionPeriod.name})
+											</span>
+										);
+									})()
+								) : (
+									<span className="text-muted-foreground font-normal">-</span>
+								)}
+							</TableCell>
+
+							<TableCell className="p-3 text-center align-middle">
+								{isModified ? (
+									origSlipNo ? (
+										<Badge
+											variant="outline"
+											className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono text-xs font-normal"
+										>
+											Was #{origSlipNo} → #{slipNo}
+										</Badge>
+									) : isDamaged ? (
+										<Badge
+											variant="outline"
+											className="border-destructive/40 bg-destructive/10 text-destructive text-xs font-normal"
+										>
+											Inserted Damaged
+										</Badge>
+									) : (
+										<span className="text-muted-foreground/40 text-xs">-</span>
+									)
+								) : (
+									<span className="text-muted-foreground/40 text-xs">-</span>
+								)}
+							</TableCell>
+
+							<TableCell className="p-3 text-center align-middle">
+								<div className="flex items-center justify-center gap-1.5">
+									{item ? (
+										<>
+											<Button
+												size="sm"
+												variant="outline"
+												className="h-7 text-xs px-2"
+												title={`Move Slip #${slipNo}`}
+												onClick={() => onMoveClick?.(slot)}
+											>
+												<ArrowRightLeft className="size-3 mr-1" />
+												Move
+											</Button>
+
+											{isDamaged ? (
+												<Button
+													size="sm"
+													variant="destructive"
+													className="h-7 text-xs px-2"
+													title="Remove Damaged Slip (Shift Up)"
+													onClick={() => onRemoveDamaged?.(offset)}
+												>
+													<X className="size-3 mr-1" />
+													Remove
+												</Button>
+											) : (
+												<Button
+													size="sm"
+													variant="outline"
+													disabled={isCapacityFull}
+													onClick={() => onInsertDamaged?.(offset)}
+													className="h-7 text-xs px-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+													title={
+														isCapacityFull
+															? "Cannot insert: Booklet at max capacity (50 pages)"
+															: "Insert Damaged Slip Here (Shift Down)"
+													}
+												>
+													<Plus className="size-3 mr-1" />
+													Damaged
+												</Button>
+											)}
+										</>
+									) : (
+										<Button
+											size="sm"
+											variant="outline"
+											title="Mark this empty slot as Damaged"
+											onClick={() => onInsertDamaged?.(offset)}
+											className="h-7 text-xs px-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+										>
+											<Plus className="size-3 mr-1" />
+											Mark Damaged
+										</Button>
+									)}
+								</div>
+							</TableCell>
+						</TableRow>
+					);
+				})}
+			</TableBody>
+		);
+	};
+
 	return (
 		<div className="w-full h-full rounded-lg border bg-card overflow-hidden flex flex-col min-h-0">
-			{isLoading || (!isError && applications.length > 0) ? (
+			{isReorderMode ? (
 				<div className="overflow-auto flex-1 min-h-0">
 					<Table>
 						<TableHeader className="sticky top-0 bg-card z-10">
-							{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow className="hover:bg-transparent border-border/50">
+								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap w-17.5">Sr. No.</TableHead>
+								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap w-27.5">
+									Certificate
+								</TableHead>
+								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap">
+									Student Name / State
+								</TableHead>
+								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap">
+									Station & Period
+								</TableHead>
+								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap w-37.5">
+									Staged Change
+								</TableHead>
+								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap w-45">Actions</TableHead>
+							</TableRow>
+						</TableHeader>
+						{renderReorderTableContent()}
+					</Table>
+				</div>
+			) : isLoading || (!isError && applications.length > 0) ? (
+				<div className="overflow-auto flex-1 min-h-0">
+					<Table>
+						<TableHeader className="sticky top-0 bg-card z-10">
+							{viewTable.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
 									{headerGroup.headers.map((header) => (
 										<TableHead
@@ -362,14 +548,14 @@ const BookletApplicationsTable = ({ isError, isLoading, applications }: BookletA
 								</TableRow>
 							))}
 						</TableHeader>
-						{renderTableContent()}
+						{renderViewTableContent()}
 					</Table>
 				</div>
 			) : (
 				<div className="flex-1 min-h-0 flex flex-col">
 					<Table>
 						<TableHeader className="bg-card">
-							{table.getHeaderGroups().map((headerGroup) => (
+							{viewTable.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
 									{headerGroup.headers.map((header) => (
 										<TableHead
