@@ -161,7 +161,7 @@ export const generateOverlayPDF = async (
 			writeText(eff(layout.left.last_season_ticket_held_upto_year), "-");
 		}
 
-		writeText(eff(layout.left.date_of_issue_left), formatDate(now));
+		writeText(eff(layout.left.date_of_issue_left), formatDate(application.issuedAt || now));
 
 		writeText(eff(layout.right.student_name_right), studentFullName);
 		writeText(eff(layout.right.age_years), String(age.years));
@@ -212,7 +212,7 @@ export const generateOverlayPDF = async (
 			writeText(eff(layout.right.current_pass_validity_from), "-");
 			writeText(eff(layout.right.current_pass_validity_to), "-");
 		}
-		writeText(eff(layout.right.date_of_issue_right), formatDate(now));
+		writeText(eff(layout.right.date_of_issue_right), formatDate(application.issuedAt || now));
 
 		const pdfBytes = doc.output("arraybuffer");
 
