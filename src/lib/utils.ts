@@ -226,9 +226,14 @@ export const isValidErrorCode = (code: string): code is AuthErrorCode => {
 export const calculateBookletStatus = (
 	applicationCount: number,
 	totalPages: number = 50,
-	isManuallyExhausted: boolean = false
+	isManuallyExhausted: boolean = false,
+	maxOffset?: number
 ): ConcessionBookletStatusType => {
 	if (isManuallyExhausted) {
+		return "Exhausted";
+	}
+
+	if (maxOffset !== undefined && maxOffset >= totalPages - 1) {
 		return "Exhausted";
 	}
 

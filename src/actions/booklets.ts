@@ -741,6 +741,11 @@ export const recalculateBookletStatus = async (
 					select: {
 						applications: true
 					}
+				},
+				applications: {
+					select: {
+						pageOffset: true
+					}
 				}
 			}
 		});
@@ -751,8 +756,12 @@ export const recalculateBookletStatus = async (
 
 		const applicationCount = booklet._count?.applications || 0;
 		const isManuallyExhausted = booklet.status === "Exhausted";
+		const offsets = booklet.applications
+			.map((a) => a.pageOffset)
+			.filter((o): o is number => o !== null && o !== undefined);
+		const maxOffset = offsets.length > 0 ? Math.max(...offsets) : -1;
 
-		const newStatus = calculateBookletStatus(applicationCount, booklet.totalPages, isManuallyExhausted);
+		const newStatus = calculateBookletStatus(applicationCount, booklet.totalPages, isManuallyExhausted, maxOffset);
 
 		if (newStatus === booklet.status) {
 			return success(booklet);
@@ -793,6 +802,11 @@ export const recalculateAllBookletStatuses = async (): Promise<
 					select: {
 						applications: true
 					}
+				},
+				applications: {
+					select: {
+						pageOffset: true
+					}
 				}
 			}
 		});
@@ -802,8 +816,12 @@ export const recalculateAllBookletStatuses = async (): Promise<
 		for (const booklet of booklets) {
 			const applicationCount = booklet._count?.applications || 0;
 			const isManuallyExhausted = booklet.status === "Exhausted";
+			const offsets = booklet.applications
+				.map((a) => a.pageOffset)
+				.filter((o): o is number => o !== null && o !== undefined);
+			const maxOffset = offsets.length > 0 ? Math.max(...offsets) : -1;
 
-			const newStatus = calculateBookletStatus(applicationCount, booklet.totalPages, isManuallyExhausted);
+			const newStatus = calculateBookletStatus(applicationCount, booklet.totalPages, isManuallyExhausted, maxOffset);
 
 			if (newStatus !== booklet.status) {
 				await prisma.concessionBooklet.update({
