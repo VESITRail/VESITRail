@@ -8,8 +8,9 @@ import {
 	Filter,
 	Search,
 	XCircle,
-	Printer,
 	Loader2,
+	Printer,
+	RotateCcw,
 	ArrowUpDown,
 	ChevronDown,
 	ChevronLeft,
@@ -26,6 +27,7 @@ import {
 	AdminApplication,
 	assignBookletToConcession,
 	reviewConcessionApplication,
+	reprintConcessionApplication,
 	getConcessionApplicationDetails
 } from "@/actions/concession";
 import { toast } from "sonner";
@@ -41,6 +43,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
 import ApproveApplicationDialog from "./approve-application-dialog";
+import ReprintApplicationDialog from "./reprint-application-dialog";
 import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
@@ -90,7 +93,8 @@ const createColumns = (
 	onReject?: (application: AdminApplication) => void,
 	onApprove?: (application: AdminApplication) => void,
 	onViewRejection?: (application: AdminApplication) => void,
-	onPrint?: (application: AdminApplication) => void
+	onPrint?: (application: AdminApplication) => void,
+	onReprint?: (application: AdminApplication) => void
 ): ColumnDef<AdminApplication>[] => [
 	{
 		size: 80,
@@ -234,17 +238,42 @@ const createColumns = (
 
 			return (
 				<div className="flex items-center justify-center gap-2">
-					{(status === "Approved" || status === "Issued") && (
+					{status === "Approved" && (
 						<Button
 							size="sm"
 							variant="default"
 							className="size-8 p-0"
+							title="Assign Booklet & Print"
+							aria-label="Assign booklet and print"
 							onClick={() => onPrint && onPrint(application)}
-							title={status === "Issued" ? "Print Overlay PDF" : "Assign Booklet & Print"}
-							aria-label={status === "Issued" ? "Print overlay PDF" : "Assign booklet and print"}
 						>
 							<Printer className="size-4" />
 						</Button>
+					)}
+
+					{status === "Issued" && (
+						<>
+							<Button
+								size="sm"
+								variant="default"
+								className="size-8 p-0"
+								title="Print Overlay PDF"
+								aria-label="Print overlay PDF"
+								onClick={() => onPrint && onPrint(application)}
+							>
+								<Printer className="size-4" />
+							</Button>
+							<Button
+								size="sm"
+								variant="outline"
+								className="size-8 p-0"
+								title="Reprint / Reassign Booklet"
+								onClick={() => onReprint && onReprint(application)}
+								aria-label="Reprint concession and reassign booklet"
+							>
+								<RotateCcw className="size-4" />
+							</Button>
+						</>
 					)}
 
 					{status === "Pending" && (
@@ -343,10 +372,12 @@ const ApplicationsTable = ({
 	const [rejectionReason, setRejectionReason] = useState<string>("");
 	const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
 	const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
+	const [showReprintDialog, setShowReprintDialog] = useState<boolean>(false);
 	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
 	const [showApproveConfirmDialog, setShowApproveConfirmDialog] = useState<boolean>(false);
 	const [showRejectionReasonDialog, setShowRejectionReasonDialog] = useState<boolean>(false);
 	const [selectedApplication, setSelectedApplication] = useState<AdminApplication | null>(null);
+	const [selectedReprintApplication, setSelectedReprintApplication] = useState<AdminApplication | null>(null);
 	const [applicationDetails, setApplicationDetails] = useState<
 		| (AdminApplication & {
 				rejectionReason: string | null;
@@ -444,6 +475,11 @@ const ApplicationsTable = ({
 	const handleViewRejection = useCallback((application: AdminApplication) => {
 		setSelectedApplication(application);
 		setShowRejectionReasonDialog(true);
+	}, []);
+
+	const handleReprint = useCallback((application: AdminApplication) => {
+		setSelectedReprintApplication(application);
+		setShowReprintDialog(true);
 	}, []);
 
 	const executePDFGeneration = useCallback(async (application: AdminApplication) => {
@@ -576,6 +612,48 @@ const ApplicationsTable = ({
 		});
 	};
 
+	const confirmReprint = async (applicationId: string, bookletId: string, pageOffset: number) => {
+		const targetApplication = selectedReprintApplication;
+		const reprintPromise = async () => {
+			const result = await reprintConcessionApplication(applicationId, bookletId, pageOffset);
+
+			if (result.isSuccess) {
+				const updatedApplication: AdminApplication = {
+					...(targetApplication || localApplications.find((app) => app.id === applicationId)!),
+					issuedAt: new Date(),
+					concessionBookletId: bookletId,
+					pageOffset: result.data.pageOffset,
+					status: "Issued" as ApplicationStatus,
+					reviewedAt: targetApplication?.reviewedAt || new Date()
+				};
+
+				posthog.capture("concession_reprinted", {
+					booklet_id: bookletId,
+					application_id: applicationId
+				});
+
+				updateLocalApplication(updatedApplication);
+				setSelectedReprintApplication(null);
+
+				executePDFGeneration(updatedApplication);
+
+				return updatedApplication;
+			} else {
+				throw new Error(
+					result.error.type === "VALIDATION_ERROR"
+						? result.error.message
+						: "Unable to reprint concession pass. Please try again."
+				);
+			}
+		};
+
+		toast.promise(reprintPromise, {
+			loading: "Reprinting concession pass...",
+			error: "Failed to reprint concession pass",
+			success: "Concession Pass Reprinted & Printing PDF"
+		});
+	};
+
 	const confirmReject = async () => {
 		if (!selectedApplication) return;
 
@@ -653,7 +731,15 @@ const ApplicationsTable = ({
 		}
 	}, [showRejectionReasonDialog, selectedApplication, loadRejectionReason]);
 
-	const columns = createColumns(currentPage, handleSort, handleReject, handleApprove, handleViewRejection, handlePrint);
+	const columns = createColumns(
+		currentPage,
+		handleSort,
+		handleReject,
+		handleApprove,
+		handleViewRejection,
+		handlePrint,
+		handleReprint
+	);
 
 	const handleStatusFilter = useCallback(
 		(value: string): void => {
@@ -1157,6 +1243,16 @@ const ApplicationsTable = ({
 				onClose={() => {
 					setShowApproveDialog(false);
 					setSelectedApplication(null);
+				}}
+			/>
+
+			<ReprintApplicationDialog
+				isOpen={showReprintDialog}
+				onReprint={confirmReprint}
+				application={selectedReprintApplication}
+				onClose={() => {
+					setShowReprintDialog(false);
+					setSelectedReprintApplication(null);
 				}}
 			/>
 
