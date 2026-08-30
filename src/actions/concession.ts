@@ -21,6 +21,7 @@ import {
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { calculateBookletStatus } from "@/lib/utils";
 import type { Prisma } from "@/generated/prisma/client";
 import { requireAdmin, requireStudent } from "@/lib/auth-guard";
 import { sendConcessionNotification } from "@/lib/notifications";
@@ -255,6 +256,12 @@ export type AdminApplication = Pick<
 	| "submissionCount"
 	| "concessionBookletId"
 > & {
+	concessionBooklet?: {
+		id: string;
+		bookletNumber: number;
+		serialEndNumber: string;
+		serialStartNumber: string;
+	} | null;
 	student: {
 		firstName: string;
 		lastName: string | null;
@@ -409,6 +416,14 @@ export const getAllApplications = async (
 						id: true,
 						name: true,
 						duration: true
+					}
+				},
+				concessionBooklet: {
+					select: {
+						id: true,
+						bookletNumber: true,
+						serialEndNumber: true,
+						serialStartNumber: true
 					}
 				}
 			}
@@ -968,8 +983,9 @@ export const assignBookletToConcession = async (
 				}
 			});
 
-			const newAssignedCount = assignedOffsets.size + 1;
-			const newBookletStatus = newAssignedCount >= booklet.totalPages ? "Exhausted" : "InUse";
+			assignedOffsets.add(pageOffset);
+			const maxOffset = Math.max(...Array.from(assignedOffsets));
+			const newBookletStatus = calculateBookletStatus(assignedOffsets.size, booklet.totalPages, false, maxOffset);
 
 			await tx.concessionBooklet.update({
 				where: { id: bookletId },
@@ -1022,6 +1038,178 @@ export const approveConcessionWithBooklet = async (
 	return assignBookletToConcession(applicationId, bookletId, pageOffset);
 };
 
+export const reprintConcessionApplication = async (
+	applicationId: string,
+	bookletId: string,
+	pageOffset: number
+): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
+	try {
+		const verifiedAdminId = adminResult.data.userId;
+
+		const result = await prisma.$transaction(async (tx) => {
+			const application = await tx.concessionApplication.findUnique({
+				where: { id: applicationId }
+			});
+
+			if (!application) {
+				throw new Error("Application not found");
+			}
+
+			if (application.status !== "Issued") {
+				throw new Error("Only issued applications can be reprinted");
+			}
+
+			const oldBookletId = application.concessionBookletId;
+			const oldPageOffset = application.pageOffset;
+
+			if (oldBookletId === bookletId && oldPageOffset === pageOffset) {
+				throw new Error(
+					"Cannot reprint to the same voucher slip in the same booklet. Please select a different slip number or booklet."
+				);
+			}
+
+			const targetBooklet = await tx.concessionBooklet.findUnique({
+				where: { id: bookletId },
+				include: {
+					applications: {
+						select: {
+							id: true,
+							pageOffset: true
+						}
+					}
+				}
+			});
+
+			if (!targetBooklet) {
+				throw new Error("Selected booklet not found");
+			}
+
+			if (!["InUse", "Available"].includes(targetBooklet.status)) {
+				throw new Error("Selected booklet is not available for use");
+			}
+
+			if (pageOffset < 0 || pageOffset >= targetBooklet.totalPages) {
+				throw new Error(`Page offset must be between 0 and ${targetBooklet.totalPages - 1}`);
+			}
+
+			const isAlreadyAssigned = targetBooklet.applications.some(
+				(app) => app.id !== applicationId && app.pageOffset === pageOffset
+			);
+
+			if (isAlreadyAssigned) {
+				throw new Error("Slip number is already assigned in this booklet");
+			}
+
+			const updatedApplication = await tx.concessionApplication.update({
+				where: { id: applicationId },
+				data: {
+					status: "Issued",
+					issuedAt: new Date(),
+					pageOffset: pageOffset,
+					reviewedById: verifiedAdminId,
+					concessionBookletId: bookletId
+				}
+			});
+
+			const targetApps = await tx.concessionApplication.findMany({
+				where: { concessionBookletId: bookletId, pageOffset: { not: null } },
+				select: { pageOffset: true }
+			});
+
+			const targetOffsets = targetApps.map((a) => a.pageOffset!);
+			const targetMaxOffset = targetOffsets.length > 0 ? Math.max(...targetOffsets) : -1;
+
+			const newBookletStatus = calculateBookletStatus(
+				targetOffsets.length,
+				targetBooklet.totalPages,
+				false,
+				targetMaxOffset
+			);
+
+			await tx.concessionBooklet.update({
+				where: { id: bookletId },
+				data: {
+					status: newBookletStatus
+				}
+			});
+
+			if (oldBookletId && oldBookletId !== bookletId) {
+				const oldApps = await tx.concessionApplication.findMany({
+					where: { concessionBookletId: oldBookletId, pageOffset: { not: null } },
+					select: { pageOffset: true }
+				});
+				const oldBooklet = await tx.concessionBooklet.findUnique({
+					where: { id: oldBookletId },
+					select: { totalPages: true }
+				});
+
+				if (oldBooklet) {
+					const oldOffsets = oldApps.map((a) => a.pageOffset!);
+					const oldMaxOffset = oldOffsets.length > 0 ? Math.max(...oldOffsets) : -1;
+					const oldBookletStatus = calculateBookletStatus(
+						oldOffsets.length,
+						oldBooklet.totalPages,
+						false,
+						oldMaxOffset
+					);
+
+					await tx.concessionBooklet.update({
+						where: { id: oldBookletId },
+						data: {
+							status: oldBookletStatus
+						}
+					});
+				}
+			}
+
+			return { updatedApplication, oldBookletId };
+		});
+
+		revalidatePath("/dashboard/admin");
+		revalidatePath("/dashboard/admin/booklets");
+		revalidatePath(`/dashboard/admin/booklets/${bookletId}`);
+		if (result.oldBookletId && result.oldBookletId !== bookletId) {
+			revalidatePath(`/dashboard/admin/booklets/${result.oldBookletId}`);
+		}
+
+		return success(result.updatedApplication);
+	} catch (error) {
+		console.error("Error reprinting concession application:", error);
+
+		if (error instanceof Error) {
+			const errorMessage = error.message;
+
+			if (
+				errorMessage.includes("already assigned") ||
+				errorMessage.includes("different slip number") ||
+				errorMessage.includes("Cannot reprint") ||
+				errorMessage.includes("not available") ||
+				errorMessage.includes("between 0 and")
+			) {
+				return failure(validationError(errorMessage, "pageOffset"));
+			}
+
+			if (errorMessage.includes("not found")) {
+				return failure(validationError(errorMessage, "applicationId"));
+			}
+
+			if (errorMessage.includes("Only issued")) {
+				return failure(validationError(errorMessage, "status"));
+			}
+		}
+
+		if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+			const errorMessage = `Page offset ${pageOffset} is already assigned in this booklet`;
+			return failure(validationError(errorMessage, "pageOffset"));
+		}
+
+		return failure(databaseError("Failed to reprint concession"));
+	}
+};
+
 export const getConcessionApplicationDetails = async (
 	applicationId: string
 ): Promise<
@@ -1051,6 +1239,14 @@ export const getConcessionApplicationDetails = async (
 				rejectionReason: true,
 				submissionCount: true,
 				concessionBookletId: true,
+				concessionBooklet: {
+					select: {
+						id: true,
+						bookletNumber: true,
+						serialEndNumber: true,
+						serialStartNumber: true
+					}
+				},
 				student: {
 					select: {
 						lastName: true,
