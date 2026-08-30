@@ -247,3 +247,7 @@ export const calculateBookletStatus = (
 
 	return "Available";
 };
+
+export const formatSlipNumber = (offset: number, _serialStartNumber?: string): string => {
+	return (offset + 1).toString();
+};

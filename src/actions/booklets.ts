@@ -889,3 +889,117 @@ export const updateBookletAnchorCoordinates = async (
 		return failure(databaseError("Failed to update anchor coordinates"));
 	}
 };
+
+export type ReorderApplicationItem = {
+	pageOffset: number;
+	applicationId: string;
+};
+
+export type StagedSlotInfo = {
+	offset: number;
+	isModified?: boolean;
+	item: BookletTableItem | null;
+	originalOffset?: number | null;
+};
+
+export const reorderBookletApplications = async (
+	bookletId: string,
+	assignments: ReorderApplicationItem[]
+): Promise<Result<{ success: boolean; updatedCount: number }, AuthError | DatabaseError | ValidationError>> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
+	try {
+		if (!bookletId) {
+			return failure(validationError("Booklet ID is required", "bookletId"));
+		}
+
+		if (!assignments || !Array.isArray(assignments)) {
+			return failure(validationError("Assignments must be an array", "assignments"));
+		}
+
+		const result = await prisma.$transaction(async (tx) => {
+			const booklet = await tx.concessionBooklet.findUnique({
+				where: { id: bookletId },
+				include: {
+					applications: {
+						select: {
+							id: true,
+							pageOffset: true
+						}
+					}
+				}
+			});
+
+			if (!booklet) {
+				throw new Error("Booklet not found");
+			}
+
+			const existingAppIds = new Set(booklet.applications.map((app) => app.id));
+			const targetOffsets = new Set<number>();
+
+			for (const assignment of assignments) {
+				if (!existingAppIds.has(assignment.applicationId)) {
+					throw new Error(`Application ${assignment.applicationId} does not belong to this booklet`);
+				}
+
+				if (
+					assignment.pageOffset < 0 ||
+					assignment.pageOffset >= booklet.totalPages ||
+					!Number.isInteger(assignment.pageOffset)
+				) {
+					throw new Error(
+						`Invalid page offset ${assignment.pageOffset}. Must be between 0 and ${booklet.totalPages - 1}`
+					);
+				}
+
+				if (targetOffsets.has(assignment.pageOffset)) {
+					throw new Error(`Duplicate page offset ${assignment.pageOffset} detected`);
+				}
+
+				targetOffsets.add(assignment.pageOffset);
+			}
+
+			for (let i = 0; i < assignments.length; i++) {
+				const assignment = assignments[i];
+				await tx.concessionApplication.update({
+					where: { id: assignment.applicationId },
+					data: { pageOffset: -(i + 1000) }
+				});
+			}
+
+			for (const assignment of assignments) {
+				await tx.concessionApplication.update({
+					where: { id: assignment.applicationId },
+					data: { pageOffset: assignment.pageOffset }
+				});
+			}
+
+			const maxOffset = targetOffsets.size > 0 ? Math.max(...Array.from(targetOffsets)) : -1;
+			const isExhausted =
+				booklet.status === "Exhausted" ||
+				maxOffset >= booklet.totalPages - 1 ||
+				targetOffsets.size >= booklet.totalPages;
+			const newStatus = calculateBookletStatus(targetOffsets.size, booklet.totalPages, isExhausted, maxOffset);
+
+			await tx.concessionBooklet.update({
+				where: { id: bookletId },
+				data: { status: newStatus }
+			});
+
+			return { success: true, updatedCount: assignments.length };
+		});
+
+		revalidatePath("/dashboard/admin");
+		revalidatePath("/dashboard/admin/booklets");
+		revalidatePath(`/dashboard/admin/booklets/${bookletId}`);
+
+		return success(result);
+	} catch (error) {
+		console.error("Error reordering booklet applications:", error);
+		if (error instanceof Error) {
+			return failure(validationError(error.message));
+		}
+		return failure(databaseError("Failed to reorder booklet applications"));
+	}
+};
