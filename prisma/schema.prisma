@@ -53,10 +53,11 @@ model Session {
 }
 
 model Account {
-  id         String @id
+  id         String  @id
   userId     String
   accountId  String
   providerId String
+  issuer     String?
 
   scope    String?
   password String?
