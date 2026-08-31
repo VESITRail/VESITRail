@@ -191,7 +191,7 @@ export const MoveSlotDialog = ({
 								}
 							}}
 							className={cn(
-								"font-mono text-center text-sm font-medium h-9",
+								"font-mono text-center text-sm font-medium h-10 placeholder:text-muted-foreground placeholder:font-normal",
 								(error || (targetSlipInput && !validationInfo.isValid)) && "border-destructive"
 							)}
 						/>

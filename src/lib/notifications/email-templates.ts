@@ -40,10 +40,6 @@ export const generateEmailTemplate = (scenario: NotificationScenario, params: Em
 		description += ` Reason: ${params.rejectionReason}`;
 	}
 
-	if (params.submissionCount && params.submissionCount > 1) {
-		description += ` This was your ${getOrdinalNumber(params.submissionCount)} submission.`;
-	}
-
 	const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -165,10 +161,12 @@ export const generateEmailTemplate = (scenario: NotificationScenario, params: Em
 const generateInfoBox = (scenario: NotificationScenario, params: EmailTemplateParams): string => {
 	const infoItems: { label: string; value: string }[] = [];
 
-	if (params.shortId) {
-		infoItems.push({ label: "Application ID", value: `#${params.shortId}` });
-	} else if (params.applicationId) {
-		infoItems.push({ label: "Application ID", value: params.applicationId });
+	if (scenario.category !== "address_change") {
+		if (params.shortId) {
+			infoItems.push({ label: "Application ID", value: `#${params.shortId}` });
+		} else if (params.applicationId) {
+			infoItems.push({ label: "Application ID", value: params.applicationId });
+		}
 	}
 
 	if (scenario.category === "concession" && params.concessionType) {
@@ -188,13 +186,6 @@ const generateInfoBox = (scenario: NotificationScenario, params: EmailTemplatePa
 				value: params.toStation
 			});
 		}
-	}
-
-	if (params.submissionCount && params.submissionCount > 1) {
-		infoItems.push({
-			label: "Submission Count",
-			value: getOrdinalNumber(params.submissionCount)
-		});
 	}
 
 	if (infoItems.length === 0) return "";
@@ -221,10 +212,4 @@ const generateInfoBox = (scenario: NotificationScenario, params: EmailTemplatePa
 				.join("")}
     </div>
   `;
-};
-
-const getOrdinalNumber = (num: number): string => {
-	const suffixes = ["th", "st", "nd", "rd"];
-	const v = num % 100;
-	return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
 };

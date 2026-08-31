@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +12,10 @@ import { Combobox } from "@/components/ui/combobox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminApplication } from "@/actions/concession";
 import { AlertCircle, ExternalLink } from "lucide-react";
-import { ConcessionBookletStatusType } from "@/generated/zod";
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { getConcessionClasses, getConcessionPeriods } from "@/actions/utils";
+import { ConcessionBookletStatusType, ConcessionClass, ConcessionPeriod } from "@/generated/zod";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AvailableBooklet, getAvailableBooklets, getBookletAssignedStudents } from "@/actions/booklets";
 import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
 
@@ -20,7 +23,13 @@ type ReprintApplicationDialogProps = {
 	isOpen: boolean;
 	onClose: () => void;
 	application: AdminApplication | null;
-	onReprint: (applicationId: string, bookletId: string, pageOffset: number) => Promise<void>;
+	onReprint: (
+		applicationId: string,
+		bookletId: string,
+		pageOffset: number,
+		concessionClassId?: string,
+		concessionPeriodId?: string
+	) => Promise<void>;
 };
 
 const StatusBadge = ({ status }: { status: ConcessionBookletStatusType }) => {
@@ -46,8 +55,12 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 	const [slipError, setSlipError] = useState<string>("");
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isReprinting, setIsReprinting] = useState<boolean>(false);
+	const [selectedClassId, setSelectedClassId] = useState<string>("");
 	const [nextSerialNumber, setNextSerialNumber] = useState<string>("");
+	const [selectedPeriodId, setSelectedPeriodId] = useState<string>("");
 	const [selectedBookletId, setSelectedBookletId] = useState<string>("");
+	const [concessionClasses, setConcessionClasses] = useState<ConcessionClass[]>([]);
+	const [concessionPeriods, setConcessionPeriods] = useState<ConcessionPeriod[]>([]);
 	const [availableBooklets, setAvailableBooklets] = useState<AvailableBooklet[]>([]);
 	const [assignedOffsets, setAssignedOffsets] = useState<Map<number, { studentName: string; shortId: number }>>(
 		new Map()
@@ -133,22 +146,27 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 		[getBookletSerialInfo, offsetToSlipDisplay]
 	);
 
-	const loadAvailableBooklets = useCallback(async () => {
+	const loadDialogData = useCallback(async () => {
 		setIsLoading(true);
 		try {
-			const result = await getAvailableBooklets();
-			if (result.isSuccess) {
-				setAvailableBooklets(result.data);
+			const [bookletsRes, classesRes, periodsRes] = await Promise.all([
+				getAvailableBooklets(),
+				getConcessionClasses(),
+				getConcessionPeriods()
+			]);
 
-				if (result.data.length > 0) {
+			if (bookletsRes.isSuccess) {
+				setAvailableBooklets(bookletsRes.data);
+
+				if (bookletsRes.data.length > 0) {
 					const currentBookletMatch = application?.concessionBookletId
-						? result.data.find((b) => b.id === application.concessionBookletId)
+						? bookletsRes.data.find((b) => b.id === application.concessionBookletId)
 						: null;
 
 					if (currentBookletMatch) {
 						setSelectedBookletId(currentBookletMatch.id);
 					} else {
-						setSelectedBookletId(result.data[0].id);
+						setSelectedBookletId(bookletsRes.data[0].id);
 					}
 				}
 			} else {
@@ -156,10 +174,44 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 					description: "Unable to fetch available booklets. Please try again."
 				});
 			}
+
+			if (classesRes.isSuccess) {
+				setConcessionClasses(classesRes.data);
+
+				const appClassId = application?.concessionClass.id;
+				const isAppClassActive = classesRes.data.some((c) => c.id === appClassId && c.isActive);
+				if (!isAppClassActive) {
+					const firstActiveClass = classesRes.data.find((c) => c.isActive);
+					if (firstActiveClass) {
+						setSelectedClassId(firstActiveClass.id);
+					} else if (appClassId) {
+						setSelectedClassId(appClassId);
+					}
+				} else if (appClassId) {
+					setSelectedClassId(appClassId);
+				}
+			}
+
+			if (periodsRes.isSuccess) {
+				setConcessionPeriods(periodsRes.data);
+
+				const appPeriodId = application?.concessionPeriod.id;
+				const isAppPeriodActive = periodsRes.data.some((p) => p.id === appPeriodId && p.isActive);
+				if (!isAppPeriodActive) {
+					const firstActivePeriod = periodsRes.data.find((p) => p.isActive);
+					if (firstActivePeriod) {
+						setSelectedPeriodId(firstActivePeriod.id);
+					} else if (appPeriodId) {
+						setSelectedPeriodId(appPeriodId);
+					}
+				} else if (appPeriodId) {
+					setSelectedPeriodId(appPeriodId);
+				}
+			}
 		} catch (error) {
-			console.error("Error loading booklets:", error);
-			toast.error("Failed to Load Booklets", {
-				description: "An unexpected error occurred while loading booklets."
+			console.error("Error loading dialog data:", error);
+			toast.error("Failed to Load Data", {
+				description: "An unexpected error occurred while loading data."
 			});
 		} finally {
 			setIsLoading(false);
@@ -286,7 +338,13 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 
 		setIsReprinting(true);
 		try {
-			await onReprint(application.id, selectedBookletId, offset);
+			await onReprint(
+				application.id,
+				selectedBookletId,
+				offset,
+				selectedClassId || undefined,
+				selectedPeriodId || undefined
+			);
 			handleClose();
 		} catch (error) {
 			console.error("Error reprinting application:", error);
@@ -300,6 +358,8 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 		setSlipError("");
 		setNextSerialNumber("");
 		setSelectedBookletId("");
+		setSelectedClassId("");
+		setSelectedPeriodId("");
 		setAvailableBooklets([]);
 		setAssignedOffsets(new Map());
 		onClose();
@@ -307,10 +367,10 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 
 	useEffect(() => {
 		if (isOpen && application) {
-			// eslint-disable-next-line react-hooks/set-state-in-effect -- loadAvailableBooklets is async data-fetching pattern.
-			loadAvailableBooklets();
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- loadDialogData is async; it sets loading/error state before awaiting the fetch, which matches React's documented data-fetching effect pattern. Safe: no state is derived synchronously from props/state outside the fetch.
+			loadDialogData();
 		}
-	}, [isOpen, application, loadAvailableBooklets]);
+	}, [isOpen, application, loadDialogData]);
 
 	useEffect(() => {
 		if (selectedBookletId && availableBooklets.length > 0) {
@@ -338,6 +398,9 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 		const remaining = Math.max(0, selectedBooklet.totalPages - issued - damaged);
 		return { issuedCount: issued, damagedCount: damaged, remainingCount: remaining };
 	}, [selectedBooklet, assignedOffsets]);
+
+	const selectedClassIsActive = concessionClasses.some((c) => c.id === selectedClassId && c.isActive);
+	const selectedPeriodIsActive = concessionPeriods.some((p) => p.id === selectedPeriodId && p.isActive);
 
 	const isSlipValid = (() => {
 		if (!slipInput.trim() || !selectedBooklet || !application) return false;
@@ -421,6 +484,17 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 
 					{isLoading ? (
 						<div className="space-y-4">
+							<div className="grid grid-cols-5 gap-3">
+								<div className="col-span-2 space-y-2">
+									<Label className="text-sm font-medium">Concession Class</Label>
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="col-span-3 space-y-2">
+									<Label className="text-sm font-medium">Concession Period</Label>
+									<Skeleton className="h-10 w-full" />
+								</div>
+							</div>
+
 							<div className="space-y-2">
 								<Label htmlFor="booklet-select" className="text-sm font-medium">
 									Select Booklet
@@ -460,6 +534,56 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 						</div>
 					) : (
 						<div className="space-y-4">
+							<div className="grid grid-cols-5 gap-3">
+								<div className="col-span-2 space-y-2">
+									<Label htmlFor="reprint-concession-class" className="text-sm font-medium">
+										Concession Class
+									</Label>
+									<Select value={selectedClassId} disabled={isReprinting} onValueChange={setSelectedClassId}>
+										<SelectTrigger id="reprint-concession-class" className="w-full h-10">
+											<SelectValue placeholder="Select class" />
+										</SelectTrigger>
+										<SelectContent>
+											{concessionClasses.length === 0 ? (
+												<SelectItem disabled value="">
+													No classes available
+												</SelectItem>
+											) : (
+												concessionClasses.map((cls) => (
+													<SelectItem key={cls.id} value={cls.id} isUnavailable={!cls.isActive}>
+														{cls.name} ({cls.code})
+													</SelectItem>
+												))
+											)}
+										</SelectContent>
+									</Select>
+								</div>
+
+								<div className="col-span-3 space-y-2">
+									<Label htmlFor="reprint-concession-period" className="text-sm font-medium">
+										Concession Period
+									</Label>
+									<Select value={selectedPeriodId} onValueChange={setSelectedPeriodId} disabled={isReprinting}>
+										<SelectTrigger id="reprint-concession-period" className="w-full h-10">
+											<SelectValue placeholder="Select period" />
+										</SelectTrigger>
+										<SelectContent>
+											{concessionPeriods.length === 0 ? (
+												<SelectItem disabled value="">
+													No periods available
+												</SelectItem>
+											) : (
+												concessionPeriods.map((period) => (
+													<SelectItem key={period.id} value={period.id} isUnavailable={!period.isActive}>
+														{period.name} ({period.duration} {period.duration === 1 ? "month" : "months"})
+													</SelectItem>
+												))
+											)}
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+
 							<div className="space-y-2">
 								<Label htmlFor="booklet-select" className="text-sm font-medium">
 									Select Booklet
@@ -548,15 +672,21 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 															handleReprint();
 														}
 													}}
-													className={`font-mono text-center text-lg font-semibold h-10 ${
-														slipError ? "border-destructive" : ""
-													}`}
+													className={cn(
+														"font-mono text-center text-sm font-medium h-10 placeholder:text-muted-foreground placeholder:font-normal",
+														slipError && "border-destructive"
+													)}
 												/>
 											</div>
 											<div className="col-span-3">
-												<div className="h-10 px-3 py-2 bg-muted/50 rounded-md flex items-center">
-													<span className="font-mono text-sm text-muted-foreground">
-														{nextSerialNumber || "Enter new slip number"}
+												<div className="h-10 px-3 py-2 bg-muted/50 rounded-md flex items-center min-w-0">
+													<span
+														className={cn(
+															"font-mono text-sm truncate",
+															nextSerialNumber ? "text-foreground font-medium" : "text-muted-foreground"
+														)}
+													>
+														{nextSerialNumber || "Serial preview"}
 													</span>
 												</div>
 											</div>
@@ -585,7 +715,14 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 					</Button>
 					<Button
 						onClick={handleReprint}
-						disabled={isReprinting || !selectedBookletId || availableBooklets.length === 0 || !isSlipValid}
+						disabled={
+							isReprinting ||
+							!isSlipValid ||
+							!selectedBookletId ||
+							!selectedClassIsActive ||
+							!selectedPeriodIsActive ||
+							availableBooklets.length === 0
+						}
 					>
 						{isReprinting ? "Reprinting & Generating PDF..." : "Reprint & Print Pass"}
 					</Button>

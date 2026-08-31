@@ -12,7 +12,6 @@ import {
 	MapPin,
 	Loader2,
 	XCircle,
-	RefreshCw,
 	CheckCircle,
 	AlertTriangle,
 	ChevronsUpDown,
@@ -837,16 +836,7 @@ const AddressChangePage = () => {
 							</div>
 
 							<div className="flex-1 min-w-0">
-								<div className="flex items-center justify-between gap-3 mb-2">
-									<h3 className="text-base font-semibold">Request Rejected</h3>
-
-									{lastApplication.submissionCount && lastApplication.submissionCount > 1 && (
-										<span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
-											<RefreshCw className="size-3" />
-											Attempt #{lastApplication.submissionCount}
-										</span>
-									)}
-								</div>
+								<h3 className="text-base font-semibold mb-2">Request Rejected</h3>
 
 								<div className="space-y-3">
 									{lastApplication.rejectionReason ? (

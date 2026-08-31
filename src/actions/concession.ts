@@ -913,8 +913,18 @@ export const reviewConcessionApplication = async (
 export const assignBookletToConcession = async (
 	applicationId: string,
 	bookletId: string,
-	pageOffset: number
-): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
+	pageOffset: number,
+	concessionClassId?: string,
+	concessionPeriodId?: string
+): Promise<
+	Result<
+		ConcessionApplication & {
+			concessionClass?: Pick<ConcessionClass, "id" | "code" | "name">;
+			concessionPeriod?: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+		},
+		DatabaseError | ValidationError | AuthError
+	>
+> => {
 	const adminResult = await requireAdmin();
 	if (!adminResult.isSuccess) return adminResult;
 
@@ -979,7 +989,17 @@ export const assignBookletToConcession = async (
 					issuedAt: new Date(),
 					pageOffset: pageOffset,
 					reviewedById: verifiedAdminId,
-					concessionBookletId: bookletId
+					concessionBookletId: bookletId,
+					...(concessionClassId ? { concessionClassId } : {}),
+					...(concessionPeriodId ? { concessionPeriodId } : {})
+				},
+				include: {
+					concessionClass: {
+						select: { id: true, code: true, name: true }
+					},
+					concessionPeriod: {
+						select: { id: true, name: true, duration: true }
+					}
 				}
 			});
 
@@ -1033,16 +1053,36 @@ export const assignBookletToConcession = async (
 export const approveConcessionWithBooklet = async (
 	applicationId: string,
 	bookletId: string,
-	pageOffset: number
-): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
-	return assignBookletToConcession(applicationId, bookletId, pageOffset);
+	pageOffset: number,
+	concessionClassId?: string,
+	concessionPeriodId?: string
+): Promise<
+	Result<
+		ConcessionApplication & {
+			concessionClass?: Pick<ConcessionClass, "id" | "code" | "name">;
+			concessionPeriod?: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+		},
+		DatabaseError | ValidationError | AuthError
+	>
+> => {
+	return assignBookletToConcession(applicationId, bookletId, pageOffset, concessionClassId, concessionPeriodId);
 };
 
 export const reprintConcessionApplication = async (
 	applicationId: string,
 	bookletId: string,
-	pageOffset: number
-): Promise<Result<ConcessionApplication, DatabaseError | ValidationError | AuthError>> => {
+	pageOffset: number,
+	concessionClassId?: string,
+	concessionPeriodId?: string
+): Promise<
+	Result<
+		ConcessionApplication & {
+			concessionClass?: Pick<ConcessionClass, "id" | "code" | "name">;
+			concessionPeriod?: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+		},
+		DatabaseError | ValidationError | AuthError
+	>
+> => {
 	const adminResult = await requireAdmin();
 	if (!adminResult.isSuccess) return adminResult;
 
@@ -1110,7 +1150,17 @@ export const reprintConcessionApplication = async (
 					issuedAt: new Date(),
 					pageOffset: pageOffset,
 					reviewedById: verifiedAdminId,
-					concessionBookletId: bookletId
+					concessionBookletId: bookletId,
+					...(concessionClassId ? { concessionClassId } : {}),
+					...(concessionPeriodId ? { concessionPeriodId } : {})
+				},
+				include: {
+					concessionClass: {
+						select: { id: true, code: true, name: true }
+					},
+					concessionPeriod: {
+						select: { id: true, name: true, duration: true }
+					}
 				}
 			});
 
@@ -1207,6 +1257,68 @@ export const reprintConcessionApplication = async (
 		}
 
 		return failure(databaseError("Failed to reprint concession"));
+	}
+};
+
+export const updateConcessionIssueDate = async (
+	applicationId: string,
+	issueDate: Date | string
+): Promise<
+	Result<
+		ConcessionApplication & {
+			concessionClass?: Pick<ConcessionClass, "id" | "code" | "name">;
+			concessionPeriod?: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+		},
+		DatabaseError | ValidationError | AuthError
+	>
+> => {
+	const adminResult = await requireAdmin();
+	if (!adminResult.isSuccess) return adminResult;
+
+	try {
+		const parsedDate = typeof issueDate === "string" ? new Date(issueDate) : issueDate;
+		if (isNaN(parsedDate.getTime())) {
+			return failure(validationError("Invalid issue date provided", "issueDate"));
+		}
+
+		const application = await prisma.concessionApplication.findUnique({
+			where: { id: applicationId },
+			select: { id: true, status: true, concessionBookletId: true, createdAt: true }
+		});
+
+		if (!application) {
+			return failure(validationError("Application not found", "applicationId"));
+		}
+
+		if (application.status !== "Issued") {
+			return failure(validationError("Only issued applications can have their issue date updated", "status"));
+		}
+
+		const updatedApplication = await prisma.concessionApplication.update({
+			where: { id: applicationId },
+			data: {
+				issuedAt: parsedDate
+			},
+			include: {
+				concessionClass: {
+					select: { id: true, code: true, name: true }
+				},
+				concessionPeriod: {
+					select: { id: true, name: true, duration: true }
+				}
+			}
+		});
+
+		revalidatePath("/dashboard/admin");
+		if (application.concessionBookletId) {
+			revalidatePath(`/dashboard/admin/booklets/${application.concessionBookletId}`);
+		}
+		revalidatePath("/dashboard/student/apply-concession");
+
+		return success(updatedApplication);
+	} catch (error) {
+		console.error("Error updating concession issue date:", error);
+		return failure(databaseError("Failed to update issue date"));
 	}
 };
 
