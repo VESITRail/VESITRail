@@ -209,16 +209,9 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 				? `Rejection Reason: ${userRole.rejectionReason}.`
 				: "Your student account application has been rejected.";
 
-			const submissionText =
-				userRole.submissionCount && userRole.submissionCount > 1
-					? ` This was your ${userRole.submissionCount}${
-							userRole.submissionCount === 2 ? "nd" : userRole.submissionCount === 3 ? "rd" : "th"
-						} submission.`
-					: "";
-
 			const description = userRole.rejectionReason
-				? `${rejectionMessage}${submissionText} Please review the feedback and update your application accordingly.`
-				: `${rejectionMessage}${submissionText} You can update your information and resubmit your application.`;
+				? `${rejectionMessage} Please review the feedback and update your application accordingly.`
+				: `${rejectionMessage} You can update your information and resubmit your application.`;
 
 			return (
 				<Status

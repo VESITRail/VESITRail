@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OnboardingSchema } from "@/lib/validations/onboarding";
 import { cn, formatFieldName, formatDobForInput } from "@/lib/utils";
 import { Review, Document, TravelInfo, PersonalInfo, AcademicInfo } from "./steps";
-import { RefreshCw, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 import { getExistingStudentData, getLegacyStudentByEmail, type LegacyStudentData } from "@/actions/onboarding";
 
@@ -457,16 +457,7 @@ const MultiStepForm = () => {
 							</div>
 
 							<div className="flex-1 min-w-0">
-								<div className="flex items-center justify-between gap-3 mb-2">
-									<h3 className="text-base font-semibold">Application Rejected</h3>
-
-									{rejectionInfo.submissionCount && rejectionInfo.submissionCount > 1 && (
-										<span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
-											<RefreshCw className="size-3" />
-											Attempt #{rejectionInfo.submissionCount}
-										</span>
-									)}
-								</div>
+								<h3 className="text-base font-semibold mb-2">Application Rejected</h3>
 
 								<div className="space-y-3">
 									{rejectionInfo.reason ? (
