@@ -15,6 +15,7 @@ import {
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
+	CalendarClock,
 	AlertTriangle
 } from "lucide-react";
 import {
@@ -26,6 +27,7 @@ import {
 import {
 	AdminApplication,
 	assignBookletToConcession,
+	updateConcessionIssueDate,
 	reviewConcessionApplication,
 	reprintConcessionApplication,
 	getConcessionApplicationDetails
@@ -40,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import UpdateIssueDateDialog from "./update-issue-date-dialog";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
 import ApproveApplicationDialog from "./approve-application-dialog";
@@ -94,7 +97,8 @@ const createColumns = (
 	onApprove?: (application: AdminApplication) => void,
 	onViewRejection?: (application: AdminApplication) => void,
 	onPrint?: (application: AdminApplication) => void,
-	onReprint?: (application: AdminApplication) => void
+	onReprint?: (application: AdminApplication) => void,
+	onUpdateIssueDate?: (application: AdminApplication) => void
 ): ColumnDef<AdminApplication>[] => [
 	{
 		size: 80,
@@ -267,6 +271,16 @@ const createColumns = (
 								size="sm"
 								variant="outline"
 								className="size-8 p-0"
+								title="Update Issue Date"
+								aria-label="Update concession issue date"
+								onClick={() => onUpdateIssueDate && onUpdateIssueDate(application)}
+							>
+								<CalendarClock className="size-4" />
+							</Button>
+							<Button
+								size="sm"
+								variant="outline"
+								className="size-8 p-0"
 								title="Reprint / Reassign Booklet"
 								onClick={() => onReprint && onReprint(application)}
 								aria-label="Reprint concession and reassign booklet"
@@ -373,11 +387,13 @@ const ApplicationsTable = ({
 	const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
 	const [showApproveDialog, setShowApproveDialog] = useState<boolean>(false);
 	const [showReprintDialog, setShowReprintDialog] = useState<boolean>(false);
+	const [showUpdateDateDialog, setShowUpdateDateDialog] = useState<boolean>(false);
 	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
 	const [showApproveConfirmDialog, setShowApproveConfirmDialog] = useState<boolean>(false);
 	const [showRejectionReasonDialog, setShowRejectionReasonDialog] = useState<boolean>(false);
 	const [selectedApplication, setSelectedApplication] = useState<AdminApplication | null>(null);
 	const [selectedReprintApplication, setSelectedReprintApplication] = useState<AdminApplication | null>(null);
+	const [selectedUpdateDateApplication, setSelectedUpdateDateApplication] = useState<AdminApplication | null>(null);
 	const [applicationDetails, setApplicationDetails] = useState<
 		| (AdminApplication & {
 				rejectionReason: string | null;
@@ -482,6 +498,11 @@ const ApplicationsTable = ({
 		setShowReprintDialog(true);
 	}, []);
 
+	const handleUpdateIssueDate = useCallback((application: AdminApplication) => {
+		setSelectedUpdateDateApplication(application);
+		setShowUpdateDateDialog(true);
+	}, []);
+
 	const executePDFGeneration = useCallback(async (application: AdminApplication) => {
 		const generatePDFPromise = async () => {
 			const res = await generateOverlayPDF(application.id);
@@ -570,16 +591,34 @@ const ApplicationsTable = ({
 		});
 	};
 
-	const confirmApprove = async (applicationId: string, bookletId: string, pageOffset: number) => {
+	const confirmApprove = async (
+		applicationId: string,
+		bookletId: string,
+		pageOffset: number,
+		concessionClassId?: string,
+		concessionPeriodId?: string
+	) => {
 		const targetApplication = selectedApplication;
 		const approvePromise = async () => {
-			const result = await assignBookletToConcession(applicationId, bookletId, pageOffset);
+			const result = await assignBookletToConcession(
+				applicationId,
+				bookletId,
+				pageOffset,
+				concessionClassId,
+				concessionPeriodId
+			);
 
 			if (result.isSuccess) {
+				const fallbackApp = targetApplication || localApplications.find((app) => app.id === applicationId)!;
+				const updatedClass = result.data.concessionClass || fallbackApp.concessionClass;
+				const updatedPeriod = result.data.concessionPeriod || fallbackApp.concessionPeriod;
+
 				const updatedApplication: AdminApplication = {
-					...(targetApplication || localApplications.find((app) => app.id === applicationId)!),
+					...fallbackApp,
 					issuedAt: new Date(),
 					concessionBookletId: bookletId,
+					concessionClass: updatedClass,
+					concessionPeriod: updatedPeriod,
 					pageOffset: result.data.pageOffset,
 					status: "Issued" as ApplicationStatus,
 					reviewedAt: targetApplication?.reviewedAt || new Date()
@@ -612,16 +651,34 @@ const ApplicationsTable = ({
 		});
 	};
 
-	const confirmReprint = async (applicationId: string, bookletId: string, pageOffset: number) => {
+	const confirmReprint = async (
+		applicationId: string,
+		bookletId: string,
+		pageOffset: number,
+		concessionClassId?: string,
+		concessionPeriodId?: string
+	) => {
 		const targetApplication = selectedReprintApplication;
 		const reprintPromise = async () => {
-			const result = await reprintConcessionApplication(applicationId, bookletId, pageOffset);
+			const result = await reprintConcessionApplication(
+				applicationId,
+				bookletId,
+				pageOffset,
+				concessionClassId,
+				concessionPeriodId
+			);
 
 			if (result.isSuccess) {
+				const fallbackApp = targetApplication || localApplications.find((app) => app.id === applicationId)!;
+				const updatedClass = result.data.concessionClass || fallbackApp.concessionClass;
+				const updatedPeriod = result.data.concessionPeriod || fallbackApp.concessionPeriod;
+
 				const updatedApplication: AdminApplication = {
-					...(targetApplication || localApplications.find((app) => app.id === applicationId)!),
+					...fallbackApp,
 					issuedAt: new Date(),
+					concessionClass: updatedClass,
 					concessionBookletId: bookletId,
+					concessionPeriod: updatedPeriod,
 					pageOffset: result.data.pageOffset,
 					status: "Issued" as ApplicationStatus,
 					reviewedAt: targetApplication?.reviewedAt || new Date()
@@ -731,6 +788,43 @@ const ApplicationsTable = ({
 		}
 	}, [showRejectionReasonDialog, selectedApplication, loadRejectionReason]);
 
+	const confirmUpdateIssueDate = async (applicationId: string, newDate: Date) => {
+		const targetApplication = selectedUpdateDateApplication;
+		const updateDatePromise = async () => {
+			const result = await updateConcessionIssueDate(applicationId, newDate);
+
+			if (result.isSuccess) {
+				const fallbackApp = targetApplication || localApplications.find((app) => app.id === applicationId)!;
+				const updatedApplication: AdminApplication = {
+					...fallbackApp,
+					issuedAt: newDate
+				};
+
+				posthog.capture("concession_issue_date_updated", {
+					application_id: applicationId,
+					new_issue_date: newDate.toISOString()
+				});
+
+				updateLocalApplication(updatedApplication);
+				setSelectedUpdateDateApplication(null);
+
+				return updatedApplication;
+			} else {
+				throw new Error(
+					result.error.type === "VALIDATION_ERROR"
+						? result.error.message
+						: "Unable to update issue date. Please try again."
+				);
+			}
+		};
+
+		toast.promise(updateDatePromise, {
+			loading: "Updating issue date...",
+			error: "Failed to update issue date",
+			success: "Issue Date Updated Successfully"
+		});
+	};
+
 	const columns = createColumns(
 		currentPage,
 		handleSort,
@@ -738,7 +832,8 @@ const ApplicationsTable = ({
 		handleApprove,
 		handleViewRejection,
 		handlePrint,
-		handleReprint
+		handleReprint,
+		handleUpdateIssueDate
 	);
 
 	const handleStatusFilter = useCallback(
@@ -1253,6 +1348,16 @@ const ApplicationsTable = ({
 				onClose={() => {
 					setShowReprintDialog(false);
 					setSelectedReprintApplication(null);
+				}}
+			/>
+
+			<UpdateIssueDateDialog
+				isOpen={showUpdateDateDialog}
+				onUpdateDate={confirmUpdateIssueDate}
+				application={selectedUpdateDateApplication}
+				onClose={() => {
+					setShowUpdateDateDialog(false);
+					setSelectedUpdateDateApplication(null);
 				}}
 			/>
 
