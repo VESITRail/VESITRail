@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -548,15 +549,21 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 															handleReprint();
 														}
 													}}
-													className={`font-mono text-center text-lg font-semibold h-10 ${
-														slipError ? "border-destructive" : ""
-													}`}
+													className={cn(
+														"font-mono text-center text-sm font-medium h-10 placeholder:text-muted-foreground placeholder:font-normal",
+														slipError && "border-destructive"
+													)}
 												/>
 											</div>
 											<div className="col-span-3">
-												<div className="h-10 px-3 py-2 bg-muted/50 rounded-md flex items-center">
-													<span className="font-mono text-sm text-muted-foreground">
-														{nextSerialNumber || "Enter new slip number"}
+												<div className="h-10 px-3 py-2 bg-muted/50 rounded-md flex items-center min-w-0">
+													<span
+														className={cn(
+															"font-mono text-sm truncate",
+															nextSerialNumber ? "text-foreground font-medium" : "text-muted-foreground"
+														)}
+													>
+														{nextSerialNumber || "Serial preview"}
 													</span>
 												</div>
 											</div>
