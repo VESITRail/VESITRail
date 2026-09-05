@@ -33,6 +33,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 			firstName: "",
 			middleName: "",
 			dateOfBirth: "",
+			mobileNumber: "",
 			gender: "Male" as "Male" | "Female"
 		}
 	});
@@ -53,7 +54,8 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 					lastName: data.lastName || "",
 					firstName: data.firstName || "",
 					middleName: data.middleName || "",
-					dateOfBirth: data.dateOfBirth || ""
+					dateOfBirth: data.dateOfBirth || "",
+					mobileNumber: data.mobileNumber || ""
 				});
 			}
 		});
@@ -207,7 +209,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 						)}
 					/>
 				</div>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
 					<FormField
 						name="gender"
 						control={form.control}
@@ -280,6 +282,38 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 
 								<div className="min-h-5">
 									<FormMessage id="dateOfBirth-error" className="text-sm" />
+								</div>
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						name="mobileNumber"
+						control={form.control}
+						render={({ field }) => (
+							<FormItem className="space-y-1">
+								<FormLabel className="block">
+									Mobile Number <span className="text-destructive">*</span>
+								</FormLabel>
+
+								<FormControl>
+									<Input
+										{...field}
+										type="tel"
+										maxLength={10}
+										autoComplete="tel"
+										inputMode="numeric"
+										aria-describedby="mobileNumber-error"
+										placeholder="Enter 10-digit mobile number"
+										onChange={(e) => {
+											const sanitized = e.target.value.replace(/\D/g, "");
+											field.onChange(sanitized);
+										}}
+									/>
+								</FormControl>
+
+								<div className="min-h-5">
+									<FormMessage id="mobileNumber-error" className="text-sm" />
 								</div>
 							</FormItem>
 						)}

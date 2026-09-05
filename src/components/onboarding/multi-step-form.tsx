@@ -61,8 +61,8 @@ const OnboardingFormSkeleton = () => (
 					))}
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-					{[1, 2].map((item) => (
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+					{[1, 2, 3].map((item) => (
 						<div key={item} className="space-y-1 h-19.5">
 							<div className="block">
 								<Skeleton className="h-4 w-16" />
@@ -124,6 +124,7 @@ const MultiStepForm = () => {
 		middleName: "",
 		gender: "Male",
 		dateOfBirth: "",
+		mobileNumber: "",
 		verificationDocUrl: "",
 		preferredConcessionClass: "",
 		preferredConcessionPeriod: ""
@@ -160,6 +161,7 @@ const MultiStepForm = () => {
 						branch: result.data.class.branch.id,
 						lastName: result.data.lastName || "",
 						middleName: result.data.middleName || "",
+						mobileNumber: result.data.mobileNumber || "",
 						verificationDocUrl: result.data.verificationDocUrl,
 						dateOfBirth: formatDobForInput(result.data.dateOfBirth),
 						preferredConcessionClass: result.data.preferredConcessionClassId,
@@ -244,7 +246,8 @@ const MultiStepForm = () => {
 						lastName: true,
 						firstName: true,
 						middleName: true,
-						dateOfBirth: true
+						dateOfBirth: true,
+						mobileNumber: true
 					}).parse(formData);
 					break;
 				case 2:

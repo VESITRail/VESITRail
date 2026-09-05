@@ -88,7 +88,7 @@ const StudentProfilePage = () => {
 						</div>
 					</div>
 					<div className="p-6 pt-0 space-y-4">
-						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-20" />
 								<Skeleton className="h-5 w-36" />
@@ -100,6 +100,10 @@ const StudentProfilePage = () => {
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-16" />
 								<Skeleton className="h-5 w-20" />
+							</div>
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-24" />
+								<Skeleton className="h-5 w-28" />
 							</div>
 						</div>
 						<Skeleton className="h-px w-full" />
@@ -261,7 +265,7 @@ const StudentProfilePage = () => {
 				</CardHeader>
 
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Full Name</p>
 							<p className="font-medium">
@@ -279,6 +283,10 @@ const StudentProfilePage = () => {
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Gender</p>
 							<p className="font-medium">{profileData.gender || "N/A"}</p>
+						</div>
+						<div className="space-y-1">
+							<p className="text-sm font-medium text-muted-foreground">Mobile Number</p>
+							<p className="font-medium">{profileData.mobileNumber || "N/A"}</p>
 						</div>
 					</div>
 					<Separator />
