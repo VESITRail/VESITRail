@@ -48,7 +48,7 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 	}, [history, currentPage]);
 
 	const loadHistory = useCallback(async () => {
-		if (!isOpen) return;
+		if (!isOpen || student.status !== "Approved") return;
 
 		setIsLoading(true);
 		setHasError(false);
@@ -69,7 +69,7 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 		} finally {
 			setIsLoading(false);
 		}
-	}, [isOpen, student.userId]);
+	}, [isOpen, student.userId, student.status]);
 
 	useEffect(() => {
 		if (isOpen) {

@@ -868,10 +868,10 @@ const createColumns = (
 		cell: ({ row }) => {
 			const student = row.original;
 			return (
-				<div className="flex items-center gap-2">
+				<div className="flex items-center justify-center gap-2">
 					<StudentDetailsDialog student={student} onStudentUpdate={onStudentUpdate} />
 					<EditStudentDrawer student={student} onStudentUpdate={onStudentUpdate} />
-					<StudentConcessionHistorySheet student={student} />
+					{student.status === "Approved" && <StudentConcessionHistorySheet student={student} />}
 				</div>
 			);
 		}
