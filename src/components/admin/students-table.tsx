@@ -261,6 +261,7 @@ const StudentDetailsDialog = ({
 									<div className="space-y-3">
 										<Skeleton className="h-8 w-full" />
 										<Skeleton className="h-8 w-full" />
+										<Skeleton className="h-8 w-full" />
 										<Skeleton className="h-12 w-full" />
 									</div>
 								</div>
@@ -365,6 +366,13 @@ const StudentDetailsDialog = ({
 											</h4>
 
 											<div className="space-y-4">
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
+														Mobile
+													</span>
+													<span className="text-sm text-right flex-1 ml-3">{studentDetails.mobileNumber || "N/A"}</span>
+												</div>
+
 												<div className="flex justify-between items-start">
 													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
 														Gender
