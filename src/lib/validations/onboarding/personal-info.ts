@@ -33,6 +33,15 @@ const PersonalInfoSchema = z.object({
 		.optional()
 		.or(z.literal("")),
 
+	mobileNumber: z
+		.string()
+		.min(1, "Mobile number is required")
+		.transform((val) => val.trim())
+		.refine((val) => val.length > 0, "Mobile number is required")
+		.refine((val) => /^\d+$/.test(val), "Mobile number must contain only digits")
+		.refine((val) => val.length === 10, "Mobile number must be exactly 10 digits")
+		.refine((val) => /^[6-9]\d{9}$/.test(val), "Please enter a valid Indian mobile number"),
+
 	gender: z.enum(["Male", "Female"], {
 		message: "Please select a valid gender"
 	}),
@@ -73,5 +82,11 @@ const PersonalInfoSchema = z.object({
 		}, "Date of birth cannot be in the future")
 		.transform((val) => formatDobForInput(val))
 });
+
+export const MobileNumberSchema = PersonalInfoSchema.pick({
+	mobileNumber: true
+});
+
+export type MobileNumberInput = z.infer<typeof MobileNumberSchema>;
 
 export default PersonalInfoSchema;
