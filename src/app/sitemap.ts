@@ -8,7 +8,7 @@ const sitemap = (): MetadataRoute.Sitemap => {
 		{
 			priority: 1,
 			lastModified,
-			url: `${siteUrl}`,
+			url: `${siteUrl}/`,
 			changeFrequency: "yearly"
 		},
 		{
