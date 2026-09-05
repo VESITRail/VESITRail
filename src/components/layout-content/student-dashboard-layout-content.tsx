@@ -10,16 +10,31 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Bell } from "lucide-react";
 import { toTitleCase } from "@/lib/utils";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "../ui/theme-toggle";
 import { Separator } from "@/components/ui/separator";
+import { getStudentMobileStatus } from "@/actions/update-mobile";
 import NotificationSheet from "@/components/student/notification-sheet";
+import MobileNumberModal from "@/components/student/mobile-number-modal";
 import StudentAppSidebar from "@/components/app-sidebar/student/app-sidebar";
 import { SidebarInset, SidebarTrigger, SidebarProvider } from "@/components/ui/sidebar";
 
 const StudentDashboardLayoutContent = ({ children }: { children: React.ReactNode }) => {
 	const pathname = usePathname();
+	const [needsMobileNumber, setNeedsMobileNumber] = useState<boolean>(false);
+
+	useEffect(() => {
+		const checkMobileStatus = async () => {
+			const result = await getStudentMobileStatus();
+			if (result.isSuccess && !result.data.hasMobileNumber) {
+				setNeedsMobileNumber(true);
+			}
+		};
+
+		checkMobileStatus();
+	}, []);
 
 	const generateBreadcrumbs = () => {
 		let currentPath = "";
@@ -113,6 +128,7 @@ const StudentDashboardLayoutContent = ({ children }: { children: React.ReactNode
 					<ThemeToggle className="mr-5 shrink-0" />
 				</header>
 
+				{needsMobileNumber && <MobileNumberModal onSuccess={() => setNeedsMobileNumber(false)} />}
 				{children}
 			</SidebarInset>
 		</SidebarProvider>
