@@ -84,6 +84,13 @@ const StatusBadge = ({ status }: { status: AddressChangeStatusType }) => {
 	return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
 };
 
+const getFirstAndLastName = (fullName?: string): string => {
+	if (!fullName?.trim()) return "";
+	const parts = fullName.trim().split(/\s+/);
+	if (parts.length <= 2) return toTitleCase(fullName);
+	return toTitleCase(`${parts[0]} ${parts[parts.length - 1]}`);
+};
+
 const AddressChangeRequestDetailsDialog = ({
 	request,
 	onRequestUpdate
@@ -281,7 +288,7 @@ const AddressChangeRequestDetailsDialog = ({
 								<Skeleton className="h-6 w-20 rounded-full" />
 							</div>
 
-							<Skeleton className="h-px w-full" />
+							<Separator />
 
 							<div className="py-6">
 								<Skeleton className="h-4 w-32 mb-4" />
@@ -303,7 +310,7 @@ const AddressChangeRequestDetailsDialog = ({
 								</div>
 							</div>
 
-							<Skeleton className="h-px w-full" />
+							<Separator />
 
 							<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
 								<div className="space-y-6">
@@ -357,10 +364,10 @@ const AddressChangeRequestDetailsDialog = ({
 								</div>
 							</div>
 
-							<Skeleton className="h-px w-full" />
+							<Separator />
 
-							<div className="py-6">
-								<Skeleton className="h-4 w-36 mb-4" />
+							<div className="space-y-4 py-6">
+								<Skeleton className="h-4 w-36" />
 								<div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
 									<Skeleton className="size-4" />
 									<Skeleton className="h-4 flex-1" />
@@ -368,37 +375,37 @@ const AddressChangeRequestDetailsDialog = ({
 								</div>
 							</div>
 
-							<Skeleton className="h-px w-full" />
+							<Separator />
 
-							<div className="space-y-4 py-6">
+							<div className="space-y-6 py-6">
 								<Skeleton className="h-4 w-32" />
-								<div className="space-y-3">
-									<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-										<div className="space-y-3">
-											<div className="flex items-center justify-between">
-												<Skeleton className="h-4 w-20" />
-												<Skeleton className="h-4 w-8" />
-											</div>
-											<div className="flex items-center justify-between">
-												<Skeleton className="h-4 w-24" />
-												<Skeleton className="h-4 w-20" />
-											</div>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+									<div className="space-y-3">
+										<div className="flex items-center justify-between">
+											<Skeleton className="h-4 w-20" />
+											<Skeleton className="h-4 w-8" />
 										</div>
-										<div className="space-y-3">
-											<div className="flex items-center justify-between">
-												<Skeleton className="h-4 w-24" />
-												<Skeleton className="h-4 w-20" />
-											</div>
-											<div className="flex items-center justify-between">
-												<Skeleton className="h-4 w-20" />
-												<Skeleton className="h-4 w-24" />
-											</div>
+										<div className="flex items-center justify-between">
+											<Skeleton className="h-4 w-24" />
+											<Skeleton className="h-4 w-20" />
+										</div>
+									</div>
+									<div className="space-y-3">
+										<div className="flex items-center justify-between">
+											<Skeleton className="h-4 w-20" />
+											<Skeleton className="h-4 w-24" />
+										</div>
+										<div className="flex items-center justify-between">
+											<Skeleton className="h-4 w-24" />
+											<Skeleton className="h-4 w-20" />
 										</div>
 									</div>
 								</div>
 							</div>
 
-							<div className="flex justify-end gap-3 pt-6">
+							<Separator />
+
+							<div className="flex justify-end gap-4 pt-6">
 								<Skeleton className="h-10 w-38 rounded-md" />
 								<Skeleton className="h-10 w-42 rounded-md" />
 							</div>
@@ -561,7 +568,7 @@ const AddressChangeRequestDetailsDialog = ({
 								<Separator />
 
 								{requestDetails.verificationDocUrl && (
-									<div className="space-y-4">
+									<div className="space-y-4 py-6">
 										<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
 											Verification Document
 										</h4>
@@ -612,20 +619,20 @@ const AddressChangeRequestDetailsDialog = ({
 										</div>
 
 										<div className="space-y-3">
+											{requestDetails.reviewedBy && (
+												<div className="flex items-center justify-between">
+													<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
+													<span className="text-sm text-foreground">
+														{getFirstAndLastName(requestDetails.reviewedBy.user.name)}
+													</span>
+												</div>
+											)}
+
 											{requestDetails.reviewedAt && (
 												<div className="flex items-center justify-between">
 													<span className="text-sm font-medium text-muted-foreground">Reviewed Date</span>
 													<span className="text-sm text-foreground">
 														{format(new Date(requestDetails.reviewedAt), "MMM dd, yyyy")}
-													</span>
-												</div>
-											)}
-
-											{requestDetails.reviewedBy && (
-												<div className="flex items-center justify-between">
-													<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
-													<span className="text-sm text-foreground">
-														{toTitleCase(requestDetails.reviewedBy.user.name)}
 													</span>
 												</div>
 											)}
