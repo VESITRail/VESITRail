@@ -100,6 +100,7 @@ const TravelInfo = ({ errors, setFormData, defaultValues, legacyStudentData }: T
 				gender: "Male",
 				middleName: "",
 				dateOfBirth: "",
+				mobileNumber: "",
 				verificationDocUrl: "",
 				...currentData,
 				[field]: value

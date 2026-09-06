@@ -59,6 +59,7 @@ const AcademicInfo = ({ errors, setFormData, defaultValues }: AcademicInfoProps)
 					middleName: "",
 					gender: "Male",
 					dateOfBirth: "",
+					mobileNumber: "",
 					year: data.year || "",
 					verificationDocUrl: "",
 					class: data.class || "",

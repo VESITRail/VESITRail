@@ -82,6 +82,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 				middleName: "",
 				gender: "Male",
 				dateOfBirth: "",
+				mobileNumber: "",
 				preferredConcessionClass: "",
 				preferredConcessionPeriod: ""
 			});
@@ -200,6 +201,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 						middleName: "",
 						gender: "Male",
 						dateOfBirth: "",
+						mobileNumber: "",
 						verificationDocUrl: "",
 						preferredConcessionClass: "",
 						preferredConcessionPeriod: ""
@@ -236,6 +238,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 							middleName: "",
 							gender: "Male",
 							dateOfBirth: "",
+							mobileNumber: "",
 							verificationDocUrl: "",
 							preferredConcessionClass: "",
 							preferredConcessionPeriod: ""
@@ -269,6 +272,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 							middleName: "",
 							gender: "Male",
 							dateOfBirth: "",
+							mobileNumber: "",
 							verificationDocUrl: "",
 							preferredConcessionClass: "",
 							preferredConcessionPeriod: ""
@@ -306,6 +310,7 @@ const Document = ({ errors, setFormData, defaultValues }: DocumentProps) => {
 					middleName: "",
 					gender: "Male",
 					dateOfBirth: "",
+					mobileNumber: "",
 					verificationDocUrl: "",
 					preferredConcessionClass: "",
 					preferredConcessionPeriod: ""
