@@ -308,10 +308,10 @@ export const reviewAddressChangeRequest = async (
 				},
 				include: {
 					currentStation: {
-						select: { name: true }
+						select: { name: true, code: true }
 					},
 					newStation: {
-						select: { name: true }
+						select: { name: true, code: true }
 					}
 				}
 			});
@@ -362,8 +362,8 @@ export const reviewAddressChangeRequest = async (
 			addressChangeRequest.studentId,
 			requestId,
 			status === "Approved",
-			result.currentStation.name,
-			result.newStation.name,
+			`${result.currentStation.name} (${result.currentStation.code})`,
+			`${result.newStation.name} (${result.newStation.code})`,
 			rejectionReason
 		).catch((error) => {
 			console.error("Failed to send address change notification:", error);

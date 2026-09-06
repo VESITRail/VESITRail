@@ -5,8 +5,9 @@ model Student {
   middleName String?
   lastName   String?
 
-  address            String
   gender             Gender
+  address            String
+  mobileNumber       String?
   verificationDocUrl String
   dateOfBirth        DateTime
   status             StudentApprovalStatus @default(Pending)

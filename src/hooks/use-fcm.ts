@@ -1,17 +1,12 @@
 "use client";
 
-import {
-	saveFcmToken,
-	removeFcmTokenForDevice,
-	disablePushNotifications,
-	updatePushNotificationStatus
-} from "@/actions/fcm";
 import { toast } from "sonner";
 import posthog from "posthog-js";
 import { messaging } from "@/config/firebase";
 import { FcmPlatformType } from "@/generated/zod";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getToken, onMessage, type Messaging } from "firebase/messaging";
+import { saveFcmToken, removeFcmTokenForDevice, disablePushNotifications } from "@/actions/fcm";
 
 type FcmState = {
 	loading: boolean;
@@ -38,6 +33,50 @@ const generateDeviceId = (): string => {
 	return deviceId;
 };
 
+let activePermissionPromise: Promise<NotificationPermission> | null = null;
+
+const requestBrowserNotificationPermission = async (userId?: string): Promise<NotificationPermission> => {
+	if (activePermissionPromise) {
+		return activePermissionPromise;
+	}
+
+	activePermissionPromise = (async () => {
+		try {
+			posthog.capture("notification_permission_requested", { userId });
+			const permission = await Notification.requestPermission();
+
+			if (permission === "granted") {
+				posthog.capture("notification_permission_granted", { userId });
+				toast.success("Notifications Enabled", {
+					id: "notifications-enabled",
+					description: "You'll now receive push notifications for important updates"
+				});
+			} else if (permission === "denied") {
+				posthog.capture("notification_permission_denied", { userId });
+
+				if (userId) {
+					const deviceId = localStorage.getItem("fcm_device_id");
+					if (deviceId) {
+						await removeFcmTokenForDevice(deviceId);
+						localStorage.removeItem("fcm_device_id");
+					}
+				}
+
+				toast.error("Notifications Blocked", {
+					id: "notifications-blocked",
+					description: "You can enable notifications later from your browser settings"
+				});
+			}
+
+			return permission;
+		} finally {
+			activePermissionPromise = null;
+		}
+	})();
+
+	return activePermissionPromise;
+};
+
 export const useFcm = (userId?: string) => {
 	const [state, setState] = useState<FcmState>({
 		token: null,
@@ -47,7 +86,6 @@ export const useFcm = (userId?: string) => {
 	});
 	const hasAttemptedInitRef = useRef<boolean>(false);
 	const [isInitialized, setIsInitialized] = useState<boolean>(false);
-	const [hasShownToasts, setHasShownToasts] = useState<boolean>(false);
 
 	const saveTokenToDb = useCallback(
 		async (token: string): Promise<boolean> => {
@@ -78,12 +116,10 @@ export const useFcm = (userId?: string) => {
 						error: result.error.message
 					});
 
-					if (!hasShownToasts) {
-						setHasShownToasts(true);
-						toast.error("Notification Setup Failed", {
-							description: "Could not enable notifications. Please try again later"
-						});
-					}
+					toast.error("Notification Setup Failed", {
+						id: "notification-setup-failed",
+						description: "Could not enable notifications. Please try again later"
+					});
 
 					return false;
 				}
@@ -104,17 +140,15 @@ export const useFcm = (userId?: string) => {
 					error: error instanceof Error ? error.message : "Unknown error"
 				});
 
-				if (!hasShownToasts) {
-					setHasShownToasts(true);
-					toast.error("Notification Setup Failed", {
-						description: "An unexpected error occurred while setting up notifications"
-					});
-				}
+				toast.error("Notification Setup Failed", {
+					id: "notification-setup-failed",
+					description: "An unexpected error occurred while setting up notifications"
+				});
 
 				return false;
 			}
 		},
-		[userId, hasShownToasts]
+		[userId]
 	);
 
 	const requestPermission = useCallback(async (): Promise<boolean> => {
@@ -148,40 +182,12 @@ export const useFcm = (userId?: string) => {
 				return false;
 			}
 
-			posthog.capture("notification_permission_requested", { userId });
-
-			const permission = await Notification.requestPermission();
+			const permission = await requestBrowserNotificationPermission(userId);
 			setState((prev) => ({ ...prev, permission }));
 
 			if (permission === "granted") {
-				posthog.capture("notification_permission_granted", { userId });
-
-				if (!hasShownToasts) {
-					setHasShownToasts(true);
-					toast.success("Notifications Enabled", {
-						description: "You'll now receive push notifications for important updates"
-					});
-				}
-
 				return true;
 			} else if (permission === "denied") {
-				posthog.capture("notification_permission_denied", { userId });
-
-				if (userId) {
-					const deviceId = localStorage.getItem("fcm_device_id");
-					if (deviceId) {
-						await removeFcmTokenForDevice(deviceId);
-						localStorage.removeItem("fcm_device_id");
-					}
-				}
-
-				if (!hasShownToasts) {
-					setHasShownToasts(true);
-					toast.error("Notifications Blocked", {
-						description: "You can enable notifications later from your browser settings"
-					});
-				}
-
 				setState((prev) => ({
 					...prev,
 					loading: false,
@@ -189,10 +195,6 @@ export const useFcm = (userId?: string) => {
 				}));
 
 				return false;
-			}
-
-			if (userId) {
-				await updatePushNotificationStatus(false);
 			}
 
 			setState((prev) => ({
@@ -210,7 +212,7 @@ export const useFcm = (userId?: string) => {
 			}));
 			return false;
 		}
-	}, [hasShownToasts, userId]);
+	}, [userId]);
 
 	const setupInAppNotifications = useCallback(async (messagingInstance: Messaging) => {
 		try {
@@ -332,9 +334,6 @@ export const useFcm = (userId?: string) => {
 
 		try {
 			if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {
-				if (userId) {
-					await updatePushNotificationStatus(false);
-				}
 				setState((prev) => ({
 					...prev,
 					loading: false,
@@ -347,21 +346,11 @@ export const useFcm = (userId?: string) => {
 			setState((prev) => ({ ...prev, permission: currentPermission }));
 
 			if (currentPermission === "granted") {
-				const tokenGenerated = await generateToken();
-				if (!tokenGenerated && userId) {
-					await updatePushNotificationStatus(false);
-				}
+				await generateToken();
 			} else if (currentPermission === "default") {
 				const permissionGranted = await requestPermission();
 				if (permissionGranted) {
-					const tokenGenerated = await generateToken();
-					if (!tokenGenerated && userId) {
-						await updatePushNotificationStatus(false);
-					}
-				} else {
-					if (userId) {
-						await updatePushNotificationStatus(false);
-					}
+					await generateToken();
 				}
 			} else {
 				if (userId) {
@@ -370,7 +359,6 @@ export const useFcm = (userId?: string) => {
 						await removeFcmTokenForDevice(deviceId);
 						localStorage.removeItem("fcm_device_id");
 					}
-					await updatePushNotificationStatus(false);
 				}
 
 				setState((prev) => ({
@@ -381,9 +369,6 @@ export const useFcm = (userId?: string) => {
 			}
 		} catch (error) {
 			console.error("Failed to initialize FCM:", error);
-			if (userId) {
-				await updatePushNotificationStatus(false);
-			}
 			setState((prev) => ({
 				...prev,
 				loading: false,

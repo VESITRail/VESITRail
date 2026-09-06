@@ -55,6 +55,7 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 	const [initialFormData, setInitialFormData] = useState<EditStudentInput | null>(null);
 	const [formData, setFormData] = useState<EditStudentInput>({
 		dateOfBirth: "",
+		mobileNumber: "",
 		class: student.class.id || "",
 		lastName: student.lastName || "",
 		year: student.class.year.id || "",
@@ -103,6 +104,7 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 					firstName: details.firstName || "",
 					middleName: details.middleName || "",
 					branch: details.class.branch.id || "",
+					mobileNumber: details.mobileNumber || "",
 					dateOfBirth: formatDobForInput(details.dateOfBirth),
 					gender: (details.gender as "Male" | "Female") || "Male"
 				};
@@ -171,6 +173,7 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 			formData.firstName === initialFormData.firstName &&
 			(formData.middleName || "") === (initialFormData.middleName || "") &&
 			(formData.lastName || "") === (initialFormData.lastName || "") &&
+			(formData.mobileNumber || "") === (initialFormData.mobileNumber || "") &&
 			formData.gender === initialFormData.gender &&
 			formData.dateOfBirth === initialFormData.dateOfBirth &&
 			formData.year === initialFormData.year &&
@@ -267,6 +270,10 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 								<Skeleton className="h-4 w-20" />
 								<Skeleton className="h-9 w-full" />
 							</div>
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-28" />
+								<Skeleton className="h-9 w-full" />
+							</div>
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div className="space-y-2">
 									<Skeleton className="h-4 w-24" />
@@ -339,6 +346,33 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 										<p className="text-xs text-destructive flex items-center gap-1">
 											<AlertCircle className="size-3" />
 											{errors.firstName}
+										</p>
+									)}
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="mobileNumber" className="text-sm font-medium">
+										Mobile Number <span className="text-destructive">*</span>
+									</Label>
+									<Input
+										type="tel"
+										maxLength={10}
+										id="mobileNumber"
+										autoComplete="off"
+										inputMode="numeric"
+										disabled={isSaving}
+										value={formData.mobileNumber || ""}
+										placeholder="Enter 10-digit mobile number"
+										className={cn(errors.mobileNumber && "border-destructive")}
+										onChange={(e) => {
+											const sanitized = e.target.value.replace(/\D/g, "");
+											handleFieldChange("mobileNumber", sanitized);
+										}}
+									/>
+									{errors.mobileNumber && (
+										<p className="text-xs text-destructive flex items-center gap-1">
+											<AlertCircle className="size-3" />
+											{errors.mobileNumber}
 										</p>
 									)}
 								</div>

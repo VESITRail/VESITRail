@@ -77,6 +77,7 @@ export type StudentDetails = Pick<
 	| "reviewedAt"
 	| "middleName"
 	| "dateOfBirth"
+	| "mobileNumber"
 	| "rejectionReason"
 	| "submissionCount"
 	| "verificationDocUrl"
@@ -349,6 +350,7 @@ export const getStudentDetails = async (
 				reviewedAt: true,
 				middleName: true,
 				dateOfBirth: true,
+				mobileNumber: true,
 				rejectionReason: true,
 				submissionCount: true,
 				verificationDocUrl: true,
@@ -470,6 +472,7 @@ export const approveStudent = async (
 				middleName: true,
 				reviewedAt: true,
 				dateOfBirth: true,
+				mobileNumber: true,
 				rejectionReason: true,
 				submissionCount: true,
 				verificationDocUrl: true,
@@ -596,6 +599,7 @@ export const rejectStudent = async (
 				reviewedAt: true,
 				middleName: true,
 				dateOfBirth: true,
+				mobileNumber: true,
 				rejectionReason: true,
 				submissionCount: true,
 				verificationDocUrl: true,
@@ -734,12 +738,13 @@ export const updateStudentDetails = async (
 			return tx.student.update({
 				where: { userId: validatedData.studentId },
 				data: {
+					lastName,
+					firstName,
+					middleName,
 					dateOfBirth: birthDate,
 					gender: validatedData.gender,
 					classId: validatedData.class,
-					firstName,
-					middleName,
-					lastName
+					mobileNumber: validatedData.mobileNumber
 				},
 				select: {
 					userId: true,
@@ -752,6 +757,7 @@ export const updateStudentDetails = async (
 					middleName: true,
 					reviewedAt: true,
 					dateOfBirth: true,
+					mobileNumber: true,
 					rejectionReason: true,
 					submissionCount: true,
 					verificationDocUrl: true,

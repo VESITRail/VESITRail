@@ -45,6 +45,7 @@ export type OnboardingData = Pick<
 	| "stationId"
 	| "middleName"
 	| "dateOfBirth"
+	| "mobileNumber"
 	| "rejectionReason"
 	| "submissionCount"
 	| "verificationDocUrl"
@@ -122,6 +123,7 @@ export const getExistingStudentData = async (): Promise<Result<OnboardingData | 
 				stationId: true,
 				middleName: true,
 				dateOfBirth: true,
+				mobileNumber: true,
 				rejectionReason: true,
 				submissionCount: true,
 				verificationDocUrl: true,
@@ -231,6 +233,10 @@ export const submitOnboarding = async (
 			return failure(
 				validationError("Selected preferred concession period is currently unavailable", "preferredConcessionPeriodId")
 			);
+		}
+
+		if (!dbData.mobileNumber || !/^[6-9]\d{9}$/.test(dbData.mobileNumber)) {
+			return failure(validationError("Please enter a valid Indian mobile number", "mobileNumber"));
 		}
 
 		const legacyRecord = await prisma.legacyStudent.findUnique({

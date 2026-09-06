@@ -51,6 +51,15 @@ const PREDEFINED_REJECTION_REASONS = [
 		reason: "Address in the verification document and the entered address mismatch"
 	},
 	{
+		label: "Both Sides of Aadhaar Required",
+		reason: "Please upload both front and back sides of your Aadhaar card."
+	},
+	{
+		label: "Address Proof Required",
+		reason:
+			"Address differs from Aadhaar. Please attach an electricity bill or rent agreement along with your Aadhaar card."
+	},
+	{
 		label: "Invalid Verification Document",
 		reason: "Invalid verification document"
 	},
@@ -60,7 +69,7 @@ const PREDEFINED_REJECTION_REASONS = [
 	},
 	{
 		label: "Address Station Mismatch",
-		reason: "Address does not belong to the new station selected"
+		reason: "Address does not belong to the current station selected"
 	}
 ];
 
@@ -261,6 +270,7 @@ const StudentDetailsDialog = ({
 									<div className="space-y-3">
 										<Skeleton className="h-8 w-full" />
 										<Skeleton className="h-8 w-full" />
+										<Skeleton className="h-8 w-full" />
 										<Skeleton className="h-12 w-full" />
 									</div>
 								</div>
@@ -365,6 +375,13 @@ const StudentDetailsDialog = ({
 											</h4>
 
 											<div className="space-y-4">
+												<div className="flex justify-between items-start">
+													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
+														Mobile
+													</span>
+													<span className="text-sm text-right flex-1 ml-3">{studentDetails.mobileNumber || "N/A"}</span>
+												</div>
+
 												<div className="flex justify-between items-start">
 													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
 														Gender
@@ -860,10 +877,10 @@ const createColumns = (
 		cell: ({ row }) => {
 			const student = row.original;
 			return (
-				<div className="flex items-center gap-2">
+				<div className="flex items-center justify-center gap-2">
 					<StudentDetailsDialog student={student} onStudentUpdate={onStudentUpdate} />
 					<EditStudentDrawer student={student} onStudentUpdate={onStudentUpdate} />
-					<StudentConcessionHistorySheet student={student} />
+					{student.status === "Approved" && <StudentConcessionHistorySheet student={student} />}
 				</div>
 			);
 		}

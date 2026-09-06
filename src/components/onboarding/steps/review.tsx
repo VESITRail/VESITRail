@@ -64,7 +64,7 @@ const ReviewSkeleton = () => {
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 						<div className="space-y-2">
 							<Skeleton className="h-4 w-20" />
 							<Skeleton className="h-5 w-36" />
@@ -76,6 +76,10 @@ const ReviewSkeleton = () => {
 						<div className="space-y-2">
 							<Skeleton className="h-4 w-16" />
 							<Skeleton className="h-5 w-16" />
+						</div>
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-24" />
+							<Skeleton className="h-5 w-28" />
 						</div>
 					</div>
 					<Separator />
@@ -299,6 +303,7 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 					stationId: defaultValues.station,
 					firstName: defaultValues.firstName,
 					lastName: defaultValues.lastName || null,
+					mobileNumber: defaultValues.mobileNumber,
 					middleName: defaultValues.middleName || null,
 					verificationDocUrl: defaultValues.verificationDocUrl,
 					preferredConcessionClassId: defaultValues.preferredConcessionClass,
@@ -412,6 +417,10 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Gender</p>
 							<p className="font-medium">{defaultValues.gender}</p>
+						</div>
+						<div className="space-y-1">
+							<p className="text-sm font-medium text-muted-foreground">Mobile Number</p>
+							<p className="font-medium">{defaultValues.mobileNumber}</p>
 						</div>
 					</div>
 					<Separator />
