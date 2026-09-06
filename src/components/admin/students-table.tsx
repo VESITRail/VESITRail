@@ -51,6 +51,15 @@ const PREDEFINED_REJECTION_REASONS = [
 		reason: "Address in the verification document and the entered address mismatch"
 	},
 	{
+		label: "Both Sides of Aadhaar Required",
+		reason: "Please upload both front and back sides of your Aadhaar card."
+	},
+	{
+		label: "Address Proof Required",
+		reason:
+			"Address differs from Aadhaar. Please attach an electricity bill or rent agreement along with your Aadhaar card."
+	},
+	{
 		label: "Invalid Verification Document",
 		reason: "Invalid verification document"
 	},
@@ -60,7 +69,7 @@ const PREDEFINED_REJECTION_REASONS = [
 	},
 	{
 		label: "Address Station Mismatch",
-		reason: "Address does not belong to the new station selected"
+		reason: "Address does not belong to the current station selected"
 	}
 ];
 
