@@ -133,82 +133,87 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 	return (
 		<Form {...form}>
 			<div className="space-y-4">
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-					<FormField
-						name="firstName"
-						control={form.control}
-						render={({ field }) => (
-							<FormItem className="space-y-1">
-								<FormLabel className="block">
-									First Name <span className="text-destructive">*</span>
-								</FormLabel>
+				<div className="space-y-2">
+					<FormLabel className="text-sm font-medium block">Name as per Aadhaar Card</FormLabel>
 
-								<FormControl>
-									<Input
-										{...field}
-										autoComplete="off"
-										autoCapitalize="words"
-										aria-describedby="firstName-error"
-										placeholder="Enter your first name"
-										onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
-									/>
-								</FormControl>
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<FormField
+							name="firstName"
+							control={form.control}
+							render={({ field }) => (
+								<FormItem className="space-y-1">
+									<FormLabel className="block">
+										First Name <span className="text-destructive">*</span>
+									</FormLabel>
 
-								<div className="min-h-5">
-									<FormMessage id="firstName-error" className="text-sm" />
-								</div>
-							</FormItem>
-						)}
-					/>
+									<FormControl>
+										<Input
+											{...field}
+											autoComplete="off"
+											autoCapitalize="words"
+											aria-describedby="firstName-error"
+											placeholder="Enter your first name"
+											onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
+										/>
+									</FormControl>
 
-					<FormField
-						name="middleName"
-						control={form.control}
-						render={({ field }) => (
-							<FormItem className="space-y-1">
-								<FormLabel className="block">Middle Name</FormLabel>
+									<div className="min-h-5">
+										<FormMessage id="firstName-error" className="text-sm" />
+									</div>
+								</FormItem>
+							)}
+						/>
 
-								<FormControl>
-									<Input
-										{...field}
-										autoComplete="off"
-										autoCapitalize="words"
-										aria-describedby="middleName-error"
-										placeholder="Enter your middle name"
-										onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
-									/>
-								</FormControl>
-								<div className="min-h-5">
-									<FormMessage id="middleName-error" className="text-sm" />
-								</div>
-							</FormItem>
-						)}
-					/>
+						<FormField
+							name="middleName"
+							control={form.control}
+							render={({ field }) => (
+								<FormItem className="space-y-1">
+									<FormLabel className="block">Middle Name</FormLabel>
 
-					<FormField
-						name="lastName"
-						control={form.control}
-						render={({ field }) => (
-							<FormItem className="space-y-1">
-								<FormLabel className="block">Last Name</FormLabel>
+									<FormControl>
+										<Input
+											{...field}
+											autoComplete="off"
+											autoCapitalize="words"
+											aria-describedby="middleName-error"
+											placeholder="Enter your middle name"
+											onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
+										/>
+									</FormControl>
+									<div className="min-h-5">
+										<FormMessage id="middleName-error" className="text-sm" />
+									</div>
+								</FormItem>
+							)}
+						/>
 
-								<FormControl>
-									<Input
-										{...field}
-										autoComplete="off"
-										autoCapitalize="words"
-										aria-describedby="lastName-error"
-										placeholder="Enter your last name"
-										onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
-									/>
-								</FormControl>
-								<div className="min-h-5">
-									<FormMessage id="lastName-error" className="text-sm" />
-								</div>
-							</FormItem>
-						)}
-					/>
+						<FormField
+							name="lastName"
+							control={form.control}
+							render={({ field }) => (
+								<FormItem className="space-y-1">
+									<FormLabel className="block">Last Name</FormLabel>
+
+									<FormControl>
+										<Input
+											{...field}
+											autoComplete="off"
+											autoCapitalize="words"
+											aria-describedby="lastName-error"
+											placeholder="Enter your last name"
+											onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
+										/>
+									</FormControl>
+									<div className="min-h-5">
+										<FormMessage id="lastName-error" className="text-sm" />
+									</div>
+								</FormItem>
+							)}
+						/>
+					</div>
 				</div>
+
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
 					<FormField
 						name="gender"
