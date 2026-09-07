@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/sonner";
 import { PWAInitializer } from "@/lib/pwa-initializer";
+import { CookieConsent } from "@/components/layout/cookie-consent";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { UpdateProvider } from "@/components/providers/update-provider";
 
@@ -53,6 +54,7 @@ const RootLayout = ({
 						<NextTopLoader color="#9333EA" showSpinner={false} />
 						{children}
 						<Toaster richColors />
+						<CookieConsent />
 						<PWAInitializer />
 					</UpdateProvider>
 				</ThemeProvider>

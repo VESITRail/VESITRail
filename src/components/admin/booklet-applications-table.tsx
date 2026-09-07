@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBooklet } from "@/generated/zod";
 import { FileText, AlertCircle, ArrowRightLeft, Plus, X } from "lucide-react";
-import { toTitleCase, formatDateOfBirth, cn, formatSlipNumber } from "@/lib/utils";
+import { toTitleCase, formatDateOfBirth, formatSlipNumber } from "@/lib/utils";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { DamagedPageItem, BookletTableItem, BookletApplicationItem, StagedSlotInfo } from "@/actions/booklets";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
@@ -106,14 +106,14 @@ const BookletApplicationsTable = ({
 			{
 				size: 80,
 				id: "date",
-				accessorKey: "createdAt",
+				accessorKey: "issuedAt",
 				header: () => <div className="text-center">Date</div>,
 				cell: ({ row }) => {
 					const item = row.original;
 					if (isDamagedPage(item)) return null;
 					return (
 						<div className="text-center text-sm font-normal text-foreground">
-							{format(new Date(item.createdAt), "dd/MM/yyyy")}
+							{item.issuedAt ? format(new Date(item.issuedAt), "dd/MM/yyyy") : "-"}
 						</div>
 					);
 				}
