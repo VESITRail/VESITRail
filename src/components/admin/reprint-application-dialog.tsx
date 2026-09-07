@@ -724,7 +724,7 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 							availableBooklets.length === 0
 						}
 					>
-						{isReprinting ? "Reprinting & Generating PDF..." : "Reprint & Print Pass"}
+						{isReprinting ? "Reissuing & Printing..." : "Reissue & Print Pass"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
