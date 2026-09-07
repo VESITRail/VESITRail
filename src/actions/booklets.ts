@@ -61,7 +61,7 @@ export type BookletPaginationParams = {
 
 export type BookletApplicationItem = Pick<
 	ConcessionApplication,
-	"id" | "createdAt" | "status" | "applicationType" | "pageOffset"
+	"id" | "createdAt" | "issuedAt" | "status" | "applicationType" | "pageOffset"
 > & {
 	derivedSerialNumber?: number;
 	derivedCertificateNo?: string;
@@ -489,6 +489,7 @@ export const getBookletApplications = async (
 			select: {
 				id: true,
 				status: true,
+				issuedAt: true,
 				createdAt: true,
 				pageOffset: true,
 				applicationType: true,
@@ -545,6 +546,7 @@ export const getBookletApplications = async (
 				station: app.station,
 				derivedCertificateNo,
 				student: app.student,
+				issuedAt: app.issuedAt,
 				createdAt: app.createdAt,
 				pageOffset: app.pageOffset,
 				applicationType: app.applicationType,

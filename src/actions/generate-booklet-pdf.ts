@@ -133,7 +133,11 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 
 				return [
 					serialNo,
-					format(new Date(item.createdAt), "dd/MM/yyyy"),
+					item.issuedAt
+						? format(toZonedTime(new Date(item.issuedAt), "Asia/Kolkata"), "dd/MM/yyyy", {
+								timeZone: "Asia/Kolkata"
+							})
+						: "-",
 					certificateNo,
 					fullName,
 					currentPassNo,
