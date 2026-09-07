@@ -295,76 +295,87 @@ export const getAllApplications = async (
 		if (params.searchQuery && params.searchQuery.trim()) {
 			const searchTerm = params.searchQuery.trim();
 			const isNumeric = /^\d+$/.test(searchTerm);
+			const words = searchTerm.split(/\s+/).filter(Boolean);
+			const cleanDigits = searchTerm.replace(/\D/g, "");
+			const normalizedDigits =
+				cleanDigits.length === 12 && cleanDigits.startsWith("91") ? cleanDigits.slice(2) : cleanDigits;
 
 			const orConditions: Prisma.ConcessionApplicationWhereInput[] = [
-				{
-					student: {
-						firstName: { contains: searchTerm, mode: "insensitive" }
-					}
-				},
-				{
-					student: {
-						middleName: { contains: searchTerm, mode: "insensitive" }
-					}
-				},
-				{
-					student: {
-						lastName: { contains: searchTerm, mode: "insensitive" }
-					}
-				},
-				{
-					student: {
-						user: {
-							email: { contains: searchTerm, mode: "insensitive" }
-						}
-					}
-				},
-				{
-					station: {
-						name: { contains: searchTerm, mode: "insensitive" }
-					}
-				},
-				{
-					station: {
-						code: { contains: searchTerm, mode: "insensitive" }
-					}
-				},
-				{
-					concessionClass: {
-						name: { contains: searchTerm, mode: "insensitive" }
-					}
-				},
-				{
-					concessionClass: {
-						code: { contains: searchTerm, mode: "insensitive" }
-					}
-				},
-				{
-					concessionPeriod: {
-						name: { contains: searchTerm, mode: "insensitive" }
-					}
-				}
+				{ station: { name: { contains: searchTerm, mode: "insensitive" } } },
+				{ station: { code: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { lastName: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { firstName: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { middleName: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { mobileNumber: { contains: searchTerm, mode: "insensitive" } } },
+				{ concessionClass: { name: { contains: searchTerm, mode: "insensitive" } } },
+				{ concessionClass: { code: { contains: searchTerm, mode: "insensitive" } } },
+				{ concessionPeriod: { name: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { user: { name: { contains: searchTerm, mode: "insensitive" } } } },
+				{ student: { user: { email: { contains: searchTerm, mode: "insensitive" } } } },
+				{ student: { class: { code: { contains: searchTerm, mode: "insensitive" } } } }
 			];
 
 			if (isNumeric) {
 				orConditions.push({ shortId: parseInt(searchTerm, 10) });
 			}
 
-			const nameParts = searchTerm.split(/\s+/).filter(Boolean);
-			if (nameParts.length > 1) {
+			if (normalizedDigits.length >= 3) {
 				orConditions.push({
-					AND: [
-						{
-							student: {
-								firstName: { contains: nameParts[0], mode: "insensitive" }
-							}
-						},
-						{
-							student: {
-								lastName: { contains: nameParts[nameParts.length - 1], mode: "insensitive" }
-							}
+					student: {
+						mobileNumber: { contains: normalizedDigits, mode: "insensitive" }
+					}
+				});
+			}
+
+			if (words.length > 1) {
+				orConditions.push({
+					student: {
+						AND: words.map((word) => ({
+							OR: [
+								{ lastName: { contains: word, mode: "insensitive" } },
+								{ firstName: { contains: word, mode: "insensitive" } },
+								{ middleName: { contains: word, mode: "insensitive" } },
+								{ user: { name: { contains: word, mode: "insensitive" } } }
+							]
+						}))
+					}
+				});
+
+				orConditions.push({
+					AND: words.map((rawWord) => {
+						const word = rawWord.replace(/[(),]/g, "").trim() || rawWord;
+						const wordDigits = word.replace(/\D/g, "");
+
+						const fieldConditions: Prisma.ConcessionApplicationWhereInput[] = [
+							{ station: { name: { contains: word, mode: "insensitive" } } },
+							{ station: { code: { contains: word, mode: "insensitive" } } },
+							{ student: { lastName: { contains: word, mode: "insensitive" } } },
+							{ student: { firstName: { contains: word, mode: "insensitive" } } },
+							{ student: { middleName: { contains: word, mode: "insensitive" } } },
+							{ concessionClass: { name: { contains: word, mode: "insensitive" } } },
+							{ concessionClass: { code: { contains: word, mode: "insensitive" } } },
+							{ concessionPeriod: { name: { contains: word, mode: "insensitive" } } },
+							{ student: { user: { name: { contains: word, mode: "insensitive" } } } },
+							{ student: { user: { email: { contains: word, mode: "insensitive" } } } },
+							{ student: { class: { code: { contains: word, mode: "insensitive" } } } }
+						];
+
+						if (wordDigits.length >= 3) {
+							fieldConditions.push({
+								student: {
+									mobileNumber: { contains: wordDigits, mode: "insensitive" }
+								}
+							});
+						} else {
+							fieldConditions.push({
+								student: {
+									mobileNumber: { contains: word, mode: "insensitive" }
+								}
+							});
 						}
-					]
+
+						return { OR: fieldConditions };
+					})
 				});
 			}
 

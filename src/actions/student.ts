@@ -12,9 +12,9 @@ import {
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { normalizeDob, capitalizeWords } from "@/lib/utils";
 import { requireAdmin } from "@/lib/auth-guard";
 import type { Prisma } from "@/generated/prisma/client";
+import { normalizeDob, capitalizeWords } from "@/lib/utils";
 import { sendStudentAccountNotification } from "@/lib/notifications";
 import type { Student, StudentApprovalStatusType } from "@/generated/zod";
 import { UpdateStudentActionSchema, type UpdateStudentActionInput } from "@/lib/validations/admin/edit-student";
@@ -29,6 +29,7 @@ export type StudentListItem = Pick<
 	| "createdAt"
 	| "middleName"
 	| "reviewedAt"
+	| "mobileNumber"
 	| "submissionCount"
 > & {
 	user: {
@@ -161,59 +162,75 @@ export const getStudents = async (
 
 		if (searchQuery && searchQuery.trim()) {
 			const searchTerm = searchQuery.trim();
+			const words = searchTerm.split(/\s+/).filter(Boolean);
+			const cleanDigits = searchTerm.replace(/\D/g, "");
+			const normalizedDigits =
+				cleanDigits.length === 12 && cleanDigits.startsWith("91") ? cleanDigits.slice(2) : cleanDigits;
 
-			whereClause.OR = [
-				{
-					firstName: {
-						mode: "insensitive",
-						contains: searchTerm
-					}
-				},
-				{
-					middleName: {
-						mode: "insensitive",
-						contains: searchTerm
-					}
-				},
-				{
-					lastName: {
-						mode: "insensitive",
-						contains: searchTerm
-					}
-				},
-				{
-					user: {
-						name: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				},
-				{
-					user: {
-						email: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				},
-				{
-					class: {
-						code: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				},
-				{
-					station: {
-						name: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				}
+			const orConditions: Prisma.StudentWhereInput[] = [
+				{ address: { contains: searchTerm, mode: "insensitive" } },
+				{ lastName: { contains: searchTerm, mode: "insensitive" } },
+				{ firstName: { contains: searchTerm, mode: "insensitive" } },
+				{ middleName: { contains: searchTerm, mode: "insensitive" } },
+				{ mobileNumber: { contains: searchTerm, mode: "insensitive" } },
+				{ user: { name: { contains: searchTerm, mode: "insensitive" } } },
+				{ user: { email: { contains: searchTerm, mode: "insensitive" } } },
+				{ class: { code: { contains: searchTerm, mode: "insensitive" } } },
+				{ station: { name: { contains: searchTerm, mode: "insensitive" } } },
+				{ station: { code: { contains: searchTerm, mode: "insensitive" } } }
 			];
+
+			if (normalizedDigits.length >= 3) {
+				orConditions.push({
+					mobileNumber: { contains: normalizedDigits, mode: "insensitive" }
+				});
+			}
+
+			if (words.length > 1) {
+				orConditions.push({
+					AND: words.map((word) => ({
+						OR: [
+							{ lastName: { contains: word, mode: "insensitive" } },
+							{ firstName: { contains: word, mode: "insensitive" } },
+							{ middleName: { contains: word, mode: "insensitive" } },
+							{ user: { name: { contains: word, mode: "insensitive" } } }
+						]
+					}))
+				});
+
+				orConditions.push({
+					AND: words.map((rawWord) => {
+						const word = rawWord.replace(/[(),]/g, "").trim() || rawWord;
+						const wordDigits = word.replace(/\D/g, "");
+
+						const fieldConditions: Prisma.StudentWhereInput[] = [
+							{ address: { contains: word, mode: "insensitive" } },
+							{ lastName: { contains: word, mode: "insensitive" } },
+							{ firstName: { contains: word, mode: "insensitive" } },
+							{ middleName: { contains: word, mode: "insensitive" } },
+							{ user: { name: { contains: word, mode: "insensitive" } } },
+							{ user: { email: { contains: word, mode: "insensitive" } } },
+							{ class: { code: { contains: word, mode: "insensitive" } } },
+							{ station: { name: { contains: word, mode: "insensitive" } } },
+							{ station: { code: { contains: word, mode: "insensitive" } } }
+						];
+
+						if (wordDigits.length >= 3) {
+							fieldConditions.push({
+								mobileNumber: { contains: wordDigits, mode: "insensitive" }
+							});
+						} else {
+							fieldConditions.push({
+								mobileNumber: { contains: word, mode: "insensitive" }
+							});
+						}
+
+						return { OR: fieldConditions };
+					})
+				});
+			}
+
+			whereClause.OR = orConditions;
 		}
 
 		const students = await prisma.student.findMany({
@@ -227,6 +244,7 @@ export const getStudents = async (
 				createdAt: true,
 				middleName: true,
 				reviewedAt: true,
+				mobileNumber: true,
 				submissionCount: true,
 				user: {
 					select: {

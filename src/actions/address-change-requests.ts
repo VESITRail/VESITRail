@@ -112,69 +112,89 @@ export const getAddressChangeRequests = async (
 
 		if (searchQuery && searchQuery.trim()) {
 			const searchTerm = searchQuery.trim();
+			const words = searchTerm.split(/\s+/).filter(Boolean);
+			const cleanDigits = searchTerm.replace(/\D/g, "");
+			const normalizedDigits =
+				cleanDigits.length === 12 && cleanDigits.startsWith("91") ? cleanDigits.slice(2) : cleanDigits;
 
-			whereClause.OR = [
-				{
-					student: {
-						firstName: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				},
-				{
-					student: {
-						middleName: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				},
-				{
-					student: {
-						lastName: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				},
-				{
-					student: {
-						user: {
-							name: {
-								mode: "insensitive",
-								contains: searchTerm
-							}
-						}
-					}
-				},
-				{
-					student: {
-						user: {
-							email: {
-								mode: "insensitive",
-								contains: searchTerm
-							}
-						}
-					}
-				},
-				{
-					newStation: {
-						name: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				},
-				{
-					currentStation: {
-						name: {
-							mode: "insensitive",
-							contains: searchTerm
-						}
-					}
-				}
+			const orConditions: Prisma.AddressChangeWhereInput[] = [
+				{ newAddress: { contains: searchTerm, mode: "insensitive" } },
+				{ currentAddress: { contains: searchTerm, mode: "insensitive" } },
+				{ newStation: { name: { contains: searchTerm, mode: "insensitive" } } },
+				{ newStation: { code: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { lastName: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { firstName: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { middleName: { contains: searchTerm, mode: "insensitive" } } },
+				{ currentStation: { name: { contains: searchTerm, mode: "insensitive" } } },
+				{ currentStation: { code: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { mobileNumber: { contains: searchTerm, mode: "insensitive" } } },
+				{ student: { user: { name: { contains: searchTerm, mode: "insensitive" } } } },
+				{ student: { user: { email: { contains: searchTerm, mode: "insensitive" } } } },
+				{ student: { class: { code: { contains: searchTerm, mode: "insensitive" } } } }
 			];
+
+			if (normalizedDigits.length >= 3) {
+				orConditions.push({
+					student: {
+						mobileNumber: { contains: normalizedDigits, mode: "insensitive" }
+					}
+				});
+			}
+
+			if (words.length > 1) {
+				orConditions.push({
+					student: {
+						AND: words.map((word) => ({
+							OR: [
+								{ lastName: { contains: word, mode: "insensitive" } },
+								{ firstName: { contains: word, mode: "insensitive" } },
+								{ middleName: { contains: word, mode: "insensitive" } },
+								{ user: { name: { contains: word, mode: "insensitive" } } }
+							]
+						}))
+					}
+				});
+
+				orConditions.push({
+					AND: words.map((rawWord) => {
+						const word = rawWord.replace(/[(),]/g, "").trim() || rawWord;
+						const wordDigits = word.replace(/\D/g, "");
+
+						const fieldConditions: Prisma.AddressChangeWhereInput[] = [
+							{ newAddress: { contains: word, mode: "insensitive" } },
+							{ currentAddress: { contains: word, mode: "insensitive" } },
+							{ newStation: { name: { contains: word, mode: "insensitive" } } },
+							{ newStation: { code: { contains: word, mode: "insensitive" } } },
+							{ student: { lastName: { contains: word, mode: "insensitive" } } },
+							{ student: { firstName: { contains: word, mode: "insensitive" } } },
+							{ student: { middleName: { contains: word, mode: "insensitive" } } },
+							{ currentStation: { name: { contains: word, mode: "insensitive" } } },
+							{ currentStation: { code: { contains: word, mode: "insensitive" } } },
+							{ student: { user: { name: { contains: word, mode: "insensitive" } } } },
+							{ student: { user: { email: { contains: word, mode: "insensitive" } } } },
+							{ student: { class: { code: { contains: word, mode: "insensitive" } } } }
+						];
+
+						if (wordDigits.length >= 3) {
+							fieldConditions.push({
+								student: {
+									mobileNumber: { contains: wordDigits, mode: "insensitive" }
+								}
+							});
+						} else {
+							fieldConditions.push({
+								student: {
+									mobileNumber: { contains: word, mode: "insensitive" }
+								}
+							});
+						}
+
+						return { OR: fieldConditions };
+					})
+				});
+			}
+
+			whereClause.OR = orConditions;
 		}
 
 		const [requests, totalCount] = await Promise.all([
