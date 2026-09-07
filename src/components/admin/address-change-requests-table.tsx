@@ -16,7 +16,6 @@ import {
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
-	ExternalLink,
 	AlertTriangle
 } from "lucide-react";
 import {
@@ -82,13 +81,6 @@ const StatusBadge = ({ status }: { status: AddressChangeStatusType }) => {
 	};
 
 	return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
-};
-
-const getFirstAndLastName = (fullName?: string): string => {
-	if (!fullName?.trim()) return "";
-	const parts = fullName.trim().split(/\s+/);
-	if (parts.length <= 2) return toTitleCase(fullName);
-	return toTitleCase(`${parts[0]} ${parts[parts.length - 1]}`);
 };
 
 const AddressChangeRequestDetailsDialog = ({
@@ -623,7 +615,7 @@ const AddressChangeRequestDetailsDialog = ({
 												<div className="flex items-center justify-between">
 													<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
 													<span className="text-sm text-foreground">
-														{getFirstAndLastName(requestDetails.reviewedBy.user.name)}
+														{toTitleCase(requestDetails.reviewedBy.user.name || "Admin")}
 													</span>
 												</div>
 											)}

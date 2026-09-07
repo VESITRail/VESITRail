@@ -93,13 +93,13 @@ const StudentDetailsDialog = ({
 	onStudentUpdate?: (updatedStudent: StudentDetails) => void;
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(null);
 	const [hasError, setHasError] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const [showDocViewer, setShowDocViewer] = useState<boolean>(false);
 	const [rejectionReason, setRejectionReason] = useState<string>("");
 	const [showRejectDialog, setShowRejectDialog] = useState<boolean>(false);
+	const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(null);
 	const [selectedPredefinedReason, setSelectedPredefinedReason] = useState<string>("");
 
 	const loadStudentDetails = useCallback(async () => {
