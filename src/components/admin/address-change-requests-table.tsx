@@ -968,10 +968,8 @@ const AddressChangeRequestsTable = ({
 							<p title={fullName} className="font-medium text-foreground">
 								{toTitleCase(fullName.length > 25 ? `${fullName.slice(0, 25)}...` : fullName)}
 							</p>
-							<p title={request.student.user.email} className="text-xs text-muted-foreground">
-								{request.student.user.email.length > 25
-									? `${request.student.user.email.slice(0, 25)}...`
-									: request.student.user.email}
+							<p title={request.student.mobileNumber || "N/A"} className="text-xs text-muted-foreground">
+								{request.student.mobileNumber || "N/A"}
 							</p>
 						</div>
 					);
@@ -1092,9 +1090,9 @@ const AddressChangeRequestsTable = ({
 								<Skeleton className="h-4 w-8 mx-auto" />
 							</TableCell>
 							<TableCell className="text-center">
-								<div className="space-y-2">
+								<div className="space-y-1">
 									<Skeleton className="h-4 w-32 mx-auto" />
-									<Skeleton className="h-3 w-28 mx-auto" />
+									<Skeleton className="h-3 w-20 mx-auto" />
 								</div>
 							</TableCell>
 							<TableCell className="text-center">

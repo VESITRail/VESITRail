@@ -266,6 +266,7 @@ export type AdminApplication = Pick<
 		firstName: string;
 		lastName: string | null;
 		middleName: string | null;
+		mobileNumber: string | null;
 		user: {
 			email: string;
 		};
@@ -401,6 +402,7 @@ export const getAllApplications = async (
 						lastName: true,
 						firstName: true,
 						middleName: true,
+						mobileNumber: true,
 						user: {
 							select: {
 								email: true
@@ -1375,6 +1377,7 @@ export const getConcessionApplicationDetails = async (
 						lastName: true,
 						firstName: true,
 						middleName: true,
+						mobileNumber: true,
 						user: {
 							select: {
 								email: true

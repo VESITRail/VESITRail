@@ -137,8 +137,8 @@ const createColumns = (
 					<p title={fullName} className="font-medium text-foreground">
 						{toTitleCase(fullName.length > 25 ? `${fullName.slice(0, 25)}...` : fullName)}
 					</p>
-					<p title={student.user.email} className="text-xs text-muted-foreground">
-						{student.user.email.length > 25 ? `${student.user.email.slice(0, 25)}...` : student.user.email}
+					<p title={student.mobileNumber || "N/A"} className="text-xs text-muted-foreground">
+						{student.mobileNumber || "N/A"}
 					</p>
 				</div>
 			);
@@ -1199,7 +1199,7 @@ const ApplicationsTable = ({
 										<TableCell className="p-4 text-center">
 											<div className="space-y-1">
 												<Skeleton className="h-4 w-32 mx-auto" />
-												<Skeleton className="h-3 w-24 mx-auto" />
+												<Skeleton className="h-3 w-20 mx-auto" />
 											</div>
 										</TableCell>
 										<TableCell className="p-4 text-center">
