@@ -762,7 +762,7 @@ export const updateStudentDetails = async (
 					dateOfBirth: birthDate,
 					gender: validatedData.gender,
 					classId: validatedData.class,
-					mobileNumber: validatedData.mobileNumber
+					mobileNumber: validatedData.mobileNumber?.trim() ? validatedData.mobileNumber.trim() : null
 				},
 				select: {
 					userId: true,
