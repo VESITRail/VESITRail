@@ -233,7 +233,7 @@ const createColumns = (
 		}
 	},
 	{
-		size: 120,
+		size: 160,
 		id: "actions",
 		header: "Actions",
 		cell: ({ row }) => {
@@ -243,16 +243,28 @@ const createColumns = (
 			return (
 				<div className="flex items-center justify-center gap-2">
 					{status === "Approved" && (
-						<Button
-							size="sm"
-							variant="default"
-							className="size-8 p-0"
-							title="Assign Booklet & Print"
-							aria-label="Assign booklet and print"
-							onClick={() => onPrint && onPrint(application)}
-						>
-							<Printer className="size-4" />
-						</Button>
+						<>
+							<Button
+								size="sm"
+								variant="default"
+								className="size-8 p-0"
+								title="Assign Booklet & Print"
+								aria-label="Assign booklet and print"
+								onClick={() => onPrint && onPrint(application)}
+							>
+								<Printer className="size-4" />
+							</Button>
+							<Button
+								size="sm"
+								variant="destructive"
+								className="size-8 p-0"
+								title="Reject Application"
+								aria-label="Reject application"
+								onClick={() => onReject && onReject(application)}
+							>
+								<X className="size-4" />
+							</Button>
+						</>
 					)}
 
 					{status === "Issued" && (
@@ -286,6 +298,16 @@ const createColumns = (
 								aria-label="Reprint concession and reassign booklet"
 							>
 								<RotateCcw className="size-4" />
+							</Button>
+							<Button
+								size="sm"
+								variant="destructive"
+								className="size-8 p-0"
+								title="Reject Application"
+								aria-label="Reject application"
+								onClick={() => onReject && onReject(application)}
+							>
+								<X className="size-4" />
 							</Button>
 						</>
 					)}
@@ -730,9 +752,13 @@ const ApplicationsTable = ({
 			const result = await reviewConcessionApplication(selectedApplication.id, "Rejected", finalReason);
 
 			if (result.isSuccess) {
-				const updatedApplication = {
+				const updatedApplication: AdminApplication = {
 					...selectedApplication,
+					issuedAt: null,
+					pageOffset: null,
 					reviewedAt: new Date(),
+					concessionBooklet: null,
+					concessionBookletId: null,
 					rejectionReason: finalReason,
 					status: "Rejected" as ApplicationStatus
 				};

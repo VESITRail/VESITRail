@@ -890,18 +890,76 @@ export const reviewConcessionApplication = async (
 			return failure(validationError("Application not found", "applicationId"));
 		}
 
-		if (application.status !== "Pending") {
+		if (status === "Approved" && application.status !== "Pending") {
 			return failure(validationError("Application has already been reviewed", "status"));
 		}
 
-		const updatedApplication = await prisma.concessionApplication.update({
-			where: { id: applicationId },
-			data: {
-				status,
-				reviewedAt: new Date(),
-				reviewedById: adminResult.data.userId,
-				rejectionReason: status === "Rejected" ? rejectionReason?.trim() : null
+		if (status === "Rejected") {
+			if (application.status === "Rejected") {
+				return failure(validationError("Application is already rejected", "status"));
 			}
+			if (!["Pending", "Approved", "Issued"].includes(application.status)) {
+				return failure(validationError("Cannot reject application with current status", "status"));
+			}
+		}
+
+		const bookletId = application.concessionBookletId;
+
+		const updatedApplication = await prisma.$transaction(async (tx) => {
+			const updated = await tx.concessionApplication.update({
+				where: { id: applicationId },
+				data: {
+					status,
+					reviewedAt: new Date(),
+					reviewedById: adminResult.data.userId,
+					rejectionReason: status === "Rejected" ? rejectionReason?.trim() : null,
+					...(status === "Rejected" && bookletId
+						? {
+								issuedAt: null,
+								pageOffset: null,
+								concessionBookletId: null
+							}
+						: {})
+				}
+			});
+
+			if (status === "Rejected" && bookletId) {
+				const remainingApps = await tx.concessionApplication.findMany({
+					where: {
+						pageOffset: { not: null },
+						id: { not: applicationId },
+						concessionBookletId: bookletId
+					},
+					select: { pageOffset: true }
+				});
+
+				const booklet = await tx.concessionBooklet.findUnique({
+					where: { id: bookletId },
+					select: { totalPages: true, status: true }
+				});
+
+				if (booklet) {
+					const remainingOffsets = remainingApps.map((a) => a.pageOffset!);
+					const maxOffset = remainingOffsets.length > 0 ? Math.max(...remainingOffsets) : -1;
+					const newBookletStatus = calculateBookletStatus(
+						remainingOffsets.length,
+						booklet.totalPages,
+						false,
+						maxOffset
+					);
+
+					if (newBookletStatus !== booklet.status) {
+						await tx.concessionBooklet.update({
+							where: { id: bookletId },
+							data: {
+								status: newBookletStatus
+							}
+						});
+					}
+				}
+			}
+
+			return updated;
 		});
 
 		sendConcessionNotification(
@@ -915,6 +973,10 @@ export const reviewConcessionApplication = async (
 		});
 
 		revalidatePath("/dashboard/admin");
+		revalidatePath("/dashboard/admin/booklets");
+		if (bookletId) {
+			revalidatePath(`/dashboard/admin/booklets/${bookletId}`);
+		}
 
 		return success(updatedApplication);
 	} catch (error) {
