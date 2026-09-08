@@ -270,10 +270,6 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 								<Skeleton className="h-4 w-20" />
 								<Skeleton className="h-9 w-full" />
 							</div>
-							<div className="space-y-2">
-								<Skeleton className="h-4 w-28" />
-								<Skeleton className="h-9 w-full" />
-							</div>
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div className="space-y-2">
 									<Skeleton className="h-4 w-24" />
@@ -283,6 +279,10 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 									<Skeleton className="h-4 w-20" />
 									<Skeleton className="h-9 w-full" />
 								</div>
+							</div>
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-28" />
+								<Skeleton className="h-9 w-full" />
 							</div>
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div className="space-y-2">
@@ -350,33 +350,6 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 									)}
 								</div>
 
-								<div className="space-y-2">
-									<Label htmlFor="mobileNumber" className="text-sm font-medium">
-										Mobile Number <span className="text-destructive">*</span>
-									</Label>
-									<Input
-										type="tel"
-										maxLength={10}
-										id="mobileNumber"
-										autoComplete="off"
-										inputMode="numeric"
-										disabled={isSaving}
-										value={formData.mobileNumber || ""}
-										placeholder="Enter 10-digit mobile number"
-										className={cn(errors.mobileNumber && "border-destructive")}
-										onChange={(e) => {
-											const sanitized = e.target.value.replace(/\D/g, "");
-											handleFieldChange("mobileNumber", sanitized);
-										}}
-									/>
-									{errors.mobileNumber && (
-										<p className="text-xs text-destructive flex items-center gap-1">
-											<AlertCircle className="size-3" />
-											{errors.mobileNumber}
-										</p>
-									)}
-								</div>
-
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 									<div className="space-y-2">
 										<Label htmlFor="middleName" className="text-sm font-medium">
@@ -421,6 +394,33 @@ export const EditStudentDrawer = ({ student, onStudentUpdate }: EditStudentDrawe
 											</p>
 										)}
 									</div>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="mobileNumber" className="text-sm font-medium">
+										Mobile Number
+									</Label>
+									<Input
+										type="tel"
+										maxLength={10}
+										id="mobileNumber"
+										autoComplete="off"
+										inputMode="numeric"
+										disabled={isSaving}
+										value={formData.mobileNumber || ""}
+										placeholder="Enter 10-digit mobile number"
+										className={cn(errors.mobileNumber && "border-destructive")}
+										onChange={(e) => {
+											const sanitized = e.target.value.replace(/\D/g, "");
+											handleFieldChange("mobileNumber", sanitized);
+										}}
+									/>
+									{errors.mobileNumber && (
+										<p className="text-xs text-destructive flex items-center gap-1">
+											<AlertCircle className="size-3" />
+											{errors.mobileNumber}
+										</p>
+									)}
 								</div>
 
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

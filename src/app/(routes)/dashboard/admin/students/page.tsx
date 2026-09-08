@@ -132,6 +132,7 @@ const Students = () => {
 							lastName: updatedStudent.lastName,
 							firstName: updatedStudent.firstName,
 							middleName: updatedStudent.middleName,
+							mobileNumber: updatedStudent.mobileNumber,
 							reviewedAt: updatedStudent.reviewedAt,
 							rejectionReason: updatedStudent.rejectionReason,
 							user: {

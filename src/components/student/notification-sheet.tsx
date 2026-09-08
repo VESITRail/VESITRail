@@ -250,12 +250,17 @@ const NotificationSheet: React.FC<NotificationSheetProps> = ({ children }) => {
 											</div>
 											<div className="flex-1 min-w-0">
 												<div className="flex items-center justify-between gap-2 mb-1">
-													<h4 className={cn("font-medium text-sm truncate", !notification.isRead && "font-semibold")}>
+													<h4
+														className={cn(
+															"font-medium text-sm wrap-break-word",
+															!notification.isRead && "font-semibold"
+														)}
+													>
 														{notification.title}
 													</h4>
 													{!notification.isRead && <div className="size-2 bg-primary rounded-full shrink-0" />}
 												</div>
-												<p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-2">
+												<p className="text-muted-foreground text-sm leading-relaxed wrap-break-word whitespace-pre-line mb-2">
 													{notification.body}
 												</p>
 												<div className="flex items-center gap-2 text-xs text-muted-foreground">

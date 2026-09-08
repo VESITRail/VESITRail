@@ -36,6 +36,7 @@ export type AddressChangeRequestItem = Pick<
 		firstName: string;
 		lastName: string | null;
 		middleName: string | null;
+		mobileNumber: string | null;
 		user: {
 			id: string;
 			name: string;
