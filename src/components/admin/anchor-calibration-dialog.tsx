@@ -12,10 +12,11 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { printBase64PDF } from "@/lib/print-pdf";
 import { useState, useCallback, useEffect } from "react";
 import { BookletItem, updateBookletAnchorCoordinates } from "@/actions/booklets";
 import { generateSampleOverlayPDF } from "@/actions/generate-sample-overlay-pdf";
-import { Minus, Plus, RotateCcw, Loader2, FileDown, Save, Crosshair } from "lucide-react";
+import { Minus, Plus, RotateCcw, Loader2, Printer, Save, Crosshair } from "lucide-react";
 
 type AnchorCalibrationDialogProps = {
 	isOpen: boolean;
@@ -99,9 +100,9 @@ const AnchorCalibrationDialog: React.FC<AnchorCalibrationDialogProps> = ({
 			const result = await generateSampleOverlayPDF(adjustedX, adjustedY);
 
 			if (result.isSuccess) {
-				window.open(result.data, "_blank");
-				toast.success("Sample PDF Generated", {
-					description: `Preview opened in a new tab with anchor (${adjustedX}, ${adjustedY}).`
+				printBase64PDF(result.data);
+				toast.success("Sample PDF Sent to Printer", {
+					description: `Print dialog opened with anchor (${adjustedX}, ${adjustedY}).`
 				});
 			} else {
 				toast.error("Generation Failed", {
@@ -272,12 +273,12 @@ const AnchorCalibrationDialog: React.FC<AnchorCalibrationDialogProps> = ({
 						{isGenerating ? (
 							<>
 								<Loader2 className="size-4 mr-2 animate-spin" />
-								Generating Sample PDF...
+								Preparing Sample Print...
 							</>
 						) : (
 							<>
-								<FileDown className="size-4 mr-2" />
-								Generate Sample PDF
+								<Printer className="size-4 mr-2" />
+								Print Sample PDF
 							</>
 						)}
 					</Button>

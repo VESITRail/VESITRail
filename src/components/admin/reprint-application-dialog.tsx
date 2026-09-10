@@ -591,7 +591,7 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 								{availableBooklets.length === 0 ? (
 									<div className="space-y-3">
 										<div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-											No available booklets found. Please create a new booklet first.
+											No available booklets found. Please add a new booklet first.
 										</div>
 										<Button
 											variant="outline"

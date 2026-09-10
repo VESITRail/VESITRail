@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { PDFDocument, degrees } from "pdf-lib";
 import { requireAdmin } from "@/lib/auth-guard";
-import { formatDateOfBirth, calcAgeFromDob } from "@/lib/utils";
+import { formatDateOfBirth, calcAgeFromDob, calculatePassExpiry } from "@/lib/utils";
 import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 
 type FormLayout = {
@@ -31,14 +31,6 @@ const formatYearLastTwoDigits = (date: Date) => {
 	const d = new Date(date);
 	const year = d.getFullYear();
 	return String(year).slice(-2);
-};
-
-const addMonths = (date: Date, months: number) => {
-	const d = new Date(date);
-	const originalDay = d.getDate();
-	d.setMonth(d.getMonth() + months);
-	if (d.getDate() !== originalDay) d.setDate(0);
-	return d;
 };
 
 const SAMPLE_DATA = {
@@ -109,7 +101,7 @@ export const generateSampleOverlayPDF = async (
 
 		writeText(eff(layout.left.previous_certificate_number), SAMPLE_DATA.previousCertificateNumber);
 
-		const prevEnd = addMonths(SAMPLE_DATA.previousApplicationDate, SAMPLE_DATA.periodDuration);
+		const prevEnd = calculatePassExpiry(SAMPLE_DATA.previousApplicationDate, SAMPLE_DATA.periodDuration);
 		writeText(eff(layout.left.last_season_ticket_held_upto_date), formatDateMonthOnly(prevEnd));
 		writeText(eff(layout.left.last_season_ticket_held_upto_year), formatYearLastTwoDigits(prevEnd));
 
@@ -130,7 +122,7 @@ export const generateSampleOverlayPDF = async (
 		writeText(eff(layout.right.current_pass_to_station), SAMPLE_DATA.toStation);
 
 		const prevStart = SAMPLE_DATA.previousApplicationDate;
-		const prevEndDate = addMonths(prevStart, SAMPLE_DATA.periodDuration);
+		const prevEndDate = calculatePassExpiry(prevStart, SAMPLE_DATA.periodDuration);
 		writeText(eff(layout.right.current_pass_validity_from), formatDate(prevStart));
 		writeText(eff(layout.right.current_pass_validity_to), formatDate(prevEndDate));
 

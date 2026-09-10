@@ -9,12 +9,13 @@ import {
 import { toast } from "sonner";
 import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
+import { printBase64PDF } from "@/lib/print-pdf";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import AnalyticsTable from "@/components/admin/analytics-table";
-import { Users, MapPin, FileText, Calendar, Download, Loader2 } from "lucide-react";
+import { Users, MapPin, FileText, Calendar, Printer, Loader2 } from "lucide-react";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 
 const TIME_RANGE_OPTIONS: { label: string; value: TimeRangeFilter }[] = [
@@ -28,7 +29,7 @@ const TIME_RANGE_OPTIONS: { label: string; value: TimeRangeFilter }[] = [
 const AdminAnalyticsPage = () => {
 	const [isError, setIsError] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [isExporting, setIsExporting] = useState<boolean>(false);
+	const [isPrinting, setIsPrinting] = useState<boolean>(false);
 
 	const [searchQuery, setSearchQuery] = useState<string>("");
 	const [currentPage, setCurrentPage] = useState<number>(1);
@@ -103,15 +104,15 @@ const AdminAnalyticsPage = () => {
 		loadAnalytics(timeRange, searchQuery, page);
 	};
 
-	const handleExportPDF = useCallback(async () => {
-		setIsExporting(true);
+	const handlePrintPDF = useCallback(async () => {
+		setIsPrinting(true);
 
 		posthog.capture("admin_analytics_pdf_exported", {
 			time_range: timeRange,
 			has_search: Boolean(searchQuery)
 		});
 
-		const exportPDFPromise = async () => {
+		const printPDFPromise = async () => {
 			const result = await generateAdminAnalyticsPDF({
 				timeRange,
 				searchQuery
@@ -121,35 +122,20 @@ const AdminAnalyticsPage = () => {
 				throw new Error(result.error.message || "Failed to generate analytics PDF");
 			}
 
-			const base64Data = result.data.split(",")[1];
-			const binaryString = atob(base64Data);
-			const bytes = new Uint8Array(binaryString.length);
+			printBase64PDF(result.data);
 
-			for (let i = 0; i < binaryString.length; i++) {
-				bytes[i] = binaryString.charCodeAt(i);
-			}
-
-			const blob = new Blob([bytes], { type: "application/pdf" });
-			const blobUrl = URL.createObjectURL(blob);
-
-			window.open(blobUrl, "_blank", "noopener,noreferrer");
-
-			setTimeout(() => {
-				URL.revokeObjectURL(blobUrl);
-			}, 1000);
-
-			return "Analytics report opened in new tab successfully";
+			return "Analytics report sent to printer successfully";
 		};
 
-		toast.promise(exportPDFPromise, {
-			loading: "Generating PDF...",
-			success: "PDF Generated Successfully",
+		toast.promise(printPDFPromise, {
+			loading: "Preparing print...",
+			success: "Sent to printer",
 			error: (error) => {
-				console.error("PDF Generation Error:", error);
-				return "Failed to generate PDF";
+				console.error("PDF Print Error:", error);
+				return "Failed to print";
 			},
 			finally: () => {
-				setIsExporting(false);
+				setIsPrinting(false);
 			}
 		});
 	}, [timeRange, searchQuery]);
@@ -188,12 +174,12 @@ const AdminAnalyticsPage = () => {
 					</div>
 
 					<Button
-						onClick={handleExportPDF}
-						disabled={isLoading || isExporting}
+						onClick={handlePrintPDF}
+						disabled={isLoading || isPrinting}
 						className="gap-2 inline-flex items-center"
 					>
-						{isExporting ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
-						<span>{isExporting ? "Exporting..." : "Export PDF"}</span>
+						{isPrinting ? <Loader2 className="size-4 animate-spin" /> : <Printer className="size-4" />}
+						<span>{isPrinting ? "Printing..." : "Print Report"}</span>
 					</Button>
 				</div>
 			</div>

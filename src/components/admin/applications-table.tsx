@@ -45,6 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import UpdateIssueDateDialog from "./update-issue-date-dialog";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
+import { printPDF } from "@/lib/print-pdf";
 import ApproveApplicationDialog from "./approve-application-dialog";
 import ReprintApplicationDialog from "./reprint-application-dialog";
 import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
@@ -530,17 +531,7 @@ const ApplicationsTable = ({
 			const res = await generateOverlayPDF(application.id);
 
 			if (res.isSuccess) {
-				const blob = new Blob([new Uint8Array(res.data)], {
-					type: "application/pdf"
-				});
-				const blobUrl = URL.createObjectURL(blob);
-
-				window.open(blobUrl, "_blank", "noopener,noreferrer");
-
-				setTimeout(() => {
-					URL.revokeObjectURL(blobUrl);
-				}, 1000);
-
+				printPDF(res.data);
 				return res.data;
 			} else {
 				throw new Error(res.error?.message || "Unable to generate overlay PDF. Please try again.");
@@ -548,11 +539,11 @@ const ApplicationsTable = ({
 		};
 
 		toast.promise(generatePDFPromise, {
-			loading: "Generating PDF...",
-			success: "PDF Generated Successfully",
+			loading: "Preparing print...",
+			success: "Sent to printer",
 			error: (error) => {
 				console.error("PDF Generation Error:", error);
-				return "Failed to generate PDF";
+				return "Failed to print";
 			}
 		});
 	}, []);
@@ -669,7 +660,7 @@ const ApplicationsTable = ({
 		toast.promise(approvePromise, {
 			loading: "Assigning booklet page...",
 			error: "Failed to assign booklet page",
-			success: "Booklet Page Assigned & Printing PDF"
+			success: "Booklet Page Assigned & Sent to Printer"
 		});
 	};
 
@@ -729,7 +720,7 @@ const ApplicationsTable = ({
 		toast.promise(reprintPromise, {
 			loading: "Reprinting concession pass...",
 			error: "Failed to reprint concession pass",
-			success: "Concession Pass Reprinted & Printing PDF"
+			success: "Concession Pass Reprinted & Sent to Printer"
 		});
 	};
 
@@ -1444,7 +1435,7 @@ const ApplicationsTable = ({
 						</div>
 					)}
 
-					<DialogFooter className="gap-2 pt-2">
+					<DialogFooter className="gap-3 pt-2">
 						<Button
 							variant="outline"
 							disabled={isApproving}

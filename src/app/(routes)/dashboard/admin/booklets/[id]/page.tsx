@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { formatSlipNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { printBase64PDF } from "@/lib/print-pdf";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useRouter, useParams } from "next/navigation";
@@ -21,7 +22,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { generateBookletPDF } from "@/actions/generate-booklet-pdf";
 import SaveLayoutConfirmDialog from "@/components/admin/save-layout-confirm-dialog";
 import BookletApplicationsTable from "@/components/admin/booklet-applications-table";
-import { ArrowLeft, Download, ArrowRightLeft, RotateCcw, Save, X } from "lucide-react";
+import { ArrowLeft, Printer, ArrowRightLeft, RotateCcw, Save, X } from "lucide-react";
 
 function BookletApplicationsSkeleton() {
 	return (
@@ -519,32 +520,17 @@ const BookletApplicationsPage = () => {
 				throw new Error(result.error.message || "Failed to generate PDF");
 			}
 
-			const base64Data = result.data.split(",")[1];
-			const binaryString = atob(base64Data);
-			const bytes = new Uint8Array(binaryString.length);
+			printBase64PDF(result.data);
 
-			for (let i = 0; i < binaryString.length; i++) {
-				bytes[i] = binaryString.charCodeAt(i);
-			}
-
-			const blob = new Blob([bytes], { type: "application/pdf" });
-			const blobUrl = URL.createObjectURL(blob);
-
-			window.open(blobUrl, "_blank");
-
-			setTimeout(() => {
-				URL.revokeObjectURL(blobUrl);
-			}, 1000);
-
-			return "PDF opened in new tab successfully";
+			return "Sent to printer successfully";
 		};
 
 		toast.promise(generatePDFPromise, {
-			loading: "Generating PDF...",
-			success: "PDF Generated Successfully",
+			loading: "Preparing print...",
+			success: "Sent to printer",
 			error: (error) => {
-				console.error("PDF Generation Error:", error);
-				return "Failed to generate PDF";
+				console.error("PDF Print Error:", error);
+				return "Failed to print";
 			},
 			finally: () => {
 				setIsGeneratingPDF(false);
@@ -639,8 +625,8 @@ const BookletApplicationsPage = () => {
 									className="flex items-center justify-center gap-2 px-4 text-sm"
 									disabled={isGeneratingPDF || isLoading || bookletData.data.length === 0}
 								>
-									<Download className="size-4 shrink-0" />
-									<span>{isGeneratingPDF ? "Generating..." : "Download PDF"}</span>
+									<Printer className="size-4 shrink-0" />
+									<span>{isGeneratingPDF ? "Printing..." : "Print Register"}</span>
 								</Button>
 							</>
 						)}
@@ -721,8 +707,8 @@ const BookletApplicationsPage = () => {
 								disabled={isGeneratingPDF || isLoading || bookletData.data.length === 0}
 								className="flex items-center justify-center gap-1.5 px-2 text-xs truncate"
 							>
-								<Download className="size-3.5 shrink-0" />
-								<span className="truncate">{isGeneratingPDF ? "Generating..." : "Download PDF"}</span>
+								<Printer className="size-3.5 shrink-0" />
+								<span className="truncate">{isGeneratingPDF ? "Printing..." : "Print Register"}</span>
 							</Button>
 						</div>
 					)}

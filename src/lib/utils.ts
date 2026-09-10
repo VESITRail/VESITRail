@@ -93,10 +93,12 @@ export const getUserInitials = (type: "Admin" | "Student", name?: string) => {
 
 export const calculateSerialEndNumber = (serialStartNumber: string, totalPages: number): string => {
 	const startNumber = serialStartNumber.toUpperCase();
-	const match = startNumber.match(/^([A-Z]+)(\d+)$/);
+	const match = startNumber.match(/^([A-Z]*)(\d+)$/);
 
 	if (!match) {
-		throw new Error("Invalid serial number format. Expected format: Letters followed by numbers (e.g., A0807550)");
+		throw new Error(
+			"Invalid serial number format. Expected format: Numbers or letters followed by numbers (e.g., 0807550 or A0807550)"
+		);
 	}
 
 	const prefix = match[1];
@@ -104,6 +106,20 @@ export const calculateSerialEndNumber = (serialStartNumber: string, totalPages: 
 	const endNum = startNum + totalPages - 1;
 
 	return `${prefix}${endNum.toString().padStart(match[2].length, "0")}`;
+};
+
+export const calculatePassExpiry = (issueDate: Date, durationInMonths: number): Date => {
+	const d = new Date(issueDate);
+	const originalDay = d.getDate();
+	d.setMonth(d.getMonth() + durationInMonths);
+
+	if (d.getDate() !== originalDay) {
+		d.setDate(0);
+	} else {
+		d.setDate(d.getDate() - 1);
+	}
+
+	return d;
 };
 
 export const calculateConcessionValidity = (
@@ -115,12 +131,8 @@ export const calculateConcessionValidity = (
 	daysRemaining: number;
 } => {
 	const now = new Date();
-	const expiryDate = new Date(approvedAt.getTime());
-	expiryDate.setMonth(expiryDate.getMonth() + durationInMonths);
-
-	if (approvedAt.getDate() !== expiryDate.getDate()) {
-		expiryDate.setDate(0);
-	}
+	const expiryDate = calculatePassExpiry(approvedAt, durationInMonths);
+	expiryDate.setHours(23, 59, 59, 999);
 
 	const msInDay = 1000 * 60 * 60 * 24;
 	const timeDiff = expiryDate.getTime() - now.getTime();

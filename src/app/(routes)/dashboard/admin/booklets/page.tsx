@@ -172,7 +172,7 @@ const Booklets = () => {
 
 				<Button onClick={() => router.push("/dashboard/admin/booklets/create")} className="shrink-0">
 					<Plus className="size-4" />
-					Create Booklet
+					Add Booklet
 				</Button>
 			</div>
 

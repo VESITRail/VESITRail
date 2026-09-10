@@ -122,8 +122,10 @@ export const createBooklet = async (
 			return failure(validationError("Serial start number is required"));
 		}
 
-		if (!/^[A-Z]+\d+$/.test(serialStartNumber)) {
-			return failure(validationError("Serial number must contain letters followed by numbers (e.g., A0807550)"));
+		if (!/^[A-Z]*\d+$/.test(serialStartNumber)) {
+			return failure(
+				validationError("Serial number must contain numbers or letters followed by numbers (e.g., 0807550 or A0807550)")
+			);
 		}
 
 		const existingBooklet = await prisma.concessionBooklet.findFirst({
@@ -160,10 +162,12 @@ export const createBooklet = async (
 		revalidatePath("/dashboard/admin/booklets");
 		return success(booklet);
 	} catch (error) {
-		console.error("Error creating booklet:", error);
-		return failure(databaseError("Failed to create booklet"));
+		console.error("Error adding booklet:", error);
+		return failure(databaseError("Failed to add booklet"));
 	}
 };
+
+export const addBooklet = createBooklet;
 
 export const getBooklets = async (
 	params: BookletPaginationParams
@@ -350,9 +354,11 @@ export const updateBooklet = async (
 			return failure(validationError("Booklet not found"));
 		}
 
-		const serialPattern = /^[A-Z]\d+$/;
+		const serialPattern = /^[A-Z]*\d+$/;
 		if (!serialPattern.test(data.serialStartNumber)) {
-			return failure(validationError("Invalid serial format. Use one letter followed by numbers (e.g., A0807551)"));
+			return failure(
+				validationError("Invalid serial format. Use numbers or letters followed by numbers (e.g., 0807551 or A0807551)")
+			);
 		}
 
 		const serialEndNumber = calculateSerialEndNumber(data.serialStartNumber, 50);

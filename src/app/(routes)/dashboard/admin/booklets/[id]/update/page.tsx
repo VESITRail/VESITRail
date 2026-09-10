@@ -39,7 +39,7 @@ const UpdateBookletPage = () => {
 
 	const calculateSerialEndNumber = useCallback((startNumber: string): string => {
 		const upperStart = startNumber.toUpperCase();
-		const match = upperStart.match(/^([A-Z])(\d+)$/);
+		const match = upperStart.match(/^([A-Z]*)(\d+)$/);
 
 		if (!match) {
 			return "";
@@ -63,8 +63,9 @@ const UpdateBookletPage = () => {
 			newErrors.serialStartNumber = "Serial start number is required";
 		} else {
 			const upperSerial = formData.serialStartNumber.toUpperCase().trim();
-			if (!/^[A-Z]\d+$/.test(upperSerial)) {
-				newErrors.serialStartNumber = "Invalid format. Use one letter followed by numbers (e.g., A0807551)";
+			if (!/^[A-Z]*\d+$/.test(upperSerial)) {
+				newErrors.serialStartNumber =
+					"Invalid format. Use numbers or letters followed by numbers (e.g., 0807551 or A0807551)";
 			}
 		}
 
@@ -277,7 +278,7 @@ const UpdateBookletPage = () => {
 						<Input
 							autoComplete="off"
 							id="serialStartNumber"
-							placeholder="e.g., A0807551"
+							placeholder="e.g., 0807551 or A0807551"
 							value={formData.serialStartNumber}
 							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 								handleInputChange("serialStartNumber", e.target.value)
@@ -292,7 +293,9 @@ const UpdateBookletPage = () => {
 							</div>
 						)}
 
-						<div className="text-xs text-muted-foreground">Format: One letter followed by numbers (e.g., A0807551)</div>
+						<div className="text-xs text-muted-foreground">
+							Format: Numbers or letters followed by numbers (e.g., 0807551 or A0807551)
+						</div>
 					</div>
 
 					<div className="space-y-2">

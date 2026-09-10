@@ -619,7 +619,7 @@ const BookletsTable = ({
 										<p className="text-sm text-muted-foreground max-w-md">
 											{searchQuery || selectedStatus !== "all"
 												? "Try adjusting your search or filters."
-												: "Create your first booklet to get started."}
+												: "Add your first booklet to get started."}
 										</p>
 									</div>
 								</div>
