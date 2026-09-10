@@ -1,14 +1,3 @@
-/**
- * Utility functions for triggering browser print dialogs directly on PDF data
- * using a hidden iframe, avoiding new tab navigation and manual Ctrl+P.
- */
-
-/**
- * Initiates direct browser printing for raw PDF byte data.
- * Creates an offscreen iframe, loads the PDF blob, and calls the native print dialog.
- *
- * @param pdfData - Uint8Array or byte array containing valid PDF data.
- */
 export const printPDF = (pdfData: Uint8Array | number[]): void => {
 	if (typeof window === "undefined" || !pdfData || (Array.isArray(pdfData) && pdfData.length === 0)) {
 		console.warn("printPDF: Invalid or empty PDF data provided.");
@@ -36,13 +25,12 @@ export const printPDF = (pdfData: Uint8Array | number[]): void => {
 		if (cleanedUp) return;
 		cleanedUp = true;
 		try {
-			if (iframe.parentNode) {
-				iframe.parentNode.removeChild(iframe);
-			}
-		} catch {
-			// Ignore DOM cleanup errors
+			iframe.remove();
+		} catch (error) {
+			console.warn("Failed to detach print iframe:", error);
+		} finally {
+			URL.revokeObjectURL(blobUrl);
 		}
-		URL.revokeObjectURL(blobUrl);
 	};
 
 	let hasTriggered = false;
@@ -67,34 +55,25 @@ export const printPDF = (pdfData: Uint8Array | number[]): void => {
 			if (fallbackWin) {
 				fallbackWin.focus();
 			}
-			// Cleanup blob URL after fallback window had time to read it
 			setTimeout(cleanup, 60_000);
 		}
 	};
 
 	iframe.onload = () => {
-		// Small delay to allow PDF viewer plugin to mount inside iframe
 		setTimeout(triggerPrint, 150);
 	};
 
 	document.body.appendChild(iframe);
 	iframe.src = blobUrl;
 
-	// Fallback timeout in case onload does not fire (some browsers/PDF plugins suppress iframe onload)
 	const fallbackTimeout = setTimeout(triggerPrint, 2000);
 
-	// Safety cleanup timeout (5 minutes) in case afterprint does not fire
 	setTimeout(() => {
 		clearTimeout(fallbackTimeout);
 		cleanup();
 	}, 300_000);
 };
 
-/**
- * Initiates direct browser printing for base64 encoded PDF data URLs or raw base64 strings.
- *
- * @param base64DataUrl - Base64 data URL (e.g. "data:application/pdf;base64,...") or raw base64 string.
- */
 export const printBase64PDF = (base64DataUrl: string): void => {
 	if (typeof window === "undefined" || !base64DataUrl || typeof base64DataUrl !== "string") {
 		console.warn("printBase64PDF: Invalid base64 data provided.");
