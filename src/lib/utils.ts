@@ -108,6 +108,20 @@ export const calculateSerialEndNumber = (serialStartNumber: string, totalPages: 
 	return `${prefix}${endNum.toString().padStart(match[2].length, "0")}`;
 };
 
+export const calculatePassExpiry = (issueDate: Date, durationInMonths: number): Date => {
+	const d = new Date(issueDate);
+	const originalDay = d.getDate();
+	d.setMonth(d.getMonth() + durationInMonths);
+
+	if (d.getDate() !== originalDay) {
+		d.setDate(0);
+	} else {
+		d.setDate(d.getDate() - 1);
+	}
+
+	return d;
+};
+
 export const calculateConcessionValidity = (
 	approvedAt: Date,
 	durationInMonths: number
@@ -117,12 +131,8 @@ export const calculateConcessionValidity = (
 	daysRemaining: number;
 } => {
 	const now = new Date();
-	const expiryDate = new Date(approvedAt.getTime());
-	expiryDate.setMonth(expiryDate.getMonth() + durationInMonths);
-
-	if (approvedAt.getDate() !== expiryDate.getDate()) {
-		expiryDate.setDate(0);
-	}
+	const expiryDate = calculatePassExpiry(approvedAt, durationInMonths);
+	expiryDate.setHours(23, 59, 59, 999);
 
 	const msInDay = 1000 * 60 * 60 * 24;
 	const timeDiff = expiryDate.getTime() - now.getTime();
