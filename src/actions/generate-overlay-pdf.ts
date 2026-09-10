@@ -135,7 +135,7 @@ export const generateOverlayPDF = async (
 		if (application.applicationType === "Renewal" && application.previousApplication?.concessionBooklet) {
 			const prevBooklet = application.previousApplication.concessionBooklet;
 			const pageOffset = application.previousApplication.pageOffset || 0;
-			const serialStartParts = prevBooklet.serialStartNumber.match(/^([A-Z]+)(\d+)$/);
+			const serialStartParts = prevBooklet.serialStartNumber.match(/^([A-Z]*)(\d+)$/);
 
 			if (serialStartParts) {
 				const prefix = serialStartParts[1];
@@ -175,7 +175,7 @@ export const generateOverlayPDF = async (
 		if (application.applicationType === "Renewal" && application.previousApplication?.concessionBooklet) {
 			const prevBooklet = application.previousApplication.concessionBooklet;
 			const pageOffset = application.previousApplication.pageOffset || 0;
-			const serialStartParts = prevBooklet.serialStartNumber.match(/^([A-Z]+)(\d+)$/);
+			const serialStartParts = prevBooklet.serialStartNumber.match(/^([A-Z]*)(\d+)$/);
 
 			writeText(eff(layout.right.current_pass_class), application.previousApplication.concessionClass?.code || "-");
 

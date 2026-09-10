@@ -93,10 +93,12 @@ export const getUserInitials = (type: "Admin" | "Student", name?: string) => {
 
 export const calculateSerialEndNumber = (serialStartNumber: string, totalPages: number): string => {
 	const startNumber = serialStartNumber.toUpperCase();
-	const match = startNumber.match(/^([A-Z]+)(\d+)$/);
+	const match = startNumber.match(/^([A-Z]*)(\d+)$/);
 
 	if (!match) {
-		throw new Error("Invalid serial number format. Expected format: Letters followed by numbers (e.g., A0807550)");
+		throw new Error(
+			"Invalid serial number format. Expected format: Numbers or letters followed by numbers (e.g., 0807550 or A0807550)"
+		);
 	}
 
 	const prefix = match[1];
