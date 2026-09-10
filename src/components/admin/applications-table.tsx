@@ -1444,7 +1444,7 @@ const ApplicationsTable = ({
 						</div>
 					)}
 
-					<DialogFooter className="gap-2 pt-2">
+					<DialogFooter className="gap-3 pt-2">
 						<Button
 							variant="outline"
 							disabled={isApproving}
