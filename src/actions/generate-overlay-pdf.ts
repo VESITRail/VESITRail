@@ -14,7 +14,7 @@ import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { PDFDocument, degrees } from "pdf-lib";
 import { requireAdmin } from "@/lib/auth-guard";
-import { formatDateOfBirth, calcAgeFromDob } from "@/lib/utils";
+import { formatDateOfBirth, calcAgeFromDob, calculatePassExpiry } from "@/lib/utils";
 
 type FormLayout = {
 	left: Record<string, { x: number; y: number }>;
@@ -40,14 +40,6 @@ const formatYearLastTwoDigits = (date: Date) => {
 	const d = new Date(date);
 	const year = d.getFullYear();
 	return String(year).slice(-2);
-};
-
-const addMonths = (date: Date, months: number) => {
-	const d = new Date(date);
-	const originalDay = d.getDate();
-	d.setMonth(d.getMonth() + months);
-	if (d.getDate() !== originalDay) d.setDate(0);
-	return d;
 };
 
 export const generateOverlayPDF = async (
@@ -149,9 +141,10 @@ export const generateOverlayPDF = async (
 				writeText(eff(layout.left.previous_certificate_number), "-");
 			}
 
-			const prevEnd = addMonths(
-				new Date(application.previousApplication.createdAt),
-				application.concessionPeriod.duration
+			const prevDate = application.previousApplication.issuedAt || application.previousApplication.createdAt;
+			const prevEnd = calculatePassExpiry(
+				new Date(prevDate),
+				application.previousApplication.concessionPeriod?.duration || application.concessionPeriod.duration
 			);
 			writeText(eff(layout.left.last_season_ticket_held_upto_date), formatDateMonthOnly(prevEnd));
 			writeText(eff(layout.left.last_season_ticket_held_upto_year), formatYearLastTwoDigits(prevEnd));
@@ -197,8 +190,8 @@ export const generateOverlayPDF = async (
 			);
 			writeText(eff(layout.right.current_pass_to_station), "Kurla");
 
-			const prevStart = new Date(application.previousApplication.createdAt);
-			const prevEnd = addMonths(
+			const prevStart = new Date(application.previousApplication.issuedAt || application.previousApplication.createdAt);
+			const prevEnd = calculatePassExpiry(
 				prevStart,
 				application.previousApplication.concessionPeriod?.duration || application.concessionPeriod.duration
 			);
