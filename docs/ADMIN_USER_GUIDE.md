@@ -28,14 +28,14 @@
   - [How to Inspect Booklet Slots and Application Assignments](#how-to-inspect-booklet-slots-and-application-assignments)
   - [How to Mark a Damaged Page in a Booklet](#how-to-mark-a-damaged-page-in-a-booklet)
   - [How to Move or Reorder an Application Slot](#how-to-move-or-reorder-an-application-slot)
-  - [How to Export the Master Booklet Register](#how-to-export-the-master-booklet-register)
+  - [How to Print the Master Booklet Register](#how-to-print-the-master-booklet-register)
 - [Calibrating Form Layout and Printing](#calibrating-form-layout-and-printing)
   - [How to Calibrate Booklet Anchor Offsets](#how-to-calibrate-booklet-anchor-offsets)
   - [How to Adjust On-Screen Form Field Coordinates](#how-to-adjust-on-screen-form-field-coordinates)
   - [How to Print a Sample Calibration Test Sheet](#how-to-print-a-sample-calibration-test-sheet)
 - [Using the Analytics Dashboard and Reports](#using-the-analytics-dashboard-and-reports)
   - [How to View Administrative Performance Metrics](#how-to-view-administrative-performance-metrics)
-  - [How to Generate and Export an Analytics Report](#how-to-generate-and-export-an-analytics-report)
+  - [How to Generate and Print an Analytics Report](#how-to-generate-and-print-an-analytics-report)
 - [Understanding Notification and Communication Triggers](#understanding-notification-and-communication-triggers)
   - [Automated Student Notification Triggers](#automated-student-notification-triggers)
 - [Administrator Roles and Access Permissions](#administrator-roles-and-access-permissions)
@@ -55,7 +55,7 @@ This guide is for VESITRail administrators, including administrative officers, c
 
 ### How to Use This Guide
 
-If you are a newly appointed staff member joining the railway concession desk, read through this guide sequentially to understand the full operational workflow. If you are handling a specific task—such as registering a new paper voucher book or adjusting printer alignment—use the [Table of Contents](#table-of-contents) to navigate directly to the relevant procedure.
+If you are a newly appointed staff member joining the railway concession desk, read through this guide sequentially to understand the full operational workflow. If you are handling a specific task, such as registering a new paper voucher book or adjusting printer alignment, use the [Table of Contents](#table-of-contents) to navigate directly to the relevant procedure.
 
 ---
 
@@ -96,7 +96,7 @@ The portal opens the primary concession review queue, displaying submitted stude
 
 #### Common Issues
 
-- **Redirected to student screen:** If you see the student onboarding screen rather than the administrative controls, your email address has not been assigned administrative rights. Contact the college office supervisor.
+- **Redirected to student screen:** If you see the student onboarding screen rather than the administrative controls, your email address has not been assigned administrative rights. Contact senior administration.
 - **Account marked inactive:** If an error message indicates your account is deactivated, your administrative profile must be reinstated by senior administration.
 
 ---
@@ -126,7 +126,7 @@ Inspect a student's personal details, academic division, and uploaded Aadhaar do
 6. Verify the student's legal name, date of birth, gender, and contact number.
 7. Confirm that the student's year, engineering branch, and classroom division match official college enrollment rosters.
 8. Compare the residential address against the student's selected `Home Station`.
-9. Click the _View Document_ button _(exact button label to be confirmed against the live app)_ to open the embedded PDF document viewer.
+9. Click the `View` button under `Verification Document` to open the embedded PDF document viewer.
 10. Check that both the front and back of the student's Aadhaar card are clearly legible.
 11. If the current residential address differs from the Aadhaar card, confirm that an auxiliary document (such as a parent's electricity bill or a registered rent agreement) is included in the PDF.
 12. Click the `Approve Student` button.
@@ -216,8 +216,8 @@ Review an application, assign it to the active paper voucher booklet, and trigge
 
 1. Click `Applications` in the navigation bar to view the concession queue.
 2. Ensure the status filter is set to `Pending`.
-3. Locate the application row and click `Review & Approve`.
-4. Review the student's travel route (Home Station to Chembur or Kurla).
+3. Locate the application row and click `Approve Application` (green checkmark button).
+4. Review the student's travel route (Home Station to Kurla).
 5. Verify the requested travel class (`First Class` or `Second Class`) and duration (`Monthly` or `Quarterly`).
 6. If this is a `Renewal`, inspect the linked previous certificate number displayed on the card to confirm continuity.
 7. Observe the next available physical booklet serial number and booklet page slot assigned automatically by the system.
@@ -227,7 +227,7 @@ Review an application, assign it to the active paper voucher booklet, and trigge
 
 #### What Happens Next
 
-The application status updates to `Approved`, and the certificate serial number is permanently linked to the student's record. An automated notification alerts the student that their voucher is approved and ready for collection at the administrative office.
+The application status updates to `Approved` and transitions to `Issued` upon voucher printing. The certificate serial number is permanently linked to the student's record. An automated notification alerts the student that their voucher is ready for collection at the administrative office counter.
 
 #### Common Issues
 
@@ -247,7 +247,7 @@ Reject a concession request that violates travel rules or requests an unavailabl
 
 1. Open the `Applications` review queue.
 2. Locate the student's application row.
-3. Click the `Reject` button _(or select Reject from the actions menu)_.
+3. Click the `Reject Application` button (red cross icon).
 4. Review the predefined rejection options (`Monthly Period Only` or `Quarterly Period Only`).
 5. Select an appropriate option or enter custom remarks in the text area.
 6. Click `Confirm Rejection`.
@@ -264,22 +264,24 @@ The application status updates to `Rejected`. An automated alert informs the stu
 
 ### How to Print or Reprint a Concession Certificate
 
-Reprint an approved certificate overlay if a paper jam, ink smear, or printer error occurs.
+Reprint an issued certificate overlay if a paper jam, ink smear, or printer error occurs.
 
 #### Prerequisites
 
-- The target application must be in `Approved` or `Issued` status.
+- The target application must be in `Issued` status only.
 - The physical certificate slip must be loaded into the printer.
 
 #### Steps
 
 1. Navigate to the `Applications` table.
-2. Search for the student by name or application reference number.
-3. Click the three dots (actions menu) on the right side of the application row.
-4. Select `Reprint Certificate`.
-5. Review the print parameters and booklet assignment shown in the reprint modal.
+2. Filter by status `Issued` to view active issued certificates.
+3. Search for the student by name or application reference number.
+4. Locate the student row and choose the appropriate action:
+   - Click `Print Overlay PDF` (printer icon) to send the existing voucher print overlay directly to the printer again.
+   - Click `Reprint / Reassign Booklet` (refresh icon) if the previous slip was ruined and requires assignment to a new physical booklet voucher.
+5. Review the print parameters and booklet assignment shown in the dialog.
 6. Load the replacement certificate slip into the printer.
-7. Click `Print Overlay`.
+7. Confirm the print action.
 8. Verify in the physical printout that text aligns accurately within the printed boxes of the voucher.
 
 #### What Happens Next
@@ -298,15 +300,14 @@ Adjust the officially recorded date of issuance if physical distribution of the 
 
 #### Prerequisites
 
-- The application must be approved.
+- The application must be in `Issued` status only.
 
 #### Steps
 
-1. Locate the application in the `Applications` directory.
-2. Click the actions menu on the application row.
-3. Select `Update Issue Date`.
-4. Pick the new effective issuance date from the calendar selector.
-5. Click `Save Issue Date`.
+1. Locate the application in the `Applications` directory under the `Issued` status filter.
+2. Click the `Update Issue Date` button (calendar clock icon) on the application row.
+3. Pick the new effective issuance date from the calendar selector.
+4. Click `Save Issue Date`.
 
 #### What Happens Next
 
@@ -340,7 +341,7 @@ Compare a student's existing residential data against their newly submitted addr
 4. Examine the side-by-side comparison displaying:
    - Current Address and Current Home Station (left column).
    - New Address and Proposed Home Station (right column).
-5. Click the _View Document_ button _(exact button label to be confirmed against the live app)_ to review the uploaded proof of address PDF.
+5. Click the `View` button under `Verification Document` to review the uploaded proof of address PDF.
 6. Confirm that the new address in the document matches the typed street, locality, and postal pincode.
 7. Confirm that the proposed home railway station is the nearest suburban stop to the new address.
 8. Click `Approve Request` if all details are verified, or click `Reject Request` if the document is invalid or the station is mismatched.
@@ -369,18 +370,17 @@ Register a newly received physical government concession booklet into the digita
 #### Prerequisites
 
 - You must have the physical 50-leaf concession book in hand.
-- You must know the exact serial starting number and serial ending number printed on the physical leaves (for example, `A0807550` to `A0807599`).
+- You must know the exact serial starting number printed on the physical leaves (for example, `0807551` or `A0807551`).
 
 #### Steps
 
 1. Click `Booklets` in the navigation menu.
-2. Click the `Create Booklet` button.
-3. Type the first serial number into the `Serial Start Number` field (for example, `A0807550`).
-4. Type the last serial number into the `Serial End Number` field (for example, `A0807599`).
-5. Confirm that the total capacity defaults to 50 pages.
-6. Set the baseline horizontal alignment coordinate in the `Anchor X` field (or leave at default `0.0`).
-7. Set the baseline vertical alignment coordinate in the `Anchor Y` field (or leave at default `0.0`).
-8. Click `Create Booklet`.
+2. Click the `Add Booklet` button.
+3. Type the first serial number into the `Serial Start Number` field (for example, `0807551` or `A0807551`).
+4. Observe that the `Serial End Number` field automatically calculates the ending serial number for 50 pages (for example, `0807600` or `A0807600`).
+5. Set the baseline horizontal alignment coordinate in the `Anchor X Coordinate` field (or leave at default `0.0`).
+6. Set the baseline vertical alignment coordinate in the `Anchor Y Coordinate` field (or leave at default `0.0`).
+7. Click `Add Booklet`.
 
 #### What Happens Next
 
@@ -388,7 +388,7 @@ The booklet appears in the Booklets table with status `Available`. As applicatio
 
 #### Common Issues
 
-- **Serial range mismatch:** Ensure that the difference between the starting and ending serial numbers equals exactly 49 (producing 50 total entries). The form will validate this range before saving.
+- **Invalid serial format:** The starting serial number must consist of numbers or uppercase letters followed by numbers. The system will validate the format and auto-compute the ending serial number.
 
 ---
 
@@ -404,7 +404,7 @@ Inspect every individual certificate leaf within a booklet to audit assigned stu
 
 1. Click `Booklets` in the navigation bar.
 2. Locate the booklet you wish to audit in the table.
-3. Click the `View Details` button on the booklet row _(or click the booklet serial link)_.
+3. Click the `View Details` button on the booklet row (or click the booklet serial link).
 4. Scroll through the 50-slot register table.
 5. Review the serial number, assigned student name, branch, concession duration, travel route, and issue date for each numbered slot.
 
@@ -472,9 +472,9 @@ The student record shifts to the new page offset and recalculates its derived ce
 
 ---
 
-### How to Export the Master Booklet Register
+### How to Print the Master Booklet Register
 
-Generate a legal-sized official tabular PDF register of all 50 booklet entries for railway inspection and campus audit filing.
+Print a legal-sized official tabular register of all 50 booklet entries for railway inspection and campus audit filing.
 
 #### Prerequisites
 
@@ -483,17 +483,17 @@ Generate a legal-sized official tabular PDF register of all 50 booklet entries f
 #### Steps
 
 1. Navigate to the detail view of the completed or active booklet.
-2. Click the `Export Master Register PDF` button in the upper action bar.
-3. Wait for the document engine to compile the 50-entry legal landscape document.
-4. Save the downloaded PDF to your local administrative folder or send it directly to your office printer.
+2. Click the `Print Register` button in the upper action bar.
+3. Wait for the system to generate the printable 50-entry legal landscape document.
+4. Review the register in the printer dialog and send it directly to your office printer.
 
 #### What Happens Next
 
-You obtain an official tabular record displaying serial numbers, student names, class divisions, stations, validity periods, and cancel markers ready for administrative signing.
+The system transmits an official tabular record displaying serial numbers, student names, class divisions, stations, validity periods, and cancel markers ready for administrative signing.
 
 #### Common Issues
 
-- **Incomplete booklet export:** You can export the register at any time; unassigned slots will display as unallocated rows.
+- **Incomplete booklet printing:** You can print the register at any time; unassigned slots will display as unallocated rows.
 
 ---
 
@@ -567,7 +567,7 @@ Print a test certificate overlay containing alignment markers to check alignment
 #### Steps
 
 1. Navigate to `Form Layout` or open `Anchor Calibration`.
-2. Click `Print Sample Slip`.
+2. Click `Print Sample PDF` (or `Print Sample Slip`).
 3. Feed your test paper into the certificate printer.
 4. Confirm the browser print prompt.
 5. Place the printed test sheet over an official blank railway voucher slip and hold it up to a light source.
@@ -619,9 +619,9 @@ The dashboard dynamically filters all calculation totals to match your chosen ti
 
 ---
 
-### How to Generate and Export an Analytics Report
+### How to Generate and Print an Analytics Report
 
-Generate an executive PDF summary of administrative review throughput.
+Generate an executive summary report of administrative review throughput.
 
 #### Prerequisites
 
@@ -630,17 +630,17 @@ Generate an executive PDF summary of administrative review throughput.
 #### Steps
 
 1. Select the desired timeframe and search filters on the Analytics page.
-2. Click the `Export Analytics PDF` button.
-3. Wait for the report generation engine to compile the A4 portrait executive document.
-4. Open or print the downloaded PDF file for departmental records.
+2. Click the `Print Report` button.
+3. Wait for the report engine to generate the A4 portrait executive document.
+4. Confirm the print settings in your browser or printer dialog to print the document for departmental records.
 
 #### What Happens Next
 
-You receive an official executive report summarizing concession activity for institutional reporting.
+The system transmits the executive report summarizing concession activity directly to your printer for institutional reporting.
 
 #### Common Issues
 
-- **Pop-up blocker prevents download:** Ensure your browser permits file downloads from the VESITRail portal.
+- **Printer not responding:** Verify that the office printer is powered on and connected to your local network.
 
 ---
 
@@ -667,17 +667,16 @@ The following table summarizes the automated messages dispatched to students:
 
 ## 🛡️ Administrator Roles and Access Permissions
 
-Access to administrative features is governed by administrator status flags maintained in the institutional system.
+Access to administrative features is governed by administrator status flags maintained in institutional records.
 
 ---
 
 ### Administrative Permission Levels
 
-| Permission Status                                                                                                                         | Description                                                  | Capabilities                                                                                                                             |
-| :---------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| `Active Administrator`                                                                                                                    | Fully authorized administrative staff member or supervisor.  | Full access to review students, approve concession applications, manage booklets, calibrate print layouts, and export analytics reports. |
-| `Inactive Administrator`                                                                                                                  | Staff account currently suspended, offboarded, or on leave.  | Access to the administrative portal is blocked; attempting to sign in redirects to an access restricted page.                            |
-| _Super Administrator / Department Head_ _(Note: Tiered permission distinction is currently unconfirmed in standard system configuration)_ | Senior administrative supervisor managing staff permissions. | Authorizes new administrator accounts and oversees institutional audit logs.                                                             |
+| Permission Status        | Description                                                 | Capabilities                                                                                                                            |
+| :----------------------- | :---------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `Active Administrator`   | Fully authorized administrative staff member or supervisor. | Full access to review students, approve concession applications, manage booklets, calibrate print layouts, and print analytics reports. |
+| `Inactive Administrator` | Staff account currently suspended, offboarded, or on leave. | Access to the administrative portal is blocked; attempting to sign in redirects to an access restricted page.                           |
 
 ---
 
@@ -697,7 +696,7 @@ No. You must add a new booklet with a valid serial range before you can approve 
 
 #### 4. Why does an address change request show a station mismatch warning?
 
-Railway concession guidelines stipulate that concessions may only be issued between the student's residential station and Chembur or Kurla. If a student moves to a central suburban locality, they must select a station serving that locality.
+Railway concession guidelines stipulate that concessions may only be issued between the student's residential station and Kurla. If a student moves to a suburban locality, they must select a valid station serving that locality.
 
 #### 5. How are renewal applications linked to past passes?
 
@@ -721,8 +720,8 @@ Yes. The system processes applications safely, ensuring that two administrators 
 
 ### "No Active Booklet Available" Alert
 
-- **Symptom:** When clicking `Review & Approve`, an alert appears stating that no active booklet is available.
-- **Solution:** All previous booklets have reached their 50-page limit or no booklet has been created. Navigate to `Booklets` -> `Create Booklet`, enter the serial range of your next physical book, and set its status to `Available`.
+- **Symptom:** When attempting to approve an application, an alert appears stating that no active booklet is available.
+- **Solution:** All previous booklets have reached their 50-page limit or no booklet has been created. Navigate to `Booklets` -> `Add Booklet`, enter the starting serial number of your next physical book, and set its status to `Available`.
 
 ### Certificate Text Misaligned on Physical Slip
 
@@ -731,13 +730,13 @@ Yes. The system processes applications safely, ensuring that two administrators 
 
 ### Student Cannot Collect Certificate
 
-- **Symptom:** A student arrives at the counter, but their application is not found in the `Approved` list.
+- **Symptom:** A student arrives at the counter, but their application is not found in the `Approved` or `Issued` lists.
 - **Solution:** Search for the student's name in the primary `Applications` directory. Check whether the application is still `Pending` review or was previously marked `Rejected`.
 
 ### Administrative Access Denied on Login
 
 - **Symptom:** Staff member signs in with their `@ves.ac.in` account but receives an unauthorized notice.
-- **Solution:** Verify that the user's institutional email address has been marked active in the college administrator registry.
+- **Solution:** Verify that the user's institutional email address has been marked active in the college administrator registry. Contact senior administration to verify permissions.
 
 ---
 
@@ -752,15 +751,14 @@ Yes. The system processes applications safely, ensuring that two administrators 
 - **Form Layout Calibration:** An on-screen configuration interface that allows administrators to adjust the exact positioning of text fields printed on concession slips.
 - **Page Offset:** The zero-indexed position (from 0 to 49) representing each of the 50 certificate leaves in a physical concession book.
 - **Predefined Rejection Reason:** A standard, policy-compliant explanation selectable from a dropdown to communicate rejection causes quickly to students.
-- **Serial Start / End Number:** The sequential alphanumeric identifiers (such as `A0807550` to `A0807599`) pre-printed on the leaves of a physical concession voucher book.
+- **Serial Start / End Number:** The sequential alphanumeric identifiers (such as `0807551` to `0807600` or `A0807551` to `A0807600`) pre-printed on the leaves of a physical concession voucher book.
 
 ### Need More Help?
 
 For portal technical maintenance, printer driver setup, or administrator account provisioning:
 
-- **Office Location:** Systems Administration Office, VESIT Campus, Chembur, Mumbai.
-- **Administrative Hotline:** Extension 402 / 405 (Internal College Exchange).
-- **Technical Support Email:** `admin-support@ves.ac.in` _(placeholder: contact college IT department for live issues)_.
+- **Developer Support Email:** `vesitrail-devs@googlegroups.com`
+- **Contact Channel:** Contact is via email only (the development team does not maintain a physical campus office counter or telephone hotline).
 
 ### Document Change Log
 
