@@ -90,12 +90,6 @@ _A modern web application for VESIT students to apply for and manage railway con
       <img src="https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black" alt="Firebase">
     </td>
   </tr>
-  <tr>
-    <td><strong>Testing</strong></td>
-    <td>
-      <img src="https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
-    </td>
-  </tr>
 </table>
 
 ---
@@ -248,21 +242,6 @@ Contributions are welcome. Please read our [Contributing Guidelines](.github/CON
 - **ESLint**: Custom Next.js configuration
 - **Prettier**: Code formatting
 - **Conventional Commits**: Semantic commit message format
-
-### Testing
-
-VESITRail uses **Playwright** for end-to-end (E2E) testing.
-
-```bash
-# Install Playwright browsers (first time only)
-pnpm run test:e2e:install
-
-# Run E2E tests
-pnpm run test:e2e
-
-# Run tests in UI mode (interactive)
-pnpm exec playwright test --ui
-```
 
 ---
 

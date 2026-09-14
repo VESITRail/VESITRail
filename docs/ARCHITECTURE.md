@@ -30,7 +30,7 @@ To provide a secure, automated, and auditable digital platform managing end-to-e
 | **Document Generation**       | jsPDF (`^4.2.1`), jsPDF-AutoTable (`^5.0.8`), pdf-lib (`^1.17.1`)                                       |
 | **Notifications**             | Firebase Cloud Messaging (Firebase Admin SDK `^14.2.0` / Client `^12.17.1`), Nodemailer SMTP, In-App DB |
 | **Observability & Telemetry** | PostHog (`posthog-js`, `posthog-node`) via reverse proxy `/ingest` rewrites                             |
-| **Quality & Testing**         | Playwright (`^1.62.1`) for End-to-End (E2E) testing, ESLint 9, Prettier                                 |
+| **Code Quality & Formatting** | ESLint 9, Prettier                                                                                      |
 
 ---
 
@@ -424,9 +424,6 @@ pnpm exec prisma db push
 
 # 3. Start local development server
 pnpm dev
-
-# 4. Execute End-to-End test suite
-pnpm run test:e2e
 ```
 
 ---
