@@ -90,7 +90,6 @@ jobs:
 
             **Checklist:**
 
-            - ✅ Ensure all tests pass
             - ✅ Follow the project's coding standards
             - ✅ Update documentation if necessary
             - ✅ Provide a clear description of your changes

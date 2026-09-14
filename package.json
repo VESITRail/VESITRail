@@ -38,12 +38,10 @@
 		"dev": "next dev",
 		"lint": "eslint .",
 		"prepare": "husky",
-		"test:e2e": "playwright test",
 		"format": "prettier . --write",
 		"build": "next build --webpack",
 		"format:check": "prettier . --check",
 		"semantic-release": "semantic-release",
-		"test:e2e:install": "playwright install --with-deps",
 		"start": "pnpm exec prisma migrate deploy && next start",
 		"postinstall": "pnpm exec prisma generate && pnpm exec tsx scripts/fix-zod-types.ts"
 	},
@@ -114,7 +112,6 @@
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.7",
 		"@eslint/js": "^10.0.1",
-		"@playwright/test": "^1.63.0",
 		"@prisma/adapter-pg": "^7.10.0",
 		"@semantic-release/changelog": "^7.0.0",
 		"@semantic-release/git": "^11.0.1",

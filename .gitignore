@@ -7,17 +7,6 @@ node_modules/
 .yarn/build-state.yml
 .yarn/install-state.gz
 
-# Testing
-/out/
-/dist
-/build
-/coverage
-/.next/
-test-results/
-/blob-report/
-/playwright-report/
-/playwright/.cache/
-
 # Next.js Build Output
 /out/
 /dist
@@ -76,6 +65,3 @@ next-env.d.ts
 public/sw.js
 /src/generated
 public/swe-worker-*.js
-
-# Playwright
-/playwright/.auth/

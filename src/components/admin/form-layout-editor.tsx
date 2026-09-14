@@ -157,21 +157,21 @@ export default function FormLayoutEditor({ initialData }: FormLayoutEditorProps)
 			<div className="flex flex-row items-center justify-between px-4 py-3 bg-muted/20 border-b gap-4 flex-wrap">
 				<div className="flex items-center gap-3">
 					<div className="flex items-center gap-2">
-						<Code2 className="size-4 text-muted-foreground" />
-						<span className="text-sm font-semibold">Configuration Editor</span>
+						<Code2 className="size-4 text-muted-foreground shrink-0" />
+						<span className="text-sm font-semibold leading-none">Configuration Editor</span>
 					</div>
 
 					{jsonError ? (
-						<Badge variant="destructive" className="gap-1 text-[11px] font-medium py-0.5">
-							<AlertCircle className="size-3" /> Syntax Error
+						<Badge variant="destructive" className="h-5 gap-1 text-[11px] font-medium leading-none px-2 py-0">
+							<AlertCircle className="size-3 shrink-0" /> Syntax Error
 						</Badge>
 					) : hasChanges ? (
-						<Badge className="bg-amber-600 hover:bg-amber-600 text-white gap-1 text-[11px] font-medium py-0.5 border-0">
-							<Sparkles className="size-3" /> Unsaved Changes
+						<Badge className="h-5 bg-amber-600 hover:bg-amber-600 text-white gap-1 text-[11px] font-medium leading-none px-2 py-0 border-0">
+							<Sparkles className="size-3 shrink-0" /> Unsaved Changes
 						</Badge>
 					) : (
-						<Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1 text-[11px] font-medium py-0.5 border-0">
-							<CheckCircle2 className="size-3" /> Saved
+						<Badge className="h-5 bg-emerald-600 hover:bg-emerald-600 text-white gap-1 text-[11px] font-medium leading-none px-2 py-0 border-0">
+							<CheckCircle2 className="size-3 shrink-0" /> Saved
 						</Badge>
 					)}
 				</div>

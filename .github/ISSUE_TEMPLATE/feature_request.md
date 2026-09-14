@@ -1,24 +1,32 @@
 ---
-name: Feature request
-about: Suggest a feature for VESITRail
+name: Feature Request
+about: Suggest an idea or enhancement for VESITRail
 title: ""
 labels: "enhancement"
+type: Feature
+projects:
+  - "VESITRail Development Hub"
 assignees: ""
 ---
 
-## Feature Area
+## Area
 
-- [ ] Student Dashboard
-- [ ] Concession Application
-- [ ] Address Management
-- [ ] Admin Dashboard
+- [ ] Student Portal
+- [ ] Admin Portal
+- [ ] Concession & Booklet Processing
+- [ ] PDF Generation & Export
+- [ ] PWA & Mobile Experience
 - [ ] Notifications
 - [ ] Other
 
-## Problem
+## Problem Statement
+
+<!-- Describe the user need or problem this feature solves. -->
 
 ## Proposed Solution
 
-## Alternatives Considered
+<!-- Describe how you envision this feature working. -->
 
-## Additional Context
+## Additional Context (if applicable)
+
+<!-- Any mockups, references, technical considerations, or alternatives. -->
