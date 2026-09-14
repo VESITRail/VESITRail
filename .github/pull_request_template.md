@@ -1,27 +1,21 @@
-## Closes: #<issue-number>
-
-## Type of change
-
-- [ ] Chore
-- [ ] Bug fix
-- [ ] Refactor
-- [ ] New feature
-- [ ] Performance
-- [ ] Documentation
-- [ ] Breaking change
-
 ## Summary
 
-## Screenshots (if applicable)
+<!-- Briefly describe the purpose and impact of this pull request. -->
 
-## Testing
+## Related Issues
 
-1.
-2.
+<!-- Fixes #123, or N/A if no issue exists. -->
 
-## Checklist
+## Area
 
-- [ ] Issue linked
-- [ ] Documentation updated
-- [ ] No sensitive data committed
-- [ ] Prisma migration added (if schema changed)
+- [ ] Student Portal / Applications
+- [ ] Admin Portal / Booklets
+- [ ] Authentication & Role Guarding
+- [ ] PDF & Document Generation
+- [ ] PWA & Offline Support
+- [ ] Database & Server Actions
+- [ ] UI / Styling
+
+## Screenshots or Recordings (if applicable)
+
+<!-- Add before/after screenshots or recordings for visual changes. -->
