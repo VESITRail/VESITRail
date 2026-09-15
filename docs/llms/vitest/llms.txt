@@ -1,0 +1,185 @@
+# Vitest
+
+> Next generation testing framework powered by Vite. This is a curated `llms.txt` index for local development use — it links to canonical docs rather than inlining content, so it won't go stale and won't bloat context. Fetch only the specific page(s) relevant to the task at hand.
+
+Base URL: https://vitest.dev
+Convention: append `.md` to any `/guide/...`, `/api/...`, or `/config/...` path below to get the raw Markdown source (e.g. `https://vitest.dev/guide/mocking.md`).
+
+Source of truth (refresh this file periodically from these):
+- Index: https://vitest.dev/llms.txt
+- Full content dump (large, avoid loading wholesale): https://vitest.dev/llms-full.txt
+
+## Getting Started
+
+- [Why Vitest](/guide/why.md) — rationale vs other runners
+- [Getting Started](/guide.md) — install, first test, npm scripts
+- [Features](/guide/features.md) — overview of what Vitest supports
+- [Migration Guide](/guide/migration.md)
+- [Migrating from Jest](/guide/migration/jest.md)
+- [Migrating from Mocha + Chai + Sinon](/guide/migration/mocha.md)
+- [Comparisons with Other Test Runners](/guide/comparisons.md)
+
+## Core Config (start here for setup)
+
+- [Configuring Vitest](/config.md) — main config reference, start here
+- [include](/config/include.md) / [exclude](/config/exclude.md) / [includeSource](/config/include-source.md)
+- [environment](/config/environment.md) / [environmentOptions](/config/environmentoptions.md)
+- [globals](/config/globals.md)
+- [setupFiles](/config/setupfiles.md) / [globalSetup](/config/globalsetup.md)
+- [pool](/config/pool.md) / [isolate](/config/isolate.md) / [fileParallelism](/config/fileparallelism.md) / [maxWorkers](/config/maxworkers.md)
+- [testTimeout](/config/testtimeout.md) / [hookTimeout](/config/hooktimeout.md) / [teardownTimeout](/config/teardowntimeout.md)
+- [coverage](/config/coverage.md)
+- [reporters](/config/reporters.md) / [outputFile](/config/outputfile.md)
+- [testNamePattern](/config/testnamepattern.md)
+- [alias](/config/alias.md)
+- [deps](/config/deps.md)
+- [watch](/config/watch.md) / [watchTriggerPatterns](/config/watchtriggerpatterns.md)
+- [clearMocks](/config/clearmocks.md) / [mockReset](/config/mockreset.md) / [restoreMocks](/config/restoremocks.md)
+- [retry](/config/retry.md) / [bail](/config/bail.md) / [repeats](/config/repeats.md)
+- [sequence](/config/sequence.md)
+- [typecheck](/config/typecheck.md)
+- [fakeTimers](/config/faketimers.md)
+- [projects](/config/projects.md) — monorepo / multi-project setups
+- [server](/config/server.md)
+- Full config option list (100+ keys): see index at https://vitest.dev/llms.txt if a key isn't listed above
+
+## Learn (concepts, read in order for onboarding)
+
+- [Writing Tests](/guide/learn/writing-tests.md)
+- [Using Matchers](/guide/learn/matchers.md)
+- [Testing Asynchronous Code](/guide/learn/async.md)
+- [Setup and Teardown](/guide/learn/setup-teardown.md)
+- [Mock Functions](/guide/learn/mock-functions.md)
+- [Snapshot Testing](/guide/learn/snapshots.md)
+- [Testing in Practice](/guide/learn/testing-in-practice.md)
+- [Debugging Failing Tests](/guide/learn/debugging-tests.md)
+- [Writing Tests with AI](/guide/learn/writing-tests-with-ai.md)
+
+## Authoring Tests
+
+- [Test Context](/guide/test-context.md)
+- [Test Run Lifecycle](/guide/lifecycle.md)
+- [Snapshot](/guide/snapshot.md)
+- [Mocking](/guide/mocking.md) — overview/index of mocking guide
+- [Test Tags](/guide/test-tags.md)
+- [Test Annotations](/guide/test-annotations.md)
+- [Extending Matchers](/guide/extending-matchers.md)
+- [Testing Types](/guide/testing-types.md)
+- [Benchmarking](/guide/benchmarking.md)
+- [In-Source Testing](/guide/in-source.md)
+
+### Mocking Details
+
+- [Mocking Dates](/guide/mocking/dates.md)
+- [Mocking Functions](/guide/mocking/functions.md)
+- [Mocking Globals](/guide/mocking/globals.md)
+- [Mocking Modules](/guide/mocking/modules.md)
+- [Mocking the File System](/guide/mocking/file-system.md)
+- [Mocking Requests](/guide/mocking/requests.md)
+- [Timers](/guide/mocking/timers.md)
+- [Mocking Classes](/guide/mocking/classes.md)
+
+## Workflow / Day-to-Day Use
+
+- [Command Line Interface](/guide/cli.md)
+- [Test Filtering](/guide/filtering.md)
+- [Test Projects](/guide/projects.md)
+- [Test Environment](/guide/environment.md)
+- [Parallelism](/guide/parallelism.md)
+- [Reporters](/guide/reporters.md)
+- [Vitest UI](/guide/ui.md)
+- [IDE Integrations](/guide/ide.md)
+
+## Quality, Debugging & Performance
+
+- [Coverage](/guide/coverage.md)
+- [Debugging](/guide/debugging.md)
+- [Common Errors](/guide/common-errors.md)
+- [Open Telemetry Support](/guide/open-telemetry.md)
+- [Profiling Test Performance](/guide/profiling-test-performance.md)
+- [Improving Performance](/guide/improving-performance.md)
+
+## Recipes (task-oriented snippets)
+
+- [Database Transaction per Test](/guide/recipes/db-transaction.md)
+- [Cancellable Test Resources](/guide/recipes/cancellable.md)
+- [Waiting for Async Conditions](/guide/recipes/wait-for.md)
+- [Type Narrowing in Tests](/guide/recipes/type-narrowing.md)
+- [Custom Assertion Helpers](/guide/recipes/custom-assertions.md)
+- [Watching Non-Imported Files](/guide/recipes/watch-templates.md)
+- [Extending Browser Locators](/guide/recipes/browser-locators.md)
+- [Schema-Driven Assertions](/guide/recipes/schema-matching.md)
+- [Auto-Cleanup with `using`](/guide/recipes/explicit-resources.md)
+- [Conditional Mocking with vi.when](/guide/recipes/conditional-mocking.md)
+- [Per-File Isolation Settings](/guide/recipes/disable-isolation.md)
+- [Parallel and Sequential Test Files](/guide/recipes/parallel-sequential.md)
+
+## Browser Mode
+
+- [Why Browser Mode](/guide/browser/why.md)
+- [Browser Mode Guide](/guide/browser.md)
+- [Multiple Setups](/guide/browser/multiple-setups.md)
+- [Component Testing](/guide/browser/component-testing.md)
+- [Visual Regression Testing](/guide/browser/visual-regression-testing.md)
+- [Trace View](/guide/browser/trace-view.md)
+- [Playwright Traces](/guide/browser/playwright-traces.md)
+- [ARIA Snapshots](/guide/browser/aria-snapshots.md)
+
+### Browser Config
+
+- [browser.enabled](/config/browser/enabled.md) / [browser.instances](/config/browser/instances.md) / [browser.headless](/config/browser/headless.md)
+- [browser.provider](/config/browser/provider.md) — [Playwright](/config/browser/playwright.md), [WebdriverIO](/config/browser/webdriverio.md), [Preview](/config/browser/preview.md)
+- [browser.locators](/config/browser/locators.md) / [browser.commands](/config/browser/commands.md)
+- [browser.viewport](/config/browser/viewport.md) / [browser.ui](/config/browser/ui.md)
+- [browser.screenshotDirectory](/config/browser/screenshotdirectory.md) / [browser.screenshotFailures](/config/browser/screenshotfailures.md)
+- [browser.trace](/config/browser/traceview.md)
+
+### Browser API
+
+- [Context API](/api/browser/context.md)
+- [Interactivity API](/api/browser/interactivity.md)
+- [Locators](/api/browser/locators.md)
+- [Assertion API](/api/browser/assertions.md)
+- [Commands](/api/browser/commands.md)
+- [vitest-browser-react](/api/browser/react.md) / [vitest-browser-vue](/api/browser/vue.md) / [vitest-browser-svelte](/api/browser/svelte.md)
+
+## Test API Reference (runtime globals: test, describe, expect, vi)
+
+- [Test](/api/test.md)
+- [describe](/api/describe.md)
+- [Hooks](/api/hooks.md)
+- [assert](/api/assert.md) / [assertType](/api/assert-type.md)
+- [expect](/api/expect.md) / [expectTypeOf](/api/expect-typeof.md)
+- [Mocks (vi.fn, vi.mock, etc.)](/api/mock.md)
+- [Vi utility namespace](/api/vi.md)
+
+## Advanced / Extending Vitest
+
+- [Advanced API overview](/guide/advanced.md)
+- [Vitest API](/api/advanced/vitest.md)
+- [TestProject](/api/advanced/test-project.md) / [TestSpecification](/api/advanced/test-specification.md)
+- [TestCase](/api/advanced/test-case.md) / [TestSuite](/api/advanced/test-suite.md) / [TestModule](/api/advanced/test-module.md) / [TestCollection](/api/advanced/test-collection.md)
+- [Plugin API](/api/advanced/plugin.md)
+- [Runner API](/api/advanced/runner.md)
+- [Reporters (advanced)](/api/advanced/reporters.md)
+- [Task Metadata](/api/advanced/metadata.md)
+- [Test Artifacts](/api/advanced/artifacts.md)
+- [Running Tests (advanced)](/guide/advanced/tests.md)
+- [Extending Reporters (advanced)](/guide/advanced/reporters.md)
+- [Custom Pool (advanced)](/guide/advanced/pool.md)
+- [Custom Benchmark Provider](/guide/advanced/benchmark-provider.md)
+- [Using Plugins](/guide/using-plugins.md)
+
+## Misc
+
+- [Releases / Changelog](/releases.md)
+
+---
+
+## Usage notes for AI assistants working in this repo
+
+1. **Don't inline full docs into context.** This file is an index. When a task needs details on a specific config key or API, fetch just that page (`https://vitest.dev<path>.md`) rather than the full `llms-full.txt` dump.
+2. **Prefer the narrowest relevant page.** E.g. for a `vi.mock` question, fetch `/api/mock.md` and/or `/guide/mocking/modules.md`, not the whole "Mocking" section.
+3. **Check `Configuring Vitest` (`/config.md`) first** for any config question before searching individual key pages — it often answers "where does X go" faster than a single key page.
+4. **This index can drift from upstream.** Vitest ships its own `llms.txt`/`llms-full.txt`, so periodically re-fetch https://vitest.dev/llms.txt and diff against the sections above if pages 404 or seem missing.
+5. **Version awareness**: some entries above are tagged with a version (e.g. "Trace View 5.0.0") — treat those as newer/experimental features that may not exist in older installed Vitest versions. Check the installed `vitest` version in `package.json` before relying on them.
