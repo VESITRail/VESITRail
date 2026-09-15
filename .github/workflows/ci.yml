@@ -48,6 +48,9 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -55,6 +58,9 @@ jobs:
         uses: ./.github/actions/setup
       - name: Run unit tests with coverage
         run: pnpm run test:coverage
+      - name: Report Coverage
+        if: always()
+        uses: davelosert/vitest-coverage-report-action@v2
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
