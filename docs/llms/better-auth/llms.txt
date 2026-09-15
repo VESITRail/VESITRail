@@ -1,0 +1,112 @@
+# Better Auth Documentation (llms.txt)
+
+> The most comprehensive authentication framework for TypeScript.
+> Official reference: https://better-auth.com/docs/llms.txt
+> Full documentation: https://better-auth.com/docs
+
+## Project Conventions
+
+In this project, Better Auth is integrated with Next.js 16 (App Router), Prisma 7, and PostgreSQL:
+
+- **Server Instance (`src/lib/auth.ts`)**: Configured with `betterAuth({ ... })`, using `prismaAdapter(prisma, { provider: "postgresql" })` and `nextCookies()` plugin.
+- **Client Instance (`src/lib/auth-client.ts`)**: Initialized with `createAuthClient` from `better-auth/react` and `inferAdditionalFields<typeof auth>()`.
+- **API Handler (`src/app/api/auth/[...all]/route.ts`)**: Exposes catch-all auth endpoints using `toNextJsHandler(auth)`.
+- **Route Protection / Proxy (`src/proxy.ts`)**: Lightweight route gate using `getSessionCookie(request)` from `better-auth/cookies`.
+- **Server Authorization Guards (`src/lib/auth-guard.ts`)**: Centralized server-side helpers (`requireAuth`, `requireAdmin`, `requireStudent`) calling `auth.api.getSession({ headers: await headers() })`.
+- **OAuth Provider**: Google OAuth only (`clientId`, `clientSecret`).
+- **Domain Restriction**: Enforced via `databaseHooks.user.create.before` hook in `auth.ts` requiring `@ves.ac.in` emails.
+- **Additional User Fields**: `pushNotificationsEnabled` (boolean) and `emailNotificationsEnabled` (boolean).
+
+---
+
+## Quick Reference & APIs
+
+### Server-Side Session Verification (Server Actions & Components)
+```typescript
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+
+const session = await auth.api.getSession({
+    headers: await headers()
+});
+
+if (!session?.user) {
+    // Unauthenticated
+}
+```
+
+### Client-Side Authentication (React Components)
+```typescript
+import { authClient } from "@/lib/auth-client";
+
+// Hook
+const { data: session, isPending, error } = authClient.useSession();
+
+// Google Social Sign-In
+await authClient.signIn.social({
+    provider: "google",
+    callbackURL: "/dashboard"
+});
+
+// Sign Out
+await authClient.signOut({
+    fetchOptions: {
+        onSuccess: () => {
+            window.location.href = "/";
+        }
+    }
+});
+```
+
+### Proxy / Edge Cookie Check
+```typescript
+import { getSessionCookie } from "better-auth/cookies";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function proxy(request: NextRequest) {
+    const sessionCookie = getSessionCookie(request);
+    if (!sessionCookie) {
+        return NextResponse.redirect(new URL("/", request.url));
+    }
+    return NextResponse.next();
+}
+```
+
+---
+
+## Core Documentation Index
+
+### Concepts & Architecture
+- [API Reference](https://better-auth.com/docs/concepts/api): Calling Better Auth endpoints on server, headers, and error handling.
+- [Client Reference](https://better-auth.com/docs/concepts/client): Client setup, React hooks, and plugin inference.
+- [Cookies](https://better-auth.com/docs/concepts/cookies): Cookie prefixes, attributes, session cookies, and proxies.
+- [Database](https://better-auth.com/docs/concepts/database): Core schema (user, session, account, verification) and database hooks.
+- [Hooks](https://better-auth.com/docs/concepts/hooks): Before and after hooks for modifying requests/responses and validation.
+- [Session Management](https://better-auth.com/docs/concepts/session-management): Expiration, cookie caching, and session lifecycle.
+- [TypeScript](https://better-auth.com/docs/concepts/typescript): Type inference, additional fields typing, and client plugins.
+- [Users & Accounts](https://better-auth.com/docs/concepts/users-accounts): Managing profiles, account linking, and user mutations.
+
+### Integrations & Adapters
+- [Next.js Integration](https://better-auth.com/docs/integrations/next): App router setup, route handlers (`toNextJsHandler`), server actions, and middleware.
+- [Prisma Adapter](https://better-auth.com/docs/adapters/prisma): Prisma integration with custom client and multi-file schemas.
+- [Google Social Provider](https://better-auth.com/docs/authentication/google): Google OAuth configuration, credentials, and callback workflows.
+
+---
+
+## Usage Notes for AI Assistants
+
+- **Installed Version**: Better Auth `^1.7.4` (1.7.x release line). Do not use v2.x or legacy v0.x APIs.
+- **Raw Markdown Access**: Append `.md` to any doc URL path to fetch raw Markdown content (e.g. `https://better-auth.com/docs/integrations/next.md`).
+- **Citation Rule**: Cite canonical URLs without the `.md` suffix.
+- **Server vs Client**: When executing logic inside server actions or route handlers, always use `auth.api.<endpoint>({ headers: await headers() })`. Never import or call `authClient` in server files (`"use server"`).
+- **Domain Restriction**: The `@ves.ac.in` domain restriction is enforced in `databaseHooks.user.create.before`. Do not bypass this hook when modifying user creation workflows.
+- **Role Enforcement**: Better Auth manages basic user identity; roles (`Admin` vs `Student`) and onboarding approval states are managed through application Prisma models queried via `src/lib/auth-guard.ts`.
+
+---
+
+## Maintenance
+
+- **Source of Truth**: https://better-auth.com/docs/llms.txt (v1.7.x release line).
+- **MCP Server**: `https://mcp.better-auth.com/mcp` for searching and retrieving live Better Auth docs.
+- **Re-sync when**: Better Auth has a minor/major version upgrade in `package.json`, or if auth adapter configurations change.
+
