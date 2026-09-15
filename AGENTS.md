@@ -2,7 +2,23 @@
 
 <!-- VITEST-DOCS-START -->
 
-[Vitest Docs Index]|root: ./docs/llms/vitest/llms.txt|Consult before writing, modifying, or debugging any _.test.ts unit test files, mock configurations (vi._), fake timers, or assertion matchers. Unit tests must remain pure logic and never touch Prisma, Postgres, or Better Auth.
+[Vitest Docs Index]|root: ./docs/llms/vitest/llms.txt|Consult before writing, modifying, or debugging any _.test.ts unit test files in tests/unit/, mock configurations (vi._), fake timers, or assertion matchers. Unit tests must remain pure logic and never touch Prisma, Postgres, or Better Auth.
+
+## Unit Testing Rules & Workflow
+
+- **Location & Folder Structure**:
+  All unit tests reside in `tests/unit/` using simple, flat group folders (e.g., `tests/unit/onboarding/`, `tests/unit/admin/`, `tests/unit/notifications/`, `tests/unit/pwa/`, or root `tests/unit/` for standalone utilities). Do NOT create deeply nested mirror paths like `tests/unit/src/lib/validations/...`.
+- **Existing File Modification Rule**:
+  Whenever modifying an existing file that has a corresponding unit test in `tests/unit/`, you MUST update its unit test to reflect the code changes and verify that all tests pass (`pnpm run test`). Never leave existing tests broken or out-of-sync.
+- **New File Creation Rule**:
+  Whenever creating a new file containing pure logic (validations, utilities, helpers, algorithms, transformers, monads), assess if a unit test is required. If yes, create a test under `tests/unit/<group>/<feature>.test.ts` following the exact conventions of existing tests:
+  1. Explicit imports from `"vitest"` (`import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"`).
+  2. Always use `@/...` path aliases for imports (e.g., `@/lib/utils`, `@/lib/validations/...`).
+  3. Keep test files clean with NO comments.
+  4. Pure logic only: NEVER touch Prisma, Postgres, Better Auth, or network I/O.
+  5. Test both happy paths and edge cases (empty strings, null/undefined, whitespace trimming, boundary values, invalid schemas).
+  6. Always verify changes by running `pnpm run test`, `pnpm run typecheck`, and `pnpm run format:check`.
+
 <!-- VITEST-DOCS-END -->
 
 <!-- BETTER-AUTH-DOCS-START -->
