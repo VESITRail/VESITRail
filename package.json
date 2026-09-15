@@ -43,7 +43,7 @@
 		"format:check": "prettier . --check",
 		"semantic-release": "semantic-release",
 		"start": "pnpm exec prisma migrate deploy && next start",
-		"postinstall": "pnpm exec prisma generate && pnpm exec tsx scripts/fix-zod-types.ts"
+		"postinstall": "pnpm exec tsx scripts/generate.ts && pnpm exec tsx scripts/fix-zod-types.ts"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.1130.0",
@@ -113,8 +113,6 @@
 		"@eslint/eslintrc": "^3.3.7",
 		"@eslint/js": "^10.0.1",
 		"@prisma/adapter-pg": "^7.10.0",
-		"@semantic-release/changelog": "^7.0.0",
-		"@semantic-release/git": "^11.0.1",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^26.5.1",
 		"@types/pg": "^8.23.1",
