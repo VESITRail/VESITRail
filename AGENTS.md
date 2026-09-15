@@ -4,3 +4,8 @@
 
 [Vitest Docs Index]|root: ./docs/llms/vitest/llms.txt|Consult before writing, modifying, or debugging any _.test.ts unit test files, mock configurations (vi._), fake timers, or assertion matchers. Unit tests must remain pure logic and never touch Prisma, Postgres, or Better Auth.
 <!-- VITEST-DOCS-END -->
+
+<!-- BETTER-AUTH-DOCS-START -->
+
+[Better Auth Docs Index]|root: ./docs/llms/better-auth/llms.txt|Consult before writing, modifying, or debugging any authentication logic, server session validation, Google OAuth flows, or Better Auth client/server configurations. Server session checks must always use auth.api.getSession with incoming headers, and @ves.ac.in domain restriction must be preserved.
+<!-- BETTER-AUTH-DOCS-END -->
