@@ -2,7 +2,7 @@
 
 **Purpose:** A step-by-step handbook for VESIT students to register, apply for railway travel concessions, update travel preferences, and track pass statuses online.  
 **Last Updated:** September 2026  
-**Document Version:** v1.0
+**Document Version:** v1.1
 
 ---
 
@@ -11,6 +11,7 @@
 - [About This Document](#about-this-document)
 - [About VESITRail](#about-vesitrail)
 - [Getting Started](#getting-started)
+  - [What You Need Before You Start](#what-you-need-before-you-start)
   - [How to Sign In to VESITRail](#how-to-sign-in-to-vesitrail)
 - [Completing Your Profile and Onboarding](#completing-your-profile-and-onboarding)
   - [How to Complete the Onboarding Wizard](#how-to-complete-the-onboarding-wizard)
@@ -18,6 +19,7 @@
 - [Applying for a Concession](#applying-for-a-concession)
   - [How to Submit a New Concession Application](#how-to-submit-a-new-concession-application)
   - [How to Apply for a Concession Renewal](#how-to-apply-for-a-concession-renewal)
+  - [How to Resubmit a Rejected Application](#how-to-resubmit-a-rejected-application)
 - [Tracking Your Application](#tracking-your-application)
   - [How to Check Your Concession Status](#how-to-check-your-concession-status)
   - [Understanding Concession Application Statuses](#understanding-concession-application-statuses)
@@ -25,12 +27,16 @@
   - [How to Request a Change of Address or Home Station](#how-to-request-a-change-of-address-or-home-station)
 - [Managing Notifications](#managing-notifications)
   - [How to Configure Push and Email Alerts](#how-to-configure-push-and-email-alerts)
+  - [How to View Notification History](#how-to-view-notification-history)
 - [Viewing Application History and Past Passes](#viewing-application-history-and-past-passes)
-  - [How to View Your Concession History](#how-to-view-your-concession-history)
+  - [How to View and Filter Concession Applications on the Dashboard](#how-to-view-and-filter-concession-applications-on-the-dashboard)
 - [Installing VESITRail on Your Phone](#installing-vesitrail-on-your-phone)
   - [How to Install the App on Android Devices](#how-to-install-the-app-on-android-devices)
   - [How to Install the App on Apple iOS Devices](#how-to-install-the-app-on-apple-ios-devices)
 - [Account and Profile Settings](#account-and-profile-settings)
+  - [Viewing Your Profile Information](#viewing-your-profile-information)
+  - [Procedure for Updating Personal Information](#procedure-for-updating-personal-information)
+  - [Managing Concession Preferences and App Cache](#managing-concession-preferences-and-app-cache)
   - [How to Switch Between Light and Dark Themes](#how-to-switch-between-light-and-dark-themes)
 - [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
 - [Troubleshooting Common Issues](#troubleshooting-common-issues)
@@ -43,17 +49,26 @@
 
 ## 📖 About This Document
 
-This guide is for VESIT students who use VESITRail to request and manage their railway travel concessions. You do not need any technical background to use this document or the application.
+This guide is for VESIT students who use VESITRail to request and manage their suburban railway travel concessions. You do not need any technical background to use this document or the application.
 
 ### How to Use This Guide
 
-You can read this manual from beginning to end if you are setting up your account for the very first time. If you only need help with a specific action, such as submitting a renewal or changing your home station, use the [Table of Contents](#table-of-contents) to jump straight to that task.
+You can read this manual from beginning to end if you are setting up your account for the very first time. If you only need help with a specific action, such as submitting a renewal, tracking an application, or requesting an address change, use the [Table of Contents](#table-of-contents) to jump straight to that task.
 
 ---
 
 ## 🚆 About VESITRail
 
-VESITRail is an online service created for students of Vivekanand Education Society's Institute of Technology (VESIT). It lets you register your student profile, upload required address documents, apply for suburban railway travel concessions, and follow the progress of your application from any web browser or smartphone without standing in preliminary paperwork lines on campus. Once college administrators approve your request and print your government voucher slip, you pick up your stamped certificate directly from the college administrative office.
+VESITRail is an online platform created for students of Vivekanand Education Society's Institute of Technology (VESIT). It lets you register your student profile, upload required address verification documents, apply for suburban railway travel concessions, and follow the progress of your application from any web browser or smartphone without standing in preliminary paperwork lines on campus.
+
+Suburban railway concessions issued through VESITRail cover daily commuting between your registered home station—across **Central, Western, Harbour, and Trans-Harbour** lines—and the college destination station (**Kurla**).
+
+### Concession Issuance Lifecycle Overview
+
+1. **Submission (`Pending`):** You submit your concession request online via the student dashboard.
+2. **Administrative Verification (`Approved`):** College administrative staff verify your student eligibility, commute route, and enrollment details. Upon approval, your status changes to `Approved`. At this stage, no physical voucher slip number is assigned yet.
+3. **Voucher Slip Assignment & Collection (`Issued`):** You visit the Railway Concession Counter (Ground Floor Administrative Office) with your college ID card. The administrator assigns the official physical voucher slip number from a concession booklet and hands you your printed, stamped certificate slip. The system status transitions to `Issued`.
+4. **Ticket Counter Purchase:** You take your physical stamped college concession certificate voucher to the suburban booking ticket window at your local railway station to purchase your discounted season ticket.
 
 ---
 
@@ -64,9 +79,13 @@ Before you can apply for a railway pass, you must sign in with your official col
 ### What You Need Before You Start
 
 - An active college email address ending with `@ves.ac.in`.
-- Your current 10-digit mobile number.
-- Your official residential address details (building name, street, city, and 6-digit postal pincode).
-- A clear digital PDF document containing both sides of your Aadhaar card (plus proof of address if your residential address differs from the address printed on your Aadhaar card).
+- Your active 10-digit mobile number.
+- Your official residential address details broken down into:
+  - House No. / Flat No. / Building Name
+  - Area / Locality
+  - City
+  - 6-digit postal Pincode
+- A clear digital PDF document containing both sides of your Aadhaar card (plus proof of address such as an electricity bill in your parent's name or registered rent agreement if your current residence differs from the address printed on your Aadhaar card). The file must be under 5 megabytes (5 MB).
 
 ---
 
@@ -82,20 +101,23 @@ Sign in to create your student account profile or return to your student dashboa
 
 1. Open your web browser on your phone, tablet, or computer.
 2. Navigate to the VESITRail website URL provided by the college.
-3. Locate the `Sign in with Google` button on the welcome screen.
-4. Click or tap `Sign in with Google`.
+3. Locate the `Continue with Google` button on the welcome hero section.
+4. Click or tap `Continue with Google`.
 5. Select your official college email account ending with `@ves.ac.in` from the Google account chooser.
 6. Enter your college email password if prompted by Google.
-7. Confirm any standard permission prompts shown by Google.
+7. Confirm standard permission prompts shown by Google.
 
 #### What Happens Next
 
-If this is your first time signing in, VESITRail automatically opens the onboarding wizard so you can set up your student profile. If you have already completed onboarding and your account is approved, the app opens your Student Dashboard directly.
+- **First-time students:** VESITRail automatically redirects you to the multi-step Onboarding Wizard (`/onboarding`) to create your student profile.
+- **Returning students:**
+  - If your profile has only the student role, the app directly opens your Student Dashboard (`/dashboard/student`).
+  - If your account holds multiple roles (e.g., Student and Administrator), a role selection screen appears. Click `Continue as Student` to access the student portal.
 
 #### Common Issues
 
-- **Wrong email domain error:** You will see an error message if you select a personal email address such as `@gmail.com`. Sign out of Google and pick your `@ves.ac.in` account.
-- **Login prompt loops:** Clear your browser cache or open an incognito/private browsing window, then try signing in again.
+- **Wrong email domain error:** You will see an error message indicating only `@ves.ac.in` emails are allowed if you select a personal email address (such as `@gmail.com`). Sign out of Google and select your `@ves.ac.in` account.
+- **Login prompt loops:** Clear your browser cookies and site cache, or open an incognito/private browsing window, then try signing in again.
 
 ---
 
@@ -107,198 +129,230 @@ Every student must complete a one-time onboarding procedure to record personal d
 
 ### How to Complete the Onboarding Wizard
 
-Enter your identity, academic enrollment, and travel information into the multi-step registration wizard.
+Enter your identity, academic enrollment, and travel information into the 5-step registration wizard.
 
 #### Prerequisites
 
 - You must be signed in with your `@ves.ac.in` college email account.
-- You must have your Aadhaar card PDF file ready on your device.
+- You must have your Aadhaar and address proof combined in a single PDF file (under 5 MB) ready on your device.
 
 #### Steps
 
-1. Look at Step 1 (Personal Info) of the setup wizard.
-2. Type your legal first name into the `First Name` field.
-3. Type your middle name into the `Middle Name` field if applicable.
-4. Type your surname into the `Last Name` field.
-5. Select your gender (`Male` or `Female`) from the dropdown menu.
-6. Click the calendar icon next to `Date of Birth`.
-7. Choose your date of birth from the calendar selector.
-8. Type your active 10-digit mobile phone number into the `Mobile Number` field.
-9. Type your full residential street address into the `Address` text area.
-10. Click the _Next_ button _(exact button label to be confirmed against the live app)_ to proceed to Academic Info.
-11. Select your current academic year (`FE`, `SE`, `TE`, or `BE`) from the `Year` dropdown menu.
-12. Select your engineering department (such as Computer, IT, AI & Data Science, or EXTC) from the `Branch` dropdown menu.
-13. Select your assigned classroom division (such as D7A or D12B) from the `Class` dropdown menu.
-14. Click the _Next_ button _(exact button label to be confirmed against the live app)_ to proceed to Travel Details.
-15. Click the `Home Station` field to open the station search list.
-16. Type the name of the railway station nearest to your home residence.
-17. Click your station name from the filtered search results.
-18. Select your preferred concession class (`First Class` or `Second Class`) from the `Preferred Concession Class` dropdown menu.
-19. Select your preferred duration (`Monthly` or `Quarterly`) from the `Preferred Concession Period` dropdown menu.
-20. Click the _Next_ button _(exact button label to be confirmed against the live app)_ to move to Document Upload.
+##### Step 1: Personal Details
+
+1. In Step 1 (**Personal Details**), enter your legal name as printed on your Aadhaar card:
+   - Type your first name in the `First Name` field (mandatory).
+   - Type your middle name in the `Middle Name` field (optional).
+   - Type your surname in the `Last Name` field (optional).
+2. Select your gender (`Male` or `Female`) from the `Gender` dropdown menu.
+3. Click the calendar button next to `Date of Birth` and pick your birth date (eligible range is 17 to 25 years from the current year).
+4. Type your active 10-digit mobile phone number into the `Mobile Number` field.
+5. Fill in your four residential address components:
+   - `House / Building`: Type your house number, flat number, or building name.
+   - `Area / Locality`: Type your street, sector, or locality.
+   - `City`: Type your city name.
+   - `Pincode`: Type your 6-digit postal code.
+6. Click the `Next` button to proceed to Academic Details.
+
+##### Step 2: Academic Details
+
+7. In Step 2 (**Academic Details**), select your current academic year (`FE`, `SE`, `TE`, or `BE`) from the `Year` dropdown menu.
+8. Select your department (e.g., Computer Engineering, Information Technology, AI & Data Science, EXTC) from the `Branch` dropdown menu.
+9. Select your assigned classroom division (e.g., D7A, D12B) from the `Class` dropdown menu.
+10. Click the `Next` button to proceed to Travel Details. (You can click `Previous` at any point to return to the prior step).
+
+##### Step 3: Travel Details
+
+11. In Step 3 (**Travel Details**), click the `Home Station` field to open the searchable station combobox.
+12. Type your suburban station name or code into the `Search by name or code` input (stations across Central, Western, Harbour, and Trans-Harbour lines commuting to Kurla are supported).
+13. Click your station name from the filtered results.  
+    _(Note: If you are an existing legacy student whose email was pre-registered in college records, your home station is automatically matched and locked with an informational notice)._
+14. Select your default travel class (`First Class (I)` or `Second Class (II)`) from the `Preferred Concession Class` dropdown menu.
+15. Select your default concession duration (`Monthly (1 month)` or `Quarterly (3 months)`) from the `Preferred Concession Period` dropdown menu.
+16. Click the `Next` button to move to Document Upload.
+
+##### Step 4: Document Upload
+
+17. In Step 4 (**Document Upload**), inspect the Document Requirements card.
+18. Click the upload box displaying `Click to upload PDF` (or drag your PDF file into the designated box).
+19. Select your prepared PDF document (max 5 MB).
+20. Wait for the progress indicator (`Uploading...`) to finish.
+21. Once uploaded, the file name is displayed along with action buttons:
+    - Click the `Eye` preview button to inspect your uploaded PDF in a new browser tab and ensure clarity.
+    - If you selected the wrong file, click the `Remove` (trash icon) button to clear it and upload a new one.
+22. Click the `Next` button to advance to Review & Submit.
+
+##### Step 5: Review & Submit
+
+23. In Step 5 (**Review & Submit**), inspect the four summary cards:
+    - **Personal Information** (Full Name, Date of Birth, Gender, Mobile Number, Address)
+    - **Academic Information** (Year, Branch, Class)
+    - **Travel Information** (Home Station, Preferred Class, Preferred Period)
+    - **Document Verification** (Verification Document with a `View Document` link)
+24. If any detail needs correction, click the `Edit` button located in the top-right corner of that card to jump directly back to that step.
+25. Submit your application:
+    - **On Desktop:** Click the `Submit Application` button (with send icon).
+    - **On Mobile:** Slide the `Slide to submit application` slider handle fully from left to right.
+26. In the **Final Submission** dialog that appears:
+    - Review the warning notes (_"This action cannot be undone"_, _"You won't be able to edit your application after submission"_).
+    - Click `Yes, Submit Now` to confirm (or `Cancel` to return to the review screen).
 
 #### What Happens Next
 
-The wizard advances to the Document Proof step, where you must upload your supporting paperwork before submitting your profile for college review.
+Your profile registration status transitions to `Pending` and you are redirected to the Student Dashboard. College administrative staff will review your paperwork. You will receive an automated alert (push notification and email) once your profile is approved or rejected.
 
 #### Common Issues
 
-- **Missing classroom division:** If your class does not appear in the dropdown list, verify that you selected the correct year and branch first.
-- **Station not listed:** Ensure you type the official suburban station name (for example, type `CST` or `Chhatrapati Shivaji Maharaj Terminus` rather than colloquial abbreviations).
+- **Classroom division missing:** Ensure you selected the correct Academic Year and Branch first; the division options populate dynamically based on those selections.
+- **Station not found:** Search using either the station's official name or station code (for example, `CSMT` or `Chhatrapati Shivaji Maharaj Terminus`, `Dadar` or `DR`, `Vashi` or `VSH`).
+- **Resubmission after rejection:** If your registration is rejected by an administrator, the onboarding screen displays an **Application Rejected** alert card outlining the exact rejection reason and submission count. You can modify the required fields and submit your updated application for re-review.
 
 ---
 
 ### How to Prepare and Upload Your Verification Documents
 
-Upload a clear, combined PDF file verifying your home address and student identity.
+Upload a clear, combined PDF file verifying your identity and residential address.
 
 #### Prerequisites
 
-- A scanned copy or clear photograph of both the front and back of your Aadhaar card.
-- If your current residence does not match the address on your Aadhaar card: an electricity bill in your parent's name or a valid registered rent agreement.
-- All pages merged into a single PDF file with a file size under 5 megabytes (5 MB).
+- Clear front and back scans or photographs of your Aadhaar card.
+- If your current residence differs from your Aadhaar address: an electricity bill in your parent's name or a valid registered rent agreement.
+- All documents merged into a single `.pdf` file under 5 megabytes (5 MB).
 
 #### Steps
 
-1. Navigate to Step 4 (Document Proof) of the onboarding wizard.
-2. Review the document requirement card displayed on the screen.
-3. Click the `Upload Document` button or drag your file into the designated upload area.
-4. Select your prepared PDF file from your device file browser.
-5. Wait for the upload progress bar to finish processing.
-6. Click the _Preview_ eye icon _(exact button label to be confirmed against the live app)_ to inspect the uploaded file.
-7. Verify that all text, addresses, and identity numbers are readable.
-8. Click the _Next_ button _(exact button label to be confirmed against the live app)_ to advance to the Review step.
-9. Check every section on the Review summary card (Personal, Academic, Travel, and Document).
-10. Click the _Edit_ pencil icon _(exact button label to be confirmed against the live app)_ next to any section if you notice a mistake.
-11. Slide the `Slide to Submit` slider control fully from left to right.
-12. Click `Confirm` in the confirmation dialog box that appears.
-
-#### What Happens Next
-
-Your registration status changes to `Pending`. College administrative staff will review your submitted paperwork. You will receive an automated notification (push alert and email) as soon as an administrator approves or rejects your registration.
-
-#### Common Issues
-
-- **File size exceeds 5 MB:** Compress your PDF using any standard free document compression tool before uploading.
-- **Upload fails:** Ensure your device has an active internet connection and that the file extension is `.pdf`.
+1. Merge your front Aadhaar, back Aadhaar, and any secondary address proof into a single PDF using an offline or trusted document utility.
+2. Confirm that all text, addresses, and numbers are legible.
+3. Verify that the file size is below 5 MB.
+4. Upload the PDF on Step 4 of the onboarding wizard (or on the Change Address screen).
+5. Click the `Eye` preview button to verify that the file loads properly.
 
 ---
 
 ## 🎫 Applying for a Concession
 
-Once your student registration is approved, you can submit an online application for your railway travel voucher whenever you need a new pass or a renewal.
+Once your student registration is approved, you can submit an online request for your railway travel concession voucher whenever you require a new pass or a renewal.
 
 ---
 
 ### How to Submit a New Concession Application
 
-Submit your initial railway pass application for the current academic term.
+Submit your initial railway pass application for the term.
 
 #### Prerequisites
 
-- Your student profile must be in `Approved` status.
-- You must not have another concession application currently under review or an active unexpired pass.
+- Your student account must be in `Approved` status.
+- You must not have another concession application currently under review (`Pending`) or an active unexpired pass (`Issued`).
 
 #### Steps
 
 1. Open your web browser and sign in to VESITRail.
-2. Click the `New Concession` button located in the top-right corner of your Student Dashboard.
-3. Review your auto-filled journey information (Home Station to Kurla).
-4. Verify your preferred travel class (`First Class` or `Second Class`).
-5. Change the travel class from the dropdown menu if you want a different class for this specific journey.
-6. Select your concession duration (`Monthly` or `Quarterly`) from the period dropdown menu.
-7. Slide the `Slide to Submit` slider handle completely across to the right.
-8. Click `Confirm` in the pop-up confirmation modal window.
+2. From the Student Dashboard (`/dashboard/student`), click the `New Concession` button in the top header, or click `Apply Concession` under the `Concession` section in the sidebar.
+3. Review your read-only **Home Station** (`Station Name (Code)` to Kurla).
+4. Review your **Concession Class**:
+   - The dropdown defaults to your preferred class (`First Class` or `Second Class`).
+   - If you want a different class for this specific concession, select it from the dropdown.
+5. Review your **Concession Period**:
+   - The dropdown defaults to your preferred duration (`Monthly` or `Quarterly`).
+   - If you want a different duration, select it from the dropdown.
+6. Submit your application:
+   - **On Desktop:** Click the `Submit Application` button.
+   - **On Mobile:** Slide the `Slide to submit application` slider handle from left to right.
+7. In the **Final Submission** confirmation dialog, click `Yes, Submit Now`.
 
 #### What Happens Next
 
-VESITRail generates an application reference number (`Short ID`) and places your request into the administrative review queue. The status badge will display `Pending`.
+VESITRail generates a numeric application reference identifier (`Short ID`, displayed as `#<shortId>`), enters your application into the review queue, and sets the status to `Pending`. You will see the application appear in the dashboard table.
 
 #### Common Issues
 
-- **Button is disabled or missing:** If the `New Concession` button is inactive, you either have an application already under review or an existing pass that has not yet reached its expiration date. Check the status banner on your screen.
+- **"New Concession" button disabled or redirects to status view:** If you have an active unexpired pass, or an application currently under review, the system will not allow a new application until the existing pass expires or the pending application is processed.
 
 ---
 
 ### How to Apply for a Concession Renewal
 
-Renew your railway travel concession once your current pass validity has concluded.
+Renew your concession once your current season ticket validity has expired.
 
 #### Prerequisites
 
-- Your current concession pass validity must be finished (expired).
-- Your student account must be in `Approved` status.
+- Your active concession pass validity period must have ended.
+- Your student profile must be in `Approved` status.
 
 #### Steps
 
-1. Open your web browser and sign in to VESITRail.
-2. Navigate to the Apply Concession page by clicking `New Concession` on your Student Dashboard.
-3. Observe the screen: if your current pass is still active, the page displays your active concession details with the valid until date and remaining days, and you cannot apply yet.
-4. If your pass validity has finished, the page automatically renders the application form with `Renewal` pre-selected as the application type.
-5. Review your auto-filled journey information (Home Station to Kurla).
-6. Verify or adjust your desired travel class (`First Class` or `Second Class`).
-7. Verify or adjust your desired concession duration (`Monthly` or `Quarterly`).
-8. Slide the `Slide to Submit` slider handle fully to the right.
-9. Click `Confirm` in the confirmation dialog.
+1. Sign in to VESITRail and navigate to `Apply Concession` (`/dashboard/student/apply-concession`).
+2. **Observe your pass status:**
+   - **If your pass is still active:** A green **Active Concession** status card appears displaying the exact date until which your concession is valid and the number of days remaining. The application form remains hidden because railway rules strictly prohibit overlapping concession vouchers.
+   - **If your pass validity has concluded:** The form automatically unlocks with `Renewal` pre-selected as the application type.
+3. Inspect the optional **Previous Application Details** button:
+   - Click the clock/history icon button next to the Renewal badge to inspect your previous pass details (Class, Period, Home Station, Applied Date, Status).
+4. Adjust or confirm your desired `Concession Class` and `Concession Period`.
+5. Submit:
+   - **Desktop:** Click `Submit Application`.
+   - **Mobile:** Slide `Slide to submit application`.
+6. Click `Yes, Submit Now` in the confirmation dialog.
 
 #### What Happens Next
 
-Your renewal request links to your previous pass record for continuity verification by college administrators. Your status updates to `Pending`. Once approved, you will receive an alert to collect your physical pass voucher from the Railway Concession Office.
+Your renewal request is linked to your previous pass record in the college administrative queue with `Pending` status. Once verified, the administrator marks it `Approved`, prompting you to collect your certificate from the counter.
 
-#### Common Issues
+---
 
-- **Pass still active:** Railway regulations do not permit overlapping concession vouchers. You must wait until your current pass has expired before submitting a renewal. You can verify your active pass expiry date directly on the Apply Concession page.
+### How to Resubmit a Rejected Application
+
+If your concession request is rejected by college administration, you can modify and resubmit it directly.
+
+#### Steps
+
+1. Navigate to `Apply Concession` (`/dashboard/student/apply-concession`).
+2. The page detects the rejected status and renders the application form pre-filled with your previous selections.
+3. Adjust the `Concession Class` or `Concession Period` according to the administrative feedback.
+4. Click `Resubmit Application` (or slide `Slide to resubmit application` on mobile).
+5. In the **Confirm Application Resubmission** dialog, click `Yes, Submit Now`.
 
 ---
 
 ## 🔍 Tracking Your Application
 
-You can track every step of your application lifecycle directly from your Student Dashboard.
+Track your concession applications in real time from your Student Dashboard.
 
 ---
 
 ### How to Check Your Concession Status
 
-View real-time updates and collection instructions for your concession request.
-
-#### Prerequisites
-
-- You must have submitted at least one concession application.
+View status updates, Short IDs, and collection instructions.
 
 #### Steps
 
-1. Sign in to VESITRail.
-2. Look at the main table on your Student Dashboard.
-3. Find your most recent application row by looking at the application date or reference number.
-4. Read the color-coded badge displayed in the `Status` column.
-5. Click on the application row to view full details and administrative notes if applicable.
-
-#### What Happens Next
-
-When your status changes to `Approved`, read the instructions displayed on your dashboard indicating the collection venue (Railway Concession Office, Ground Floor Admin Office).
-
-#### Common Issues
-
-- **Status has not changed for several days:** Administrative review operates during standard college working hours. Check during college operating hours or visit the administrative window if your pass is urgent.
+1. Sign in to VESITRail and open your Student Dashboard (`/dashboard/student`).
+2. Locate the main applications table.
+3. Find your application by looking at the Short ID (`#<shortId>`) or `Applied Date`.
+4. Read the color-coded badge in the `Status` column:
+   - `Pending` (amber)
+   - `Approved` (primary)
+   - `Issued` (green)
+   - `Rejected` (red)
+5. If your status is `Approved`, read the on-screen guidance and visit the Railway Concession Counter at the college administrative office.
 
 ---
 
 ### Understanding Concession Application Statuses
 
-The table below explains what each status badge means and what action you should take:
+The table below explains what each status badge means and the exact action required:
 
-| Status Badge | Meaning                                                                                                                     | Action Required from You                                                                                                                                                                                     |
-| :----------- | :-------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Pending`    | Your application has been submitted and is waiting in the queue for an administrator to review your details.                | None. Please wait while college staff review your submission.                                                                                                                                                |
-| `Approved`   | An administrator has verified your request and assigned an official physical voucher slip number to you.                    | Visit the Railway Concession Office (Ground Floor, Admin Office) with your college ID card to collect your signed voucher.                                                                                   |
-| `Issued`     | You have collected your physical voucher slip from the office, or the administrator has marked it as officially dispatched. | Take your printed college voucher slip to your local railway station ticket booking window to purchase your discounted season ticket. Your active pass validity can be checked on the Apply Concession page. |
-| `Rejected`   | Your application could not be approved due to incorrect information or railway regulation constraints.                      | Read the administrative rejection note shown on your dashboard, make the required corrections, and submit a new application.                                                                                 |
+| Status Badge | Meaning                                                                                                                                                           | Action Required from You                                                                                                                                                                                                                            |
+| :----------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Pending`    | Your application has been submitted and is in the administrative review queue.                                                                                    | None. Please wait while college staff verify your enrollment, commute route, and documents.                                                                                                                                                         |
+| `Approved`   | An administrator has reviewed and verified your request. **The physical voucher slip number is NOT yet assigned at this stage.**                                  | Visit the Railway Concession Office (Ground Floor Admin Office) during working hours with your college ID card to collect your certificate.                                                                                                         |
+| `Issued`     | You have visited the office, collected your certificate, and the administrator has assigned your official physical voucher slip number from a concession booklet. | Take your printed, stamped physical college voucher slip to the ticket booking window at your local suburban railway station to purchase your discounted season ticket. Your active pass validity will now be tracked on the Apply Concession page. |
+| `Rejected`   | Your application could not be approved due to administrative, jurisdictional, or documentation discrepancies.                                                     | Review the rejection reason on your dashboard or the Apply Concession page, make the necessary corrections, and submit a resubmission.                                                                                                              |
 
 ---
 
 ## 🏠 Managing Your Home Address
 
-If your family relocates or you move to a new residence, you must update your registered address and home railway station in VESITRail so your future concession passes reflect your new commute route to Kurla.
+If your residence changes, you must submit an official address update so future concession passes reflect your new commute route to Kurla.
 
 ---
 
@@ -308,195 +362,204 @@ Submit an official address update request with new supporting documentation.
 
 #### Prerequisites
 
-- Your student account must be in `Approved` status.
-- You must possess valid proof of your new address (such as an updated Aadhaar card, electricity bill in your parent's name, or a registered rent agreement) in a single PDF file under 5 MB.
+- Your student profile must be in `Approved` status.
+- You must have valid proof of your new address (e.g., updated Aadhaar card, parent electricity bill, or registered rent agreement) merged into a single PDF under 5 MB.
 
 #### Steps
 
 1. Sign in to VESITRail.
-2. Click on your profile menu in the upper corner of the screen.
-3. Select `Change Address` _(or navigate to the Change Address tab from your profile)_.
-4. Review your current registered address and current home railway station shown on the left card.
-5. Type your new flat, house, or building name into the `House / Building` field.
-6. Type your new street, sector, or locality into the `Area / Locality` field.
-7. Type your city name into the `City` field.
-8. Type your 6-digit postal code into the `Pincode` field.
-9. Click the `New Home Station` field.
-10. Search for and select your new suburban railway station from the dropdown list.
-11. Click the `Upload Document` area and select your new address proof PDF file.
-12. Click the _Preview_ eye icon _(exact button label to be confirmed against the live app)_ to ensure the document is clear and readable.
-13. Slide the `Slide to Submit` slider handle fully to the right.
-14. Click `Confirm` in the confirmation dialog.
+2. In the sidebar, under the `Services` group, click `Change Address` (`/dashboard/student/change-address`).  
+   _(Alternatively, go to `Profile` in the sidebar and click the edit pencil icon next to your Home Station)._
+3. Review your **Current Station** and **Current Address** displayed on the left card.
+4. In the form on the right card, enter your new residential address:
+   - `House / Building`: Type your new house, flat, or building name (max 100 characters).
+   - `Area / Locality`: Type your new street, locality, or sector (max 100 characters).
+   - `City`: Type your city name (max 50 characters).
+   - `Pincode`: Type your new 6-digit postal code.
+5. Click the `New Home Station` combobox, type your new station name or code, and select it from the list.
+6. Under `Verification Document`, click `Click to upload PDF` and upload your new address proof PDF.
+7. Use the `Eye` preview button to confirm readability.
+8. Submit:
+   - **On Desktop:** Click `Submit Request` (or `Resubmit Request` if previous was rejected).
+   - **On Mobile:** Slide `Slide to submit request` (or `Slide to resubmit request`).
+9. In the **Confirm Address Change Request** dialog, review the summary comparison of your current and new stations/addresses, and click `Submit Request` (or `Resubmit Request`).
 
 #### What Happens Next
 
-Your request enters the `Pending` address change queue for administrative review. Once approved by the college office, your student profile and home station automatically update, and all subsequent concession applications will reflect your new route to Kurla.
-
-#### Common Issues
-
-- **Selected station does not match residential area:** Railway authorities require your home station to be the nearest suburban station to your home. Selecting a station further away will result in rejection.
-- **Document rejected:** Ensure the document clearly displays your parent's or your legal name and the full street address matching your typed input.
+Your request enters the `Pending` address change queue for administrative review. You can track the status directly on the Change Address page. Once approved, your registered home station and address update automatically across your profile, and all future concession passes will reflect your new route to Kurla.
 
 ---
 
 ## 🔔 Managing Notifications
 
-VESITRail provides alerts so you are informed the moment your registration, concession, or address change request is processed.
+VESITRail delivers alerts so you know the moment your profile registration, concession pass, or address change request is updated.
 
 ---
 
 ### How to Configure Push and Email Alerts
 
-Control whether you receive browser push notifications and email updates.
-
-#### Prerequisites
-
-- You must be signed in to your student account.
+Control browser push notifications and college email updates.
 
 #### Steps
 
 1. Sign in to VESITRail.
-2. Click on the `Settings` icon or link in the navigation menu.
-3. Locate the `Notification Preferences` section.
-4. Toggle the switch next to `Push Notifications` to enable or disable browser notifications.
-5. Click `Allow` if your web browser displays a pop-up requesting permission to send notifications.
-6. Toggle the switch next to `Email Notifications` to enable or disable status emails sent to your `@ves.ac.in` address.
-7. Check the bell icon in the top navigation bar at any time to open your in-app notification history tray.
+2. Click your user profile card at the bottom of the sidebar and select `Settings` (`/dashboard/student/settings`).
+3. Locate the **Notification Preferences** card.
+4. Toggle the **Push Notifications** switch to enable or disable browser notifications:
+   - If prompted by your browser, click `Allow` to grant notification permissions.
+5. Toggle the **Email Notifications** switch to enable or disable automated status emails sent to your `@ves.ac.in` address.
 
-#### What Happens Next
+---
 
-Your alert preferences update immediately. Whenever an administrator takes action on your account, an alert is sent across your chosen channels.
+### How to View Notification History
 
-#### Common Issues
+Inspect all historical alerts sent to your account.
 
-- **Push alerts do not appear on your device:** Check your operating system or browser settings to ensure notifications are not blocked or muted in "Do Not Disturb" or "Focus" mode.
+#### Steps
+
+1. While in the Student Dashboard, look at the top header bar.
+2. Click the **Bell** icon button.
+3. The **Notification Sheet** slides out from the right side of the screen.
+4. Browse your alerts, view timestamps, and see which actions were processed.
+5. Opening the notification tray automatically marks unread notifications as read.
 
 ---
 
 ## 📜 Viewing Application History and Past Passes
 
-You can access a record of every concession application and certificate you have received at VESIT.
+You can inspect the full historical record of every concession application you have submitted on VESITRail directly from your dashboard.
 
 ---
 
-### How to View Your Concession History
+### How to View and Filter Concession Applications on the Dashboard
 
-Inspect previous vouchers, issue dates, and pass validity windows.
+Use the unified applications table on the Student Dashboard to view and filter passes.
 
-#### Prerequisites
-
-- You must have submitted at least one previous application.
+> **Note:** Concession records are managed in a single table on your Student Dashboard (`/dashboard/student`). There is no separate "Application History" tab or student concession history sheet.
 
 #### Steps
 
-1. Sign in to VESITRail.
-2. Navigate to your Student Dashboard.
-3. Click the `Application History` tab or scroll down to the main applications log.
-4. Use the `Filter by Status` dropdown menu if you wish to see only `Issued` or `Approved` passes.
-5. Use the `Filter by Type` dropdown menu to toggle between `New` and `Renewal` passes.
-6. Click any historical pass entry to open its detailed summary sheet.
-7. Review the historical pass voucher serial number, valid travel route, and issue date.
-
-#### What Happens Next
-
-You can review previous certificate serial numbers, which is helpful if railway booking clerks ask for proof of a previous pass during renewal.
-
-#### Common Issues
-
-- **Past pass missing from list:** Ensure your status and type filters are set to `All` so no records are hidden.
+1. Sign in to VESITRail and open your Student Dashboard (`/dashboard/student`).
+2. Locate the main applications table displaying the following columns:
+   - **Sr. No.:** Sequential row number.
+   - **ID:** Short numeric identifier (e.g., `#1042`).
+   - **Type:** Application type badge (`New` or `Renewal`).
+   - **Status:** Color badge (`Pending`, `Approved`, `Issued`, or `Rejected`).
+   - **Class:** Concession class (`First Class` or `Second Class`).
+   - **Period:** Duration (`Monthly` or `Quarterly`).
+   - **Home Station:** Station name and code (e.g., `Dadar (DR)`).
+   - **Applied Date:** Submission date.
+3. **Filter by Application Type:** Click the `Type` filter dropdown at the top-left of the table to switch between:
+   - `All Types`
+   - `New`
+   - `Renewal`
+4. **Filter by Application Status:** Click the `Status` filter dropdown to switch between:
+   - `All Status`
+   - `Pending`
+   - `Approved`
+   - `Issued`
+   - `Rejected`
+5. **Customize Visible Columns:** Click the `Columns` dropdown at the top-right of the table to show or hide individual columns (`Type`, `Class`, `Period`, `Home Station`, `Applied Date`, `Sr. No.`, `ID`).
+6. **Sort Rows:** Click the `Status` or `Applied Date` column header buttons to toggle ascending or descending sorting.
+7. **View Linked Past Pass Details:** For any application marked `Renewal`, click the small clock/history icon button next to the `Renewal` badge to open the `Previous Application Details` modal dialog.
+8. **Navigate Pages:** Use the pagination controls at the bottom of the table (`<` previous and `>` next buttons) to navigate through multiple pages of applications.
 
 ---
 
 ## 📱 Installing VESITRail on Your Phone
 
-VESITRail is built as an installable Progressive Web Application (PWA). You can install it directly onto your mobile home screen without using an app store, giving you fast one-tap access and offline viewing of your pass history.
+VESITRail is built as an installable Progressive Web Application (PWA). You can install it directly onto your device without an app store for quick one-tap access.
 
 ---
 
 ### How to Install the App on Android Devices
 
-Install VESITRail onto your Android phone or tablet using Google Chrome.
-
-#### Prerequisites
-
-- An Android device running Google Chrome or a compatible modern web browser.
+Install VESITRail using Google Chrome on Android.
 
 #### Steps
 
-1. Open Google Chrome on your Android smartphone.
+1. Open Google Chrome on your Android device.
 2. Navigate to the VESITRail website URL.
-3. Look for the `Install VESITRail` banner at the bottom of the screen, or tap the three vertical dots (menu) in the top-right corner of Chrome.
-4. Tap `Install app` or `Add to Home screen`.
-5. Tap `Install` when the confirmation prompt appears.
-6. Return to your phone's home screen or app drawer to find the new VESITRail app icon.
-
-#### What Happens Next
-
-VESITRail opens in its own standalone window without browser address bars, functioning just like a native mobile app.
-
-#### Common Issues
-
-- **Install prompt does not appear:** Refresh the page, ensure you are not in Incognito mode, and verify that you are connected to the internet.
+3. If visible in the top header, tap the `Install App` button.
+4. Alternatively, tap the three vertical dots (menu) in the top-right corner of Chrome and select `Install app` or `Add to Home screen`.
+5. Tap `Install` when prompted.
+6. Launch VESITRail from your home screen or app drawer.
 
 ---
 
 ### How to Install the App on Apple iOS Devices
 
-Add VESITRail to your Apple iPhone or iPad home screen using Safari.
-
-#### Prerequisites
-
-- An iPhone or iPad running iOS 14 or later.
-- You must use the built-in Apple Safari web browser (other iOS browsers do not support adding PWAs to the home screen).
+Install VESITRail using Safari on Apple iPhone or iPad.
 
 #### Steps
 
-1. Open the Safari app on your iPhone.
+1. Open Apple Safari on your iPhone or iPad (other iOS browsers do not support home screen installation).
 2. Navigate to the VESITRail website URL.
-3. Tap the `Share` button (the square icon with an upward-pointing arrow) at the bottom of the screen.
-4. Scroll down the sharing options sheet.
-5. Tap `Add to Home Screen`.
-6. Confirm the app title (VESITRail) and tap `Add` in the top-right corner.
-7. Locate the VESITRail icon on your iPhone home screen.
-
-#### What Happens Next
-
-The app launches from your home screen as a standalone application. You can view your current pass status and profile even when your cellular signal drops in the railway subway.
-
-#### Common Issues
-
-- **Cannot find "Add to Home Screen":** Ensure you opened the link inside Safari, not inside a third-party in-app browser (such as opening a link directly inside Gmail or WhatsApp).
+3. Tap the **Share** icon (the square with an upward-pointing arrow) at the bottom of the Safari toolbar.
+4. Scroll down the sharing menu and tap **Add to Home Screen**.
+5. Confirm the application title and tap **Add** in the top-right corner.
+6. Launch VESITRail directly from your iOS home screen.
 
 ---
 
 ## ⚙️ Account and Profile Settings
 
-Review your registered student information and customize your display theme.
+Review your registered student profile, update preferences, and configure appearance.
 
-> **Note:** Profile information, including your contact mobile number and academic records, is permanently linked to your verified student profile upon onboarding. If you need any profile data updated, visit the Railway Concession Counter at the college administrative office.
+---
+
+### Viewing Your Profile Information
+
+View your verified records on the profile overview page.
+
+#### Steps
+
+1. In the sidebar, under `navSecondary`, click **Profile** (`/dashboard/student/profile`).
+2. Review the structured profile cards:
+   - **Personal Information:** Full Name (as per Aadhaar), Date of Birth, Gender, Mobile Number, and residential Address.
+   - **Academic Information:** Academic Year, Branch, and Classroom Division.
+   - **Travel Information:** Home Station (with link to Change Address), Preferred Concession Class, and Preferred Concession Period.
+   - **Document Verification:** Verification Document card with a `View Document` button to open your uploaded PDF.
+3. Click the info (`i`) button at the top-right to view profile creation and last update timestamps.
+
+---
+
+### Procedure for Updating Personal Information
+
+Profile information (including your legal name, date of birth, contact mobile number, and academic enrollment records) is permanently linked to your verified student profile upon onboarding to prevent unauthorized pass issuance.
+
+> [!IMPORTANT]
+> **To update personal or academic profile information:**
+>
+> 1. Send an email from your `@ves.ac.in` address to the administrative support desk at **`vesit.railwayconcession@ves.ac.in`** specifying your full name, student ID, and the details requiring correction (with supporting proof attached).
+> 2. If your request is not resolved within **24 hours**, you may visit the Railway Concession Counter at the college administrative office in person for assistance.
+
+---
+
+### Managing Concession Preferences and App Cache
+
+Update your default concession choices or clear local application data.
+
+#### Steps
+
+1. Open the user dropdown at the bottom of the sidebar and select **Settings** (`/dashboard/student/settings`).
+2. **Concession Preferences:**
+   - Select your default `Concession Class` and `Concession Period`.
+   - Click `Save Preferences`. These selections will automatically pre-fill future concession applications.
+3. **App Version:** Check your current version and tap `Check for Updates` to verify you are on the latest release.
+4. **Cache Management:** Click `Clear Cache` if you experience stale data or unexpected display anomalies.
 
 ---
 
 ### How to Switch Between Light and Dark Themes
 
-Toggle the application interface between Light and Dark visual modes.
-
-#### Prerequisites
-
-- None.
+Toggle the application between Light and Dark visual modes.
 
 #### Steps
 
-1. Sign in to VESITRail.
-2. Click the theme toggle icon (sun or moon) located in the navigation bar.
-
-#### What Happens Next
-
-The app interface switches directly between Light mode and Dark mode. Your selection is remembered on your device for future visits.
-
-#### Common Issues
-
-- **Theme resets after restarting browser:** Check whether your browser is configured to wipe site storage or cookies on close.
+1. Look for the sun/moon **Theme Toggle** icon located in the top navigation header bar.
+2. Click the icon to switch between Light mode and Dark mode.
+3. Your visual preference is automatically saved on your device for future sessions.
 
 ---
 
@@ -504,35 +567,36 @@ The app interface switches directly between Light mode and Dark mode. Your selec
 
 #### 1. Why do I need to use my @ves.ac.in email address to sign in?
 
-VESITRail is strictly reserved for bonafide students and staff of Vivekanand Education Society's Institute of Technology. Enforcing the college email domain ensures security and verifies student identity automatically.
+VESITRail is strictly reserved for bonafide students and staff of Vivekanand Education Society's Institute of Technology. Enforcing institutional `@ves.ac.in` accounts guarantees security and authenticates student identity automatically.
 
 #### 2. How long does it take for my concession application to be approved?
 
-Applications are generally processed by administrative office staff within one to two college working days. During peak semester enrollment periods, processing may take slightly longer.
+Applications are typically reviewed by administrative staff within one to two college working days. During peak enrollment windows, processing may take slightly longer.
 
-#### 3. What should I do once my status changes to "Approved"?
+#### 3. What is the difference between "Approved" and "Issued" status?
 
-When your application status indicates `Approved`, visit the Railway Concession Counter (Ground Floor, Admin Office) during working hours. Present your student ID card to receive your signed, stamped physical certificate voucher.
+- **`Approved`:** Administrative staff have verified your application and deemed you eligible. **No physical voucher slip number is assigned yet.** You must visit the Railway Concession Counter with your student ID card to collect your certificate.
+- **`Issued`:** You have visited the counter, collected your certificate, and the administrator has assigned your official physical voucher slip number from a concession booklet and marked it as issued in the system.
 
-#### 4. Can I apply for a concession directly to my hometown outside Mumbai?
+#### 4. Which railway lines and stations are covered under VESIT concessions?
 
-No. Central and Western Railway suburban student concessions issued through VESITRail are strictly for local daily commuting between your registered home suburban station and the college destination station (Kurla).
+Concessions issued through VESITRail cover suburban commuting between your registered home station and the college destination station (**Kurla**). Supported stations span the **Central, Western, Harbour, and Trans-Harbour** suburban railway lines. For the complete list of eligible stations, view the searchable `Home Station` dropdown when filling out the onboarding or change of address form. Non-suburban stations and outstation long-distance travel are not eligible.
 
 #### 5. Why was my concession application rejected?
 
-The most common reasons for rejection are requesting a duration that is currently unavailable (for example, if only monthly passes are currently authorized), discrepancies between your address proof and registered station, or an unreadable document upload. Check the specific reason displayed on your dashboard card.
+Common reasons for rejection include selecting a concession duration not currently authorized, discrepancies between your uploaded address proof and selected home station, or illegible PDF documents. Review the specific rejection reason displayed on your dashboard and submit a resubmission.
 
 #### 6. Can I change my home station midway through the semester?
 
-Yes. If your family moves, use the [Change Address](#how-to-request-a-change-of-address-or-home-station) feature to submit your new address along with valid proof (such as an updated electricity bill or registered rent agreement). Once approved, your station will update.
+Yes. If your residence changes, submit a request via [Change Address](#how-to-request-a-change-of-address-or-home-station) accompanied by valid address proof. Once approved by administration, your home station and commute route to Kurla will update for all subsequent passes.
 
 #### 7. When can I apply for a renewal?
 
-You can apply for a renewal only when your current concession pass validity has finished (expired). To check your current pass validity, visit the Apply Concession page, where your remaining active days and expiry date are displayed. Once the validity has ended, the page automatically allows you to submit a renewal application.
+You can apply for a renewal only when your current concession pass validity has concluded (expired). You can check your remaining active pass validity days directly on the Apply Concession page (`/dashboard/student/apply-concession`). Once the validity period ends, the page automatically unlocks the renewal application form.
 
 #### 8. Does VESITRail replace the physical railway pass issued at the station counter?
 
-No. VESITRail automates the college-side concession voucher process. You must still take the stamped paper certificate voucher collected from the college office to the railway station booking ticket window to purchase your discounted railway travel pass.
+No. VESITRail automates the college-side verification and voucher slip distribution process. You must take the physical, stamped concession certificate collected from the college office to the booking ticket window at your suburban railway station to purchase your discounted railway travel pass.
 
 ---
 
@@ -540,23 +604,23 @@ No. VESITRail automates the college-side concession voucher process. You must st
 
 ### "Invalid Domain" or Login Access Denied
 
-- **Symptom:** You attempt to sign in with Google, but you are redirected to an error screen stating your account is not authorized.
-- **Solution:** You are signed in with a personal Google account (`@gmail.com`). Log out of Google completely in your browser, return to the VESITRail login screen, and choose your official college account ending with `@ves.ac.in`.
+- **Symptom:** When clicking `Continue with Google`, you are redirected to an error screen stating your account is not authorized.
+- **Solution:** You selected a personal Google account (`@gmail.com`). Sign out of Google in your browser, return to VESITRail, click `Continue with Google`, and choose your official college account ending with `@ves.ac.in`.
 
 ### Application Form Shows "Active Concession" and Cannot Apply
 
-- **Symptom:** When visiting the Apply Concession page, you cannot submit a renewal application, and a green status card shows your concession is active.
-- **Solution:** Your current pass validity has not yet finished. Central and Western Railway rules do not permit overlapping concession vouchers. Check the remaining days displayed on the page and submit your renewal once your pass validity has concluded.
+- **Symptom:** On the Apply Concession page, the form is hidden and a green status card states your concession is active.
+- **Solution:** Your existing pass has not reached its expiration date. Railway regulations strictly prohibit overlapping concession vouchers. Check the remaining days displayed on the card and submit your renewal after that date has elapsed.
 
 ### Document Upload Keeps Failing
 
-- **Symptom:** When selecting your Aadhaar PDF file, an error message appears, or the upload spinner spins continuously.
-- **Solution:** Ensure your file is saved strictly in `.pdf` format (image files like `.png` or `.jpg` must be converted to PDF). Verify that the file size is under 5 MB. If your internet connection is unstable, connect to college Wi-Fi and re-upload.
+- **Symptom:** Selecting your PDF produces an error or the upload spinner hangs.
+- **Solution:** Confirm your file is strictly in `.pdf` format (images like `.png` or `.jpeg` must be converted to PDF first). Ensure the file size is under 5 MB. If necessary, compress your PDF before uploading.
 
 ### "Address Station Mismatch" Rejection
 
-- **Symptom:** Your onboarding registration or address change was rejected with an address station mismatch notice.
-- **Solution:** The suburban railway station you selected is not the station closest to your residential address according to railway jurisdiction rules. Resubmit your request selecting the correct railway station corresponding to your residential pincode.
+- **Symptom:** Your onboarding or address change application was rejected citing an address-station mismatch.
+- **Solution:** Under railway jurisdiction regulations, your designated home station must be the closest suburban station to your residential address. Resubmit your request selecting the correct suburban station corresponding to your residential locality and pincode.
 
 ---
 
@@ -564,16 +628,16 @@ No. VESITRail automates the college-side concession voucher process. You must st
 
 ### Glossary
 
-- **Address Change Request:** An official application submitted by a student to update their registered residential address and home railway station in college records.
-- **Classroom Division:** The specific student cohort or section (such as D7A, D12B, or D17C) reflecting an academic branch and year of study.
-- **Concession Class:** The travel accommodation category authorized on local trains, specifically First Class or Second Class.
-- **Concession Period:** The duration of travel validity authorized on a local train pass, specifically Monthly (30 days) or Quarterly (90 days).
-- **Home Station:** The suburban Mumbai railway station closest to your permanent or current residence from which your daily college commute originates.
-- **Onboarding:** The one-time profile registration workflow where a new student provides demographic information, travel routes, and identity documents.
-- **Progressive Web App (PWA):** Modern website technology that allows VESITRail to be installed onto your smartphone or computer desktop like a regular mobile application.
-- **Renewal Application:** A concession request that connects to a previously issued pass, submitted once the current pass validity has concluded.
-- **Short ID:** A compact, human-friendly numeric reference number assigned to your concession application for quick identification at the administrative counter.
-- **Voucher Slip:** The physical government railway concession certificate printed by the college office and stamped for submission at railway ticket counters.
+- **Address Change Request:** An official application submitted by a student to update their registered residential address and home suburban railway station in college records.
+- **Classroom Division:** The specific student cohort or section (e.g., D7A, D12B, D17C) reflecting an academic branch and year of study.
+- **Concession Class:** The authorized travel accommodation category on suburban trains, specifically First Class or Second Class.
+- **Concession Period:** The validity duration authorized on a suburban train pass, specifically Monthly (1 month) or Quarterly (3 months).
+- **Home Station:** The suburban railway station nearest to your residence from which your daily commute to Kurla originates.
+- **Onboarding:** The one-time profile registration workflow where a new student registers demographic information, commute routes, and identity proofs.
+- **Progressive Web App (PWA):** Modern web technology allowing VESITRail to be installed onto smartphones or desktops with native app behavior and offline resilience.
+- **Renewal Application:** A concession request linked to a previously expired pass, submitted once active validity has finished.
+- **Short ID:** A compact, human-friendly numeric reference number (e.g., `#1042`) assigned to concession applications for quick identification at the administrative counter.
+- **Voucher Slip:** The physical government railway concession certificate printed by the college office, stamped, and assigned a booklet serial number for redemption at suburban railway booking windows.
 
 ### Need More Help?
 
@@ -585,6 +649,7 @@ If you experience issues that cannot be resolved through this manual, contact th
 
 ### Document Change Log
 
-| Version | Date           | Summary of Changes                                                                  |
-| :------ | :------------- | :---------------------------------------------------------------------------------- |
-| `v1.0`  | September 2026 | Initial release of the comprehensive Student User Guide for the VESITRail platform. |
+| Version | Date           | Summary of Changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| :------ | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v1.0`  | September 2026 | Initial release of the comprehensive Student User Guide for the VESITRail platform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `v1.1`  | September 2026 | Complete codebase accuracy overhaul: corrected login button label to `Continue with Google`; updated onboarding wizard to document 4 structured address fields, `Next` navigation, and desktop/mobile submission controls; updated Concession lifecycle to clarify that voucher slips are assigned in `Issued` status (not `Approved`); removed non-existent "Application History" tab/sheet and documented dashboard table filters (Type, Status, Columns, Sorting, Renewal history modal); added Central, Western, Harbour, and Trans-Harbour suburban line coverage; and updated personal profile correction procedure via support email prior to in-person counter visits. |

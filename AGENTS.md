@@ -25,3 +25,15 @@
 
 [Better Auth Docs Index]|root: ./docs/llms/better-auth/llms.txt|Consult before writing, modifying, or debugging any authentication logic, server session validation, Google OAuth flows, or Better Auth client/server configurations. Server session checks must always use auth.api.getSession with incoming headers, and @ves.ac.in domain restriction must be preserved.
 <!-- BETTER-AUTH-DOCS-END -->
+
+<!-- USER-DOCS-SYNC-START -->
+
+## User Documentation Synchronization Rules
+
+Whenever modifying, adding, or refactoring features in the codebase:
+
+- **Student Guide Synchronization**: Whenever any changes affecting student-facing features, onboarding flows, concession applications, renewals, address change workflows, table columns/filters, profile settings, or status lifecycles are made, you MUST update `docs/STUDENT_USER_GUIDE.md` to maintain 100% accuracy with the codebase.
+- **Admin Guide Synchronization**: Whenever any changes affecting admin-facing features, booklet management, concession review, approval/issuance workflows, anchor calibration, overlay PDF generation, or student management are made, you MUST update `docs/ADMIN_USER_GUIDE.md` to reflect those changes accurately.
+- **Zero Speculation / 100% Codebase Accuracy**: Documentation must never contain speculative placeholders or assumed labels (e.g., "to be confirmed against the live app"). All steps, button labels, modal titles, routes, and status meanings must precisely match the implementation in the codebase.
+
+<!-- USER-DOCS-SYNC-END -->
