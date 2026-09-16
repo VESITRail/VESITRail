@@ -14,7 +14,7 @@ import NavMain from "@/components/nav-main";
 import NavSecondary from "@/components/nav-secondary";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 import NavUser from "@/components/app-sidebar/student/nav-user";
-import { Eye, Send, User, MapPin, LifeBuoy, PlusCircle } from "lucide-react";
+import { Eye, Send, User, MapPin, LifeBuoy, PlusCircle, BookText } from "lucide-react";
 
 const data = {
 	navSecondary: [
@@ -37,6 +37,11 @@ const data = {
 			icon: Send,
 			title: "Feedback",
 			url: "https://forms.gle/GCVuSnV4QRDt5Mu5A"
+		},
+		{
+			icon: BookText,
+			title: "Student Guide",
+			url: "https://github.com/VESITRail/VESITRail/blob/main/docs/STUDENT_USER_GUIDE.md"
 		}
 	],
 	navMain: [
