@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { navigationItems } from "@/config/navigation";
+import { footerLinks } from "@/config/navigation";
 import { Paragraph } from "@/components/ui/typography";
 
 const Footer = () => {
@@ -11,9 +11,9 @@ const Footer = () => {
 		<footer aria-label="Footer" className="w-full border-accent bg-background pb-33 lg:pb-0">
 			<div className="max-w-7xl mx-auto px-6 md:px-16 xl:px-8">
 				<div className="pt-10 pb-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-					<nav aria-label="Footer Navigation">
-						<ul className="flex flex-wrap gap-x-8 gap-y-2 items-center justify-center lg:items-start lg:justify-start">
-							{navigationItems.map((item) => (
+					<nav aria-label="Legal Links">
+						<ul className="flex flex-wrap gap-x-8 gap-y-2 items-center justify-center md:items-start md:justify-start">
+							{footerLinks.map((item) => (
 								<li key={item.href}>
 									<Link
 										href={item.href}
@@ -27,7 +27,7 @@ const Footer = () => {
 					</nav>
 
 					<div className="flex flex-col gap-2 md:items-end md:text-right items-center text-left">
-						<Paragraph className="text-base text-foreground font-semibold tracking-tight text-center lg:text-right">
+						<Paragraph className="text-base text-foreground font-semibold tracking-tight text-center md:text-right">
 							Admin Incharge: Mrs Divya Nawar
 						</Paragraph>
 					</div>

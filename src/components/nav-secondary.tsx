@@ -32,16 +32,24 @@ const NavSecondary = ({
 		<SidebarGroup {...props}>
 			<SidebarGroupContent>
 				<SidebarMenu>
-					{items.map((item) => (
-						<SidebarMenuItem key={item.title}>
-							<SidebarMenuButton asChild size="sm">
-								<Link href={item.url} onClick={handleNavClick}>
-									<item.icon />
-									<span>{item.title}</span>
-								</Link>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-					))}
+					{items.map((item) => {
+						const isExternal = item.url.startsWith("http");
+
+						return (
+							<SidebarMenuItem key={item.title}>
+								<SidebarMenuButton asChild size="sm">
+									<Link
+										href={item.url}
+										onClick={handleNavClick}
+										{...(isExternal && { target: "_blank", rel: "noopener noreferrer" })}
+									>
+										<item.icon />
+										<span>{item.title}</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						);
+					})}
 				</SidebarMenu>
 			</SidebarGroupContent>
 		</SidebarGroup>
