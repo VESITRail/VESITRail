@@ -28,3 +28,19 @@ export const navigationItems: NavigationItem[] = [
 		href: "/#contact"
 	}
 ];
+
+interface FooterLink {
+	href: string;
+	label: string;
+}
+
+export const footerLinks: FooterLink[] = [
+	{
+		href: "/privacy-policy",
+		label: "Privacy Policy"
+	},
+	{
+		href: "/terms-of-service",
+		label: "Terms of Service"
+	}
+];
