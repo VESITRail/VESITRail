@@ -514,7 +514,7 @@ View your verified records on the profile overview page.
 
 #### Steps
 
-1. In the sidebar, under `navSecondary`, click **Profile** (`/dashboard/student/profile`).
+1. In the sidebar, under the secondary navigation menu (which includes **Profile**, **GitHub**, **Support**, **Feedback**, and **Student Guide**), click **Profile** (`/dashboard/student/profile`).
 2. Review the structured profile cards:
    - **Personal Information:** Full Name (as per Aadhaar), Date of Birth, Gender, Mobile Number, and residential Address.
    - **Academic Information:** Academic Year, Branch, and Classroom Division.

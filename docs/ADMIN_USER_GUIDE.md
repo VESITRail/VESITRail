@@ -102,6 +102,7 @@ Sign in to the system and enter the administrative workspace.
    - **Secondary Navigation**:
      - **Profile** (`/dashboard/admin/profile`)
      - **GitHub**
+     - **Admin Guide** (`https://github.com/VESITRail/VESITRail/blob/main/docs/ADMIN_USER_GUIDE.md`)
      - **Feedback Responses**
 
 #### What Happens Next
