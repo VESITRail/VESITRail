@@ -9,7 +9,7 @@
 - **Location & Folder Structure**:
   All unit tests reside in `tests/unit/` using simple, flat group folders (e.g., `tests/unit/onboarding/`, `tests/unit/admin/`, `tests/unit/notifications/`, `tests/unit/pwa/`, or root `tests/unit/` for standalone utilities). Do NOT create deeply nested mirror paths like `tests/unit/src/lib/validations/...`.
 - **Existing File Modification Rule**:
-  Whenever modifying an existing file that has a corresponding unit test in `tests/unit/`, you MUST update its unit test to reflect the code changes and verify that all tests pass (`pnpm run test`). Never leave existing tests broken or out-of-sync.
+  Whenever modifying an existing file that has a corresponding unit test in `tests/unit/`, you MUST update its unit test to reflect the code changes and verify that all tests pass (`pnpm run test:unit`). Never leave existing tests broken or out-of-sync.
 - **New File Creation Rule**:
   Whenever creating a new file containing pure logic (validations, utilities, helpers, algorithms, transformers, monads), assess if a unit test is required. If yes, create a test under `tests/unit/<group>/<feature>.test.ts` following the exact conventions of existing tests:
   1. Explicit imports from `"vitest"` (`import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"`).
@@ -17,9 +17,30 @@
   3. Keep test files clean with NO comments.
   4. Pure logic only: NEVER touch Prisma, Postgres, Better Auth, or network I/O.
   5. Test both happy paths and edge cases (empty strings, null/undefined, whitespace trimming, boundary values, invalid schemas).
-  6. Always verify changes by running `pnpm run test`, `pnpm run typecheck`, and `pnpm run format:check`.
+  6. Always verify changes by running `pnpm run test:unit`, `pnpm run typecheck`, and `pnpm run format:check`.
 
 <!-- VITEST-DOCS-END -->
+
+<!-- INTEGRATION-TESTING-START -->
+
+## Integration Testing Rules & Workflow
+
+- **Location**: All integration tests reside in `tests/integration/` using flat files (e.g., `tests/integration/auth-guard.test.ts`).
+- **Database**: Integration tests run against a real PostgreSQL test database (`vesitrail_test`).
+- **Authentication**: Uses Better Auth's official `testUtils` plugin configured in `tests/integration/test-auth.ts`. Authenticate via `authenticateAs(userId)` and clear with `unauthenticate()`.
+- **Test Isolation**: Each test file cleans tables in `beforeAll` and `afterAll`. Reference seed data is seeded via `seedReferenceData(prisma)`.
+- **Mocking**: External third-party networks (R2/S3, Firebase FCM, SMTP) are mocked in `tests/integration/setup.ts`. Prisma and Better Auth database interactions are 100% REAL.
+- **Existing Flow Modification Rule**:
+  Whenever modifying an API route (`src/app/api/`), server action (`src/actions/`), auth flow, or database lifecycle with a corresponding integration test in `tests/integration/`, you MUST update the integration test to reflect the behavioral change and verify that tests pass (`pnpm run test:integration`). Never leave integration tests broken or out-of-sync.
+- **New Feature / Flow Creation Rule**:
+  Whenever creating a new API endpoint, server action, or multi-step database workflow, assess if an integration test is required. If yes, create or update a test under `tests/integration/<feature>.test.ts` using real PostgreSQL DB operations and Better Auth `authenticateAs()`.
+- **Commands**:
+  - `pnpm run test:unit` (Unit tests only)
+  - `pnpm run test:integration` (Integration tests only)
+  - `pnpm run test` (All tests: unit and integration)
+- **CI**: Level 1 (`prettier`, `eslint`, `typecheck`, `unit-tests`) must pass before Level 2 (`verify-build` and `integration-tests` in parallel).
+
+<!-- INTEGRATION-TESTING-END -->
 
 <!-- BETTER-AUTH-DOCS-START -->
 

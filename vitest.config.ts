@@ -2,18 +2,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+const cliArgs = process.argv.slice(2);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const isIntegration =
+	cliArgs.includes("integration") ||
+	cliArgs.some((arg) => arg.includes("project=integration")) ||
+	Boolean(process.env.npm_lifecycle_event?.includes("integration"));
+
 export default defineConfig({
-	resolve: {
-		alias: {
-			"@": path.resolve(__dirname, "./src")
-		}
-	},
 	test: {
-		globals: true,
-		environment: "node",
-		include: ["tests/**/*.test.ts"],
+		fileParallelism: false,
 		coverage: {
 			provider: "v8",
 			reportOnFailure: true,
@@ -26,13 +25,48 @@ export default defineConfig({
 				"src/lib/pwa/version-utils.ts",
 				"src/lib/notifications/scenarios.ts"
 			],
-			thresholds: {
-				lines: 80,
-				branches: 80,
-				functions: 80,
-				perFile: true,
-				statements: 80
+			thresholds: isIntegration
+				? undefined
+				: {
+						lines: 80,
+						branches: 80,
+						functions: 80,
+						perFile: true,
+						statements: 80
+					}
+		},
+		projects: [
+			{
+				resolve: {
+					alias: {
+						"@": path.resolve(__dirname, "./src")
+					}
+				},
+				test: {
+					name: "unit",
+					globals: true,
+					environment: "node",
+					include: ["tests/unit/**/*.test.ts"]
+				}
+			},
+			{
+				resolve: {
+					alias: {
+						"@": path.resolve(__dirname, "./src"),
+						"@/lib/auth": path.resolve(__dirname, "./tests/integration/test-auth.ts")
+					}
+				},
+				test: {
+					globals: true,
+					testTimeout: 20000,
+					hookTimeout: 30000,
+					environment: "node",
+					name: "integration",
+					setupFiles: ["tests/integration/setup.ts"],
+					include: ["tests/integration/**/*.test.ts"],
+					globalSetup: ["tests/integration/global-setup.ts"]
+				}
 			}
-		}
+		]
 	}
 });
