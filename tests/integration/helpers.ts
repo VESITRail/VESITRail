@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.test", override: true });
 
 import pg from "pg";
-import { auth } from "@/lib/auth";
+import { auth } from "./test-auth";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 import { setTestHeaders, clearTestHeaders } from "./headers-state";

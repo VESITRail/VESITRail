@@ -51,10 +51,16 @@ export default defineConfig({
 			},
 			{
 				resolve: {
-					alias: {
-						"@": path.resolve(__dirname, "./src"),
-						"@/lib/auth": path.resolve(__dirname, "./tests/integration/test-auth.ts")
-					}
+					alias: [
+						{
+							find: "@/lib/auth",
+							replacement: path.resolve(__dirname, "./tests/integration/test-auth.ts")
+						},
+						{
+							find: "@",
+							replacement: path.resolve(__dirname, "./src")
+						}
+					]
 				},
 				test: {
 					globals: true,
