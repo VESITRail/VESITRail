@@ -26,10 +26,47 @@ jobs:
       - name: Run ESLint
         run: pnpm run lint
 
+  typecheck:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Run TypeScript check
+        run: pnpm run typecheck
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Run unit tests with coverage
+        run: pnpm run test:unit:coverage
+      - name: Report Unit Coverage
+        if: always()
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          name: "Unit Tests Coverage"
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage-report
+          path: coverage/
+          retention-days: 14
+
   verify-build:
     name: Verify Build
     runs-on: ubuntu-latest
-    needs: [prettier, eslint, unit-tests]
+    needs: [prettier, eslint, typecheck, unit-tests]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -45,26 +82,49 @@ jobs:
       - name: Build application
         run: pnpm run build
 
-  unit-tests:
-    name: Unit Tests
+  integration-tests:
+    name: Integration Tests
     runs-on: ubuntu-latest
+    needs: [prettier, eslint, typecheck, unit-tests]
     permissions:
       contents: read
       pull-requests: write
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: vesitrail_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Setup
         uses: ./.github/actions/setup
-      - name: Run unit tests with coverage
-        run: pnpm run test:coverage
-      - name: Report Coverage
+        with:
+          DATABASE_URL: postgresql://test:test@localhost:5432/vesitrail_test
+      - name: Run Prisma migrations
+        run: pnpm exec prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/vesitrail_test
+      - name: Run integration tests with coverage
+        run: pnpm run test:integration:coverage
+      - name: Report Integration Coverage
         if: always()
         uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          name: "Integration Tests Coverage"
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: integration-coverage-report
           path: coverage/
           retention-days: 14

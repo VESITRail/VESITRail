@@ -28,7 +28,7 @@ if [ $status -ne 0 ]; then
 fi
 
 echo "Running unit tests..."
-pnpm run test
+pnpm run test:unit
 status=$?
 
 if [ $status -ne 0 ]; then
