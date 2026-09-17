@@ -50,14 +50,16 @@ jobs:
         uses: ./.github/actions/setup
       - name: Run unit tests with coverage
         run: pnpm run test:unit:coverage
-      - name: Report Coverage
+      - name: Report Unit Coverage
         if: always()
         uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          name: "Unit Tests Coverage"
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: unit-coverage-report
           path: coverage/
           retention-days: 14
 
