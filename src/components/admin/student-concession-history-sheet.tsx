@@ -149,94 +149,79 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 				side="bottom"
 				className="h-[60vh] rounded-t-2xl border-t shadow-2xl flex flex-col p-0 gap-0 overflow-hidden"
 			>
-				<SheetHeader className="px-6 py-4 border-b bg-card flex flex-row items-center justify-between gap-4 shrink-0">
-					<div className="flex items-center gap-3 text-left">
-						<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
-							<History className="size-5" />
+				<SheetHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b bg-card shrink-0">
+					<div className="flex items-center gap-3 text-left min-w-0 pr-8">
+						<div className="size-9 sm:size-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
+							<History className="size-4.5 sm:size-5" />
 						</div>
-						<div>
-							<SheetTitle className="text-lg font-semibold text-foreground">Concession Application History</SheetTitle>
-							<SheetDescription className="text-xs text-muted-foreground mt-0.5">
-								Reviewing concession history for <strong className="text-foreground">{studentFullName}</strong> (
-								{student.user.email})
+						<div className="min-w-0 flex-1">
+							<SheetTitle className="text-base sm:text-lg font-semibold text-foreground truncate">
+								<span className="sm:hidden">Concession History</span>
+								<span className="hidden sm:inline">Concession Application History</span>
+							</SheetTitle>
+							<SheetDescription className="text-xs text-muted-foreground mt-0.5 truncate">
+								<span className="sm:hidden">
+									<strong className="text-foreground font-medium">{studentFullName}</strong>
+									<span className="text-muted-foreground font-normal ml-1.5">({student.mobileNumber || "N/A"})</span>
+								</span>
+								<span className="hidden sm:inline">
+									Reviewing concession history for <strong className="text-foreground">{studentFullName}</strong> (
+									{student.mobileNumber || "N/A"})
+								</span>
 							</SheetDescription>
 						</div>
 					</div>
-
-					{!isLoading && !hasError && history.length > 0 && (
-						<Badge variant="secondary" className="font-medium text-xs px-3 py-1 mr-8">
-							Total: {history.length} {history.length === 1 ? "Application" : "Applications"}
-						</Badge>
-					)}
 				</SheetHeader>
 
-				<div className="flex-1 min-h-0 overflow-hidden flex flex-col p-6 space-y-4">
+				<div className="flex-1 min-h-0 overflow-hidden flex flex-col p-4 sm:p-6 space-y-3 sm:space-y-4">
 					{isLoading ? (
 						<>
 							<div className="flex-1 min-h-0 rounded-lg border bg-card overflow-hidden flex flex-col">
-								<div className="overflow-auto flex-1 min-h-0">
-									<Table>
+								<div className="overflow-auto flex-1 min-h-0 flex flex-col">
+									<Table className="min-w-full h-full">
 										<TableHeader className="sticky top-0 bg-card z-10">
 											<TableRow className="hover:bg-transparent border-border/50">
-												<TableHead className="font-semibold h-12 text-center px-4 w-16">
-													<Skeleton className="h-4 w-12 mx-auto" />
-												</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-4 w-16">
-													<Skeleton className="h-4 w-10 mx-auto" />
-												</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-4 w-20">
-													<Skeleton className="h-4 w-14 mx-auto" />
-												</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-4 w-20">
-													<Skeleton className="h-4 w-14 mx-auto" />
-												</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-4 w-20">
-													<Skeleton className="h-4 w-12 mx-auto" />
-												</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-4 w-20">
-													<Skeleton className="h-4 w-14 mx-auto" />
-												</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-4 w-28">
-													<Skeleton className="h-4 w-20 mx-auto" />
-												</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-4 w-24">
-													<Skeleton className="h-4 w-20 mx-auto" />
-												</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-4 w-32">
-													<Skeleton className="h-4 w-28 mx-auto" />
-												</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-16">Sr. No.</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-16">ID</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-20">Type</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-20">Status</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-20">Class</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-20">Period</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-28">Home Station</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-24">Applied Date</TableHead>
+												<TableHead className="font-semibold h-12 text-center px-3 w-36">Certificate / Reason</TableHead>
 											</TableRow>
 										</TableHeader>
 
 										<TableBody>
 											{Array.from({ length: PAGE_SIZE }).map((_, index) => (
 												<TableRow key={index} className="hover:bg-muted/50 border-border/50">
-													<TableCell className="p-4 text-center">
+													<TableCell className="p-3 text-center">
 														<Skeleton className="h-4 w-6 mx-auto" />
 													</TableCell>
-													<TableCell className="p-4 text-center">
+													<TableCell className="p-3 text-center">
 														<Skeleton className="h-4 w-10 mx-auto" />
 													</TableCell>
-													<TableCell className="p-4 text-center">
-														<Skeleton className="h-6 w-14 rounded-md mx-auto" />
+													<TableCell className="p-3 text-center">
+														<Skeleton className="h-5 w-14 rounded-md mx-auto" />
 													</TableCell>
-													<TableCell className="p-4 text-center">
-														<Skeleton className="h-6 w-16 rounded-full mx-auto" />
+													<TableCell className="p-3 text-center">
+														<Skeleton className="h-5 w-16 rounded-full mx-auto" />
 													</TableCell>
-													<TableCell className="p-4 text-center">
+													<TableCell className="p-3 text-center">
 														<Skeleton className="h-4 w-12 mx-auto" />
 													</TableCell>
-													<TableCell className="p-4 text-center">
+													<TableCell className="p-3 text-center">
 														<Skeleton className="h-4 w-14 mx-auto" />
 													</TableCell>
-													<TableCell className="p-4 text-center">
-														<Skeleton className="h-4 w-24 mx-auto" />
-													</TableCell>
-													<TableCell className="p-4 text-center">
+													<TableCell className="p-3 text-center">
 														<Skeleton className="h-4 w-20 mx-auto" />
 													</TableCell>
-													<TableCell className="p-4 text-center">
-														<Skeleton className="h-4 w-28 mx-auto" />
+													<TableCell className="p-3 text-center">
+														<Skeleton className="h-4 w-16 mx-auto" />
+													</TableCell>
+													<TableCell className="p-3 text-center">
+														<Skeleton className="h-4 w-24 mx-auto" />
 													</TableCell>
 												</TableRow>
 											))}
@@ -263,18 +248,18 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 						</div>
 					) : history.length === 0 ? (
 						<div className="flex-1 min-h-0 rounded-lg border bg-card overflow-hidden flex flex-col">
-							<Table>
+							<Table className="min-w-full">
 								<TableHeader className="bg-card">
 									<TableRow className="hover:bg-transparent border-border/50">
-										<TableHead className="font-semibold h-12 text-center px-4">Sr. No.</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-4">ID</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-4">Type</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-4">Status</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-4">Class</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-4">Period</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-4">Home Station</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-4">Applied Date</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-4">Certificate / Reason</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-16">Sr. No.</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-16">ID</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-20">Type</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-20">Status</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-20">Class</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-20">Period</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-28">Home Station</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-24">Applied Date</TableHead>
+										<TableHead className="font-semibold h-12 text-center px-3 w-36">Certificate / Reason</TableHead>
 									</TableRow>
 								</TableHeader>
 							</Table>
