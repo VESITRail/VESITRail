@@ -657,10 +657,11 @@ Inspect application volume and review statistics across different time periods.
 #### Steps
 
 1. In the sidebar under **Management**, click **Analytics** (`/dashboard/admin/analytics`).
-2. Observe the three summary metric cards:
+2. Observe the four summary metric cards:
    - **Students Reviewed**: Total student onboarding registrations audited.
    - **Address Changes**: Total address modification requests processed.
    - **Applications Reviewed**: Total concession requests reviewed.
+   - **Total Contribution**: Sum of all student onboarding registrations, address changes, and applications reviewed.
 3. Use the **Time Range** dropdown in the top right to filter metrics:
    - **Last 1 Month** (default)
    - **Last 3 Months**
