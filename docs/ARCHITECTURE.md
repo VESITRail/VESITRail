@@ -17,20 +17,21 @@ To provide a secure, automated, and auditable digital platform managing end-to-e
 
 ### System Specifications & Key Metrics
 
-| Dimension                     | Specification                                                                                           |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------ |
-| **Framework**                 | Next.js 16 (`16.3.2`) with App Router & Server Actions                                                  |
-| **UI Library & Runtime**      | React 19 (`^19.2.7`), TypeScript 6 (`6.0.3`), Node.js `24.x`, pnpm `11.21`                              |
-| **Database & ORM**            | PostgreSQL with Prisma ORM (`^7.2.0`), `@prisma/adapter-pg` driver adapter & `pg` connection pooling    |
-| **Type & Runtime Validation** | Zod (`^4.4.3`) with `zod-prisma-types` auto-generation                                                  |
-| **Authentication**            | Better Auth (`^1.6.28`) with Google OAuth 2.0 (strictly restricted to `@ves.ac.in` domain)              |
-| **Styling & UI System**       | Tailwind CSS v4, Radix UI primitives, shadcn/ui, Lucide Icons, Sonner                                   |
-| **PWA & Offline**             | Serwist (`^9.5.11`) with custom Service Worker caching strategies                                       |
-| **File Storage**              | Cloudflare R2 via AWS SDK S3 Client (`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`)             |
-| **Document Generation**       | jsPDF (`^4.2.1`), jsPDF-AutoTable (`^5.0.8`), pdf-lib (`^1.17.1`)                                       |
-| **Notifications**             | Firebase Cloud Messaging (Firebase Admin SDK `^14.2.0` / Client `^12.17.1`), Nodemailer SMTP, In-App DB |
-| **Observability & Telemetry** | PostHog (`posthog-js`, `posthog-node`) via reverse proxy `/ingest` rewrites                             |
-| **Code Quality & Formatting** | ESLint 9, Prettier                                                                                      |
+| Dimension                       | Specification                                                                                                                                    |
+| :------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Framework**                   | Next.js 16 (`16.3.2`) with App Router & Server Actions                                                                                           |
+| **UI Library & Runtime**        | React 19 (`^19.2.7`), TypeScript 6 (`6.0.3`), Node.js `24.x`, pnpm `11.21`                                                                       |
+| **Database & ORM**              | PostgreSQL with Prisma ORM (`^7.2.0`), `@prisma/adapter-pg` driver adapter & `pg` connection pooling                                             |
+| **Type & Runtime Validation**   | Zod (`^4.4.3`) with `zod-prisma-types` auto-generation                                                                                           |
+| **Authentication**              | Better Auth (`^1.6.28`) with Google OAuth 2.0 (strictly restricted to `@ves.ac.in` domain)                                                       |
+| **Styling & UI System**         | Tailwind CSS v4, Radix UI primitives, shadcn/ui, Lucide Icons, Sonner                                                                            |
+| **PWA & Offline**               | Serwist (`^9.5.11`) with custom Service Worker caching strategies                                                                                |
+| **File Storage**                | Cloudflare R2 via AWS SDK S3 Client (`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`)                                                      |
+| **Document Generation**         | jsPDF (`^4.2.1`), jsPDF-AutoTable (`^5.0.8`), pdf-lib (`^1.17.1`)                                                                                |
+| **Notifications**               | Firebase Cloud Messaging (Firebase Admin SDK `^14.2.0` / Client `^12.17.1`), Nodemailer SMTP, In-App DB                                          |
+| **Observability & Telemetry**   | PostHog (`posthog-js`, `posthog-node`) via reverse proxy `/ingest` rewrites                                                                      |
+| **Testing & Quality Assurance** | Vitest (`^3.2.7`) multi-project workspace (`unit` & `integration`), `@vitest/coverage-v8`, Better Auth `testUtils`, PostgreSQL 18 test container |
+| **Code Quality & Formatting**   | ESLint 9, Prettier                                                                                                                               |
 
 ---
 
@@ -415,18 +416,105 @@ Powered by **Serwist** (`@serwist/next`, `@serwist/sw`) in `src/sw.ts`, the PWA 
 ### Development Workflow
 
 ```bash
-# 1. Install dependencies
+# 1. Install dependencies (runs postinstall generation scripts)
 pnpm install --frozen-lockfile
 
-# 2. Synchronize database schema and generate Prisma/Zod artifacts
+# 2. Synchronize database schema and apply migrations
 pnpm exec prisma generate
-pnpm exec prisma db push
+pnpm exec prisma migrate dev
 
 # 3. Start local development server
 pnpm dev
 ```
 
+### Testing Architecture & Quality Engineering
+
+VESITRail enforces a strict, two-tier testing methodology powered by **Vitest** (`^3.2.7`) with workspace project isolation:
+
+```mermaid
+flowchart TD
+    subgraph TestSuites["Test Suites"]
+        UnitTests["Unit Tests (tests/unit/)<br/>• Pure Business Logic<br/>• Zod Validations<br/>• Result Monad<br/>• PWA & Date Utilities"]
+        IntegrationTests["Integration Tests (tests/integration/)<br/>• Real PostgreSQL Database<br/>• Better Auth Test Harness<br/>• API Route Handlers<br/>• Server Action Lifecycles"]
+    end
+
+    subgraph CILevel1["Level 1: Fast Static & Unit Verification"]
+        L1Prettier["Prettier Check"]
+        L1ESLint["ESLint Check"]
+        L1Typecheck["TypeScript Check (tsc --noEmit)"]
+        L1Unit["Unit Tests with Coverage"]
+    end
+
+    subgraph CILevel2["Level 2: Parallel Build & Integration"]
+        L2Build["Verify Build (next build --webpack)"]
+        L2Integration["Integration Tests (PostgreSQL 18 Container + Prisma Migrate Deploy)"]
+    end
+
+    UnitTests --> CILevel1
+    IntegrationTests --> CILevel2
+    CILevel1 -->|All Pass| CILevel2
+```
+
+#### 1. Dual-Tier Testing Strategy
+
+- **Unit Testing (`tests/unit/`)**:
+  - Tests pure business logic and algorithms with **zero** external database, network, or auth dependencies.
+  - Covers onboarding and admin validation schemas (`tests/unit/onboarding/`, `tests/unit/admin/`), Result monad utilities (`tests/unit/result.test.ts`), general string/date utilities (`tests/unit/utils.test.ts`), PWA version comparison helpers (`tests/unit/pwa/`), and notification scenario generators (`tests/unit/notifications/`).
+  - Enforces strict $\ge 80\%$ statement and branch coverage with per-file thresholds.
+- **Integration Testing (`tests/integration/`)**:
+  - Validates end-to-end database transactions, multi-step API routes (`src/app/api/*`), and Server Actions (`src/actions/*`) against a real PostgreSQL 18 test database (`vesitrail_test`).
+  - Covers unauthenticated/unauthorized API guard enforcement (`auth-guard.test.ts`, `check-role.test.ts`), student onboarding persistence (`onboarding.test.ts`), concession applications and renewals (`concession.test.ts`, `concession-actions.test.ts`), booklet allocation and page offsets (`booklets.test.ts`), student profiles and queries (`student.test.ts`), address changes (`change-address.test.ts`), and user settings (`settings.test.ts`).
+
+#### 2. Better Auth Test Harness (`tests/integration/test-auth.ts`)
+
+- Utilizes Better Auth's official `testUtils()` plugin to create and manage test sessions without external OAuth redirects:
+  - `authenticateAs(userId)` — Programmatically logs in as a given user and stores session cookies.
+  - `unauthenticate()` — Clears active test cookies to simulate unauthenticated requests.
+  - `createTestUser`, `createTestAdmin`, `createTestStudent` — Seed authenticated personas with unique timestamps.
+- Forwarding session headers via `tests/integration/headers-state.ts` to mock `next/headers` while executing server actions and API route handlers.
+
+#### 3. Isolation & Mock Boundaries
+
+- **Database**: 100% real PostgreSQL database operations. Each test file cleans its tables in `beforeAll` and `afterAll`, and seeds static reference data (`seedReferenceData`) for railway branches, stations, and concession periods.
+- **External Networks**: Third-party cloud providers are mocked in `tests/integration/setup.ts`:
+  - **Cloudflare R2**: `@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner` mocked with simulated pre-signed URLs.
+  - **Firebase FCM**: `firebase-admin/messaging` mocked to return successful multicast dispatch IDs without network calls.
+  - **SMTP Relay**: `nodemailer` transport mocked to prevent real email transmission during testing.
+
+#### 4. Continuous Integration (CI) Pipeline Architecture
+
+Configured in `.github/workflows/ci.yml`, the pipeline runs on every pull request targeting `main`:
+
+| Stage       | Job                 | Description                                                                                                                              | Triggers / Dependencies                                                  |
+| :---------- | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------- |
+| **Level 1** | `Prettier Check`    | Verifies code formatting with `prettier . --check`                                                                                       | Runs on PR open/synchronize                                              |
+| **Level 1** | `ESLint Check`      | Analyzes code for lint errors and best practices                                                                                         | Runs on PR open/synchronize                                              |
+| **Level 1** | `TypeScript Check`  | Validates type safety across the application with `tsc --noEmit`                                                                         | Runs on PR open/synchronize                                              |
+| **Level 1** | `Unit Tests`        | Executes unit tests with V8 coverage; uploads coverage artifact and posts PR comment                                                     | Runs on PR open/synchronize                                              |
+| **Level 2** | `Verify Build`      | Validates production compilation with `next build --webpack` using build cache                                                           | Depends on all Level 1 jobs passing                                      |
+| **Level 2** | `Integration Tests` | Spins up a PostgreSQL 18 service container, runs `prisma migrate deploy`, executes integration tests with coverage, and posts PR comment | Depends on all Level 1 jobs passing (runs in parallel with Verify Build) |
+
+#### 5. Test Execution Commands
+
+```bash
+# Unit Testing
+pnpm run test:unit            # Run all unit tests
+pnpm run test:unit:watch      # Run unit tests in watch mode
+pnpm run test:unit:coverage   # Run unit tests with V8 coverage report
+
+# Integration Testing (requires running PostgreSQL test database)
+pnpm run test:integration          # Run all integration tests
+pnpm run test:integration:watch    # Run integration tests in watch mode
+pnpm run test:integration:coverage # Run integration tests with coverage report
+
+# Comprehensive Testing & Verification
+pnpm run test                 # Run both unit and integration test suites
+pnpm run typecheck            # Run TypeScript type check
+pnpm run lint                 # Run ESLint validation
+pnpm run format:check         # Verify Prettier code formatting
+```
+
 ---
 
-**Document Version**: 2.0  
+**Document Version**: 2.1  
 **Maintained By**: VESITRail Core Architecture Team

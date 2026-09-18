@@ -293,13 +293,17 @@ export const getAllApplications = async (
 			whereClause.applicationType = params.typeFilter;
 		}
 
+		let searchedShortId: number | null = null;
+
 		if (params.searchQuery && params.searchQuery.trim()) {
 			const searchTerm = params.searchQuery.trim();
-			const isNumeric = /^\d+$/.test(searchTerm);
+			const normalizedTerm = searchTerm.replace(/^#\s*/, "");
+			const isNumericId = /^\d+$/.test(normalizedTerm);
 			const words = searchTerm.split(/\s+/).filter(Boolean);
 			const cleanDigits = searchTerm.replace(/\D/g, "");
 			const normalizedDigits =
 				cleanDigits.length === 12 && cleanDigits.startsWith("91") ? cleanDigits.slice(2) : cleanDigits;
+			const isFullMobileNumber = normalizedDigits.length === 10;
 
 			const orConditions: Prisma.ConcessionApplicationWhereInput[] = [
 				{ station: { name: { contains: searchTerm, mode: "insensitive" } } },
@@ -307,7 +311,6 @@ export const getAllApplications = async (
 				{ student: { lastName: { contains: searchTerm, mode: "insensitive" } } },
 				{ student: { firstName: { contains: searchTerm, mode: "insensitive" } } },
 				{ student: { middleName: { contains: searchTerm, mode: "insensitive" } } },
-				{ student: { mobileNumber: { contains: searchTerm, mode: "insensitive" } } },
 				{ concessionClass: { name: { contains: searchTerm, mode: "insensitive" } } },
 				{ concessionClass: { code: { contains: searchTerm, mode: "insensitive" } } },
 				{ concessionPeriod: { name: { contains: searchTerm, mode: "insensitive" } } },
@@ -316,11 +319,15 @@ export const getAllApplications = async (
 				{ student: { class: { code: { contains: searchTerm, mode: "insensitive" } } } }
 			];
 
-			if (isNumeric) {
-				orConditions.push({ shortId: parseInt(searchTerm, 10) });
+			if (isNumericId && !isFullMobileNumber) {
+				const shortIdNum = parseInt(normalizedTerm, 10);
+				if (shortIdNum > 0 && shortIdNum <= 2147483647) {
+					searchedShortId = shortIdNum;
+					orConditions.push({ shortId: shortIdNum });
+				}
 			}
 
-			if (normalizedDigits.length >= 3) {
+			if (isFullMobileNumber) {
 				orConditions.push({
 					student: {
 						mobileNumber: { contains: normalizedDigits, mode: "insensitive" }
@@ -345,7 +352,9 @@ export const getAllApplications = async (
 				orConditions.push({
 					AND: words.map((rawWord) => {
 						const word = rawWord.replace(/[(),]/g, "").trim() || rawWord;
+						const wordNormalized = word.replace(/^#\s*/, "");
 						const wordDigits = word.replace(/\D/g, "");
+						const isWordNumeric = /^\d+$/.test(wordNormalized);
 
 						const fieldConditions: Prisma.ConcessionApplicationWhereInput[] = [
 							{ station: { name: { contains: word, mode: "insensitive" } } },
@@ -361,16 +370,17 @@ export const getAllApplications = async (
 							{ student: { class: { code: { contains: word, mode: "insensitive" } } } }
 						];
 
-						if (wordDigits.length >= 3) {
+						if (isWordNumeric) {
+							const wordShortId = parseInt(wordNormalized, 10);
+							if (wordShortId > 0 && wordShortId <= 2147483647) {
+								fieldConditions.push({ shortId: wordShortId });
+							}
+						}
+
+						if (wordDigits.length === 10) {
 							fieldConditions.push({
 								student: {
 									mobileNumber: { contains: wordDigits, mode: "insensitive" }
-								}
-							});
-						} else {
-							fieldConditions.push({
-								student: {
-									mobileNumber: { contains: word, mode: "insensitive" }
 								}
 							});
 						}
@@ -460,6 +470,13 @@ export const getAllApplications = async (
 		};
 
 		const sortedApplications = applications.sort((a, b) => {
+			if (searchedShortId !== null) {
+				const aIsExact = a.shortId === searchedShortId;
+				const bIsExact = b.shortId === searchedShortId;
+				if (aIsExact && !bIsExact) return -1;
+				if (!aIsExact && bIsExact) return 1;
+			}
+
 			const rankA = getStatusRank(a.status);
 			const rankB = getStatusRank(b.status);
 

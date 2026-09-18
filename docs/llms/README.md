@@ -28,10 +28,10 @@ docs/llms/
 
 ## Active Documentation Catalog
 
-| Tool / Library  | Location                                         | Scope                                                                                                                    | Last Synced |
-| :-------------- | :----------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- | :---------- |
-| **Better Auth** | [`better-auth/llms.txt`](./better-auth/llms.txt) | Server/client authentication setup, Prisma adapter, Next.js App Router route handlers, session guards, and Google OAuth. | 2026-09-15  |
-| **Vitest**      | [`vitest/llms.txt`](./vitest/llms.txt)           | Unit testing configuration, matchers, timer mocks (`vi.useFakeTimers`), spies (`vi.fn`), and runner APIs.                | 2026-09-15  |
+| Tool / Library  | Location                                         | Scope                                                                                                                                                            | Last Synced |
+| :-------------- | :----------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------- |
+| **Better Auth** | [`better-auth/llms.txt`](./better-auth/llms.txt) | Server/client authentication setup, Prisma adapter, Next.js App Router route handlers, session guards, and Google OAuth.                                         | 2026-09-15  |
+| **Vitest**      | [`vitest/llms.txt`](./vitest/llms.txt)           | Unit and integration testing configuration, multi-project workspaces (unit vs integration), Better Auth testUtils harness, coverage thresholds, and runner APIs. | 2026-09-17  |
 
 > Keep a **Last Synced** date on every row. If a file hasn't been refreshed in 3+ months, or the tool has had a major version bump since, treat its contents as suspect and re-verify before trusting it for anything version-sensitive.
 

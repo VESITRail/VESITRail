@@ -15,6 +15,8 @@
 - [ ] PWA & Offline Support
 - [ ] Database & Server Actions
 - [ ] UI / Styling
+- [ ] Testing
+- [ ] Other
 
 ## Screenshots or Recordings (if applicable)
 

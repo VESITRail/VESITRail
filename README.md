@@ -90,6 +90,13 @@ _A modern web application for VESIT students to apply for and manage railway con
       <img src="https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black" alt="Firebase">
     </td>
   </tr>
+  <tr>
+    <td><strong>Testing</strong></td>
+    <td>
+      <img src="https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest">
+      <img src="https://img.shields.io/badge/Better%20Auth%20Test%20Utils-FF6B6B?logoColor=white" alt="Better Auth Test Utils">
+    </td>
+  </tr>
 </table>
 
 ---
@@ -98,8 +105,9 @@ _A modern web application for VESIT students to apply for and manage railway con
 
 ### Prerequisites
 
-- PostgreSQL database
+- PostgreSQL database (PostgreSQL 18 recommended)
 - Node.js 18+ and pnpm
+- Docker (optional, for running local PostgreSQL 18 test database)
 - Google OAuth credentials
 - Cloudflare R2 bucket (for file storage)
 - Firebase project (for push notifications)
@@ -129,9 +137,11 @@ _A modern web application for VESIT students to apply for and manage railway con
 
 4. **Database Setup**
 
+   Apply migrations and generate Prisma client artifacts:
+
    ```bash
    pnpm exec prisma generate
-   pnpm exec prisma db push
+   pnpm exec prisma migrate dev
    ```
 
 5. **Run the development server**
@@ -146,9 +156,50 @@ _A modern web application for VESIT students to apply for and manage railway con
 
 ---
 
+## Testing & Quality Assurance
+
+VESITRail enforces a strict, two-tier testing suite powered by **Vitest** and **Better Auth Test Utils**:
+
+### Test Commands
+
+```bash
+# Run unit tests (pure business logic, validations, Result monad)
+pnpm run test:unit
+
+# Run integration tests (real PostgreSQL database, API routes, server actions)
+pnpm run test:integration
+
+# Run all test suites
+pnpm run test
+
+# Run tests with V8 coverage reports
+pnpm run test:unit:coverage
+pnpm run test:integration:coverage
+```
+
+### Static Analysis & Verification
+
+```bash
+# TypeScript type validation
+pnpm run typecheck
+
+# ESLint code checks
+pnpm run lint
+
+# Prettier format verification
+pnpm run format:check
+```
+
+---
+
 ## Documentation
 
-For detailed architectural information, system design, and technical specifications, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Comprehensive guides and technical documentation are available in the [`docs/`](docs/) directory:
+
+- **[System Architecture](docs/ARCHITECTURE.md)** — In-depth architectural design, data models, security, and subsystem specifications.
+- **[Student User Guide](docs/STUDENT_USER_GUIDE.md)** — Step-by-step handbook for students covering onboarding, pass application, renewals, and address updates.
+- **[Admin User Guide](docs/ADMIN_USER_GUIDE.md)** — Operational handbook for administrators covering application review, booklet management, and calibration.
+- **[LLM Reference Docs](docs/llms/README.md)** — Curated indexes for AI coding assistants working on Better Auth and Vitest.
 
 ### Key Features Overview
 
