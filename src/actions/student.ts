@@ -172,7 +172,6 @@ export const getStudents = async (
 				{ lastName: { contains: searchTerm, mode: "insensitive" } },
 				{ firstName: { contains: searchTerm, mode: "insensitive" } },
 				{ middleName: { contains: searchTerm, mode: "insensitive" } },
-				{ mobileNumber: { contains: searchTerm, mode: "insensitive" } },
 				{ user: { name: { contains: searchTerm, mode: "insensitive" } } },
 				{ user: { email: { contains: searchTerm, mode: "insensitive" } } },
 				{ class: { code: { contains: searchTerm, mode: "insensitive" } } },
@@ -180,7 +179,7 @@ export const getStudents = async (
 				{ station: { code: { contains: searchTerm, mode: "insensitive" } } }
 			];
 
-			if (normalizedDigits.length >= 3) {
+			if (normalizedDigits.length === 10) {
 				orConditions.push({
 					mobileNumber: { contains: normalizedDigits, mode: "insensitive" }
 				});
@@ -215,13 +214,9 @@ export const getStudents = async (
 							{ station: { code: { contains: word, mode: "insensitive" } } }
 						];
 
-						if (wordDigits.length >= 3) {
+						if (wordDigits.length === 10) {
 							fieldConditions.push({
 								mobileNumber: { contains: wordDigits, mode: "insensitive" }
-							});
-						} else {
-							fieldConditions.push({
-								mobileNumber: { contains: word, mode: "insensitive" }
 							});
 						}
 

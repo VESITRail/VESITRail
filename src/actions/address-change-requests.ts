@@ -128,13 +128,12 @@ export const getAddressChangeRequests = async (
 				{ student: { middleName: { contains: searchTerm, mode: "insensitive" } } },
 				{ currentStation: { name: { contains: searchTerm, mode: "insensitive" } } },
 				{ currentStation: { code: { contains: searchTerm, mode: "insensitive" } } },
-				{ student: { mobileNumber: { contains: searchTerm, mode: "insensitive" } } },
 				{ student: { user: { name: { contains: searchTerm, mode: "insensitive" } } } },
 				{ student: { user: { email: { contains: searchTerm, mode: "insensitive" } } } },
 				{ student: { class: { code: { contains: searchTerm, mode: "insensitive" } } } }
 			];
 
-			if (normalizedDigits.length >= 3) {
+			if (normalizedDigits.length === 10) {
 				orConditions.push({
 					student: {
 						mobileNumber: { contains: normalizedDigits, mode: "insensitive" }
@@ -176,16 +175,10 @@ export const getAddressChangeRequests = async (
 							{ student: { class: { code: { contains: word, mode: "insensitive" } } } }
 						];
 
-						if (wordDigits.length >= 3) {
+						if (wordDigits.length === 10) {
 							fieldConditions.push({
 								student: {
 									mobileNumber: { contains: wordDigits, mode: "insensitive" }
-								}
-							});
-						} else {
-							fieldConditions.push({
-								student: {
-									mobileNumber: { contains: word, mode: "insensitive" }
 								}
 							});
 						}
