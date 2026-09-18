@@ -1,0 +1,172 @@
+# GitHub Actions PR Labeler configuration
+# Docs: https://github.com/actions/labeler
+
+changed-files-labels-limit: 10
+max-files-changed: 250
+
+# Branch-based labels
+feature:
+  - head-branch: ["^feature/", "^feat/"]
+
+bug:
+  - head-branch: ["^fix/", "^bugfix/", "^hotfix/"]
+
+performance:
+  - head-branch: ["^perf/"]
+
+# Branch or changed-file labels
+documentation:
+  - any:
+      - head-branch: ["^docs/", "^doc/"]
+      - changed-files:
+          - any-glob-to-any-file:
+              - "docs/**"
+              - "*.md"
+              - ".github/**/*.md"
+              - "LICENSE"
+
+dependencies:
+  - any:
+      - head-branch: ["^deps/", "^dependencies/", "^dependabot/", "^renovate/"]
+      - changed-files:
+          - any-glob-to-any-file:
+              - "package.json"
+              - "pnpm-lock.yaml"
+              - "pnpm-workspace.yaml"
+              - ".npmrc"
+              - ".github/dependabot.yml"
+              - "tsconfig.json"
+              - "eslint.config.mjs"
+              - "next.config.ts"
+              - "instrumentation-client.ts"
+              - ".prettierrc"
+              - ".prettierignore"
+              - ".husky/**"
+              - ".releaserc.json"
+              - ".gitignore"
+              - ".env.example"
+              - ".env.test"
+
+testing:
+  - any:
+      - head-branch: ["^test/", "^tests/"]
+      - changed-files:
+          - any-glob-to-any-file:
+              - "tests/**"
+              - "vitest.config.ts"
+
+# Changed-file path labels
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/actions/**"
+          - "src/app/api/**"
+          - "src/lib/**"
+          - "src/proxy.ts"
+          - "src/types/**"
+          - "prisma/**"
+          - "prisma.config.ts"
+          - "scripts/**"
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/app/**"
+          - "src/components/**"
+          - "src/hooks/**"
+          - "src/config/**"
+          - "src/types/**"
+          - "public/**"
+
+admin-dashboard:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/app/(routes)/dashboard/admin/**"
+          - "src/components/admin/**"
+          - "src/actions/booklets.ts"
+          - "src/actions/analytics.ts"
+          - "src/actions/settings.ts"
+          - "src/actions/address-change-requests.ts"
+          - "tests/unit/admin/**"
+          - "tests/integration/booklets.test.ts"
+          - "tests/integration/settings.test.ts"
+
+student-portal:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/app/(routes)/dashboard/student/**"
+          - "src/app/(routes)/onboarding/**"
+          - "src/components/student/**"
+          - "src/components/onboarding/**"
+          - "src/actions/student.ts"
+          - "src/actions/onboarding.ts"
+          - "src/actions/change-address.ts"
+          - "src/actions/update-mobile.ts"
+          - "src/actions/profile.ts"
+          - "tests/unit/student/**"
+          - "tests/unit/onboarding/**"
+          - "tests/integration/student.test.ts"
+          - "tests/integration/onboarding.test.ts"
+          - "tests/integration/change-address.test.ts"
+
+ui:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/components/ui/**"
+          - "src/app/globals.css"
+          - "components.json"
+          - "postcss.config.mjs"
+          - "public/icons/**"
+
+github-actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+
+notifications:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lib/notifications/**"
+          - "src/actions/notifications.ts"
+          - "src/actions/fcm.ts"
+          - "tests/unit/notifications/**"
+          - "tests/integration/notifications.test.ts"
+
+pdf:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lib/pdf/**"
+          - "src/lib/print-pdf.ts"
+          - "src/components/pdf/**"
+          - "src/actions/generate-booklet-pdf.ts"
+          - "src/actions/generate-overlay-pdf.ts"
+          - "src/actions/generate-sample-overlay-pdf.ts"
+          - "tests/unit/pdf/**"
+
+service-worker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/sw.ts"
+          - "src/app/sw.ts"
+          - "src/lib/pwa/**"
+          - "src/components/pwa/**"
+          - "src/lib/pwa-initializer.tsx"
+          - "src/app/manifest.ts"
+          - "public/firebase-messaging-sw.js"
+          - "tests/unit/pwa/**"
+
+firebase:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lib/firebase/**"
+          - "src/config/firebase.ts"
+          - "src/actions/fcm.ts"
+          - "public/firebase-messaging-sw.js"
+
+cloudflare-r2:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lib/r2/**"
+          - "src/actions/r2.ts"
+          - "tests/integration/r2.test.ts"
