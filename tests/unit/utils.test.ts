@@ -1,4 +1,5 @@
 import {
+	cn,
 	toTitleCase,
 	normalizeDob,
 	calcAgeFromDob,
@@ -19,6 +20,25 @@ import {
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 describe("Utility Functions (src/lib/utils.ts)", () => {
+	describe("cn", () => {
+		it("merges string class names", () => {
+			expect(cn("foo", "bar")).toBe("foo bar");
+		});
+
+		it("handles falsy, null, and undefined values", () => {
+			expect(cn("foo", null, undefined, false, "", "bar")).toBe("foo bar");
+		});
+
+		it("handles object syntax for conditional classes", () => {
+			expect(cn({ active: true, disabled: false })).toBe("active");
+		});
+
+		it("resolves Tailwind conflicts favoring later classes", () => {
+			expect(cn("p-4", "p-6")).toBe("p-6");
+			expect(cn("text-red-500", "text-blue-500")).toBe("text-blue-500");
+		});
+	});
+
 	describe("normalizeDob", () => {
 		it("returns null for null, undefined, or empty string", () => {
 			expect(normalizeDob(null)).toBeNull();
@@ -49,6 +69,13 @@ describe("Utility Functions (src/lib/utils.ts)", () => {
 			const res = normalizeDob(iso);
 			expect(res).not.toBeNull();
 			expect(res?.getDate()).toBe(16);
+		});
+
+		it("handles UTC timezone offsets < 12 hours correctly", () => {
+			const iso = "2000-06-15T04:30:00.000Z";
+			const res = normalizeDob(iso);
+			expect(res).not.toBeNull();
+			expect(res?.getDate()).toBe(15);
 		});
 	});
 

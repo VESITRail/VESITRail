@@ -170,6 +170,13 @@ describe("Result Monad", () => {
 			});
 			expect(res).toEqual(failure("async explode"));
 		});
+
+		it("converts thrown non-Error string in mapper to failure", async () => {
+			const res = await mapAsync(success(1), async () => {
+				throw "async raw string error";
+			});
+			expect(res).toEqual(failure("async raw string error"));
+		});
 	});
 
 	describe("chainAsync", () => {
@@ -236,6 +243,13 @@ describe("Result Monad", () => {
 				throw new Error("async crash");
 			});
 			expect(res).toEqual(failure("async crash"));
+		});
+
+		it("attemptAsync captures async thrown non-Error string", async () => {
+			const res = await attemptAsync(async () => {
+				throw "async raw string crash";
+			});
+			expect(res).toEqual(failure("async raw string crash"));
 		});
 	});
 
