@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import AnalyticsTable from "@/components/admin/analytics-table";
-import { Users, MapPin, FileText, Calendar, Printer, Loader2 } from "lucide-react";
+import { Users, MapPin, FileText, Calendar, Printer, Loader2, BarChart3 } from "lucide-react";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 
 const TIME_RANGE_OPTIONS: { label: string; value: TimeRangeFilter }[] = [
@@ -186,19 +186,21 @@ const AdminAnalyticsPage = () => {
 
 			<Separator className="shrink-0" />
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
-				<Card className="hover:shadow-md transition-shadow">
-					<CardContent className="px-4">
-						<div className="flex items-center gap-3">
-							<div className="size-11 bg-primary/20 rounded-lg flex items-center justify-center">
-								<Users className="size-5.5" />
+			<div className="grid grid-cols-4 gap-1.5 sm:gap-2 md:gap-4 shrink-0">
+				<Card className="hover:shadow-md transition-shadow py-2 sm:py-2.5 md:py-6" title="Students Reviewed">
+					<CardContent className="px-1.5 sm:px-2 md:px-4">
+						<div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-1.5 md:gap-3">
+							<div className="size-7 sm:size-8 md:size-11 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
+								<Users className="size-3.5 sm:size-4 md:size-5.5" />
 							</div>
-							<div className="flex-1 min-w-0">
-								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Students Reviewed</p>
+							<div className="w-full min-w-0 flex flex-col items-center md:items-start text-center md:text-left md:flex-1">
+								<p className="hidden md:block text-xs font-medium text-muted-foreground uppercase tracking-wide">
+									Students Reviewed
+								</p>
 								{isLoading ? (
-									<Skeleton className="h-6 w-16 mt-1" />
+									<Skeleton className="h-4 sm:h-5 md:h-6 w-10 sm:w-12 md:w-16 md:mt-1" />
 								) : (
-									<p className="text-xl font-bold text-foreground">
+									<p className="text-sm sm:text-base md:text-xl font-bold leading-tight md:leading-normal text-foreground truncate max-w-full">
 										{analyticsData.combinedStats.studentsReviewedCount.toLocaleString()}
 									</p>
 								)}
@@ -207,18 +209,20 @@ const AdminAnalyticsPage = () => {
 					</CardContent>
 				</Card>
 
-				<Card className="hover:shadow-md transition-shadow">
-					<CardContent className="px-4">
-						<div className="flex items-center gap-3">
-							<div className="size-11 bg-primary/20 rounded-lg flex items-center justify-center">
-								<MapPin className="size-5.5" />
+				<Card className="hover:shadow-md transition-shadow py-2 sm:py-2.5 md:py-6" title="Address Changes">
+					<CardContent className="px-1.5 sm:px-2 md:px-4">
+						<div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-1.5 md:gap-3">
+							<div className="size-7 sm:size-8 md:size-11 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
+								<MapPin className="size-3.5 sm:size-4 md:size-5.5" />
 							</div>
-							<div className="flex-1 min-w-0">
-								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Address Changes</p>
+							<div className="w-full min-w-0 flex flex-col items-center md:items-start text-center md:text-left md:flex-1">
+								<p className="hidden md:block text-xs font-medium text-muted-foreground uppercase tracking-wide">
+									Address Changes
+								</p>
 								{isLoading ? (
-									<Skeleton className="h-6 w-12 mt-1" />
+									<Skeleton className="h-4 sm:h-5 md:h-6 w-10 sm:w-12 md:w-16 md:mt-1" />
 								) : (
-									<p className="text-xl font-bold text-foreground">
+									<p className="text-sm sm:text-base md:text-xl font-bold leading-tight md:leading-normal text-foreground truncate max-w-full">
 										{analyticsData.combinedStats.addressChangesCount.toLocaleString()}
 									</p>
 								)}
@@ -227,21 +231,43 @@ const AdminAnalyticsPage = () => {
 					</CardContent>
 				</Card>
 
-				<Card className="hover:shadow-md transition-shadow">
-					<CardContent className="px-4">
-						<div className="flex items-center gap-3">
-							<div className="size-11 bg-primary/20 rounded-lg flex items-center justify-center">
-								<FileText className="size-5.5" />
+				<Card className="hover:shadow-md transition-shadow py-2 sm:py-2.5 md:py-6" title="Applications Reviewed">
+					<CardContent className="px-1.5 sm:px-2 md:px-4">
+						<div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-1.5 md:gap-3">
+							<div className="size-7 sm:size-8 md:size-11 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
+								<FileText className="size-3.5 sm:size-4 md:size-5.5" />
 							</div>
-							<div className="flex-1 min-w-0">
-								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+							<div className="w-full min-w-0 flex flex-col items-center md:items-start text-center md:text-left md:flex-1">
+								<p className="hidden md:block text-xs font-medium text-muted-foreground uppercase tracking-wide">
 									Applications Reviewed
 								</p>
 								{isLoading ? (
-									<Skeleton className="h-6 w-14 mt-1" />
+									<Skeleton className="h-4 sm:h-5 md:h-6 w-10 sm:w-12 md:w-16 md:mt-1" />
 								) : (
-									<p className="text-xl font-bold text-foreground">
+									<p className="text-sm sm:text-base md:text-xl font-bold leading-tight md:leading-normal text-foreground truncate max-w-full">
 										{analyticsData.combinedStats.applicationsCount.toLocaleString()}
+									</p>
+								)}
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card className="hover:shadow-md transition-shadow py-2 sm:py-2.5 md:py-6" title="Total Contribution">
+					<CardContent className="px-1.5 sm:px-2 md:px-4">
+						<div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-1.5 md:gap-3">
+							<div className="size-7 sm:size-8 md:size-11 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
+								<BarChart3 className="size-3.5 sm:size-4 md:size-5.5" />
+							</div>
+							<div className="w-full min-w-0 flex flex-col items-center md:items-start text-center md:text-left md:flex-1">
+								<p className="hidden md:block text-xs font-medium text-muted-foreground uppercase tracking-wide">
+									Total Contribution
+								</p>
+								{isLoading ? (
+									<Skeleton className="h-4 sm:h-5 md:h-6 w-10 sm:w-12 md:w-16 md:mt-1" />
+								) : (
+									<p className="text-sm sm:text-base md:text-xl font-bold leading-tight md:leading-normal text-foreground truncate max-w-full">
+										{analyticsData.combinedStats.totalContribution.toLocaleString()}
 									</p>
 								)}
 							</div>

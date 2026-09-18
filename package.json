@@ -47,6 +47,7 @@
 		"semantic-release": "semantic-release",
 		"test:unit": "vitest run --project unit",
 		"test:unit:watch": "vitest --project unit",
+		"labels:sync": "pnpm exec tsx scripts/sync-labels.ts",
 		"test:integration": "vitest run --project integration",
 		"start": "pnpm exec prisma migrate deploy && next start",
 		"test:integration:watch": "vitest --project integration",

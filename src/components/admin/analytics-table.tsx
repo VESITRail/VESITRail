@@ -71,34 +71,23 @@ const AnalyticsTable = ({
 
 	return (
 		<div className="w-full h-full flex flex-col space-y-4 min-h-0 overflow-hidden">
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
-				<div className="relative flex-1 max-w-sm">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
-					<Input
-						disabled={isLoading}
-						value={localSearchQuery}
-						className="pl-10 pr-20 h-10"
-						onKeyPress={handleSearchKeyPress}
-						placeholder="Search by name, email..."
-						onChange={(e) => handleSearchChange(e.target.value)}
-					/>
-					<Button
-						size="sm"
-						onClick={handleSearchSubmit}
-						className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2"
-					>
-						<Search className="size-3" />
-					</Button>
-				</div>
-
-				<div className="text-sm text-muted-foreground flex items-center gap-1.5 shrink-0">
-					Total Admins:{" "}
-					{isLoading ? (
-						<Skeleton className="h-4 w-8" />
-					) : (
-						<span className="font-semibold text-foreground">{totalCount}</span>
-					)}
-				</div>
+			<div className="relative max-w-sm shrink-0">
+				<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
+				<Input
+					disabled={isLoading}
+					value={localSearchQuery}
+					className="pl-10 pr-20 h-10"
+					onKeyPress={handleSearchKeyPress}
+					placeholder="Search by name, email..."
+					onChange={(e) => handleSearchChange(e.target.value)}
+				/>
+				<Button
+					size="sm"
+					onClick={handleSearchSubmit}
+					className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 px-2"
+				>
+					<Search className="size-3" />
+				</Button>
 			</div>
 
 			<div className="flex-1 min-h-0 rounded-lg border bg-card overflow-hidden flex flex-col">

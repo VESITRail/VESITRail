@@ -1,0 +1,109 @@
+# GitHub Labels Configuration
+# Managed programmatically and synced via EndBug/label-sync or scripts/sync-labels.ts
+
+# --- Domains & Components ---
+- name: "admin-dashboard"
+  color: "d93f0b"
+  description: "Admin portal, booklets, verification, and analytics"
+
+- name: "student-portal"
+  color: "006b75"
+  description: "Student onboarding, concession applications, and profile"
+
+- name: "frontend"
+  color: "1d76db"
+  description: "Client-side React components, hooks, and pages"
+
+- name: "backend"
+  color: "5319e7"
+  description: "Server actions, API endpoints, Prisma database, and auth"
+
+- name: "ui"
+  color: "7057ff"
+  description: "Design system, Radix UI components, and global styling"
+
+- name: "pdf"
+  color: "e11d48"
+  description: "Booklet, voucher slip, and overlay PDF generation"
+
+- name: "notifications"
+  color: "e3b341"
+  description: "Push FCM notifications and email notification templates"
+
+- name: "service-worker"
+  color: "1f883d"
+  description: "Progressive Web App (PWA), caching, and service worker"
+
+- name: "firebase"
+  color: "ffca28"
+  description: "Firebase Cloud Messaging and SDK configuration"
+
+- name: "cloudflare-r2"
+  color: "f38020"
+  description: "Cloudflare R2 object storage and file uploads"
+
+# --- Workflow & PR Types ---
+- name: "feature"
+  color: "0e8a16"
+  description: "New user-facing functionality or capability"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "Improvements or polish to existing functionality"
+
+- name: "bug"
+  color: "d73a4a"
+  description: "Fixes an unexpected defect or failure"
+
+- name: "performance"
+  color: "fbca04"
+  description: "Performance improvements and optimizations"
+
+- name: "testing"
+  color: "bfdadc"
+  description: "Unit tests, integration tests, or test infrastructure"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "User guides, architecture, readmes, and documentation"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Pull requests updating dependencies or tool chains"
+
+- name: "github-actions"
+  color: "1f5863"
+  description: "CI/CD pipelines, workflows, and automation actions"
+
+# --- Triage & Process ---
+- name: "needs-triage"
+  color: "f50ee9"
+  description: "New issue or PR awaiting maintainer review"
+
+- name: "good first issue"
+  color: "7057ff"
+  description: "Accessible for newcomers or beginner contributors"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Community contributions and input actively welcomed"
+
+- name: "question"
+  color: "d876e3"
+  description: "Questions, inquiries, or clarification requests"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "Existing issue or pull request already exists"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "Invalid or out-of-scope submission"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "Decided not to implement or address"
+
+- name: "released"
+  color: "64748b"
+  description: "Changes included in a deployed or published release"
