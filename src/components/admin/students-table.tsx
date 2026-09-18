@@ -710,18 +710,12 @@ const StudentDetailsDialog = ({
 						<div className="space-y-2">
 							<label className="text-sm font-medium text-foreground">Custom Rejection Reason</label>
 							<Textarea
-								autoCapitalize="words"
 								value={rejectionReason}
 								disabled={isProcessing}
-								className="min-h-25 resize-none mt-2 capitalize"
+								className="min-h-25 resize-none mt-2"
 								placeholder="Enter a detailed reason for rejection..."
 								onChange={(e) => {
-									const capitalizedValue = e.target.value
-										.split(" ")
-										.map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-										.join(" ");
-
-									setRejectionReason(capitalizedValue);
+									setRejectionReason(e.target.value);
 
 									if (e.target.value) {
 										setSelectedPredefinedReason("");
