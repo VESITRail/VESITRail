@@ -10,9 +10,15 @@ const isIntegration =
 	cliArgs.some((arg) => arg.includes("project=integration")) ||
 	Boolean(process.env.npm_lifecycle_event?.includes("integration"));
 
+const isUnitOnly =
+	(cliArgs.includes("unit") ||
+		cliArgs.some((arg) => arg.includes("project=unit")) ||
+		Boolean(process.env.npm_lifecycle_event?.includes("unit"))) &&
+	!isIntegration;
+
 export default defineConfig({
 	test: {
-		fileParallelism: false,
+		fileParallelism: Boolean(isUnitOnly),
 		coverage: {
 			provider: "v8",
 			reportOnFailure: true,
@@ -23,7 +29,8 @@ export default defineConfig({
 				"src/lib/result.ts",
 				"src/lib/validations/**/*.ts",
 				"src/lib/pwa/version-utils.ts",
-				"src/lib/notifications/scenarios.ts"
+				"src/lib/notifications/scenarios.ts",
+				"src/lib/notifications/email-templates.ts"
 			],
 			thresholds: isIntegration
 				? undefined
