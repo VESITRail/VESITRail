@@ -153,29 +153,35 @@ The system updates the student's status to **`Approved`**, displays a success to
 
 ### How to Reject a Student Registration
 
-Reject an incomplete, illegible, or mismatched student registration with an explicit explanation so the student can make corrections.
+Reject an incomplete, illegible, or mismatched student registration (or revoke an already `Approved` student if fraudulent details/documents are detected post-approval) with an explicit explanation so the student can make corrections.
 
 #### Prerequisites
 
-- You must have opened the **Student Details** dialog (via the **Eye** icon in the Students table) for a student whose details require correction.
+- You must have opened the **Student Details** dialog (via the **Eye** icon in the Students table) for a student whose details require correction or revocation.
 
 #### Steps
 
 1. In the **Student Details** dialog, click the **Reject Student** button.
-2. A rejection dialog opens prompting for a rejection reason.
-3. Click the **Predefined Reason** dropdown menu and choose a matching reason:
+2. The **Reject Student Application** dialog opens prompting for a rejection reason.
+3. Click the **Quick Select Reason** dropdown menu and choose a matching reason:
    - **Address Mismatch**: _Address in the verification document and the entered address mismatch_
    - **Both Sides of Aadhaar Required**: _Please upload both front and back sides of your Aadhaar card._
    - **Address Proof Required**: _Address differs from Aadhaar. Please attach an electricity bill or rent agreement along with your Aadhaar card._
    - **Invalid Verification Document**: _Invalid verification document_
    - **Document Not Clear**: _Verification document not clear_
    - **Address Station Mismatch**: _Address does not belong to the current station selected_
-4. (Optional) Alternatively, or in addition to a predefined reason, type specific instructions in the rejection reason textarea explaining exactly what the student must correct.
-5. Click **Confirm Rejection**.
+4. (Optional) Alternatively, or in addition to a predefined reason, type specific instructions in the **Custom Rejection Reason** textarea explaining exactly what the student must correct.
+5. Click **Reject Student**.
 
 #### What Happens Next
 
-The student's status updates to **`Rejected`**, and their submission count counter increments. An automated notification containing your remarks is sent to the student. The student can log in, edit their profile, upload a new verification PDF, and resubmit their account.
+- The student's status updates to **`Rejected`**.
+- If the student was previously `Approved`, any in-flight concession applications (`Pending` or `Approved` awaiting slip pickup) and pending address change requests are atomically **cascade-rejected** with an administrative revocation notice to prevent unauthorized pass issuance.
+- An automated rejection notification containing your remarks is sent to the student.
+- The student can log in, edit their profile details in `/onboarding`, upload a new verification PDF, and resubmit.
+- Resubmissions **always** enter **`Pending`** status for manual verification (even for legacy students).
+- When reviewing a resubmitted student registration, the **Student Details** dialog displays the **Previous Reviewer**, **Previous Review Date**, and **Previous Rejection Reason** alongside the updated submission count.
+- When an admin subsequently approves the resubmitted student, the rejection reason is cleared and the review timestamp and reviewer are updated.
 
 ---
 
@@ -373,11 +379,15 @@ Inspect why an application was rejected.
 
 1. In the **Concession Requests** table, filter by **Rejected** (or locate a rejected application).
 2. In the **Actions** column, click the **View Rejection Reason** button (eye `<Eye />` icon).
-3. The **Rejection Reason** dialog opens, displaying:
-   - Application ID
-   - Rejection date and time
-   - Administrative reviewer who rejected the application
-   - Exact rejection reason provided to the student
+3. The **Application Rejection Details** dialog opens, displaying:
+   - **Application ID** (`Application ID: #<shortId>`)
+   - **Student Name** (full student name in title case)
+   - **Application Type** (`New` or `Renewal` badge)
+   - **Submission Count / Submissions** (number of submission attempts)
+   - **Applied Date** (calendar date when the student applied)
+   - **Reviewed By** (name of the administrator who reviewed the application, or `System`)
+   - **Reviewed Date** (calendar date of review)
+   - **Rejection Reason** (administrative rejection remarks)
 4. Click **Close** to dismiss.
 
 ---
@@ -465,18 +475,19 @@ Inspect a submitted address change request and compare the old and new stations.
    - **Proposed Residential Details**: New address, pincode, and proposed new home station.
 5. Click the **View Document** button to open the embedded PDF viewer.
 6. Verify that the uploaded proof of address (e.g., electricity bill, updated Aadhaar, rent agreement) matches the typed new address and that the proposed railway station is the closest suburban station.
-7. To approve:
+7. (For resubmissions) If the request was previously rejected, the dialog displays the **Previous Reviewer**, **Previous Review Date**, and **Previous Rejection Reason** so you can quickly determine whether the student fixed the requested item.
+8. To approve:
    - Click **Approve Request**.
    - Confirm approval in the prompt.
-   - The student's residential address and home station update immediately across all future concession applications.
-8. To reject:
+   - The student's residential address and home station update immediately across all future concession applications, and the rejection reason is cleared.
+9. To reject:
    - Click **Reject Request**.
    - Choose a predefined reason (`Address Mismatch`, `Invalid Document`, `Unclear Document`, or `Station Mismatch`) or type custom remarks in the textarea.
    - Click **Confirm Rejection**.
 
 #### What Happens Next
 
-The student receives an automated notification regarding the approval or rejection of their address change request.
+The student receives an automated notification regarding the approval or rejection of their address change request. When a student resubmits a rejected address change request, it re-enters the **`Pending`** queue while preserving previous review metadata for admin inspection.
 
 ---
 
