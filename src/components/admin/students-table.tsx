@@ -544,7 +544,7 @@ const StudentDetailsDialog = ({
 											{studentDetails.reviewedBy ? (
 												<div className="flex justify-between items-start">
 													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
-														Reviewed By
+														{studentDetails.status === "Pending" ? "Previous Reviewer" : "Reviewed By"}
 													</span>
 													<span className="text-sm text-right font-medium">
 														{toTitleCase(studentDetails.reviewedBy.user?.name || "Admin")}
@@ -572,7 +572,7 @@ const StudentDetailsDialog = ({
 											{studentDetails.reviewedAt && (
 												<div className="flex justify-between items-start">
 													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0">
-														Reviewed Date
+														{studentDetails.status === "Pending" ? "Previous Review Date" : "Reviewed Date"}
 													</span>
 													<span className="text-sm text-right">
 														{format(new Date(studentDetails.reviewedAt), "MMM dd, yyyy")}
@@ -584,7 +584,9 @@ const StudentDetailsDialog = ({
 
 									{studentDetails.rejectionReason && (
 										<div className="mt-6">
-											<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
+											<p className="text-sm font-medium text-muted-foreground mb-4">
+												{studentDetails.status === "Pending" ? "Previous Rejection Reason" : "Rejection Reason"}
+											</p>
 											<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
 												<p className="text-sm text-destructive">{studentDetails.rejectionReason}</p>
 											</div>
@@ -592,7 +594,7 @@ const StudentDetailsDialog = ({
 									)}
 								</div>
 
-								{studentDetails.status === "Pending" && (
+								{(studentDetails.status === "Pending" || studentDetails.status === "Approved") && (
 									<div className="flex justify-end gap-4 pt-6 border-t">
 										<Button
 											variant="destructive"
@@ -606,16 +608,18 @@ const StudentDetailsDialog = ({
 											Reject Student
 										</Button>
 
-										<Button
-											title="Approve Student"
-											onClick={handleApprove}
-											disabled={isProcessing}
-											aria-label="Approve Student"
-											className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
-										>
-											<Check className="size-4 mr-1" />
-											Approve Student
-										</Button>
+										{studentDetails.status === "Pending" && (
+											<Button
+												title="Approve Student"
+												onClick={handleApprove}
+												disabled={isProcessing}
+												aria-label="Approve Student"
+												className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+											>
+												<Check className="size-4 mr-1" />
+												Approve Student
+											</Button>
+										)}
 									</div>
 								)}
 							</div>

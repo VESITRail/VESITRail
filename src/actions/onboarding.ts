@@ -257,11 +257,8 @@ export const submitOnboarding = async (
 			},
 			update: {
 				...dbData,
-				reviewedById: null,
-				rejectionReason: null,
-				submissionCount: { increment: 1 },
-				reviewedAt: shouldAutoApprove ? new Date() : null,
-				status: shouldAutoApprove ? "Approved" : "Pending"
+				status: "Pending",
+				submissionCount: { increment: 1 }
 			}
 		});
 

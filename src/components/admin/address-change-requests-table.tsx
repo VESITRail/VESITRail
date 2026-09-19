@@ -613,7 +613,9 @@ const AddressChangeRequestDetailsDialog = ({
 										<div className="space-y-3">
 											{requestDetails.reviewedBy && (
 												<div className="flex items-center justify-between">
-													<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
+													<span className="text-sm font-medium text-muted-foreground">
+														{requestDetails.status === "Pending" ? "Previous Reviewer" : "Reviewed By"}
+													</span>
 													<span className="text-sm text-foreground">
 														{toTitleCase(requestDetails.reviewedBy.user.name || "Admin")}
 													</span>
@@ -622,7 +624,9 @@ const AddressChangeRequestDetailsDialog = ({
 
 											{requestDetails.reviewedAt && (
 												<div className="flex items-center justify-between">
-													<span className="text-sm font-medium text-muted-foreground">Reviewed Date</span>
+													<span className="text-sm font-medium text-muted-foreground">
+														{requestDetails.status === "Pending" ? "Previous Review Date" : "Reviewed Date"}
+													</span>
 													<span className="text-sm text-foreground">
 														{format(new Date(requestDetails.reviewedAt), "MMM dd, yyyy")}
 													</span>
@@ -633,7 +637,9 @@ const AddressChangeRequestDetailsDialog = ({
 
 									{requestDetails.rejectionReason && (
 										<div className="mt-6">
-											<p className="text-sm font-medium text-muted-foreground mb-4">Rejection Reason</p>
+											<p className="text-sm font-medium text-muted-foreground mb-4">
+												{requestDetails.status === "Pending" ? "Previous Rejection Reason" : "Rejection Reason"}
+											</p>
 											<div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
 												<p className="text-sm text-destructive">{requestDetails.rejectionReason}</p>
 											</div>
