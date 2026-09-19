@@ -127,5 +127,48 @@ describe("Address Change Integration", () => {
 				expect(updatedStudent?.stationId).toBe(SEED.stations[1].id);
 			}
 		});
+
+		it("preserves review metadata on resubmission after rejection and clears on approval", async () => {
+			await authenticateAs(studentUser.user.id);
+			const submitRes = await submitAddressChangeApplication({
+				currentAddress: "New Address 456",
+				newStationId: SEED.stations[2].id,
+				newAddress: "Another New Address 789",
+				currentStationId: SEED.stations[1].id,
+				verificationDocUrl: "https://test-r2.example.com/addr2.pdf"
+			});
+			expect(submitRes.isSuccess).toBe(true);
+			const newReqId = submitRes.isSuccess ? submitRes.data.id : "";
+
+			await authenticateAs(adminUser.user.id);
+			const rejectRes = await reviewAddressChangeRequest(newReqId, "Rejected", "Address proof illegible");
+			expect(rejectRes.isSuccess).toBe(true);
+
+			await authenticateAs(studentUser.user.id);
+			const resubmitRes = await submitAddressChangeApplication({
+				currentAddress: "New Address 456",
+				newStationId: SEED.stations[2].id,
+				newAddress: "Another New Address 789",
+				currentStationId: SEED.stations[1].id,
+				verificationDocUrl: "https://test-r2.example.com/addr2-clear.pdf"
+			});
+			expect(resubmitRes.isSuccess).toBe(true);
+			if (resubmitRes.isSuccess) {
+				expect(resubmitRes.data.status).toBe("Pending");
+				expect(resubmitRes.data.submissionCount).toBe(2);
+				expect(resubmitRes.data.rejectionReason).toBe("Address proof illegible");
+				expect(resubmitRes.data.reviewedById).toBe(adminUser.user.id);
+				expect(resubmitRes.data.reviewedAt).not.toBeNull();
+			}
+
+			await authenticateAs(adminUser.user.id);
+			const approveRes = await reviewAddressChangeRequest(newReqId, "Approved");
+			expect(approveRes.isSuccess).toBe(true);
+			if (approveRes.isSuccess) {
+				expect(approveRes.data.status).toBe("Approved");
+				expect(approveRes.data.rejectionReason).toBeNull();
+				expect(approveRes.data.reviewedById).toBe(adminUser.user.id);
+			}
+		});
 	});
 });

@@ -108,9 +108,6 @@ export const submitAddressChangeApplication = async (
 				},
 				data: {
 					status: "Pending",
-					reviewedAt: null,
-					reviewedById: null,
-					rejectionReason: null,
 					newAddress: data.newAddress,
 					newStationId: data.newStationId,
 					submissionCount: { increment: 1 },
