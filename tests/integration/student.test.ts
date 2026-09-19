@@ -1,4 +1,5 @@
 import {
+	SEED,
 	getTestPrisma,
 	cleanAllTables,
 	authenticateAs,
@@ -96,6 +97,56 @@ describe("Student Management Integration", () => {
 				expect(res.data.status).toBe("Rejected");
 				expect(res.data.rejectionReason).toBe("Invalid identity documentation");
 			}
+		});
+
+		it("rejects an approved student and cascade-rejects in-flight requests", async () => {
+			const studentWithRequests = await createTestStudent(prisma, { status: "Approved" });
+
+			const concessionApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Pending",
+					applicationType: "New",
+					stationId: SEED.stations[0].id,
+					studentId: studentWithRequests.user.id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
+			const addressChange = await prisma.addressChange.create({
+				data: {
+					status: "Pending",
+					newAddress: "New Address",
+					currentAddress: "Old Address",
+					newStationId: SEED.stations[1].id,
+					currentStationId: SEED.stations[0].id,
+					studentId: studentWithRequests.user.id
+				}
+			});
+
+			await authenticateAs(adminUser.user.id);
+			const res = await rejectStudent({
+				studentId: studentWithRequests.user.id,
+				rejectionReason: "Fraudulent DOB detected post-approval"
+			});
+
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data.status).toBe("Rejected");
+				expect(res.data.rejectionReason).toBe("Fraudulent DOB detected post-approval");
+			}
+
+			const updatedConcession = await prisma.concessionApplication.findUnique({
+				where: { id: concessionApp.id }
+			});
+			expect(updatedConcession?.status).toBe("Rejected");
+			expect(updatedConcession?.rejectionReason).toContain("revoked");
+
+			const updatedAddressChange = await prisma.addressChange.findUnique({
+				where: { id: addressChange.id }
+			});
+			expect(updatedAddressChange?.status).toBe("Rejected");
+			expect(updatedAddressChange?.rejectionReason).toContain("revoked");
 		});
 	});
 });

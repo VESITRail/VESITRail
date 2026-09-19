@@ -589,94 +589,127 @@ export const rejectStudent = async (
 			return failure(validationError("Student not found"));
 		}
 
-		if (student.status !== "Pending") {
-			return failure(validationError("Only pending students can be rejected"));
+		if (student.status !== "Pending" && student.status !== "Approved") {
+			return failure(validationError("Only pending or approved students can be rejected"));
 		}
 
-		const updatedStudent = await prisma.student.update({
-			where: { userId: data.studentId },
-			data: {
-				status: "Rejected",
-				reviewedAt: new Date(),
-				reviewedById: adminResult.data.userId,
-				rejectionReason: data.rejectionReason.trim()
-			},
-			select: {
-				userId: true,
-				gender: true,
-				status: true,
-				address: true,
-				lastName: true,
-				createdAt: true,
-				firstName: true,
-				reviewedAt: true,
-				middleName: true,
-				dateOfBirth: true,
-				mobileNumber: true,
-				rejectionReason: true,
-				submissionCount: true,
-				verificationDocUrl: true,
-				user: {
-					select: {
-						id: true,
-						name: true,
-						email: true
-					}
+		const updatedStudent = await prisma.$transaction(async (tx) => {
+			const updated = await tx.student.update({
+				where: { userId: data.studentId },
+				data: {
+					status: "Rejected",
+					reviewedAt: new Date(),
+					reviewedById: adminResult.data.userId,
+					rejectionReason: data.rejectionReason.trim()
 				},
-				class: {
-					select: {
-						id: true,
-						code: true,
-						year: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						branch: {
-							select: {
-								id: true,
-								code: true,
-								name: true
+				select: {
+					userId: true,
+					gender: true,
+					status: true,
+					address: true,
+					lastName: true,
+					createdAt: true,
+					firstName: true,
+					reviewedAt: true,
+					middleName: true,
+					dateOfBirth: true,
+					mobileNumber: true,
+					rejectionReason: true,
+					submissionCount: true,
+					verificationDocUrl: true,
+					user: {
+						select: {
+							id: true,
+							name: true,
+							email: true
+						}
+					},
+					class: {
+						select: {
+							id: true,
+							code: true,
+							year: {
+								select: {
+									id: true,
+									code: true,
+									name: true
+								}
+							},
+							branch: {
+								select: {
+									id: true,
+									code: true,
+									name: true
+								}
 							}
 						}
-					}
-				},
-				station: {
-					select: {
-						id: true,
-						code: true,
-						name: true
-					}
-				},
-				preferredConcessionClass: {
-					select: {
-						id: true,
-						code: true,
-						name: true
-					}
-				},
-				preferredConcessionPeriod: {
-					select: {
-						id: true,
-						name: true,
-						duration: true
-					}
-				},
-				reviewedBy: {
-					select: {
-						userId: true,
-						user: {
-							select: {
-								id: true,
-								name: true,
-								email: true
+					},
+					station: {
+						select: {
+							id: true,
+							code: true,
+							name: true
+						}
+					},
+					preferredConcessionClass: {
+						select: {
+							id: true,
+							code: true,
+							name: true
+						}
+					},
+					preferredConcessionPeriod: {
+						select: {
+							id: true,
+							name: true,
+							duration: true
+						}
+					},
+					reviewedBy: {
+						select: {
+							userId: true,
+							user: {
+								select: {
+									id: true,
+									name: true,
+									email: true
+								}
 							}
 						}
 					}
 				}
-			}
+			});
+
+			await tx.concessionApplication.updateMany({
+				where: {
+					studentId: data.studentId,
+					concessionBookletId: null,
+					status: { in: ["Pending", "Approved"] }
+				},
+				data: {
+					status: "Rejected",
+					reviewedAt: new Date(),
+					reviewedById: adminResult.data.userId,
+					rejectionReason:
+						"Your student profile approval was revoked by the administration. Please review and update your profile details before reapplying."
+				}
+			});
+
+			await tx.addressChange.updateMany({
+				where: {
+					status: "Pending",
+					studentId: data.studentId
+				},
+				data: {
+					status: "Rejected",
+					reviewedAt: new Date(),
+					reviewedById: adminResult.data.userId,
+					rejectionReason:
+						"Your student profile approval was revoked by the administration. Please review and update your profile details before reapplying."
+				}
+			});
+
+			return updated;
 		});
 
 		sendStudentAccountNotification(data.studentId, false, data.rejectionReason, updatedStudent.submissionCount).catch(
@@ -686,6 +719,8 @@ export const rejectStudent = async (
 		);
 
 		revalidatePath("/dashboard/admin/students");
+		revalidatePath("/dashboard/admin/applications");
+		revalidatePath("/dashboard/admin/address-change-requests");
 		return success(updatedStudent);
 	} catch (error) {
 		console.error("Error while rejecting student:", error);
