@@ -34,7 +34,7 @@ export type Review = {
 	concessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
 };
 
-export type OnboardingData = Pick<
+export type ExistingStudentData = Pick<
 	Student,
 	| "status"
 	| "gender"
@@ -48,6 +48,27 @@ export type OnboardingData = Pick<
 	| "mobileNumber"
 	| "rejectionReason"
 	| "submissionCount"
+	| "verificationDocUrl"
+	| "preferredConcessionClassId"
+	| "preferredConcessionPeriodId"
+> & {
+	class: Pick<Class, "id"> & {
+		year: Pick<Year, "id" | "code" | "name">;
+		branch: Pick<Branch, "id" | "code" | "name">;
+	};
+};
+
+export type OnboardingData = Pick<
+	Student,
+	| "gender"
+	| "classId"
+	| "address"
+	| "lastName"
+	| "firstName"
+	| "stationId"
+	| "middleName"
+	| "dateOfBirth"
+	| "mobileNumber"
 	| "verificationDocUrl"
 	| "preferredConcessionClassId"
 	| "preferredConcessionPeriodId"
@@ -105,7 +126,9 @@ export const getReviewData = async (
 	}
 };
 
-export const getExistingStudentData = async (): Promise<Result<OnboardingData | null, AuthError | DatabaseError>> => {
+export const getExistingStudentData = async (): Promise<
+	Result<ExistingStudentData | null, AuthError | DatabaseError>
+> => {
 	const authResult = await requireAuth();
 	if (!authResult.isSuccess) return authResult;
 
@@ -193,7 +216,15 @@ export const submitOnboarding = async (
 
 	try {
 		const targetUserId = authResult.data.userId;
-		const { class: _classData, ...dbData } = data;
+		const {
+			status: _status,
+			class: _classData,
+			submissionCount: _submissionCount,
+			rejectionReason: _rejectionReason,
+			...rawDbData
+		} = data as unknown as Record<string, unknown>;
+
+		const dbData = rawDbData as unknown as Omit<OnboardingData, "class">;
 
 		const [_class, station, concessionClass, concessionPeriod] = await Promise.all([
 			prisma.class.findFirst({
