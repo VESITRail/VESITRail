@@ -5,6 +5,7 @@ import {
 	createTestUser,
 	authenticateAs,
 	unauthenticate,
+	createTestAdmin,
 	seedReferenceData
 } from "./helpers";
 import {
@@ -14,22 +15,21 @@ import {
 	getExistingStudentData,
 	getLegacyStudentByEmail
 } from "@/actions/onboarding";
+import { approveStudent, rejectStudent } from "@/actions/student";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 
 describe("Onboarding Integration", () => {
 	const { prisma, pool } = getTestPrisma();
 
+	let adminUser: any;
 	let legacyUser: any;
 	let studentUser: any;
 
 	const baseOnboardingData: OnboardingData = {
 		gender: "Male",
 		middleName: "S",
-		status: "Pending",
 		firstName: "Rahul",
 		lastName: "Sharma",
-		submissionCount: 1,
-		rejectionReason: null,
 		mobileNumber: "9876543210",
 		classId: SEED.classes[0].id,
 		stationId: SEED.stations[0].id,
@@ -57,6 +57,7 @@ describe("Onboarding Integration", () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
 
+		adminUser = await createTestAdmin(prisma, { isActive: true });
 		legacyUser = await createTestUser(prisma, { email: "vesitrail.legacy@ves.ac.in" });
 		studentUser = await createTestUser(prisma, { email: "vesitrail.onboarding@ves.ac.in" });
 
@@ -137,6 +138,51 @@ describe("Onboarding Integration", () => {
 				expect(res.data.userId).toBe(legacyUser.id);
 			}
 		});
+		it("preserves review metadata and rejection reason on resubmission after rejection and clears on approval", async () => {
+			const resubmitUser = await createTestUser(prisma, { email: "vesitrail.resubmit@ves.ac.in" });
+			await authenticateAs(resubmitUser.id);
+			const firstSubmit = await submitOnboarding(baseOnboardingData);
+			expect(firstSubmit.isSuccess).toBe(true);
+
+			await authenticateAs(adminUser.user.id);
+			const rejectRes = await rejectStudent({
+				studentId: resubmitUser.id,
+				rejectionReason: "Invalid verification document uploaded"
+			});
+			expect(rejectRes.isSuccess).toBe(true);
+
+			await authenticateAs(resubmitUser.id);
+			const resubmitRes = await submitOnboarding({
+				...baseOnboardingData,
+				address: "Updated Test Address 456, Mumbai"
+			});
+			expect(resubmitRes.isSuccess).toBe(true);
+			if (resubmitRes.isSuccess) {
+				expect(resubmitRes.data.status).toBe("Pending");
+				expect(resubmitRes.data.submissionCount).toBe(2);
+				expect(resubmitRes.data.rejectionReason).toBe("Invalid verification document uploaded");
+				expect(resubmitRes.data.reviewedById).toBe(adminUser.user.id);
+				expect(resubmitRes.data.reviewedAt).not.toBeNull();
+			}
+
+			const dbStudent = await prisma.student.findUnique({
+				where: { userId: resubmitUser.id }
+			});
+			expect(dbStudent?.status).toBe("Pending");
+			expect(dbStudent?.submissionCount).toBe(2);
+			expect(dbStudent?.rejectionReason).toBe("Invalid verification document uploaded");
+			expect(dbStudent?.reviewedById).toBe(adminUser.user.id);
+			expect(dbStudent?.reviewedAt).not.toBeNull();
+
+			await authenticateAs(adminUser.user.id);
+			const approveRes = await approveStudent({ studentId: resubmitUser.id });
+			expect(approveRes.isSuccess).toBe(true);
+			if (approveRes.isSuccess) {
+				expect(approveRes.data.status).toBe("Approved");
+				expect(approveRes.data.rejectionReason).toBeNull();
+				expect(approveRes.data.reviewedBy?.userId).toBe(adminUser.user.id);
+			}
+		});
 	});
 
 	describe("getExistingStudentData", () => {
@@ -147,6 +193,27 @@ describe("Onboarding Integration", () => {
 			if (res.isSuccess) {
 				expect(res.data).not.toBeNull();
 				expect(res.data?.firstName).toBe("Rahul");
+			}
+		});
+
+		it("returns rejection reason and submission count for rejected student", async () => {
+			const rejectedUser = await createTestUser(prisma, { email: "vesitrail.rejected@ves.ac.in" });
+			await authenticateAs(rejectedUser.id);
+			await submitOnboarding(baseOnboardingData);
+
+			await authenticateAs(adminUser.user.id);
+			await rejectStudent({
+				studentId: rejectedUser.id,
+				rejectionReason: "Document illegible, re-upload clear copy"
+			});
+
+			await authenticateAs(rejectedUser.id);
+			const res = await getExistingStudentData();
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data?.status).toBe("Rejected");
+				expect(res.data?.rejectionReason).toBe("Document illegible, re-upload clear copy");
+				expect(res.data?.submissionCount).toBe(1);
 			}
 		});
 	});

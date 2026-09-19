@@ -131,7 +131,7 @@ const ReviewSkeleton = () => {
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 						<div className="space-y-2">
 							<Skeleton className="h-4 w-24" />
 							<Skeleton className="h-5 w-32" />
@@ -140,10 +140,10 @@ const ReviewSkeleton = () => {
 							<Skeleton className="h-4 w-44" />
 							<Skeleton className="h-5 w-28" />
 						</div>
-					</div>
-					<div className="space-y-2">
-						<Skeleton className="h-4 w-44" />
-						<Skeleton className="h-5 w-36" />
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-44" />
+							<Skeleton className="h-5 w-36" />
+						</div>
 					</div>
 				</CardContent>
 			</Card>
@@ -293,9 +293,6 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 
 			const submitPromise = (async () => {
 				const result = await submitOnboarding({
-					status: "Pending",
-					submissionCount: 1,
-					rejectionReason: null,
 					class: reviewData.class,
 					gender: defaultValues.gender,
 					classId: defaultValues.class,
@@ -486,7 +483,7 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 						<div className="space-y-1">
 							<p className="text-sm font-medium text-muted-foreground">Home Station</p>
 							<p className="font-medium">
@@ -499,18 +496,18 @@ const Review = ({ defaultValues, setCurrentStep, isLegacyStudent = false }: Revi
 								{reviewData.concessionClass.name} ({reviewData.concessionClass.code})
 							</p>
 						</div>
-					</div>
-					<div className="space-y-1">
-						<p className="text-sm font-medium text-muted-foreground">Preferred Concession Period</p>
-						<p className="font-medium">
-							{reviewData.concessionPeriod.name} (
-							{reviewData.concessionPeriod?.duration != null
-								? `${reviewData.concessionPeriod.duration} ${
-										reviewData.concessionPeriod.duration === 1 ? "month" : "months"
-									}`
-								: "N/A"}
-							)
-						</p>
+						<div className="space-y-1">
+							<p className="text-sm font-medium text-muted-foreground">Preferred Concession Period</p>
+							<p className="font-medium">
+								{reviewData.concessionPeriod.name} (
+								{reviewData.concessionPeriod?.duration != null
+									? `${reviewData.concessionPeriod.duration} ${
+											reviewData.concessionPeriod.duration === 1 ? "month" : "months"
+										}`
+									: "N/A"}
+								)
+							</p>
+						</div>
 					</div>
 				</CardContent>
 			</Card>
