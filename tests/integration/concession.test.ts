@@ -14,7 +14,8 @@ import {
 	getAllApplications,
 	assignBookletToConcession,
 	submitConcessionApplication,
-	reviewConcessionApplication
+	reviewConcessionApplication,
+	getConcessionApplicationDetails
 } from "@/actions/concession";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 
@@ -130,6 +131,30 @@ describe("Concession Integration", () => {
 			if (res.isSuccess) {
 				expect(res.data.status).toBe("Issued");
 				expect(res.data.pageOffset).toBe(0);
+			}
+		});
+
+		it("allows admin to reject an application and fetch details including reviewer and submissionCount", async () => {
+			await authenticateAs(adminUser.user.id);
+			const rejectRes = await reviewConcessionApplication(createdAppId, "Rejected", "Incorrect pass type selected");
+			expect(rejectRes.isSuccess).toBe(true);
+
+			const detailsRes = await getConcessionApplicationDetails(createdAppId);
+			expect(detailsRes.isSuccess).toBe(true);
+			if (detailsRes.isSuccess) {
+				expect(detailsRes.data.status).toBe("Rejected");
+				expect(detailsRes.data.rejectionReason).toBe("Incorrect pass type selected");
+				expect(detailsRes.data.submissionCount).toBeGreaterThanOrEqual(1);
+				expect(detailsRes.data.reviewedBy?.user.name).toBe(adminUser.user.name);
+				expect(detailsRes.data.reviewedAt).not.toBeNull();
+			}
+
+			const allAppsRes = await getAllApplications({ page: 1, pageSize: 10 });
+			expect(allAppsRes.isSuccess).toBe(true);
+			if (allAppsRes.isSuccess) {
+				const appInList = allAppsRes.data.data.find((a) => a.id === createdAppId);
+				expect(appInList?.reviewedBy?.user.name).toBe(adminUser.user.name);
+				expect(appInList?.submissionCount).toBeGreaterThanOrEqual(1);
 			}
 		});
 	});

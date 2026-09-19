@@ -274,6 +274,11 @@ export type AdminApplication = Pick<
 	station: Pick<Station, "id" | "code" | "name">;
 	concessionClass: Pick<ConcessionClass, "id" | "code" | "name">;
 	concessionPeriod: Pick<ConcessionPeriod, "id" | "name" | "duration">;
+	reviewedBy?: {
+		user: {
+			name: string | null;
+		};
+	} | null;
 };
 
 export const getAllApplications = async (
@@ -447,6 +452,15 @@ export const getAllApplications = async (
 						bookletNumber: true,
 						serialEndNumber: true,
 						serialStartNumber: true
+					}
+				},
+				reviewedBy: {
+					select: {
+						user: {
+							select: {
+								name: true
+							}
+						}
 					}
 				}
 			}

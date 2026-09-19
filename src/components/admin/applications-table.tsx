@@ -42,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import UpdateIssueDateDialog from "./update-issue-date-dialog";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
@@ -1582,7 +1583,7 @@ const ApplicationsTable = ({
 			</Dialog>
 
 			<Dialog open={showRejectionReasonDialog} onOpenChange={setShowRejectionReasonDialog}>
-				<DialogContent className="sm:max-w-lg">
+				<DialogContent className="sm:max-w-2xl">
 					<DialogHeader className="pb-4">
 						<div className="flex items-center gap-3">
 							<div className="flex items-center justify-center size-10 rounded-full bg-destructive shrink-0">
@@ -1603,43 +1604,91 @@ const ApplicationsTable = ({
 
 					<div className="space-y-4">
 						{selectedApplication && (
-							<div className="p-4 rounded-lg bg-muted/50 border">
-								<div className="space-y-2">
-									<div className="flex items-center justify-between">
-										<span className="text-sm font-medium text-muted-foreground">Student Name:</span>
+							<>
+								<div className="p-4 rounded-lg bg-muted/50 border">
+									<div className="space-y-2">
+										<div className="flex items-center justify-between">
+											<span className="text-sm font-medium text-muted-foreground">Student Name:</span>
 
-										<span className="text-sm font-medium text-foreground">
-											{toTitleCase(
-												[
-													selectedApplication.student.firstName,
-													selectedApplication.student.middleName,
-													selectedApplication.student.lastName
-												]
-													.filter(Boolean)
-													.join(" ")
-											)}
-										</span>
-									</div>
+											<span className="text-sm font-medium text-foreground">
+												{toTitleCase(
+													[
+														selectedApplication.student.firstName,
+														selectedApplication.student.middleName,
+														selectedApplication.student.lastName
+													]
+														.filter(Boolean)
+														.join(" ")
+												)}
+											</span>
+										</div>
 
-									<div className="flex items-center justify-between">
-										<span className="text-sm font-medium text-muted-foreground">Application Type:</span>
+										<div className="flex items-center justify-between">
+											<span className="text-sm font-medium text-muted-foreground">Application Type:</span>
 
-										<Badge variant="secondary" className="text-xs">
-											{selectedApplication.applicationType}
-										</Badge>
-									</div>
-
-									<div className="flex items-center justify-between">
-										<span className="text-sm font-medium text-muted-foreground">Rejected Date:</span>
-
-										<span className="text-sm font-medium text-foreground">
-											{selectedApplication.reviewedAt
-												? format(new Date(selectedApplication.reviewedAt), "MMMM dd, yyyy")
-												: "N/A"}
-										</span>
+											<Badge variant="secondary" className="text-xs">
+												{selectedApplication.applicationType}
+											</Badge>
+										</div>
 									</div>
 								</div>
-							</div>
+
+								<Separator />
+
+								<div className="space-y-4">
+									<h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+										Application Status
+									</h4>
+
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+										<div className="space-y-3">
+											<div className="flex items-center justify-between">
+												<span className="text-sm font-medium text-muted-foreground">Submissions</span>
+												<span className="text-sm text-foreground">
+													{applicationDetails?.submissionCount ?? selectedApplication.submissionCount}
+												</span>
+											</div>
+
+											<div className="flex items-center justify-between">
+												<span className="text-sm font-medium text-muted-foreground">Applied Date</span>
+												<span className="text-sm text-foreground">
+													{format(new Date(selectedApplication.createdAt), "MMM dd, yyyy")}
+												</span>
+											</div>
+										</div>
+
+										<div className="space-y-3">
+											<div className="flex items-center justify-between">
+												<span className="text-sm font-medium text-muted-foreground">Reviewed By</span>
+												<span className="text-sm text-foreground">
+													{applicationDetails?.reviewedBy?.user?.name || selectedApplication.reviewedBy?.user?.name ? (
+														toTitleCase(
+															(applicationDetails?.reviewedBy?.user?.name ||
+																selectedApplication.reviewedBy?.user?.name)!
+														)
+													) : !applicationDetails && !selectedApplication.reviewedBy ? (
+														<Skeleton className="h-4 w-24 inline-block" />
+													) : (
+														"System"
+													)}
+												</span>
+											</div>
+
+											<div className="flex items-center justify-between">
+												<span className="text-sm font-medium text-muted-foreground">Reviewed Date</span>
+												<span className="text-sm text-foreground">
+													{selectedApplication.reviewedAt || applicationDetails?.reviewedAt
+														? format(
+																new Date((selectedApplication.reviewedAt || applicationDetails?.reviewedAt)!),
+																"MMM dd, yyyy"
+															)
+														: "N/A"}
+												</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</>
 						)}
 
 						<div className="space-y-3">
