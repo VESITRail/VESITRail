@@ -73,6 +73,8 @@ model Account {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
 }
 
 model Verification {
