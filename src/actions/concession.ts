@@ -21,10 +21,10 @@ import {
 } from "@/lib/result";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { calculateBookletStatus } from "@/lib/utils";
 import type { Prisma } from "@/generated/prisma/client";
 import { requireAdmin, requireStudent } from "@/lib/auth-guard";
 import { sendConcessionNotification } from "@/lib/notifications";
+import { calculateBookletStatus, calculateConcessionValidity } from "@/lib/utils";
 
 export type Concession =
 	| (Pick<
@@ -577,22 +577,93 @@ export const submitConcessionApplication = async (
 			},
 			orderBy: {
 				createdAt: "desc"
+			},
+			include: {
+				concessionPeriod: true
 			}
 		});
 
+		if (existingApplication?.status === "Pending") {
+			return failure(validationError("You already have a concession application under review", "status"));
+		}
+
+		if (existingApplication?.status === "Approved") {
+			return failure(
+				validationError(
+					"You already have an approved concession application waiting to be issued at the counter",
+					"status"
+				)
+			);
+		}
+
+		if (existingApplication?.status === "Issued") {
+			const issueDate = existingApplication.issuedAt ?? existingApplication.reviewedAt;
+			if (issueDate) {
+				const validity = calculateConcessionValidity(issueDate, existingApplication.concessionPeriod.duration);
+				if (validity.isValid) {
+					return failure(
+						validationError(
+							"Cannot apply for a new concession while your current concession pass is still active",
+							"status"
+						)
+					);
+				}
+			}
+		}
+
+		if (data.applicationType === "Renewal") {
+			if (!data.previousApplicationId) {
+				return failure(
+					validationError("Previous application ID is required for a renewal application", "previousApplicationId")
+				);
+			}
+
+			const previousApplication = await prisma.concessionApplication.findUnique({
+				where: { id: data.previousApplicationId },
+				include: { concessionPeriod: true }
+			});
+
+			if (!previousApplication) {
+				return failure(validationError("Previous application not found", "previousApplicationId"));
+			}
+
+			if (previousApplication.studentId !== targetStudentId) {
+				return failure(authError("Unauthorized access to previous application", "FORBIDDEN"));
+			}
+
+			if (previousApplication.status !== "Issued") {
+				return failure(
+					validationError("Renewal can only be linked to a previously issued concession pass", "previousApplicationId")
+				);
+			}
+
+			const prevIssueDate = previousApplication.issuedAt ?? previousApplication.reviewedAt;
+			if (prevIssueDate) {
+				const prevValidity = calculateConcessionValidity(prevIssueDate, previousApplication.concessionPeriod.duration);
+				if (prevValidity.isValid) {
+					return failure(
+						validationError(
+							"Cannot apply for renewal while the previous concession pass is still active",
+							"previousApplicationId"
+						)
+					);
+				}
+			}
+		}
+
 		let application: Concession;
 
-		if (!existingApplication || existingApplication.status === "Approved" || existingApplication.status === "Issued") {
+		if (!existingApplication || existingApplication.status === "Issued") {
 			application = await prisma.concessionApplication.create({
 				data: {
 					status: "Pending",
 					submissionCount: 1,
-					studentId: targetStudentId,
 					stationId: data.stationId,
+					studentId: targetStudentId,
 					applicationType: data.applicationType,
 					concessionClassId: data.concessionClassId,
 					concessionPeriodId: data.concessionPeriodId,
-					previousApplicationId: data.previousApplicationId
+					previousApplicationId: data.applicationType === "Renewal" ? data.previousApplicationId : null
 				},
 				select: {
 					id: true,
@@ -674,8 +745,10 @@ export const submitConcessionApplication = async (
 					rejectionReason: null,
 					stationId: data.stationId,
 					submissionCount: { increment: 1 },
+					applicationType: data.applicationType,
 					concessionClassId: data.concessionClassId,
-					concessionPeriodId: data.concessionPeriodId
+					concessionPeriodId: data.concessionPeriodId,
+					previousApplicationId: data.applicationType === "Renewal" ? data.previousApplicationId : null
 				},
 				select: {
 					id: true,
@@ -808,6 +881,32 @@ export const submitConcessionResubmission = async (
 			return failure(validationError("Selected concession period is currently unavailable", "concessionPeriodId"));
 		}
 
+		if (data.applicationType === "Renewal") {
+			if (!data.previousApplicationId) {
+				return failure(
+					validationError("Previous application ID is required for a renewal application", "previousApplicationId")
+				);
+			}
+
+			const previousApplication = await prisma.concessionApplication.findUnique({
+				where: { id: data.previousApplicationId }
+			});
+
+			if (!previousApplication) {
+				return failure(validationError("Previous application not found", "previousApplicationId"));
+			}
+
+			if (previousApplication.studentId !== studentResult.data.studentId) {
+				return failure(authError("Unauthorized access to previous application", "FORBIDDEN"));
+			}
+
+			if (previousApplication.status !== "Issued") {
+				return failure(
+					validationError("Renewal can only be linked to a previously issued concession pass", "previousApplicationId")
+				);
+			}
+		}
+
 		const updatedApplication = await prisma.concessionApplication.update({
 			where: { id: applicationId },
 			data: {
@@ -817,11 +916,11 @@ export const submitConcessionResubmission = async (
 				reviewedById: null,
 				rejectionReason: null,
 				stationId: data.stationId,
-				applicationType: data.applicationType,
 				submissionCount: { increment: 1 },
+				applicationType: data.applicationType,
 				concessionClassId: data.concessionClassId,
 				concessionPeriodId: data.concessionPeriodId,
-				previousApplicationId: data.previousApplicationId
+				previousApplicationId: data.applicationType === "Renewal" ? data.previousApplicationId : null
 			},
 			select: {
 				id: true,
