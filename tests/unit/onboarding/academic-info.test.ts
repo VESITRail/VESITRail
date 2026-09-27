@@ -57,4 +57,49 @@ describe("AcademicInfoSchema", () => {
 		const res = AcademicInfoSchema.safeParse(rest);
 		expect(res.success).toBe(false);
 	});
+
+	it("rejects whitespace-only year", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, year: "   " });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects null year", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, year: null });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects undefined year", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, year: undefined });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects whitespace-only class", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, class: "   " });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects null class", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, class: null });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects undefined class", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, class: undefined });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects whitespace-only branch", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, branch: "   " });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects null branch", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, branch: null });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects undefined branch", () => {
+		const res = AcademicInfoSchema.safeParse({ ...baseValidInput, branch: undefined });
+		expect(res.success).toBe(false);
+	});
 });
