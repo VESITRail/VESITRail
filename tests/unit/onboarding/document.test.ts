@@ -31,4 +31,19 @@ describe("DocumentSchema", () => {
 		const res = DocumentSchema.safeParse({});
 		expect(res.success).toBe(false);
 	});
+
+	it("rejects whitespace-only verificationDocUrl", () => {
+		const res = DocumentSchema.safeParse({ verificationDocUrl: "   " });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects null verificationDocUrl", () => {
+		const res = DocumentSchema.safeParse({ verificationDocUrl: null });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects undefined verificationDocUrl", () => {
+		const res = DocumentSchema.safeParse({ verificationDocUrl: undefined });
+		expect(res.success).toBe(false);
+	});
 });

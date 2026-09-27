@@ -52,4 +52,49 @@ describe("TravelInfoSchema", () => {
 		const res = TravelInfoSchema.safeParse(rest);
 		expect(res.success).toBe(false);
 	});
+
+	it("rejects whitespace-only station", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, station: "   " });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects null station", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, station: null });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects undefined station", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, station: undefined });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects whitespace-only preferredConcessionClass", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, preferredConcessionClass: "   " });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects null preferredConcessionClass", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, preferredConcessionClass: null });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects undefined preferredConcessionClass", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, preferredConcessionClass: undefined });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects whitespace-only preferredConcessionPeriod", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, preferredConcessionPeriod: "   " });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects null preferredConcessionPeriod", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, preferredConcessionPeriod: null });
+		expect(res.success).toBe(false);
+	});
+
+	it("rejects undefined preferredConcessionPeriod", () => {
+		const res = TravelInfoSchema.safeParse({ ...baseValidInput, preferredConcessionPeriod: undefined });
+		expect(res.success).toBe(false);
+	});
 });

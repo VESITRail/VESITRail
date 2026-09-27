@@ -70,6 +70,11 @@ describe("Notification Scenarios (src/lib/notifications/scenarios.ts)", () => {
 			expect(addressScenarios).toHaveLength(2);
 			expect(addressScenarios.every((s) => s.category === "address_change")).toBe(true);
 		});
+
+		it("returns empty array for unknown category string", () => {
+			const unknownScenarios = getScenariosByCategory("unknown_category" as unknown as "student");
+			expect(unknownScenarios).toEqual([]);
+		});
 	});
 
 	describe("getScenariosByType", () => {
@@ -83,6 +88,11 @@ describe("Notification Scenarios (src/lib/notifications/scenarios.ts)", () => {
 			const rejections = getScenariosByType("rejection");
 			expect(rejections).toHaveLength(3);
 			expect(rejections.every((s) => s.type === "rejection")).toBe(true);
+		});
+
+		it("returns empty array for invalid or unsupported type value", () => {
+			const invalidType = getScenariosByType("pending" as unknown as "approval");
+			expect(invalidType).toEqual([]);
 		});
 	});
 });

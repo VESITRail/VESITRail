@@ -48,6 +48,20 @@ describe("EditStudentSchema & UpdateStudentActionSchema", () => {
 			}
 		});
 
+		it("confirms address is omitted from schema shape", () => {
+			expect("address" in EditStudentSchema.shape).toBe(false);
+			expect((EditStudentSchema.shape as Record<string, unknown>).address).toBeUndefined();
+		});
+
+		it("confirms retained and extended fields are present in schema shape", () => {
+			expect("firstName" in EditStudentSchema.shape).toBe(true);
+			expect("lastName" in EditStudentSchema.shape).toBe(true);
+			expect("mobileNumber" in EditStudentSchema.shape).toBe(true);
+			expect("year" in EditStudentSchema.shape).toBe(true);
+			expect("class" in EditStudentSchema.shape).toBe(true);
+			expect("branch" in EditStudentSchema.shape).toBe(true);
+		});
+
 		it("allows empty string mobileNumber", () => {
 			const res = EditStudentSchema.safeParse({ ...baseValidEditStudent, mobileNumber: "" });
 			expect(res.success).toBe(true);

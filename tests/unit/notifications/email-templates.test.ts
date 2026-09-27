@@ -115,4 +115,137 @@ describe("Email Templates (src/lib/notifications/email-templates.ts)", () => {
 
 		expect(result.html).not.toContain('class="mobile-info-box"');
 	});
+
+	it("omits info box when concession approval has no matching info fields", () => {
+		const result = generateEmailTemplate(concessionApproval, {
+			userName: "Jay Kerkar"
+		});
+
+		expect(result.html).not.toContain('class="mobile-info-box"');
+	});
+
+	it("omits info box when address change approval has neither fromStation nor toStation", () => {
+		const result = generateEmailTemplate(addressApproval, {
+			userName: "Jay Kerkar"
+		});
+
+		expect(result.html).not.toContain('class="mobile-info-box"');
+		expect(result.html).not.toContain("Your journey details have been updated");
+	});
+
+	it("renders single station info item when only one station is provided in address change", () => {
+		const fromOnly = generateEmailTemplate(addressApproval, {
+			userName: "Jay Kerkar",
+			fromStation: "Kurla"
+		});
+
+		expect(fromOnly.html).toContain("Previous Station");
+		expect(fromOnly.html).toContain("Kurla");
+		expect(fromOnly.html).not.toContain("New Station");
+		expect(fromOnly.html).not.toContain("Your journey details have been updated");
+
+		const toOnly = generateEmailTemplate(addressApproval, {
+			userName: "Jay Kerkar",
+			toStation: "Chembur"
+		});
+
+		expect(toOnly.html).not.toContain("Previous Station");
+		expect(toOnly.html).toContain("New Station");
+		expect(toOnly.html).toContain("Chembur");
+		expect(toOnly.html).not.toContain("Your journey details have been updated");
+	});
+
+	it("renders rejection template without rejection reason box when reason is undefined", () => {
+		const result = generateEmailTemplate(concessionRejection, {
+			userName: "Jay Kerkar"
+		});
+
+		expect(result.html).not.toContain("Rejection Reason:");
+		expect(result.html).not.toContain("Reason: undefined");
+	});
+
+	it("handles unused optional parameters in params without breaking", () => {
+		const result = generateEmailTemplate(studentApproval, {
+			shortId: 101,
+			submissionCount: 3,
+			studentId: "stu_123",
+			userName: "Jay Kerkar",
+			additionalInfo: "Extra notes"
+		});
+
+		expect(result.html).toContain("#101");
+		expect(result.html).toContain("Hello Jay Kerkar!");
+	});
+
+	it("handles extremely long string values in parameters without crashing", () => {
+		const longName = "A".repeat(1000);
+		const longReason = "B".repeat(2000);
+		const longAppId = "C".repeat(500);
+		const result = generateEmailTemplate(concessionRejection, {
+			userName: longName,
+			applicationId: longAppId,
+			rejectionReason: longReason
+		});
+
+		expect(result.html).toContain(longName);
+		expect(result.html).toContain(longReason);
+		expect(result.html).toContain(longAppId);
+		expect(result.html).toContain("word-break: break-word");
+	});
+
+	it("interpolates raw HTML-special characters in parameters", () => {
+		const xssPayload = '<script>alert("xss")</script>';
+		const specialReason = "Reason with & < > \" ' chars";
+		const result = generateEmailTemplate(concessionRejection, {
+			userName: xssPayload,
+			rejectionReason: specialReason
+		});
+
+		expect(result.html).toContain(xssPayload);
+		expect(result.html).toContain(specialReason);
+	});
+
+	it("handles malformed scenario with unknown type and category gracefully", () => {
+		const malformedScenario = {
+			name: "Custom",
+			id: "custom_scenario",
+			type: "other" as unknown as "approval",
+			category: "custom" as unknown as "student",
+			push: { title: "Push", body: "Push body" },
+			inApp: { title: "InApp", body: "InApp body" },
+			email: {
+				subject: "Custom Subject",
+				heading: "Custom Heading",
+				description: "Custom Description"
+			}
+		};
+
+		const result = generateEmailTemplate(malformedScenario, {
+			shortId: 55,
+			userName: "Jay Kerkar"
+		});
+
+		expect(result.subject).toBe("Custom Subject");
+		expect(result.html).toContain("Action Required");
+		expect(result.html).toContain("⚠️");
+		expect(result.html).toContain("#55");
+	});
+
+	it("handles scenario with empty string email fields", () => {
+		const emptyScenario = {
+			...studentApproval,
+			email: {
+				subject: "",
+				heading: "",
+				description: ""
+			}
+		};
+
+		const result = generateEmailTemplate(emptyScenario, {
+			userName: "Jay Kerkar"
+		});
+
+		expect(result.subject).toBe("");
+		expect(result.html).toContain("<title></title>");
+	});
 });

@@ -202,6 +202,17 @@ describe("PersonalInfoSchema", () => {
 				expect(res.data.mobileNumber).toBe("9876543210");
 			}
 		});
+
+		it("rejects null mobile number", () => {
+			const res = PersonalInfoSchema.safeParse({ ...baseValidInput, mobileNumber: null });
+			expect(res.success).toBe(false);
+		});
+
+		it("rejects undefined or missing mobile number", () => {
+			const { mobileNumber: _, ...withoutMobile } = baseValidInput;
+			const res = PersonalInfoSchema.safeParse(withoutMobile);
+			expect(res.success).toBe(false);
+		});
 	});
 
 	describe("gender", () => {
@@ -323,6 +334,21 @@ describe("PersonalInfoSchema", () => {
 
 		it("rejects empty mobile number", () => {
 			const res = MobileNumberSchema.safeParse({ mobileNumber: "" });
+			expect(res.success).toBe(false);
+		});
+
+		it("rejects missing mobileNumber property", () => {
+			const res = MobileNumberSchema.safeParse({});
+			expect(res.success).toBe(false);
+		});
+
+		it("rejects null mobileNumber", () => {
+			const res = MobileNumberSchema.safeParse({ mobileNumber: null });
+			expect(res.success).toBe(false);
+		});
+
+		it("rejects undefined mobileNumber", () => {
+			const res = MobileNumberSchema.safeParse({ mobileNumber: undefined });
 			expect(res.success).toBe(false);
 		});
 	});
