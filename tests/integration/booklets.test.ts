@@ -368,10 +368,10 @@ describe("Booklets Integration", () => {
 					applicationType: "Renewal",
 					studentId: studentUser.user.id,
 					stationId: SEED.stations[0].id,
+					previousApplicationId: testApp1.id,
 					concessionBookletId: testBooklet.id,
 					concessionClassId: SEED.concessionClasses[0].id,
-					concessionPeriodId: SEED.concessionPeriods[0].id,
-					previousApplicationId: testApp1.id
+					concessionPeriodId: SEED.concessionPeriods[0].id
 				}
 			});
 		});
@@ -480,9 +480,9 @@ describe("Booklets Integration", () => {
 	});
 
 	describe("reorderBookletApplications", () => {
-		let reorderBooklet: any;
 		let appA: any;
 		let appB: any;
+		let reorderBooklet: any;
 
 		beforeAll(async () => {
 			reorderBooklet = await prisma.concessionBooklet.create({
