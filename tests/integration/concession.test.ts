@@ -23,6 +23,7 @@ import {
 	getConcessionApplicationDetails
 } from "@/actions/concession";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { sendConcessionNotification } from "@/lib/notifications";
 
 describe("Concession Integration", () => {
 	const { prisma, pool } = getTestPrisma();
@@ -447,6 +448,159 @@ describe("Concession Integration", () => {
 				expect(res.data.length).toBeGreaterThanOrEqual(1);
 				const issuedItem = res.data.find((item) => item.id === issuedAppId);
 				expect(issuedItem?.derivedCertificateNo).toBeDefined();
+			}
+		});
+	});
+
+	describe("Renewal Concession Application Lifecycle", () => {
+		let initialIssuedApp: any;
+		let renewalApp: any;
+
+		beforeAll(async () => {
+			initialIssuedApp = await prisma.concessionApplication.create({
+				data: {
+					studentId: studentUser.user.id,
+					stationId: SEED.stations[0].id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id,
+					applicationType: "New",
+					status: "Issued",
+					pageOffset: 10,
+					issuedAt: new Date(),
+					concessionBookletId: booklet.id,
+					reviewedById: adminUser.user.id,
+					reviewedAt: new Date()
+				}
+			});
+		});
+
+		it("fails when submitting renewal with non-existent previousApplicationId", async () => {
+			await authenticateAs(studentUser.user.id);
+			const res = await submitConcessionApplication({
+				applicationType: "Renewal",
+				previousApplicationId: "00000000-0000-0000-0000-000000000000",
+				stationId: SEED.stations[0].id,
+				studentId: studentUser.user.id,
+				concessionClassId: SEED.concessionClasses[0].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+
+			expect(res.isSuccess).toBe(false);
+		});
+
+		it("submits a renewal application linked to the previous issued application", async () => {
+			await authenticateAs(studentUser.user.id);
+			const res = await submitConcessionApplication({
+				applicationType: "Renewal",
+				previousApplicationId: initialIssuedApp.id,
+				stationId: SEED.stations[0].id,
+				studentId: studentUser.user.id,
+				concessionClassId: SEED.concessionClasses[0].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data?.status).toBe("Pending");
+				expect(res.data?.applicationType).toBe("Renewal");
+				expect(res.data?.previousApplication?.id).toBe(initialIssuedApp.id);
+				expect(res.data?.previousApplication?.status).toBe("Issued");
+				expect(res.data?.previousApplication?.station).toBeDefined();
+				expect(res.data?.previousApplication?.concessionClass).toBeDefined();
+				expect(res.data?.previousApplication?.concessionPeriod).toBeDefined();
+				renewalApp = res.data;
+			}
+		});
+
+		it("filters student concessions by typeFilter (Renewal vs New)", async () => {
+			await authenticateAs(studentUser.user.id);
+
+			const renewalRes = await getConcessions({ page: 1, pageSize: 10, typeFilter: "Renewal" });
+			expect(renewalRes.isSuccess).toBe(true);
+			if (renewalRes.isSuccess) {
+				expect(renewalRes.data.data.every((app) => app?.applicationType === "Renewal")).toBe(true);
+				expect(renewalRes.data.data.some((app) => app?.id === renewalApp.id)).toBe(true);
+			}
+
+			const newRes = await getConcessions({ page: 1, pageSize: 10, typeFilter: "New" });
+			expect(newRes.isSuccess).toBe(true);
+			if (newRes.isSuccess) {
+				expect(newRes.data.data.every((app) => app?.applicationType === "New")).toBe(true);
+			}
+		});
+
+		it("filters admin applications by typeFilter (Renewal vs New)", async () => {
+			await authenticateAs(adminUser.user.id);
+
+			const adminRenewalRes = await getAllApplications({ page: 1, pageSize: 10, typeFilter: "Renewal" });
+			expect(adminRenewalRes.isSuccess).toBe(true);
+			if (adminRenewalRes.isSuccess) {
+				expect(adminRenewalRes.data.data.every((app) => app.applicationType === "Renewal")).toBe(true);
+				expect(adminRenewalRes.data.data.some((app) => app.id === renewalApp.id)).toBe(true);
+			}
+
+			const adminNewRes = await getAllApplications({ page: 1, pageSize: 10, typeFilter: "New" });
+			expect(adminNewRes.isSuccess).toBe(true);
+			if (adminNewRes.isSuccess) {
+				expect(adminNewRes.data.data.every((app) => app.applicationType === "New")).toBe(true);
+			}
+		});
+
+		it("handles rejection and resubmission of a renewal application preserving previousApplicationId", async () => {
+			await authenticateAs(adminUser.user.id);
+			const rejectRes = await reviewConcessionApplication(
+				renewalApp.id,
+				"Rejected",
+				"Previous season ticket pass expired more than allowed window"
+			);
+			expect(rejectRes.isSuccess).toBe(true);
+
+			await authenticateAs(studentUser.user.id);
+			const resubmitRes = await submitConcessionResubmission(renewalApp.id, {
+				applicationType: "Renewal",
+				previousApplicationId: initialIssuedApp.id,
+				stationId: SEED.stations[0].id,
+				concessionClassId: SEED.concessionClasses[1].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+
+			expect(resubmitRes.isSuccess).toBe(true);
+			if (resubmitRes.isSuccess) {
+				expect(resubmitRes.data?.status).toBe("Pending");
+				expect(resubmitRes.data?.applicationType).toBe("Renewal");
+				expect(resubmitRes.data?.previousApplication?.id).toBe(initialIssuedApp.id);
+				expect(resubmitRes.data?.rejectionReason).toBeNull();
+				expect(resubmitRes.data?.submissionCount).toBeGreaterThanOrEqual(2);
+			}
+		});
+
+		it("approves and assigns booklet to the resubmitted renewal application", async () => {
+			await authenticateAs(adminUser.user.id);
+			const approveRes = await reviewConcessionApplication(renewalApp.id, "Approved");
+			expect(approveRes.isSuccess).toBe(true);
+
+			expect(sendConcessionNotification).toHaveBeenCalledWith(
+				studentUser.user.id,
+				renewalApp.id,
+				true,
+				"Renewal",
+				undefined
+			);
+
+			const assignRes = await assignBookletToConcession(renewalApp.id, booklet.id, 11);
+			expect(assignRes.isSuccess).toBe(true);
+			if (assignRes.isSuccess) {
+				expect(assignRes.data.status).toBe("Issued");
+				expect(assignRes.data.pageOffset).toBe(11);
+			}
+
+			await authenticateAs(studentUser.user.id);
+			const lastAppRes = await getLastApplication();
+			expect(lastAppRes.isSuccess).toBe(true);
+			if (lastAppRes.isSuccess) {
+				expect(lastAppRes.data?.id).toBe(renewalApp.id);
+				expect(lastAppRes.data?.applicationType).toBe("Renewal");
+				expect(lastAppRes.data?.status).toBe("Issued");
 			}
 		});
 	});

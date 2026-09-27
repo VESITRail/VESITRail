@@ -320,6 +320,7 @@ describe("Booklets Integration", () => {
 	describe("getBookletApplications and getBookletAssignedStudents", () => {
 		let testApp1: any;
 		let testApp2: any;
+		let testApp3: any;
 		let testBooklet: any;
 
 		beforeAll(async () => {
@@ -359,6 +360,20 @@ describe("Booklets Integration", () => {
 					concessionPeriodId: SEED.concessionPeriods[0].id
 				}
 			});
+
+			testApp3 = await prisma.concessionApplication.create({
+				data: {
+					pageOffset: 3,
+					status: "Issued",
+					applicationType: "Renewal",
+					studentId: studentUser.user.id,
+					stationId: SEED.stations[0].id,
+					concessionBookletId: testBooklet.id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id,
+					previousApplicationId: testApp1.id
+				}
+			});
 		});
 
 		it("returns UNAUTHORIZED for non-admin on getBookletApplications", async () => {
@@ -374,12 +389,27 @@ describe("Booklets Integration", () => {
 			expect(res.isSuccess).toBe(true);
 			if (res.isSuccess) {
 				expect(res.data.booklet.id).toBe(testBooklet.id);
-				expect(res.data.totalCount).toBeGreaterThanOrEqual(3);
+				expect(res.data.totalCount).toBeGreaterThanOrEqual(4);
 
 				const damagedPage = res.data.data.find(
 					(item) => "isDamaged" in item && item.isDamaged === true && item.pageNumber === 2
 				);
 				expect(damagedPage).toBeDefined();
+			}
+		});
+
+		it("includes previousApplication and booklet details for Renewal applications", async () => {
+			await authenticateAs(adminUser.user.id);
+			const res = await getBookletApplications(testBooklet.id);
+
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				const renewalItem = res.data.data.find((item) => "id" in item && item.id === testApp3.id) as any;
+				expect(renewalItem).toBeDefined();
+				expect(renewalItem.applicationType).toBe("Renewal");
+				expect(renewalItem.previousApplication?.id).toBe(testApp1.id);
+				expect(renewalItem.previousApplication?.pageOffset).toBe(0);
+				expect(renewalItem.previousApplication?.concessionBooklet?.serialStartNumber).toBe("0960000");
 			}
 		});
 
