@@ -4,6 +4,7 @@ import {
 	cleanAllTables,
 	authenticateAs,
 	unauthenticate,
+	createTestAdmin,
 	createTestStudent,
 	seedReferenceData
 } from "./helpers";
@@ -19,13 +20,17 @@ import { updateStudentMobileNumber, getStudentMobileStatus } from "@/actions/upd
 describe("Settings Integration", () => {
 	const { prisma, pool } = getTestPrisma();
 
+	let adminUser: any;
 	let studentUser: any;
+	let pendingStudent: any;
 
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
 
+		adminUser = await createTestAdmin(prisma, { isActive: true });
 		studentUser = await createTestStudent(prisma, { status: "Approved" });
+		pendingStudent = await createTestStudent(prisma, { status: "Pending" });
 	});
 
 	afterAll(async () => {
@@ -39,6 +44,41 @@ describe("Settings Integration", () => {
 	});
 
 	describe("concession preferences", () => {
+		it("returns UNAUTHORIZED when unauthenticated", async () => {
+			const res = await getStudentPreferences();
+			expect(res.isSuccess).toBe(false);
+
+			const updateRes = await updateStudentPreferences({
+				preferredConcessionClassId: SEED.concessionClasses[0].id,
+				preferredConcessionPeriodId: SEED.concessionPeriods[0].id
+			});
+			expect(updateRes.isSuccess).toBe(false);
+		});
+
+		it("returns FORBIDDEN when admin attempts student-only concession preferences", async () => {
+			await authenticateAs(adminUser.user.id);
+			const getRes = await getStudentPreferences();
+			expect(getRes.isSuccess).toBe(false);
+
+			const updateRes = await updateStudentPreferences({
+				preferredConcessionClassId: SEED.concessionClasses[0].id,
+				preferredConcessionPeriodId: SEED.concessionPeriods[0].id
+			});
+			expect(updateRes.isSuccess).toBe(false);
+		});
+
+		it("returns FORBIDDEN when student is not approved", async () => {
+			await authenticateAs(pendingStudent.user.id);
+			const getRes = await getStudentPreferences();
+			expect(getRes.isSuccess).toBe(false);
+
+			const updateRes = await updateStudentPreferences({
+				preferredConcessionClassId: SEED.concessionClasses[0].id,
+				preferredConcessionPeriodId: SEED.concessionPeriods[0].id
+			});
+			expect(updateRes.isSuccess).toBe(false);
+		});
+
 		it("retrieves current student preferences", async () => {
 			await authenticateAs(studentUser.user.id);
 			const res = await getStudentPreferences();
@@ -46,6 +86,28 @@ describe("Settings Integration", () => {
 			if (res.isSuccess) {
 				expect(res.data.preferredConcessionClass.id).toBe(SEED.concessionClasses[0].id);
 				expect(res.data.preferredConcessionPeriod.id).toBe(SEED.concessionPeriods[0].id);
+			}
+		});
+
+		it("fails with validation error for invalid/nonexistent classId or periodId", async () => {
+			await authenticateAs(studentUser.user.id);
+
+			const badClassRes = await updateStudentPreferences({
+				preferredConcessionPeriodId: SEED.concessionPeriods[0].id,
+				preferredConcessionClassId: "00000000-0000-0000-0000-000000000000"
+			});
+			expect(badClassRes.isSuccess).toBe(false);
+			if (!badClassRes.isSuccess) {
+				expect(badClassRes.error.message).toContain("concession class is currently unavailable");
+			}
+
+			const badPeriodRes = await updateStudentPreferences({
+				preferredConcessionClassId: SEED.concessionClasses[0].id,
+				preferredConcessionPeriodId: "00000000-0000-0000-0000-000000000000"
+			});
+			expect(badPeriodRes.isSuccess).toBe(false);
+			if (!badPeriodRes.isSuccess) {
+				expect(badPeriodRes.error.message).toContain("concession period is currently unavailable");
 			}
 		});
 
