@@ -79,6 +79,94 @@ describe("Onboarding Integration", () => {
 		unauthenticate();
 	});
 
+	describe("Unauthorized Access (Guards)", () => {
+		it("returns UNAUTHORIZED when unauthenticated for all onboarding endpoints", async () => {
+			const resReview = await getReviewData({
+				classId: SEED.classes[0].id,
+				stationId: SEED.stations[0].id,
+				preferredConcessionClassId: SEED.concessionClasses[0].id,
+				preferredConcessionPeriodId: SEED.concessionPeriods[0].id
+			});
+			expect(resReview.isSuccess).toBe(false);
+
+			const resExisting = await getExistingStudentData();
+			expect(resExisting.isSuccess).toBe(false);
+
+			const resLegacy = await getLegacyStudentByEmail();
+			expect(resLegacy.isSuccess).toBe(false);
+
+			const resSubmit = await submitOnboarding(baseOnboardingData);
+			expect(resSubmit.isSuccess).toBe(false);
+		});
+	});
+
+	describe("Validation Error Cases", () => {
+		it("rejects invalid mobile number in submitOnboarding", async () => {
+			await authenticateAs(studentUser.id);
+			const res = await submitOnboarding({
+				...baseOnboardingData,
+				mobileNumber: "12345"
+			});
+			expect(res.isSuccess).toBe(false);
+			if (!res.isSuccess) {
+				expect(res.error.message).toContain("Please enter a valid Indian mobile number");
+			}
+		});
+
+		it("rejects unavailable or nonexistent classId", async () => {
+			await authenticateAs(studentUser.id);
+			const res = await submitOnboarding({
+				...baseOnboardingData,
+				classId: "00000000-0000-0000-0000-000000000000"
+			});
+			expect(res.isSuccess).toBe(false);
+			if (!res.isSuccess) {
+				expect(res.error.message).toContain("class, year, or branch is currently unavailable");
+			}
+		});
+
+		it("rejects unavailable or nonexistent stationId", async () => {
+			await authenticateAs(studentUser.id);
+			const res = await submitOnboarding({
+				...baseOnboardingData,
+				stationId: "00000000-0000-0000-0000-000000000000"
+			});
+			expect(res.isSuccess).toBe(false);
+			if (!res.isSuccess) {
+				expect(res.error.message).toContain("station is currently unavailable");
+			}
+		});
+
+		it("rejects unavailable preferred concession class or period", async () => {
+			await authenticateAs(studentUser.id);
+			const res1 = await submitOnboarding({
+				...baseOnboardingData,
+				preferredConcessionClassId: "00000000-0000-0000-0000-000000000000"
+			});
+			expect(res1.isSuccess).toBe(false);
+
+			const res2 = await submitOnboarding({
+				...baseOnboardingData,
+				preferredConcessionPeriodId: "00000000-0000-0000-0000-000000000000"
+			});
+			expect(res2.isSuccess).toBe(false);
+		});
+
+		it("rejects getReviewData when reference fields are missing or invalid", async () => {
+			await authenticateAs(studentUser.id);
+			const res = await getReviewData({
+				classId: "00000000-0000-0000-0000-000000000000",
+				stationId: SEED.stations[0].id,
+				preferredConcessionClassId: SEED.concessionClasses[0].id,
+				preferredConcessionPeriodId: SEED.concessionPeriods[0].id
+			});
+			expect(res.isSuccess).toBe(false);
+			if (!res.isSuccess) {
+				expect(res.error.message).toContain("review fields are missing");
+			}
+		});
+	});
+
 	describe("getReviewData", () => {
 		it("returns review data when authenticated", async () => {
 			await authenticateAs(studentUser.id);
@@ -126,6 +214,21 @@ describe("Onboarding Integration", () => {
 			if (res.isSuccess) {
 				expect(res.data.status).toBe("Pending");
 				expect(res.data.userId).toBe(studentUser.id);
+				expect(res.data.submissionCount).toBe(1);
+			}
+		});
+
+		it("handles duplicate onboarding submission for same user by incrementing submissionCount", async () => {
+			await authenticateAs(studentUser.id);
+			const res = await submitOnboarding({
+				...baseOnboardingData,
+				address: "Updated 456 Street, Mumbai"
+			});
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data.status).toBe("Pending");
+				expect(res.data.submissionCount).toBe(2);
+				expect(res.data.address).toBe("Updated 456 Street, Mumbai");
 			}
 		});
 
@@ -138,6 +241,7 @@ describe("Onboarding Integration", () => {
 				expect(res.data.userId).toBe(legacyUser.id);
 			}
 		});
+
 		it("preserves review metadata and rejection reason on resubmission after rejection and clears on approval", async () => {
 			const resubmitUser = await createTestUser(prisma, { email: "vesitrail.resubmit@ves.ac.in" });
 			await authenticateAs(resubmitUser.id);
