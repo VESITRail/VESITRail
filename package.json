@@ -94,7 +94,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"firebase": "^12.19.0",
 		"firebase-admin": "^14.5.0",
-		"framer-motion": "^13.4.4",
+		"framer-motion": "^14.1.0",
 		"jspdf": "^4.2.1",
 		"jspdf-autotable": "^5.0.8",
 		"lucide-react": "^1.55.0",
