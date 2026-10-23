@@ -92,7 +92,7 @@
 		"date-fns": "^4.4.0",
 		"date-fns-tz": "^3.2.0",
 		"eslint-config-prettier": "^10.1.8",
-		"firebase": "^12.19.0",
+		"firebase": "^13.0.0",
 		"firebase-admin": "^14.5.0",
 		"framer-motion": "^14.3.0",
 		"jspdf": "^4.2.1",
