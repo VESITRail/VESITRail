@@ -7,10 +7,11 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FieldError } from "@/components/onboarding/field-error";
 import { CustomCalendar } from "@/components/ui/custom-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PersonalInfoSchema, type OnboardingSchema } from "@/lib/validations/onboarding";
-import { Form, FormItem, FormField, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
+import { Form, FormItem, FormField, FormLabel, FormControl } from "@/components/ui/form";
 import { capitalizeWords, cn, formatDateOfBirth, formatDobForInput, normalizeDob } from "@/lib/utils";
 import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
 
@@ -136,7 +137,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 				<div className="space-y-2">
 					<FormLabel className="text-sm font-medium block">Name as per Aadhaar Card</FormLabel>
 
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+					<div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
 						<FormField
 							name="firstName"
 							control={form.control}
@@ -157,9 +158,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 										/>
 									</FormControl>
 
-									<div className="min-h-5">
-										<FormMessage id="firstName-error" className="text-sm" />
-									</div>
+									<FieldError id="firstName-error" />
 								</FormItem>
 							)}
 						/>
@@ -181,9 +180,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 											onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
 										/>
 									</FormControl>
-									<div className="min-h-5">
-										<FormMessage id="middleName-error" className="text-sm" />
-									</div>
+									<FieldError id="middleName-error" />
 								</FormItem>
 							)}
 						/>
@@ -205,16 +202,14 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 											onChange={(e) => handleCapitalFirstChange(e.target.value, field.onChange)}
 										/>
 									</FormControl>
-									<div className="min-h-5">
-										<FormMessage id="lastName-error" className="text-sm" />
-									</div>
+									<FieldError id="lastName-error" />
 								</FormItem>
 							)}
 						/>
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+				<div className="grid grid-cols-1 md:grid-cols-3 items-start gap-4 w-full">
 					<FormField
 						name="gender"
 						control={form.control}
@@ -240,9 +235,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 									</SelectContent>
 								</Select>
 
-								<div className="min-h-5">
-									<FormMessage id="gender-error" className="text-sm" />
-								</div>
+								<FieldError id="gender-error" />
 							</FormItem>
 						)}
 					/>
@@ -285,9 +278,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 									</Popover>
 								</FormControl>
 
-								<div className="min-h-5">
-									<FormMessage id="dateOfBirth-error" className="text-sm" />
-								</div>
+								<FieldError id="dateOfBirth-error" />
 							</FormItem>
 						)}
 					/>
@@ -317,9 +308,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 									/>
 								</FormControl>
 
-								<div className="min-h-5">
-									<FormMessage id="mobileNumber-error" className="text-sm" />
-								</div>
+								<FieldError id="mobileNumber-error" />
 							</FormItem>
 						)}
 					/>
@@ -437,9 +426,7 @@ const PersonalInfo = ({ errors, setFormData, defaultValues }: PersonalInfoProps)
 									</div>
 								</FormControl>
 
-								<div className="min-h-5">
-									<FormMessage id="address-error" className="text-sm" />
-								</div>
+								<FieldError id="address-error" />
 							</FormItem>
 						);
 					}}
