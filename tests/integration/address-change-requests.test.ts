@@ -155,6 +155,69 @@ describe("Address Change Requests (Admin) Integration", () => {
 				expect(res.data.currentPage).toBe(1);
 			}
 		});
+
+		it("orders requests with Pending first, then Approved, then Rejected", async () => {
+			await prisma.addressChange.create({
+				data: {
+					status: "Rejected",
+					submissionCount: 1,
+					currentAddress: "Old Address",
+					studentId: studentUser.user.id,
+					newAddress: "Rejected Address",
+					rejectionReason: "Invalid proof",
+					newStationId: SEED.stations[1].id,
+					currentStationId: SEED.stations[0].id,
+					createdAt: new Date(Date.now() - 3000)
+				}
+			});
+
+			await prisma.addressChange.create({
+				data: {
+					status: "Approved",
+					submissionCount: 1,
+					currentAddress: "Old Address",
+					studentId: studentUser.user.id,
+					newAddress: "Approved Address",
+					newStationId: SEED.stations[1].id,
+					currentStationId: SEED.stations[0].id,
+					createdAt: new Date(Date.now() - 2000)
+				}
+			});
+
+			await prisma.addressChange.create({
+				data: {
+					status: "Pending",
+					submissionCount: 1,
+					currentAddress: "Old Address",
+					studentId: studentUser.user.id,
+					newStationId: SEED.stations[2].id,
+					newAddress: "Newer Pending Address",
+					currentStationId: SEED.stations[0].id,
+					createdAt: new Date(Date.now() - 1000)
+				}
+			});
+
+			await authenticateAs(adminUser.user.id);
+			const res = await getAddressChangeRequests({ page: 1, pageSize: 20 });
+
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				const statuses = res.data.data.map((r) => r.status);
+				const firstApprovedIdx = statuses.indexOf("Approved");
+				const firstRejectedIdx = statuses.indexOf("Rejected");
+				const lastPendingIdx = statuses.lastIndexOf("Pending");
+
+				if (lastPendingIdx !== -1 && firstApprovedIdx !== -1) {
+					expect(lastPendingIdx).toBeLessThan(firstApprovedIdx);
+				}
+				if (firstApprovedIdx !== -1 && firstRejectedIdx !== -1) {
+					expect(firstApprovedIdx).toBeLessThan(firstRejectedIdx);
+				}
+				if (lastPendingIdx !== -1 && firstRejectedIdx !== -1) {
+					expect(lastPendingIdx).toBeLessThan(firstRejectedIdx);
+				}
+			}
+		});
 	});
 
 	describe("getAddressChangeRequestDetails", () => {

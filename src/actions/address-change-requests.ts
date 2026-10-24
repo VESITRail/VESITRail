@@ -191,89 +191,114 @@ export const getAddressChangeRequests = async (
 			whereClause.OR = orConditions;
 		}
 
-		const [requests, totalCount] = await Promise.all([
-			prisma.addressChange.findMany({
-				skip,
-				take: pageSize,
-				where: whereClause,
-				orderBy: {
-					createdAt: "desc"
-				},
-				include: {
-					student: {
-						include: {
-							user: {
-								select: {
-									id: true,
-									name: true,
-									email: true,
-									image: true
-								}
-							},
-							class: {
-								include: {
-									year: {
-										select: {
-											id: true,
-											code: true,
-											name: true
-										}
-									},
-									branch: {
-										select: {
-											id: true,
-											code: true,
-											name: true
-										}
+		const requests = await prisma.addressChange.findMany({
+			where: whereClause,
+			include: {
+				student: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+								image: true
+							}
+						},
+						class: {
+							include: {
+								year: {
+									select: {
+										id: true,
+										code: true,
+										name: true
+									}
+								},
+								branch: {
+									select: {
+										id: true,
+										code: true,
+										name: true
 									}
 								}
 							}
 						}
-					},
-					newStation: {
-						select: {
-							id: true,
-							code: true,
-							name: true
-						}
-					},
-					currentStation: {
-						select: {
-							id: true,
-							code: true,
-							name: true
-						}
-					},
-					reviewedBy: {
-						include: {
-							user: {
-								select: {
-									id: true,
-									name: true,
-									email: true,
-									image: true
-								}
+					}
+				},
+				newStation: {
+					select: {
+						id: true,
+						code: true,
+						name: true
+					}
+				},
+				currentStation: {
+					select: {
+						id: true,
+						code: true,
+						name: true
+					}
+				},
+				reviewedBy: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+								image: true
 							}
 						}
 					}
 				}
-			}),
-			prisma.addressChange.count({
-				where: whereClause
-			})
-		]);
+			}
+		});
+
+		const totalCount = requests.length;
+
+		const getStatusRank = (status: AddressChangeStatusType): number => {
+			switch (status) {
+				case "Pending":
+					return 1;
+				case "Approved":
+					return 2;
+				case "Rejected":
+					return 3;
+				default:
+					return 4;
+			}
+		};
+
+		const sortedRequests = requests.sort((a, b) => {
+			const rankA = getStatusRank(a.status);
+			const rankB = getStatusRank(b.status);
+
+			if (rankA !== rankB) {
+				return rankA - rankB;
+			}
+
+			const timeA = new Date(a.createdAt).getTime();
+			const timeB = new Date(b.createdAt).getTime();
+
+			if (a.status === "Pending") {
+				return timeA - timeB;
+			}
+
+			return timeB - timeA;
+		});
 
 		const totalPages = Math.ceil(totalCount / pageSize);
 		const hasNextPage = page < totalPages;
 		const hasPreviousPage = page > 1;
 
+		const paginatedRequests = sortedRequests.slice(skip, skip + pageSize);
+
 		return success({
 			totalCount,
 			totalPages,
 			hasNextPage,
-			data: requests,
 			hasPreviousPage,
-			currentPage: page
+			currentPage: page,
+			data: paginatedRequests
 		});
 	} catch (error) {
 		console.error("Error fetching address change requests:", error);

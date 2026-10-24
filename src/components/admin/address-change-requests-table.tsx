@@ -915,12 +915,27 @@ const AddressChangeRequestsTable = ({
 		if (!sortConfig) return requests;
 
 		return [...requests].sort((a, b) => {
-			let aValue: string | Date;
-			let bValue: string | Date;
+			let aValue: string | Date | number;
+			let bValue: string | Date | number;
 
 			if (sortConfig.key === "studentName") {
 				aValue = [a.student.firstName, a.student.middleName, a.student.lastName].filter(Boolean).join(" ");
 				bValue = [b.student.firstName, b.student.middleName, b.student.lastName].filter(Boolean).join(" ");
+			} else if (sortConfig.key === "status") {
+				const getStatusRank = (status: AddressChangeStatusType): number => {
+					switch (status) {
+						case "Pending":
+							return 1;
+						case "Approved":
+							return 2;
+						case "Rejected":
+							return 3;
+						default:
+							return 4;
+					}
+				};
+				aValue = getStatusRank(a.status);
+				bValue = getStatusRank(b.status);
 			} else {
 				aValue = a[sortConfig.key] as string | Date;
 				bValue = b[sortConfig.key] as string | Date;
