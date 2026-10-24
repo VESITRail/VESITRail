@@ -88,7 +88,7 @@ export const notificationScenarios: NotificationScenario[] = [
 			heading: "Concession Application Approved",
 			subject: "Your Concession Application Has Been Approved!",
 			description:
-				"Excellent news! Your concession application has been approved.<br /><br />Please collect your physical concession certificate at the Railway Concession Office, located on the ground floor of the Admin Office.",
+				"Excellent news! Your concession application has been approved.<br /><br />Please collect your physical concession certificate at the Railway Concession Office, located on the ground floor of the Admin Office.<br /><br />Please bring your college ID card with you when you come to collect it.",
 			cta: {
 				text: "View Details",
 				url: "/dashboard/student"
@@ -181,4 +181,12 @@ export const getScenariosByCategory = (
 
 export const getScenariosByType = (type: "approval" | "rejection"): NotificationScenario[] => {
 	return notificationScenarios.filter((scenario) => scenario.type === type);
+};
+
+export const getPushBody = (scenario: NotificationScenario, shortId?: number): string => {
+	if (scenario.category !== "concession" || !shortId) {
+		return scenario.push.body;
+	}
+
+	return `Concession #${shortId}: ${scenario.push.body}`;
 };

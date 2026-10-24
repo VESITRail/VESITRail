@@ -1,4 +1,5 @@
 import {
+	getPushBody,
 	getScenariosByType,
 	notificationScenarios,
 	getScenariosByCategory,
@@ -93,6 +94,26 @@ describe("Notification Scenarios (src/lib/notifications/scenarios.ts)", () => {
 		it("returns empty array for invalid or unsupported type value", () => {
 			const invalidType = getScenariosByType("pending" as unknown as "approval");
 			expect(invalidType).toEqual([]);
+		});
+	});
+
+	describe("getPushBody", () => {
+		it("appends the concession ID for concession scenarios", () => {
+			const scenario = getNotificationScenario("concession_approval")!;
+
+			expect(getPushBody(scenario, 42)).toBe(`Concession #42: ${scenario.push.body}`);
+		});
+
+		it("returns the plain body when no shortId is provided", () => {
+			const scenario = getNotificationScenario("concession_rejection")!;
+
+			expect(getPushBody(scenario)).toBe(scenario.push.body);
+		});
+
+		it("does not append an ID for non-concession scenarios", () => {
+			const scenario = getNotificationScenario("address_change_approval")!;
+
+			expect(getPushBody(scenario, 42)).toBe(scenario.push.body);
 		});
 	});
 });

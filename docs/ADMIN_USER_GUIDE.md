@@ -313,6 +313,8 @@ The application status updates to **`Approved`**. **No booklet slot is assigned 
 
 > _"Your railway concession application has been approved! Please visit the Railway Concession Office to collect your certificate."_
 
+Concession push notifications (approval and rejection) start with the application reference, e.g. `Concession #42: `, so the student can quote it at the counter. The approval email also reminds the student to bring their college ID card when collecting the physical concession certificate.
+
 ---
 
 ### How to Assign a Booklet Slip and Print a Pass (Stage 2)

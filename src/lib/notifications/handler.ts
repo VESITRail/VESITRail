@@ -2,8 +2,8 @@ import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import { getMessaging } from "firebase-admin/messaging";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { getNotificationScenario, type NotificationScenario } from "./scenarios";
 import { generateEmailTemplate, type EmailTemplateParams } from "./email-templates";
+import { getPushBody, getNotificationScenario, type NotificationScenario } from "./scenarios";
 import { Result, success, failure, type AppError, databaseError, validationError } from "@/lib/result";
 
 if (!getApps().length) {
@@ -129,6 +129,7 @@ export const sendNotification = async (payload: NotificationPayload): Promise<Re
 			const pushResult = await sendPushNotification({
 				scenario,
 				url: payload.url,
+				shortId: payload.templateParams.shortId,
 				userId: payload.studentId
 			});
 
@@ -204,6 +205,7 @@ const sendEmailNotification = async (params: {
 const sendPushNotification = async (params: {
 	url?: string;
 	userId: string;
+	shortId?: number;
 	scenario: NotificationScenario;
 }): Promise<Result<boolean, AppError>> => {
 	try {
@@ -222,8 +224,8 @@ const sendPushNotification = async (params: {
 		const message = {
 			tokens,
 			data: {
-				body: params.scenario.push.body,
 				title: params.scenario.push.title,
+				body: getPushBody(params.scenario, params.shortId),
 				url: `${baseUrl}${params.url || "/dashboard/student"}`
 			}
 		};
