@@ -45,7 +45,7 @@ export const SaveLayoutConfirmDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<DialogFooter className="gap-2 pt-2">
+				<DialogFooter className="gap-4 pt-2">
 					<Button variant="outline" onClick={onClose} disabled={isSaving}>
 						Cancel
 					</Button>
