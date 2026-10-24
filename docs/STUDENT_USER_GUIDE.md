@@ -23,6 +23,7 @@
 - [Tracking Your Application](#tracking-your-application)
   - [How to Check Your Concession Status](#how-to-check-your-concession-status)
   - [Understanding Concession Application Statuses](#understanding-concession-application-statuses)
+  - [What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station](#what-to-do-if-your-concession-is-wrongly-stamped-or-rejected-at-the-railway-station)
 - [Managing Your Home Address](#managing-your-home-address)
   - [How to Request a Change of Address or Home Station](#how-to-request-a-change-of-address-or-home-station)
 - [Managing Notifications](#managing-notifications)
@@ -350,6 +351,26 @@ The table below explains what each status badge means and the exact action requi
 
 ---
 
+### What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station
+
+Sometimes the booking window at your home railway station refuses your physical concession certificate because it was stamped incorrectly or printed with wrong details. This is a college-side correction and does not require a new application.
+
+#### Steps
+
+1. Do not discard, tear, or write on the rejected certificate. Keep the **same** physical certificate you collected from the college.
+2. Bring that certificate back to the **Railway Concession Counter, Ground Floor Administrative Section, VESIT Campus, Chembur, Mumbai**, along with your college ID card.
+3. Visit during office hours: Monday to Friday, 10:30 AM to 1:30 PM and 2:30 PM to 4:30 PM (excluding public and institutional holidays).
+4. Tell the administrator that the station rejected your certificate and explain what was wrong (for example, the stamp or printed details).
+5. The administrator inspects your existing certificate and decides between two outcomes:
+   - **The certificate can be fixed:** the administrator corrects it, including reprinting the details on the same physical voucher slip, and hands the corrected certificate back to you.
+   - **The certificate cannot be fixed:** the administrator cancels the existing certificate and its voucher slip, prints a new certificate on a fresh voucher slip, and hands the new one to you.
+6. Take the corrected or new certificate to the ticket booking window at your local railway station to purchase your discounted season ticket.
+
+> [!IMPORTANT]
+> **Always return the original certificate.** A cancelled certificate must not be reused, and the administrator needs the rejected one to check it and to cancel it if it cannot be fixed.
+
+---
+
 ## 🏠 Managing Your Home Address
 
 If your residence changes, you must submit an official address update so future concession passes reflect your new commute route to Kurla.
@@ -598,7 +619,9 @@ You can apply for a renewal only when your current concession pass validity has 
 
 No. VESITRail automates the college-side verification and voucher slip distribution process. You must take the physical, stamped concession certificate collected from the college office to the booking ticket window at your suburban railway station to purchase your discounted railway travel pass.
 
----
+#### 9. What if the railway station rejects my concession because it was stamped wrongly?
+
+Bring the same physical certificate back to the Railway Concession Counter (Ground Floor Administrative Section) with your college ID card. The administrator will check whether it can be fixed. If it cannot, the existing certificate is cancelled and a new one is printed for you. See [What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station](#what-to-do-if-your-concession-is-wrongly-stamped-or-rejected-at-the-railway-station).
 
 ## 🔧 Troubleshooting Common Issues
 
@@ -621,6 +644,11 @@ No. VESITRail automates the college-side verification and voucher slip distribut
 
 - **Symptom:** Your onboarding or address change application was rejected citing an address-station mismatch.
 - **Solution:** Under railway jurisdiction regulations, your designated home station must be the closest suburban station to your residential address. Resubmit your request selecting the correct suburban station corresponding to your residential locality and pincode.
+
+### Railway Station Rejects My Concession Certificate
+
+- **Symptom:** The booking window at your home railway station refuses your certificate because it was stamped wrongly or printed with wrong details.
+- **Solution:** Bring the same physical certificate back to the Railway Concession Counter (Ground Floor Administrative Section) with your college ID card. See [What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station](#what-to-do-if-your-concession-is-wrongly-stamped-or-rejected-at-the-railway-station).
 
 ---
 
@@ -653,3 +681,4 @@ If you experience issues that cannot be resolved through this manual, contact th
 | :------ | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `v1.0`  | September 2026 | Initial release of the comprehensive Student User Guide for the VESITRail platform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `v1.1`  | September 2026 | Complete codebase accuracy overhaul: corrected login button label to `Continue with Google`; updated onboarding wizard to document 4 structured address fields, `Next` navigation, and desktop/mobile submission controls; updated Concession lifecycle to clarify that voucher slips are assigned in `Issued` status (not `Approved`); removed non-existent "Application History" tab/sheet and documented dashboard table filters (Type, Status, Columns, Sorting, Renewal history modal); added Central, Western, Harbour, and Trans-Harbour suburban line coverage; and updated personal profile correction procedure via support email prior to in-person counter visits. |
+| `v1.2`  | October 2026   | Added the procedure for a concession certificate that is wrongly stamped or rejected at the railway station, with matching FAQ and troubleshooting entries.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
