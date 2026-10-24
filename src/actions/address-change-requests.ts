@@ -276,14 +276,14 @@ export const getAddressChangeRequests = async (
 				return rankA - rankB;
 			}
 
-			const timeA = new Date(a.createdAt).getTime();
-			const timeB = new Date(b.createdAt).getTime();
-
 			if (a.status === "Pending") {
-				return timeA - timeB;
+				return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 			}
 
-			return timeB - timeA;
+			const reviewedA = new Date(a.reviewedAt ?? a.createdAt).getTime();
+			const reviewedB = new Date(b.reviewedAt ?? b.createdAt).getTime();
+
+			return reviewedB - reviewedA;
 		});
 
 		const totalPages = Math.ceil(totalCount / pageSize);

@@ -218,6 +218,55 @@ describe("Address Change Requests (Admin) Integration", () => {
 				}
 			}
 		});
+		it("orders Pending oldest first and Approved by latest reviewed first", async () => {
+			await prisma.addressChange.deleteMany({});
+
+			const base = {
+				submissionCount: 1,
+				currentAddress: "Old Address",
+				studentId: studentUser.user.id,
+				newStationId: SEED.stations[1].id,
+				currentStationId: SEED.stations[0].id
+			};
+
+			await prisma.addressChange.create({
+				data: { ...base, status: "Pending", newAddress: "Newer Pending", createdAt: new Date(Date.now() - 1000) }
+			});
+			await prisma.addressChange.create({
+				data: { ...base, status: "Pending", newAddress: "Older Pending", createdAt: new Date(Date.now() - 9000) }
+			});
+			await prisma.addressChange.create({
+				data: {
+					...base,
+					status: "Approved",
+					newAddress: "Reviewed Earlier",
+					createdAt: new Date(Date.now() - 8000),
+					reviewedAt: new Date(Date.now() - 5000)
+				}
+			});
+			await prisma.addressChange.create({
+				data: {
+					...base,
+					status: "Approved",
+					newAddress: "Reviewed Later",
+					createdAt: new Date(Date.now() - 7000),
+					reviewedAt: new Date(Date.now() - 2000)
+				}
+			});
+
+			await authenticateAs(adminUser.user.id);
+			const res = await getAddressChangeRequests({ page: 1, pageSize: 20 });
+
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data.data.map((r) => r.newAddress)).toEqual([
+					"Older Pending",
+					"Newer Pending",
+					"Reviewed Later",
+					"Reviewed Earlier"
+				]);
+			}
+		});
 	});
 
 	describe("getAddressChangeRequestDetails", () => {
