@@ -565,7 +565,7 @@ const BookletApplicationsPage = () => {
 							<ArrowLeft className="size-4" />
 						</Button>
 
-						<h1 className="text-xl sm:text-2xl font-semibold truncate">
+						<h1 className="text-xl sm:text-2xl font-semibold truncate translate-y-0.5">
 							{isLoading ? (
 								<Skeleton className="h-8 w-48 sm:w-64" />
 							) : (
@@ -634,7 +634,7 @@ const BookletApplicationsPage = () => {
 				</div>
 
 				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-sm text-muted-foreground">
-					<p className="text-sm text-muted-foreground font-normal">
+					<p className="text-sm text-muted-foreground font-normal pl-10">
 						{isReorderMode
 							? "Adjust slip positions, insert damaged pages, or swap slots below"
 							: "View and manage applications under this booklet"}
