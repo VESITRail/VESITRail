@@ -168,7 +168,6 @@ export const getStudents = async (
 				cleanDigits.length === 12 && cleanDigits.startsWith("91") ? cleanDigits.slice(2) : cleanDigits;
 
 			const orConditions: Prisma.StudentWhereInput[] = [
-				{ address: { contains: searchTerm, mode: "insensitive" } },
 				{ lastName: { contains: searchTerm, mode: "insensitive" } },
 				{ firstName: { contains: searchTerm, mode: "insensitive" } },
 				{ middleName: { contains: searchTerm, mode: "insensitive" } },
@@ -183,6 +182,10 @@ export const getStudents = async (
 				orConditions.push({
 					mobileNumber: { contains: normalizedDigits, mode: "insensitive" }
 				});
+			}
+
+			if (/^\d{6}$/.test(searchTerm)) {
+				orConditions.push({ address: { endsWith: searchTerm } });
 			}
 
 			if (words.length > 1) {
@@ -203,7 +206,6 @@ export const getStudents = async (
 						const wordDigits = word.replace(/\D/g, "");
 
 						const fieldConditions: Prisma.StudentWhereInput[] = [
-							{ address: { contains: word, mode: "insensitive" } },
 							{ lastName: { contains: word, mode: "insensitive" } },
 							{ firstName: { contains: word, mode: "insensitive" } },
 							{ middleName: { contains: word, mode: "insensitive" } },
@@ -218,6 +220,10 @@ export const getStudents = async (
 							fieldConditions.push({
 								mobileNumber: { contains: wordDigits, mode: "insensitive" }
 							});
+						}
+
+						if (/^\d{6}$/.test(word)) {
+							fieldConditions.push({ address: { endsWith: word } });
 						}
 
 						return { OR: fieldConditions };

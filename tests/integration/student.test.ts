@@ -77,6 +77,35 @@ describe("Student Management Integration", () => {
 		});
 	});
 
+	describe("getStudents address search", () => {
+		it("does not match free-text address content", async () => {
+			await authenticateAs(adminUser.user.id);
+			const res = await getStudents({ page: 1, pageSize: 10, searchQuery: "Test Address" });
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data.totalCount).toBe(0);
+			}
+		});
+
+		it("matches students by pincode", async () => {
+			await authenticateAs(adminUser.user.id);
+			const res = await getStudents({ page: 1, pageSize: 10, searchQuery: "400001" });
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data.totalCount).toBeGreaterThanOrEqual(2);
+			}
+		});
+
+		it("matches students by home station name", async () => {
+			await authenticateAs(adminUser.user.id);
+			const res = await getStudents({ page: 1, pageSize: 10, searchQuery: SEED.stations[0].name });
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data.totalCount).toBeGreaterThanOrEqual(2);
+			}
+		});
+	});
+
 	describe("getStudentDetails", () => {
 		it("returns UNAUTHORIZED when not admin", async () => {
 			await authenticateAs(pendingStudent.user.id);

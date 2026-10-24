@@ -130,7 +130,7 @@ Inspect a student's personal details, academic division, and uploaded Aadhaar ve
 
 1. In the sidebar under **Management**, click **Students** (`/dashboard/admin/students`).
 2. Observe that the table displays **`Pending`** student registrations first by default (sorted chronologically oldest-to-newest so staff can review them in First-In-First-Out order), followed by `Approved` and `Rejected` records.
-3. (Optional) Use the **Filter by Status** dropdown (`All Statuses`, `Pending`, `Approved`, `Rejected`) or type a name, email, division, or station in the search bar.
+3. (Optional) Use the **Filter by Status** dropdown (`All Statuses`, `Pending`, `Approved`, `Rejected`) or type a name, email, mobile number, division, home station, or 6-digit pincode in the search bar. Other parts of the address (such as building or area names) are not searched.
 4. Locate the student you wish to review.
 5. In the **Actions** column of that student's row, click the **Eye** icon button to open the **Student Details** dialog.
 6. In the dialog, review the student's:
