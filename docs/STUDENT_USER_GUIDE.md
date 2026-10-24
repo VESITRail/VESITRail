@@ -311,9 +311,10 @@ If your concession request is rejected by college administration, you can modify
 
 1. Navigate to `Apply Concession` (`/dashboard/student/apply-concession`).
 2. The page detects the rejected status and renders the application form pre-filled with your previous selections.
-3. Adjust the `Concession Class` or `Concession Period` according to the administrative feedback.
-4. Click `Resubmit Application` (or slide `Slide to resubmit application` on mobile).
-5. In the **Confirm Application Resubmission** dialog, click `Yes, Submit Now`.
+3. Check the `Application Type`. If you have never been issued a pass, it is fixed as `New` and cannot be changed, because you are editing your first application. If you have an earlier pass that has expired, you can choose `New` or `Renewal` (for example, if the administrator asked you to apply as `New` instead of `Renewal`, or the other way round). A `Renewal` is linked to your most recently issued pass.
+4. Adjust the `Concession Class` or `Concession Period` according to the administrative feedback.
+5. Click `Resubmit Application` (or slide `Slide to resubmit application` on mobile).
+6. In the **Confirm Application Resubmission** dialog, click `Yes, Submit Now`.
 
 ---
 
