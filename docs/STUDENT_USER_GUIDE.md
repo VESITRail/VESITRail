@@ -386,7 +386,7 @@ Submit an official address update request with new supporting documentation.
 
 #### What Happens Next
 
-Your request enters the `Pending` address change queue for administrative review. You can track the status directly on the Change Address page. Once approved, your registered home station and address update automatically across your profile, and all future concession passes will reflect your new route to Kurla.
+Your request enters the `Pending` address change queue for administrative review. You can track the status directly on the Change Address page. Once approved, your registered home station and address update automatically across your profile, and any concession applications currently in `Pending` or `Approved` status are automatically updated to your new home station without requiring you to resubmit or have them rejected. All future concession passes will also reflect your new route to Kurla.
 
 ---
 

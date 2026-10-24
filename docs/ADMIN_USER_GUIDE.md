@@ -479,7 +479,7 @@ Inspect a submitted address change request and compare the old and new stations.
 8. To approve:
    - Click **Approve Request**.
    - Confirm approval in the prompt.
-   - The student's residential address and home station update immediately across all future concession applications, and the rejection reason is cleared.
+   - The student's residential address and home station update immediately in their student profile, and all active concession applications in **`Pending`** or **`Approved`** status are automatically updated to the new home station so administrators do not need to reject them and students do not need to resubmit. The rejection reason is cleared.
 9. To reject:
    - Click **Reject Request**.
    - Choose a predefined reason (`Address Mismatch`, `Invalid Document`, `Unclear Document`, or `Station Mismatch`) or type custom remarks in the textarea.
@@ -487,7 +487,7 @@ Inspect a submitted address change request and compare the old and new stations.
 
 #### What Happens Next
 
-The student receives an automated notification regarding the approval or rejection of their address change request. When a student resubmits a rejected address change request, it re-enters the **`Pending`** queue while preserving previous review metadata for admin inspection.
+The student receives an automated notification regarding the approval or rejection of their address change request. When approved, all in-flight concession applications (`Pending` and `Approved`) are automatically synchronized to the new home station, ensuring counter pass issuance and printable certificates reflect the updated station without requiring manual application rejections or student resubmissions. When a student resubmits a rejected address change request, it re-enters the **`Pending`** queue while preserving previous review metadata for admin inspection.
 
 ---
 
