@@ -1,7 +1,6 @@
 import {
 	X,
 	Eye,
-	Check,
 	UserX,
 	Inbox,
 	Filter,
@@ -10,6 +9,7 @@ import {
 	Loader2,
 	FileText,
 	RefreshCw,
+	UserCheck,
 	ArrowUpDown,
 	ChevronDown,
 	ChevronLeft,
@@ -650,7 +650,7 @@ const StudentDetailsDialog = ({
 												aria-label="Approve Student"
 												className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
 											>
-												<Check className="size-4 mr-1" />
+												<UserCheck className="size-4 mr-1" />
 												Approve Student
 											</Button>
 										)}
