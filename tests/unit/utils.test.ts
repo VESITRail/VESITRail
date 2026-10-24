@@ -281,6 +281,38 @@ describe("Utility Functions (src/lib/utils.ts)", () => {
 		);
 	});
 
+	describe("IST date formatters", () => {
+		const originalTz = process.env.TZ;
+		const afterIstMidnight = new Date("2026-07-24T19:30:00Z");
+		const beforeIstMidnight = new Date("2026-12-31T18:00:00Z");
+
+		afterEach(() => {
+			if (originalTz === undefined) {
+				delete process.env.TZ;
+			} else {
+				process.env.TZ = originalTz;
+			}
+		});
+
+		it.each(["UTC", "Asia/Kolkata", "America/Los_Angeles"])("formats the IST calendar day (%s)", (tz) => {
+			process.env.TZ = tz;
+			expect(formatIstDate(afterIstMidnight)).toBe("25/07/2026");
+			expect(formatIstDayMonth(afterIstMidnight)).toBe("25/07/");
+			expect(formatIstYearShort(afterIstMidnight)).toBe("26");
+		});
+
+		it.each(["UTC", "Asia/Kolkata", "America/Los_Angeles"])("rolls the IST year over at IST midnight (%s)", (tz) => {
+			process.env.TZ = tz;
+			expect(formatIstDate(beforeIstMidnight)).toBe("31/12/2026");
+			expect(formatIstDate(new Date("2026-12-31T18:30:00Z"))).toBe("01/01/2027");
+			expect(formatIstYearShort(new Date("2026-12-31T18:30:00Z"))).toBe("27");
+		});
+
+		it("accepts date strings", () => {
+			expect(formatIstDate("2026-07-24T19:30:00Z")).toBe("25/07/2026");
+		});
+	});
+
 	describe("sortByRomanKey", () => {
 		it("sorts array of objects by roman numeral values", () => {
 			const items = [{ code: "III" }, { code: "I" }, { code: "X" }, { code: "IV" }, { code: "II" }];

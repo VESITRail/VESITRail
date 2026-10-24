@@ -10,36 +10,22 @@ import {
 	ValidationError,
 	validationError
 } from "@/lib/result";
+import {
+	formatIstDate,
+	calcAgeFromDob,
+	formatIstDayMonth,
+	formatDateOfBirth,
+	formatIstYearShort,
+	calculatePassExpiry
+} from "@/lib/utils";
 import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { PDFDocument, degrees } from "pdf-lib";
 import { requireAdmin } from "@/lib/auth-guard";
-import { formatDateOfBirth, calcAgeFromDob, calculatePassExpiry } from "@/lib/utils";
 
 type FormLayout = {
 	left: Record<string, { x: number; y: number }>;
 	right: Record<string, { x: number; y: number }>;
-};
-
-const formatDate = (date: Date) => {
-	const d = new Date(date);
-	const day = d.getDate().toString().padStart(2, "0");
-	const month = (d.getMonth() + 1).toString().padStart(2, "0");
-	const year = d.getFullYear();
-	return `${day}/${month}/${year}`;
-};
-
-const formatDateMonthOnly = (date: Date) => {
-	const d = new Date(date);
-	const day = d.getDate().toString().padStart(2, "0");
-	const month = (d.getMonth() + 1).toString().padStart(2, "0");
-	return `${day}/${month}/`;
-};
-
-const formatYearLastTwoDigits = (date: Date) => {
-	const d = new Date(date);
-	const year = d.getFullYear();
-	return String(year).slice(-2);
 };
 
 export const generateOverlayPDF = async (
@@ -146,15 +132,15 @@ export const generateOverlayPDF = async (
 				new Date(prevDate),
 				application.previousApplication.concessionPeriod?.duration || application.concessionPeriod.duration
 			);
-			writeText(eff(layout.left.last_season_ticket_held_upto_date), formatDateMonthOnly(prevEnd));
-			writeText(eff(layout.left.last_season_ticket_held_upto_year), formatYearLastTwoDigits(prevEnd));
+			writeText(eff(layout.left.last_season_ticket_held_upto_date), formatIstDayMonth(prevEnd));
+			writeText(eff(layout.left.last_season_ticket_held_upto_year), formatIstYearShort(prevEnd));
 		} else {
 			writeText(eff(layout.left.previous_certificate_number), "-");
 			writeText(eff(layout.left.last_season_ticket_held_upto_date), "-");
 			writeText(eff(layout.left.last_season_ticket_held_upto_year), "-");
 		}
 
-		writeText(eff(layout.left.date_of_issue_left), formatDate(application.issuedAt || now));
+		writeText(eff(layout.left.date_of_issue_left), formatIstDate(application.issuedAt || now));
 
 		writeText(eff(layout.right.student_name_right), studentFullName);
 		writeText(eff(layout.right.age_years), String(age.years));
@@ -195,8 +181,8 @@ export const generateOverlayPDF = async (
 				prevStart,
 				application.previousApplication.concessionPeriod?.duration || application.concessionPeriod.duration
 			);
-			writeText(eff(layout.right.current_pass_validity_from), formatDate(prevStart));
-			writeText(eff(layout.right.current_pass_validity_to), formatDate(prevEnd));
+			writeText(eff(layout.right.current_pass_validity_from), formatIstDate(prevStart));
+			writeText(eff(layout.right.current_pass_validity_to), formatIstDate(prevEnd));
 		} else {
 			writeText(eff(layout.right.current_pass_class), "-");
 			writeText(eff(layout.right.current_pass_season_ticket_number), "-");
@@ -205,7 +191,7 @@ export const generateOverlayPDF = async (
 			writeText(eff(layout.right.current_pass_validity_from), "-");
 			writeText(eff(layout.right.current_pass_validity_to), "-");
 		}
-		writeText(eff(layout.right.date_of_issue_right), formatDate(application.issuedAt || now));
+		writeText(eff(layout.right.date_of_issue_right), formatIstDate(application.issuedAt || now));
 
 		const pdfBytes = doc.output("arraybuffer");
 

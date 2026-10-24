@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { clsx, type ClassValue } from "clsx";
 import { AuthErrorCode, authErrorMessages } from "@/types/error";
 import type { ConcessionBookletStatusType } from "@/generated/zod";
-import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { toZonedTime, fromZonedTime, formatInTimeZone } from "date-fns-tz";
 
 export const cn = (...inputs: ClassValue[]) => {
 	return twMerge(clsx(inputs));
@@ -110,6 +110,12 @@ export const calculateSerialEndNumber = (serialStartNumber: string, totalPages: 
 };
 
 const PASS_TIME_ZONE = "Asia/Kolkata";
+
+export const formatIstDate = (date: Date | string): string => formatInTimeZone(date, PASS_TIME_ZONE, "dd/MM/yyyy");
+
+export const formatIstDayMonth = (date: Date | string): string => formatInTimeZone(date, PASS_TIME_ZONE, "dd/MM/");
+
+export const formatIstYearShort = (date: Date | string): string => formatInTimeZone(date, PASS_TIME_ZONE, "yy");
 
 export const calculatePassExpiry = (issueDate: Date, durationInMonths: number): Date => {
 	const d = toZonedTime(issueDate, PASS_TIME_ZONE);
