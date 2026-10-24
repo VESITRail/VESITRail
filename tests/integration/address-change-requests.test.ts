@@ -203,7 +203,68 @@ describe("Address Change Requests (Admin) Integration", () => {
 			}
 		});
 
-		it("approves pending request, updates student profile address and station", async () => {
+		it("approves pending request, updates student profile address and station, and updates in-flight concession applications", async () => {
+			const otherStudent = await createTestStudent(prisma, {
+				status: "Approved",
+				name: "Other Student",
+				stationId: SEED.stations[0].id
+			});
+
+			const pendingApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Pending",
+					applicationType: "New",
+					studentId: studentUser.user.id,
+					stationId: SEED.stations[0].id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
+			const approvedApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Approved",
+					applicationType: "New",
+					studentId: studentUser.user.id,
+					stationId: SEED.stations[0].id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
+			const issuedApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Issued",
+					applicationType: "New",
+					studentId: studentUser.user.id,
+					stationId: SEED.stations[0].id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
+			const rejectedApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Rejected",
+					applicationType: "New",
+					studentId: studentUser.user.id,
+					stationId: SEED.stations[0].id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
+			const otherStudentPendingApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Pending",
+					applicationType: "New",
+					stationId: SEED.stations[0].id,
+					studentId: otherStudent.user.id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
 			await authenticateAs(adminUser.user.id);
 			const res = await reviewAddressChangeRequest(pendingRequest.id, "Approved");
 
@@ -219,6 +280,21 @@ describe("Address Change Requests (Admin) Integration", () => {
 			});
 			expect(updatedStudent?.address).toBe("New Address Ghatkopar");
 			expect(updatedStudent?.stationId).toBe(SEED.stations[1].id);
+
+			const [refetchedPending, refetchedApproved, refetchedIssued, refetchedRejected, refetchedOtherPending] =
+				await Promise.all([
+					prisma.concessionApplication.findUnique({ where: { id: pendingApp.id } }),
+					prisma.concessionApplication.findUnique({ where: { id: approvedApp.id } }),
+					prisma.concessionApplication.findUnique({ where: { id: issuedApp.id } }),
+					prisma.concessionApplication.findUnique({ where: { id: rejectedApp.id } }),
+					prisma.concessionApplication.findUnique({ where: { id: otherStudentPendingApp.id } })
+				]);
+
+			expect(refetchedPending?.stationId).toBe(SEED.stations[1].id);
+			expect(refetchedApproved?.stationId).toBe(SEED.stations[1].id);
+			expect(refetchedIssued?.stationId).toBe(SEED.stations[0].id);
+			expect(refetchedRejected?.stationId).toBe(SEED.stations[0].id);
+			expect(refetchedOtherPending?.stationId).toBe(SEED.stations[0].id);
 		});
 
 		it("prevents re-reviewing an already reviewed request (state-transition race)", async () => {
@@ -237,7 +313,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 			}
 		});
 
-		it("rejects a pending request when valid rejection reason is provided", async () => {
+		it("rejects a pending request when valid rejection reason is provided without updating concession applications", async () => {
 			const anotherRequest = await prisma.addressChange.create({
 				data: {
 					status: "Pending",
@@ -245,9 +321,20 @@ describe("Address Change Requests (Admin) Integration", () => {
 					newAddress: "Address B",
 					currentAddress: "Address A",
 					studentId: studentUser.user.id,
-					newStationId: SEED.stations[1].id,
-					currentStationId: SEED.stations[0].id,
+					newStationId: SEED.stations[2].id,
+					currentStationId: SEED.stations[1].id,
 					verificationDocUrl: "https://test-r2.example.com/doc-b.pdf"
+				}
+			});
+
+			const studentPendingApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Pending",
+					applicationType: "New",
+					studentId: studentUser.user.id,
+					stationId: SEED.stations[1].id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
 				}
 			});
 
@@ -263,6 +350,11 @@ describe("Address Change Requests (Admin) Integration", () => {
 				expect(res.data.status).toBe("Rejected");
 				expect(res.data.rejectionReason).toBe("Electricity bill is older than 3 months");
 			}
+
+			const refetchedApp = await prisma.concessionApplication.findUnique({
+				where: { id: studentPendingApp.id }
+			});
+			expect(refetchedApp?.stationId).toBe(SEED.stations[1].id);
 
 			const reReviewRes = await reviewAddressChangeRequest(anotherRequest.id, "Approved");
 			expect(reReviewRes.isSuccess).toBe(false);

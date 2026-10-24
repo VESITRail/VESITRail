@@ -367,6 +367,17 @@ export const reviewAddressChangeRequest = async (
 						verificationDocUrl: ""
 					}
 				});
+
+				await tx.concessionApplication.updateMany({
+					where: {
+						status: { in: ["Pending", "Approved"] },
+						studentId: addressChangeRequest.studentId
+					},
+					data: {
+						updatedAt: new Date(),
+						stationId: addressChangeRequest.newStationId
+					}
+				});
 			}
 
 			return updatedRequest;
@@ -383,8 +394,13 @@ export const reviewAddressChangeRequest = async (
 			console.error("Failed to send address change notification:", error);
 		});
 
+		revalidatePath("/dashboard/admin");
 		revalidatePath("/dashboard/admin/profile");
 		revalidatePath("/dashboard/admin/address-change-requests");
+		revalidatePath("/dashboard/admin/students");
+		revalidatePath("/dashboard/student");
+		revalidatePath("/dashboard/student/apply-concession");
+		revalidatePath("/dashboard/student/change-address");
 
 		return success(result);
 	} catch (error) {
