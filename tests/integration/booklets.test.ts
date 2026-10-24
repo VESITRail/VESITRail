@@ -398,6 +398,17 @@ describe("Booklets Integration", () => {
 			}
 		});
 
+		it("does not derive damaged pages after the last assigned offset for an in-use booklet", async () => {
+			await authenticateAs(adminUser.user.id);
+			const res = await getBookletApplications(testBooklet.id);
+
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				const damagedPages = res.data.data.filter((item) => "isDamaged" in item && item.isDamaged === true);
+				expect(damagedPages.map((item) => (item as { pageNumber: number }).pageNumber)).toEqual([2]);
+			}
+		});
+
 		it("includes previousApplication and booklet details for Renewal applications", async () => {
 			await authenticateAs(adminUser.user.id);
 			const res = await getBookletApplications(testBooklet.id);
