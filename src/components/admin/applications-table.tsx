@@ -1616,7 +1616,17 @@ const ApplicationsTable = ({
 				</DialogContent>
 			</Dialog>
 
-			<Dialog open={showRejectionReasonDialog} onOpenChange={setShowRejectionReasonDialog}>
+			<Dialog
+				open={showRejectionReasonDialog}
+				onOpenChange={(open) => {
+					setShowRejectionReasonDialog(open);
+
+					if (!open) {
+						setSelectedApplication(null);
+						setApplicationDetails(null);
+					}
+				}}
+			>
 				<DialogContent className="sm:max-w-2xl">
 					<DialogHeader className="pb-4">
 						<div className="flex items-center gap-3">
@@ -1742,19 +1752,6 @@ const ApplicationsTable = ({
 							)}
 						</div>
 					</div>
-
-					<DialogFooter className="pt-4">
-						<Button
-							variant="outline"
-							onClick={() => {
-								setShowRejectionReasonDialog(false);
-								setSelectedApplication(null);
-								setApplicationDetails(null);
-							}}
-						>
-							Close
-						</Button>
-					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 		</div>
