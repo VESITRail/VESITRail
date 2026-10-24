@@ -95,6 +95,8 @@ const ConcessionApplicationForm = () => {
 		| null
 	>(null);
 	const [lastApplication, setLastApplication] = useState<Concession | null>(null);
+	const previousPass =
+		lastApplication?.status === "Rejected" ? (lastApplication.previousApplication ?? null) : lastApplication;
 
 	const [selectedConcessionClass, setSelectedConcessionClass] = useState<string>("");
 	const [selectedConcessionPeriod, setSelectedConcessionPeriod] = useState<string>("");
@@ -219,7 +221,9 @@ const ConcessionApplicationForm = () => {
 				lastApplicationStatusRef.current = application?.status ?? null;
 
 				setLastApplication(application);
-				setSelectedApplicationType(application ? "Renewal" : "New");
+				setSelectedApplicationType(
+					application ? (application.status === "Rejected" ? application.applicationType : "Renewal") : "New"
+				);
 
 				if (!application) {
 					setStatus(null);
@@ -360,8 +364,7 @@ const ConcessionApplicationForm = () => {
 			stationId: student.station.id,
 			applicationType: selectedApplicationType,
 			concessionClassId: selectedConcessionClass,
-			concessionPeriodId: selectedConcessionPeriod,
-			previousApplicationId: selectedApplicationType === "Renewal" ? lastApplication?.id || null : null
+			concessionPeriodId: selectedConcessionPeriod
 		};
 
 		const isResubmission = lastApplication?.status === "Rejected";
@@ -374,8 +377,7 @@ const ConcessionApplicationForm = () => {
 								stationId: applicationData.stationId,
 								applicationType: applicationData.applicationType,
 								concessionClassId: applicationData.concessionClassId,
-								concessionPeriodId: applicationData.concessionPeriodId,
-								previousApplicationId: applicationData.previousApplicationId
+								concessionPeriodId: applicationData.concessionPeriodId
 							})
 						: await submitConcessionApplication(applicationData);
 
@@ -602,9 +604,9 @@ const ConcessionApplicationForm = () => {
 									Application Type <span className="text-destructive">*</span>
 								</Label>
 
-								{!lastApplication ? (
+								{!previousPass ? (
 									<div className="flex items-center text-sm justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
-										New
+										{selectedApplicationType}
 									</div>
 								) : (
 									<div className="relative">
@@ -626,7 +628,7 @@ const ConcessionApplicationForm = () => {
 											</SelectContent>
 										</Select>
 
-										{selectedApplicationType === "Renewal" && (
+										{selectedApplicationType === "Renewal" && previousPass && (
 											<Dialog>
 												<DialogTrigger asChild>
 													<Button
@@ -650,11 +652,11 @@ const ConcessionApplicationForm = () => {
 														<div className="grid grid-cols-2 gap-4">
 															<div className="space-y-1">
 																<p className="text-sm font-medium text-muted-foreground">Status</p>
-																<StatusBadge status={lastApplication.status} />
+																<StatusBadge status={previousPass.status} />
 															</div>
 															<div className="space-y-1">
 																<p className="text-sm font-medium text-muted-foreground">Type</p>
-																<ApplicationTypeBadge type={lastApplication.applicationType} />
+																<ApplicationTypeBadge type={previousPass.applicationType} />
 															</div>
 														</div>
 
@@ -662,15 +664,15 @@ const ConcessionApplicationForm = () => {
 															<div className="space-y-1">
 																<p className="text-sm font-medium text-muted-foreground">Class</p>
 																<p className="font-medium text-foreground/90">
-																	{lastApplication.concessionClass.name} ({lastApplication.concessionClass.code})
+																	{previousPass.concessionClass.name} ({previousPass.concessionClass.code})
 																</p>
 															</div>
 
 															<div className="space-y-1">
 																<p className="text-sm font-medium text-muted-foreground">Period</p>
 																<p className="font-medium text-foreground/90">
-																	{lastApplication.concessionPeriod.name} ({lastApplication.concessionPeriod.duration}{" "}
-																	{lastApplication.concessionPeriod.duration === 1 ? "month" : "months"})
+																	{previousPass.concessionPeriod.name} ({previousPass.concessionPeriod.duration}{" "}
+																	{previousPass.concessionPeriod.duration === 1 ? "month" : "months"})
 																</p>
 															</div>
 														</div>
@@ -679,14 +681,14 @@ const ConcessionApplicationForm = () => {
 															<div className="space-y-1">
 																<p className="text-sm font-medium text-muted-foreground">Home Station</p>
 																<p className="font-medium text-foreground/90">
-																	{lastApplication.station.name} ({lastApplication.station.code})
+																	{previousPass.station.name} ({previousPass.station.code})
 																</p>
 															</div>
 
 															<div className="space-y-1">
 																<p className="text-sm font-medium text-muted-foreground">Applied Date</p>
 																<p className="font-medium text-foreground/90">
-																	{format(new Date(lastApplication.createdAt), "MMMM dd, yyyy")}
+																	{format(new Date(previousPass.createdAt), "MMMM dd, yyyy")}
 																</p>
 															</div>
 														</div>
