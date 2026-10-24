@@ -45,6 +45,7 @@ import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
+import { formatInTimeZone } from "date-fns-tz";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect, useState, useRef } from "react";
@@ -275,8 +276,9 @@ const ConcessionApplicationForm = () => {
 										iconBg: "bg-green-600",
 										iconColor: "text-white",
 										title: "Active Concession",
-										description: `Your concession is currently active and valid until ${format(
-											new Date(validity.expiryDate),
+										description: `Your concession is currently active and valid until ${formatInTimeZone(
+											validity.expiryDate,
+											"Asia/Kolkata",
 											"MMMM dd, yyyy"
 										)}. You have ${validity.daysRemaining} day${validity.daysRemaining !== 1 ? "s" : ""} remaining.`
 									});
