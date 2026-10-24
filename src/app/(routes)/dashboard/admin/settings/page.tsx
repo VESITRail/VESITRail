@@ -19,7 +19,7 @@ const Settings = () => {
 
 			<Separator className="my-6" />
 
-			<NotificationPreferences />
+			<NotificationPreferences variant="admin" />
 
 			<AppVersion />
 

@@ -129,7 +129,7 @@ const RoleSelection = ({ roles, userName }: RoleSelectionProps) => {
 									) : roles.student.status === "Rejected" ? (
 										<div className="flex items-start gap-3 p-4 rounded-xl bg-muted/30 border border-border">
 											<div className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted">
-												<AlertCircle className="size-4 text-muted-foreground" />
+												<AlertCircle className="size-4 text-destructive" />
 											</div>
 											<div className="flex-1 pt-0.5 space-y-1">
 												<p className="text-sm font-medium text-foreground">Application Rejected</p>
@@ -164,7 +164,7 @@ const RoleSelection = ({ roles, userName }: RoleSelectionProps) => {
 											Awaiting Approval
 										</Button>
 									) : roles.student.status === "Rejected" ? (
-										<Button asChild variant="outline" className="w-full">
+										<Button asChild className="w-full">
 											<Link href="/onboarding" className="flex items-center gap-2">
 												<RefreshCw className="size-4" />
 												Update & Resubmit

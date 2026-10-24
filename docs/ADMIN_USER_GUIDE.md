@@ -130,7 +130,7 @@ Inspect a student's personal details, academic division, and uploaded Aadhaar ve
 
 1. In the sidebar under **Management**, click **Students** (`/dashboard/admin/students`).
 2. Observe that the table displays **`Pending`** student registrations first by default (sorted chronologically oldest-to-newest so staff can review them in First-In-First-Out order), followed by `Approved` and `Rejected` records.
-3. (Optional) Use the **Filter by Status** dropdown (`All Statuses`, `Pending`, `Approved`, `Rejected`) or type a name, email, division, or station in the search bar.
+3. (Optional) Use the **Filter by Status** dropdown (`All Statuses`, `Pending`, `Approved`, `Rejected`) or type a name, email, mobile number, division, home station, or 6-digit pincode in the search bar. Other parts of the address (such as building or area names) are not searched.
 4. Locate the student you wish to review.
 5. In the **Actions** column of that student's row, click the **Eye** icon button to open the **Student Details** dialog.
 6. In the dialog, review the student's:
@@ -164,12 +164,18 @@ Reject an incomplete, illegible, or mismatched student registration (or revoke a
 1. In the **Student Details** dialog, click the **Reject Student** button.
 2. The **Reject Student Application** dialog opens prompting for a rejection reason.
 3. Click the **Quick Select Reason** dropdown menu and choose a matching reason:
-   - **Address Mismatch**: _Address in the verification document and the entered address mismatch_
+   - **Station Not Matching Entered Address**: _The home station you selected is not the nearest suburban station to the address you entered. Please select the correct station for your address._
+   - **Station Not Matching Document Address**: _The home station you selected is not the nearest suburban station to the address mentioned in your verification document. Please select the correct station or upload a document showing your current residence._
+   - **Address Differs From Document**: _The address you entered does not match the address in your verification document. Please correct your address or upload a document that shows the same address._
+   - **Address Proof Required**: _Address differs from Aadhaar. Please upload a single combined PDF containing both your Aadhaar card and an electricity bill or rent agreement. Do not upload only the electricity bill or rent agreement, as the Aadhaar card must be included in the same PDF._
+   - **Incomplete Address**: _The address you entered is incomplete. Please enter the full address including flat/house number, building, area, city and correct pincode._
+   - **Pincode Mismatch**: _The pincode you entered does not match your address or your verification document. Please enter the correct pincode._
    - **Both Sides of Aadhaar Required**: _Please upload both front and back sides of your Aadhaar card._
-   - **Address Proof Required**: _Address differs from Aadhaar. Please attach an electricity bill or rent agreement along with your Aadhaar card._
-   - **Invalid Verification Document**: _Invalid verification document_
-   - **Document Not Clear**: _Verification document not clear_
-   - **Address Station Mismatch**: _Address does not belong to the current station selected_
+   - **Incomplete Document**: _Your verification document is incomplete (cropped or missing pages). Please upload the complete document with all pages._
+   - **Name Mismatch**: _The name in the verification document does not match your profile name. Please upload a document in your own name or a document of your parent/guardian along with proof of relation._
+   - **Invalid Verification Document**: _The uploaded document is not a valid address proof. Please upload a valid document such as Aadhaar card, electricity bill or rent agreement._
+   - **Document Not Clear**: _Your verification document is blurry or unreadable. Please upload a clear, well-lit and legible copy of the document._
+   - **Password Protected Document**: _Your verification document is password protected and cannot be opened. Please remove the password and upload a password-free document._
 4. (Optional) Alternatively, or in addition to a predefined reason, type specific instructions in the **Custom Rejection Reason** textarea explaining exactly what the student must correct.
 5. Click **Reject Student**.
 
@@ -305,7 +311,9 @@ Approve an incoming concession request and trigger the student notification to v
 
 The application status updates to **`Approved`**. **No booklet slot is assigned yet.** The system sends an automated push notification and email to the student:
 
-> _"Your railway concession application has been approved! Please visit the Railway Concession Office to collect your certificate."_
+> _"Your concession application is approved! Please collect your certificate at the Railway Concession Office (Ground Floor, Admin Office) and bring your college ID card."_
+
+Concession push notifications (approval and rejection) start with the application reference, e.g. `Concession #42: `, so the student can quote it at the counter. The approval push notification, in-app notification, and email all remind the student to bring their college ID card when collecting the physical concession certificate. For **Renewal** applications, the approval notifications (titled **Concession Renewal Approved**) additionally ask the student to bring their existing pass along with their college ID card.
 
 ---
 
@@ -360,8 +368,13 @@ Reject a concession request from **`Pending`**, **`Approved`**, or **`Issued`** 
 2. In the **Actions** column, click the **Reject Application** button (red cross `<X />` icon).
 3. The **Reject Concession Application** dialog opens.
 4. Select a **Predefined Reason** if applicable:
+   - **Incorrect Home Station**: _The home station in your application is incorrect for your residential address. If you have moved, submit an address change request first, then reapply with the correct home station._
    - **Monthly Period Only**: _Only monthly concessions are available. Please reapply with 'Monthly'._
    - **Quarterly Period Only**: _Only quarterly concessions are available. Please reapply with 'Quarterly'._
+   - **Incorrect Concession Class**: _The concession class you selected is incorrect. Please reapply with the correct class._
+   - **Duplicate Application**: _You already have another concession application for this period. Please wait for it to be processed instead of submitting a new one._
+   - **Apply as New Only**: _This request cannot be processed as a renewal. Please submit a fresh application with the application type 'New'._ (shown only when rejecting a `Renewal` application)
+   - **Apply as Renewal Only**: _This request cannot be processed as a new application. Please submit a fresh application with the application type 'Renewal'._ (shown only when rejecting a `New` application)
 5. (Optional) In the rejection reason textarea, enter or modify specific instructions for the student.
 6. Click **Reject Application**.
 
@@ -462,7 +475,7 @@ Inspect a submitted address change request and compare the old and new stations.
 #### Steps
 
 1. In the sidebar under **Applications**, click **Address Change Requests** (`/dashboard/admin/address-change-requests`).
-2. The table displays:
+2. The table displays requests ordered with **`Pending`** first (sorted chronologically oldest-to-newest in First-In-First-Out order for timely processing), followed by **`Approved`** (most recently reviewed first), and finally **`Rejected`** records (also most recently reviewed first):
    - **Sr. No.**
    - **Name** (and student contact number)
    - **Academic Info** (class, year, branch)
@@ -479,15 +492,29 @@ Inspect a submitted address change request and compare the old and new stations.
 8. To approve:
    - Click **Approve Request**.
    - Confirm approval in the prompt.
-   - The student's residential address and home station update immediately across all future concession applications, and the rejection reason is cleared.
+   - The student's residential address and home station update immediately in their student profile, and all active concession applications in **`Pending`** or **`Approved`** status are automatically updated to the new home station so administrators do not need to reject them and students do not need to resubmit. The rejection reason is cleared.
 9. To reject:
    - Click **Reject Request**.
-   - Choose a predefined reason (`Address Mismatch`, `Invalid Document`, `Unclear Document`, or `Station Mismatch`) or type custom remarks in the textarea.
+   - Choose a predefined reason from the **Quick Select Reason** dropdown or type custom remarks in the textarea:
+     - **Station Not Matching New Address**: _The new home station you selected is not the nearest suburban station to the new address you entered. Please select the correct station for your new address._
+     - **Station Not Matching Document Address**: _The new home station you selected is not the nearest suburban station to the address mentioned in your verification document. Please select the correct station or upload a document showing your new residence._
+     - **Address Differs From Document**: _The new address you entered does not match the address in your verification document. Please correct the address or upload a document that shows the same address._
+     - **Old Address in Document**: _Your verification document still shows your old address. Please upload a document that shows your new address, such as an electricity bill or rent agreement._
+     - **Address Proof Required**: _Address differs from Aadhaar. Please upload a single combined PDF containing both your Aadhaar card and an electricity bill or rent agreement. Do not upload only the electricity bill or rent agreement, as the Aadhaar card must be included in the same PDF._
+     - **Same Address and Station**: _The new address and station are the same as your current details. Please submit a request only if your address or home station has changed._
+     - **Incomplete Address**: _The new address you entered is incomplete. Please enter the full address including flat/house number, building, area, city and correct pincode._
+     - **Pincode Mismatch**: _The pincode you entered does not match your new address or your verification document. Please enter the correct pincode._
+     - **Both Sides of Aadhaar Required**: _Please upload both front and back sides of your Aadhaar card._
+     - **Incomplete Document**: _Your verification document is incomplete (cropped or missing pages). Please upload the complete document with all pages._
+     - **Name Mismatch**: _The name in the verification document does not match your profile name. Please upload a document in your own name or a document of your parent/guardian along with proof of relation._
+     - **Invalid Verification Document**: _The uploaded document is not a valid address proof. Please upload a valid document such as Aadhaar card, electricity bill or rent agreement._
+     - **Document Not Clear**: _Your verification document is blurry or unreadable. Please upload a clear, well-lit and legible copy of the document._
+     - **Password Protected Document**: _Your verification document is password protected and cannot be opened. Please remove the password and upload a password-free document._
    - Click **Confirm Rejection**.
 
 #### What Happens Next
 
-The student receives an automated notification regarding the approval or rejection of their address change request. When a student resubmits a rejected address change request, it re-enters the **`Pending`** queue while preserving previous review metadata for admin inspection.
+The student receives an automated notification regarding the approval or rejection of their address change request. When approved, all in-flight concession applications (`Pending` and `Approved`) are automatically synchronized to the new home station, ensuring counter pass issuance and printable certificates reflect the updated station without requiring manual application rejections or student resubmissions. When a student resubmits a rejected address change request, it re-enters the **`Pending`** queue while preserving previous review metadata for admin inspection.
 
 ---
 
@@ -544,15 +571,13 @@ Inspect every individual certificate leaf (slots 1 to 50) in a booklet.
 Record a spoiled, misprinted, or torn physical certificate leaf so that digital serial numbering remains synchronized with physical paper.
 
 > [!NOTE]
-> **No Note or Description Prompt Required:** Marking a page as damaged is immediate. The system does not require you to type a description or damage note. Clicking **Damaged** or **Mark Damaged** directly updates the slot.
+> **No Note or Description Prompt Required:** Marking a page as damaged is immediate. The system does not require you to type a description or damage note. Clicking **Damaged** directly updates the slot.
 
 #### Steps
 
 1. Open the booklet detail page (`/dashboard/admin/booklets/<id>`).
 2. Click the **Reorder Slots** button in the header action bar to enter Reorder Mode.
-3. Locate the slot corresponding to the physical voucher leaf:
-   - **On an empty slot**: Click the **Mark Damaged** button in the Actions column.
-   - **On an occupied slot**: Click the **Damaged** button in the Actions column.
+3. Locate the occupied slot corresponding to the physical voucher leaf and click the **Damaged** button in the Actions column. Empty slots after the last assigned slip have no action, since a damaged page is always a free page between assigned slips.
 4. The system immediately marks that slot as damaged, displays an **Inserted Damaged** badge, and shifts all subsequent student assignments down by one slot (provided the total count does not exceed 50 pages).
 5. **To remove a damaged marker**:
    - Locate the damaged slot.
@@ -741,7 +766,7 @@ Yes. Administrators can reject an application in `Pending`, `Approved`, or `Issu
 
 #### 3. What should I do if a paper voucher leaf is damaged or torn?
 
-Navigate to **Booklets**, open the booklet detail view, click **Reorder Slots**, and click **Damaged** (on an occupied slot) or **Mark Damaged** (on an empty slot). The system immediately marks that leaf as damaged and shifts subsequent records without requiring a note.
+Navigate to **Booklets**, open the booklet detail view, click **Reorder Slots**, and click **Damaged** on the occupied slot. The system immediately marks that leaf as damaged and shifts subsequent records without requiring a note.
 
 #### 4. How do I reprint a pass if the printer jammed?
 

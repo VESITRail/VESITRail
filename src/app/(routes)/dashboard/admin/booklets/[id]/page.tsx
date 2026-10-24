@@ -565,7 +565,7 @@ const BookletApplicationsPage = () => {
 							<ArrowLeft className="size-4" />
 						</Button>
 
-						<h1 className="text-xl sm:text-2xl font-semibold truncate">
+						<h1 className="text-xl sm:text-2xl font-semibold truncate translate-y-0.5">
 							{isLoading ? (
 								<Skeleton className="h-8 w-48 sm:w-64" />
 							) : (
@@ -574,7 +574,7 @@ const BookletApplicationsPage = () => {
 						</h1>
 					</div>
 
-					<div className="hidden sm:flex items-center gap-2 shrink-0">
+					<div className="hidden sm:flex items-center gap-3 shrink-0">
 						{isReorderMode ? (
 							<>
 								<Button
@@ -634,7 +634,7 @@ const BookletApplicationsPage = () => {
 				</div>
 
 				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-sm text-muted-foreground">
-					<p className="text-sm text-muted-foreground font-normal">
+					<p className="text-sm text-muted-foreground font-normal pl-10">
 						{isReorderMode
 							? "Adjust slip positions, insert damaged pages, or swap slots below"
 							: "View and manage applications under this booklet"}
@@ -691,7 +691,7 @@ const BookletApplicationsPage = () => {
 							<p className="text-sm text-muted-foreground font-normal shrink-0">{stagedChangesCount} changes staged</p>
 						</div>
 					) : (
-						<div className="grid grid-cols-2 gap-2">
+						<div className="grid grid-cols-2 gap-4">
 							<Button
 								variant="outline"
 								onClick={handleEnterReorderMode}

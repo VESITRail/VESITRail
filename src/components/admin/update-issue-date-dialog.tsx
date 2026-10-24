@@ -145,7 +145,7 @@ export const UpdateIssueDateDialog: React.FC<UpdateIssueDateDialogProps> = ({
 					</div>
 				</div>
 
-				<DialogFooter className="gap-2 pt-2">
+				<DialogFooter className="gap-4 pt-2">
 					<Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
 						Cancel
 					</Button>

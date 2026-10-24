@@ -1,7 +1,6 @@
 import {
 	X,
 	Eye,
-	Check,
 	UserX,
 	Inbox,
 	Filter,
@@ -10,6 +9,7 @@ import {
 	Loader2,
 	FileText,
 	RefreshCw,
+	UserCheck,
 	ArrowUpDown,
 	ChevronDown,
 	ChevronLeft,
@@ -47,29 +47,63 @@ import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent, DialogT
 
 const PREDEFINED_REJECTION_REASONS = [
 	{
-		label: "Address Mismatch",
-		reason: "Address in the verification document and the entered address mismatch"
+		label: "Station Not Matching Entered Address",
+		reason:
+			"The home station you selected is not the nearest suburban station to the address you entered. Please select the correct station for your address."
+	},
+	{
+		label: "Station Not Matching Document Address",
+		reason:
+			"The home station you selected is not the nearest suburban station to the address mentioned in your verification document. Please select the correct station or upload a document showing your current residence."
+	},
+	{
+		label: "Address Differs From Document",
+		reason:
+			"The address you entered does not match the address in your verification document. Please correct your address or upload a document that shows the same address."
+	},
+	{
+		label: "Address Proof Required",
+		reason:
+			"Address differs from Aadhaar. Please upload a single combined PDF containing both your Aadhaar card and an electricity bill or rent agreement. Do not upload only the electricity bill or rent agreement, as the Aadhaar card must be included in the same PDF."
+	},
+	{
+		label: "Incomplete Address",
+		reason:
+			"The address you entered is incomplete. Please enter the full address including flat/house number, building, area, city and correct pincode."
+	},
+	{
+		label: "Pincode Mismatch",
+		reason:
+			"The pincode you entered does not match your address or your verification document. Please enter the correct pincode."
 	},
 	{
 		label: "Both Sides of Aadhaar Required",
 		reason: "Please upload both front and back sides of your Aadhaar card."
 	},
 	{
-		label: "Address Proof Required",
+		label: "Incomplete Document",
 		reason:
-			"Address differs from Aadhaar. Please attach an electricity bill or rent agreement along with your Aadhaar card."
+			"Your verification document is incomplete (cropped or missing pages). Please upload the complete document with all pages."
+	},
+	{
+		label: "Name Mismatch",
+		reason:
+			"The name in the verification document does not match your profile name. Please upload a document in your own name or a document of your parent/guardian along with proof of relation."
 	},
 	{
 		label: "Invalid Verification Document",
-		reason: "Invalid verification document"
+		reason:
+			"The uploaded document is not a valid address proof. Please upload a valid document such as Aadhaar card, electricity bill or rent agreement."
 	},
 	{
 		label: "Document Not Clear",
-		reason: "Verification document not clear"
+		reason:
+			"Your verification document is blurry or unreadable. Please upload a clear, well-lit and legible copy of the document."
 	},
 	{
-		label: "Address Station Mismatch",
-		reason: "Address does not belong to the current station selected"
+		label: "Password Protected Document",
+		reason:
+			"Your verification document is password protected and cannot be opened. Please remove the password and upload a password-free document."
 	}
 ];
 
@@ -377,16 +411,16 @@ const StudentDetailsDialog = ({
 											<div className="space-y-4">
 												<div className="flex justify-between items-start">
 													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
-														Mobile
+														Gender
 													</span>
-													<span className="text-sm text-right flex-1 ml-3">{studentDetails.mobileNumber || "N/A"}</span>
+													<span className="text-sm text-right flex-1 ml-3">{studentDetails.gender}</span>
 												</div>
 
 												<div className="flex justify-between items-start">
 													<span className="text-sm font-medium text-muted-foreground min-w-0 shrink-0 w-24">
-														Gender
+														Mobile
 													</span>
-													<span className="text-sm text-right flex-1 ml-3">{studentDetails.gender}</span>
+													<span className="text-sm text-right flex-1 ml-3">{studentDetails.mobileNumber || "N/A"}</span>
 												</div>
 
 												<div className="flex justify-between items-start">
@@ -616,7 +650,7 @@ const StudentDetailsDialog = ({
 												aria-label="Approve Student"
 												className="w-42 h-10 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
 											>
-												<Check className="size-4 mr-1" />
+												<UserCheck className="size-4 mr-1" />
 												Approve Student
 											</Button>
 										)}
@@ -632,7 +666,7 @@ const StudentDetailsDialog = ({
 							>
 								{showDocViewer && (
 									<div className="flex flex-col h-full animate-in fade-in duration-300">
-										<div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur-sm">
+										<div className="flex items-center justify-between px-4 py-3 border-b bg-background rounded-t-xl">
 											<div className="flex items-center gap-2">
 												<FileText className="size-4 text-muted-foreground" />
 												<span className="text-sm font-semibold">Verification Document</span>

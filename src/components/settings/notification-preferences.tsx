@@ -21,7 +21,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { getNotificationPreferences, updateNotificationPreferences } from "@/actions/settings";
 
-const NotificationPreferences = () => {
+type NotificationPreferencesProps = {
+	variant?: "student" | "admin";
+};
+
+const DESCRIPTIONS = {
+	student: {
+		push: "Receive push notifications about concession status updates and important announcements",
+		email: "Receive email notifications about concession status updates and important announcements"
+	},
+	admin: {
+		push: "Receive push notifications about new requests awaiting your review and important system announcements",
+		email: "Receive email notifications about new requests awaiting your review and important system announcements"
+	}
+};
+
+const NotificationPreferences = ({ variant = "student" }: NotificationPreferencesProps) => {
 	const { data, isPending } = authClient.useSession();
 	const { disableNotifications, enablePushNotifications } = useFcm(data?.user?.id);
 
@@ -271,9 +286,7 @@ const NotificationPreferences = () => {
 								<Label htmlFor="push-notifications-toggle" className="text-sm font-medium cursor-pointer">
 									Push Notifications
 								</Label>
-								<p className="text-xs text-muted-foreground leading-relaxed">
-									Receive push notifications about concession status updates and important announcements
-								</p>
+								<p className="text-xs text-muted-foreground leading-relaxed">{DESCRIPTIONS[variant].push}</p>
 							</div>
 							<Switch
 								className="shrink-0"
@@ -289,9 +302,7 @@ const NotificationPreferences = () => {
 								<Label htmlFor="email-notifications-toggle" className="text-sm font-medium cursor-pointer">
 									Email Notifications
 								</Label>
-								<p className="text-xs text-muted-foreground leading-relaxed">
-									Receive email notifications about concession status updates and important announcements
-								</p>
+								<p className="text-xs text-muted-foreground leading-relaxed">{DESCRIPTIONS[variant].email}</p>
 							</div>
 							<Switch
 								className="shrink-0"

@@ -2,6 +2,7 @@ import {
 	cn,
 	toTitleCase,
 	normalizeDob,
+	formatIstDate,
 	calcAgeFromDob,
 	sortByRomanKey,
 	formatFieldName,
@@ -12,11 +13,14 @@ import {
 	isValidErrorCode,
 	formatDateOfBirth,
 	formatDobForInput,
+	formatIstDayMonth,
+	formatIstYearShort,
 	calculatePassExpiry,
 	calculateBookletStatus,
 	calculateSerialEndNumber,
 	calculateConcessionValidity
 } from "@/lib/utils";
+import { formatInTimeZone } from "date-fns-tz";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 describe("Utility Functions (src/lib/utils.ts)", () => {
@@ -199,53 +203,113 @@ describe("Utility Functions (src/lib/utils.ts)", () => {
 	});
 
 	describe("calculatePassExpiry", () => {
+		const istDay = (date: Date) => formatInTimeZone(date, "Asia/Kolkata", "yyyy-MM-dd");
+
 		it("calculates standard pass expiry subtracting 1 day", () => {
-			const issueDate = new Date(2024, 0, 15);
-			const expiry = calculatePassExpiry(issueDate, 3);
-			expect(expiry.getFullYear()).toBe(2024);
-			expect(expiry.getMonth()).toBe(3);
-			expect(expiry.getDate()).toBe(14);
+			const expiry = calculatePassExpiry(new Date("2024-01-15T10:00:00+05:30"), 3);
+			expect(istDay(expiry)).toBe("2024-04-14");
 		});
 
 		it("handles month overflow to end of prior month in leap year", () => {
-			const issueDate = new Date(2024, 0, 31);
-			const expiry = calculatePassExpiry(issueDate, 1);
-			expect(expiry.getFullYear()).toBe(2024);
-			expect(expiry.getMonth()).toBe(1);
-			expect(expiry.getDate()).toBe(29);
+			const expiry = calculatePassExpiry(new Date("2024-01-31T10:00:00+05:30"), 1);
+			expect(istDay(expiry)).toBe("2024-02-29");
 		});
 
 		it("handles month overflow to end of prior month in non-leap year", () => {
-			const issueDate = new Date(2023, 0, 31);
-			const expiry = calculatePassExpiry(issueDate, 1);
-			expect(expiry.getFullYear()).toBe(2023);
-			expect(expiry.getMonth()).toBe(1);
-			expect(expiry.getDate()).toBe(28);
+			const expiry = calculatePassExpiry(new Date("2023-01-31T10:00:00+05:30"), 1);
+			expect(istDay(expiry)).toBe("2023-02-28");
+		});
+
+		it("uses the IST calendar day for slips issued shortly after IST midnight", () => {
+			const expiry = calculatePassExpiry(new Date("2026-07-24T19:30:00Z"), 3);
+			expect(istDay(expiry)).toBe("2026-10-24");
 		});
 	});
 
 	describe("calculateConcessionValidity", () => {
-		beforeEach(() => {
-			vi.useFakeTimers();
-			vi.setSystemTime(new Date(2024, 2, 1));
-		});
+		const originalTz = process.env.TZ;
+		const issuedAfterIstMidnight = new Date("2026-07-24T19:30:00Z");
 
 		afterEach(() => {
 			vi.useRealTimers();
+			if (originalTz === undefined) {
+				delete process.env.TZ;
+			} else {
+				process.env.TZ = originalTz;
+			}
 		});
 
 		it("returns valid and positive daysRemaining when not expired", () => {
-			const approvedAt = new Date(2024, 1, 15);
-			const validity = calculateConcessionValidity(approvedAt, 3);
+			vi.useFakeTimers();
+			vi.setSystemTime(new Date("2024-03-01T10:00:00+05:30"));
+			const validity = calculateConcessionValidity(new Date("2024-02-15T10:00:00+05:30"), 3);
 			expect(validity.isValid).toBe(true);
 			expect(validity.daysRemaining).toBeGreaterThan(0);
 		});
 
 		it("returns invalid and 0 daysRemaining when expired", () => {
-			const approvedAt = new Date(2023, 5, 1);
-			const validity = calculateConcessionValidity(approvedAt, 3);
+			vi.useFakeTimers();
+			vi.setSystemTime(new Date("2024-03-01T10:00:00+05:30"));
+			const validity = calculateConcessionValidity(new Date("2023-06-01T10:00:00+05:30"), 3);
 			expect(validity.isValid).toBe(false);
 			expect(validity.daysRemaining).toBe(0);
+		});
+
+		it.each(["UTC", "Asia/Kolkata", "America/Los_Angeles"])(
+			"expires at the end of the last IST day regardless of runtime timezone (%s)",
+			(tz) => {
+				process.env.TZ = tz;
+				const validity = calculateConcessionValidity(issuedAfterIstMidnight, 3);
+				expect(validity.expiryDate.toISOString()).toBe("2026-10-24T18:29:59.999Z");
+			}
+		);
+
+		it.each(["UTC", "Asia/Kolkata", "America/Los_Angeles"])(
+			"stays valid until IST midnight and then becomes invalid (%s)",
+			(tz) => {
+				process.env.TZ = tz;
+				vi.useFakeTimers();
+
+				vi.setSystemTime(new Date("2026-10-24T18:00:00Z"));
+				expect(calculateConcessionValidity(issuedAfterIstMidnight, 3).isValid).toBe(true);
+
+				vi.setSystemTime(new Date("2026-10-24T18:30:00Z"));
+				const validity = calculateConcessionValidity(issuedAfterIstMidnight, 3);
+				expect(validity.isValid).toBe(false);
+				expect(validity.daysRemaining).toBe(0);
+			}
+		);
+	});
+
+	describe("IST date formatters", () => {
+		const originalTz = process.env.TZ;
+		const afterIstMidnight = new Date("2026-07-24T19:30:00Z");
+		const beforeIstMidnight = new Date("2026-12-31T18:00:00Z");
+
+		afterEach(() => {
+			if (originalTz === undefined) {
+				delete process.env.TZ;
+			} else {
+				process.env.TZ = originalTz;
+			}
+		});
+
+		it.each(["UTC", "Asia/Kolkata", "America/Los_Angeles"])("formats the IST calendar day (%s)", (tz) => {
+			process.env.TZ = tz;
+			expect(formatIstDate(afterIstMidnight)).toBe("25/07/2026");
+			expect(formatIstDayMonth(afterIstMidnight)).toBe("25/07/");
+			expect(formatIstYearShort(afterIstMidnight)).toBe("26");
+		});
+
+		it.each(["UTC", "Asia/Kolkata", "America/Los_Angeles"])("rolls the IST year over at IST midnight (%s)", (tz) => {
+			process.env.TZ = tz;
+			expect(formatIstDate(beforeIstMidnight)).toBe("31/12/2026");
+			expect(formatIstDate(new Date("2026-12-31T18:30:00Z"))).toBe("01/01/2027");
+			expect(formatIstYearShort(new Date("2026-12-31T18:30:00Z"))).toBe("27");
+		});
+
+		it("accepts date strings", () => {
+			expect(formatIstDate("2026-07-24T19:30:00Z")).toBe("25/07/2026");
 		});
 	});
 

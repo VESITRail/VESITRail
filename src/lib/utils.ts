@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { clsx, type ClassValue } from "clsx";
 import { AuthErrorCode, authErrorMessages } from "@/types/error";
 import type { ConcessionBookletStatusType } from "@/generated/zod";
+import { toZonedTime, fromZonedTime, formatInTimeZone } from "date-fns-tz";
 
 export const cn = (...inputs: ClassValue[]) => {
 	return twMerge(clsx(inputs));
@@ -108,8 +109,16 @@ export const calculateSerialEndNumber = (serialStartNumber: string, totalPages: 
 	return `${prefix}${endNum.toString().padStart(match[2].length, "0")}`;
 };
 
+const PASS_TIME_ZONE = "Asia/Kolkata";
+
+export const formatIstDate = (date: Date | string): string => formatInTimeZone(date, PASS_TIME_ZONE, "dd/MM/yyyy");
+
+export const formatIstDayMonth = (date: Date | string): string => formatInTimeZone(date, PASS_TIME_ZONE, "dd/MM/");
+
+export const formatIstYearShort = (date: Date | string): string => formatInTimeZone(date, PASS_TIME_ZONE, "yy");
+
 export const calculatePassExpiry = (issueDate: Date, durationInMonths: number): Date => {
-	const d = new Date(issueDate);
+	const d = toZonedTime(issueDate, PASS_TIME_ZONE);
 	const originalDay = d.getDate();
 	d.setMonth(d.getMonth() + durationInMonths);
 
@@ -119,7 +128,7 @@ export const calculatePassExpiry = (issueDate: Date, durationInMonths: number): 
 		d.setDate(d.getDate() - 1);
 	}
 
-	return d;
+	return fromZonedTime(d, PASS_TIME_ZONE);
 };
 
 export const calculateConcessionValidity = (
@@ -131,8 +140,9 @@ export const calculateConcessionValidity = (
 	daysRemaining: number;
 } => {
 	const now = new Date();
-	const expiryDate = calculatePassExpiry(approvedAt, durationInMonths);
-	expiryDate.setHours(23, 59, 59, 999);
+	const zonedExpiry = toZonedTime(calculatePassExpiry(approvedAt, durationInMonths), PASS_TIME_ZONE);
+	zonedExpiry.setHours(23, 59, 59, 999);
+	const expiryDate = fromZonedTime(zonedExpiry, PASS_TIME_ZONE);
 
 	const msInDay = 1000 * 60 * 60 * 24;
 	const timeDiff = expiryDate.getTime() - now.getTime();

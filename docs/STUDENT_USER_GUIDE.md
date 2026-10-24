@@ -23,6 +23,7 @@
 - [Tracking Your Application](#tracking-your-application)
   - [How to Check Your Concession Status](#how-to-check-your-concession-status)
   - [Understanding Concession Application Statuses](#understanding-concession-application-statuses)
+  - [What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station](#what-to-do-if-your-concession-is-wrongly-stamped-or-rejected-at-the-railway-station)
 - [Managing Your Home Address](#managing-your-home-address)
   - [How to Request a Change of Address or Home Station](#how-to-request-a-change-of-address-or-home-station)
 - [Managing Notifications](#managing-notifications)
@@ -67,7 +68,7 @@ Suburban railway concessions issued through VESITRail cover daily commuting betw
 
 1. **Submission (`Pending`):** You submit your concession request online via the student dashboard.
 2. **Administrative Verification (`Approved`):** College administrative staff verify your student eligibility, commute route, and enrollment details. Upon approval, your status changes to `Approved`. At this stage, no physical voucher slip number is assigned yet.
-3. **Voucher Slip Assignment & Collection (`Issued`):** You visit the Railway Concession Counter (Ground Floor Administrative Office) with your college ID card. The administrator assigns the official physical voucher slip number from a concession booklet and hands you your printed, stamped certificate slip. The system status transitions to `Issued`.
+3. **Voucher Slip Assignment & Collection (`Issued`):** You visit the Railway Concession Counter (Ground Floor Administrative Office) with your college ID card (and your existing pass if this is a renewal). The administrator assigns the official physical voucher slip number from a concession booklet and hands you your printed, stamped certificate slip. The system status transitions to `Issued`.
 4. **Ticket Counter Purchase:** You take your physical stamped college concession certificate voucher to the suburban booking ticket window at your local railway station to purchase your discounted season ticket.
 
 ---
@@ -297,6 +298,9 @@ Renew your concession once your current season ticket validity has expired.
 
 Your renewal request is linked to your previous pass record in the college administrative queue with `Pending` status. Once verified, the administrator marks it `Approved`, prompting you to collect your certificate from the counter.
 
+> [!IMPORTANT]
+> **Bring your existing pass.** When your renewal is approved, you will be asked to bring your existing pass along with your college ID card to the Railway Concession Counter. The approval push notification, in-app notification, and email all include this reminder, and it also appears on the Apply Concession page while your status is `Approved`.
+
 ---
 
 ### How to Resubmit a Rejected Application
@@ -307,9 +311,10 @@ If your concession request is rejected by college administration, you can modify
 
 1. Navigate to `Apply Concession` (`/dashboard/student/apply-concession`).
 2. The page detects the rejected status and renders the application form pre-filled with your previous selections.
-3. Adjust the `Concession Class` or `Concession Period` according to the administrative feedback.
-4. Click `Resubmit Application` (or slide `Slide to resubmit application` on mobile).
-5. In the **Confirm Application Resubmission** dialog, click `Yes, Submit Now`.
+3. Check the `Application Type`. If you have never been issued a pass, it is fixed as `New` and cannot be changed, because you are editing your first application. If you have an earlier pass that has expired, you can choose `New` or `Renewal` (for example, if the administrator asked you to apply as `New` instead of `Renewal`, or the other way round). A `Renewal` is linked to your most recently issued pass.
+4. Adjust the `Concession Class` or `Concession Period` according to the administrative feedback.
+5. Click `Resubmit Application` (or slide `Slide to resubmit application` on mobile).
+6. In the **Confirm Application Resubmission** dialog, click `Yes, Submit Now`.
 
 ---
 
@@ -333,7 +338,7 @@ View status updates, Short IDs, and collection instructions.
    - `Approved` (primary)
    - `Issued` (green)
    - `Rejected` (red)
-5. If your status is `Approved`, read the on-screen guidance and visit the Railway Concession Counter at the college administrative office.
+5. If your status is `Approved`, read the on-screen guidance and visit the Railway Concession Counter at the college administrative office with your college ID card. If this is a renewal, bring your existing pass as well.
 
 ---
 
@@ -344,9 +349,29 @@ The table below explains what each status badge means and the exact action requi
 | Status Badge | Meaning                                                                                                                                                           | Action Required from You                                                                                                                                                                                                                            |
 | :----------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Pending`    | Your application has been submitted and is in the administrative review queue.                                                                                    | None. Please wait while college staff verify your enrollment, commute route, and documents.                                                                                                                                                         |
-| `Approved`   | An administrator has reviewed and verified your request. **The physical voucher slip number is NOT yet assigned at this stage.**                                  | Visit the Railway Concession Office (Ground Floor Admin Office) during working hours with your college ID card to collect your certificate.                                                                                                         |
+| `Approved`   | An administrator has reviewed and verified your request. **The physical voucher slip number is NOT yet assigned at this stage.**                                  | Visit the Railway Concession Office (Ground Floor Admin Office) during working hours with your college ID card to collect your certificate. For a renewal, also bring your existing pass.                                                           |
 | `Issued`     | You have visited the office, collected your certificate, and the administrator has assigned your official physical voucher slip number from a concession booklet. | Take your printed, stamped physical college voucher slip to the ticket booking window at your local suburban railway station to purchase your discounted season ticket. Your active pass validity will now be tracked on the Apply Concession page. |
 | `Rejected`   | Your application could not be approved due to administrative, jurisdictional, or documentation discrepancies.                                                     | Review the rejection reason on your dashboard or the Apply Concession page, make the necessary corrections, and submit a resubmission.                                                                                                              |
+
+---
+
+### What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station
+
+Sometimes the booking window at your home railway station refuses your physical concession certificate because it was stamped incorrectly or printed with wrong details. This is a college-side correction and does not require a new application.
+
+#### Steps
+
+1. Do not discard, tear, or write on the rejected certificate. Keep the **same** physical certificate you collected from the college.
+2. Bring that certificate back to the **Railway Concession Counter, Ground Floor Administrative Section, VESIT Campus, Chembur, Mumbai**, along with your college ID card.
+3. Visit during office hours: Monday to Friday, 10:30 AM to 1:30 PM and 2:30 PM to 4:30 PM (excluding public and institutional holidays).
+4. Tell the administrator that the station rejected your certificate and explain what was wrong (for example, the stamp or printed details).
+5. The administrator inspects your existing certificate and decides between two outcomes:
+   - **The certificate can be fixed:** the administrator corrects it, including reprinting the details on the same physical voucher slip, and hands the corrected certificate back to you.
+   - **The certificate cannot be fixed:** the administrator cancels the existing certificate and its voucher slip, prints a new certificate on a fresh voucher slip, and hands the new one to you.
+6. Take the corrected or new certificate to the ticket booking window at your local railway station to purchase your discounted season ticket.
+
+> [!IMPORTANT]
+> **Always return the original certificate.** A cancelled certificate must not be reused, and the administrator needs the rejected one to check it and to cancel it if it cannot be fixed.
 
 ---
 
@@ -386,7 +411,7 @@ Submit an official address update request with new supporting documentation.
 
 #### What Happens Next
 
-Your request enters the `Pending` address change queue for administrative review. You can track the status directly on the Change Address page. Once approved, your registered home station and address update automatically across your profile, and all future concession passes will reflect your new route to Kurla.
+Your request enters the `Pending` address change queue for administrative review. You can track the status directly on the Change Address page. Once approved, your registered home station and address update automatically across your profile, and any concession applications currently in `Pending` or `Approved` status are automatically updated to your new home station without requiring you to resubmit or have them rejected. All future concession passes will also reflect your new route to Kurla.
 
 ---
 
@@ -575,7 +600,7 @@ Applications are typically reviewed by administrative staff within one to two co
 
 #### 3. What is the difference between "Approved" and "Issued" status?
 
-- **`Approved`:** Administrative staff have verified your application and deemed you eligible. **No physical voucher slip number is assigned yet.** You must visit the Railway Concession Counter with your student ID card to collect your certificate.
+- **`Approved`:** Administrative staff have verified your application and deemed you eligible. **No physical voucher slip number is assigned yet.** You must visit the Railway Concession Counter with your college ID card to collect your certificate. If this is a renewal, you must also bring your existing pass.
 - **`Issued`:** You have visited the counter, collected your certificate, and the administrator has assigned your official physical voucher slip number from a concession booklet and marked it as issued in the system.
 
 #### 4. Which railway lines and stations are covered under VESIT concessions?
@@ -598,7 +623,9 @@ You can apply for a renewal only when your current concession pass validity has 
 
 No. VESITRail automates the college-side verification and voucher slip distribution process. You must take the physical, stamped concession certificate collected from the college office to the booking ticket window at your suburban railway station to purchase your discounted railway travel pass.
 
----
+#### 9. What if the railway station rejects my concession because it was stamped wrongly?
+
+Bring the same physical certificate back to the Railway Concession Counter (Ground Floor Administrative Section) with your college ID card. The administrator will check whether it can be fixed. If it cannot, the existing certificate is cancelled and a new one is printed for you. See [What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station](#what-to-do-if-your-concession-is-wrongly-stamped-or-rejected-at-the-railway-station).
 
 ## 🔧 Troubleshooting Common Issues
 
@@ -621,6 +648,11 @@ No. VESITRail automates the college-side verification and voucher slip distribut
 
 - **Symptom:** Your onboarding or address change application was rejected citing an address-station mismatch.
 - **Solution:** Under railway jurisdiction regulations, your designated home station must be the closest suburban station to your residential address. Resubmit your request selecting the correct suburban station corresponding to your residential locality and pincode.
+
+### Railway Station Rejects My Concession Certificate
+
+- **Symptom:** The booking window at your home railway station refuses your certificate because it was stamped wrongly or printed with wrong details.
+- **Solution:** Bring the same physical certificate back to the Railway Concession Counter (Ground Floor Administrative Section) with your college ID card. See [What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station](#what-to-do-if-your-concession-is-wrongly-stamped-or-rejected-at-the-railway-station).
 
 ---
 
@@ -653,3 +685,4 @@ If you experience issues that cannot be resolved through this manual, contact th
 | :------ | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `v1.0`  | September 2026 | Initial release of the comprehensive Student User Guide for the VESITRail platform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `v1.1`  | September 2026 | Complete codebase accuracy overhaul: corrected login button label to `Continue with Google`; updated onboarding wizard to document 4 structured address fields, `Next` navigation, and desktop/mobile submission controls; updated Concession lifecycle to clarify that voucher slips are assigned in `Issued` status (not `Approved`); removed non-existent "Application History" tab/sheet and documented dashboard table filters (Type, Status, Columns, Sorting, Renewal history modal); added Central, Western, Harbour, and Trans-Harbour suburban line coverage; and updated personal profile correction procedure via support email prior to in-person counter visits. |
+| `v1.2`  | October 2026   | Added the procedure for a concession certificate that is wrongly stamped or rejected at the railway station, with matching FAQ and troubleshooting entries.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |

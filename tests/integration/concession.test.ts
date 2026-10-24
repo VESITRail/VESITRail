@@ -70,7 +70,6 @@ describe("Concession Integration", () => {
 			await authenticateAs(pendingStudent.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "New",
-				previousApplicationId: null,
 				stationId: SEED.stations[0].id,
 				studentId: pendingStudent.user.id,
 				concessionClassId: SEED.concessionClasses[0].id,
@@ -84,7 +83,6 @@ describe("Concession Integration", () => {
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "New",
-				previousApplicationId: null,
 				studentId: studentUser.user.id,
 				concessionClassId: SEED.concessionClasses[0].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id,
@@ -98,7 +96,6 @@ describe("Concession Integration", () => {
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "New",
-				previousApplicationId: null,
 				stationId: SEED.stations[0].id,
 				studentId: studentUser.user.id,
 				concessionClassId: SEED.concessionClasses[0].id,
@@ -118,7 +115,6 @@ describe("Concession Integration", () => {
 
 			const res = await submitConcessionApplication({
 				applicationType: "New",
-				previousApplicationId: null,
 				stationId: SEED.stations[1].id,
 				studentId: studentUser.user.id,
 				concessionClassId: SEED.concessionClasses[1].id,
@@ -224,7 +220,6 @@ describe("Concession Integration", () => {
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "New",
-				previousApplicationId: null,
 				stationId: SEED.stations[0].id,
 				studentId: studentUser.user.id,
 				concessionClassId: SEED.concessionClasses[0].id,
@@ -259,7 +254,6 @@ describe("Concession Integration", () => {
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "New",
-				previousApplicationId: null,
 				stationId: SEED.stations[0].id,
 				studentId: studentUser.user.id,
 				concessionClassId: SEED.concessionClasses[0].id,
@@ -358,7 +352,6 @@ describe("Concession Integration", () => {
 			await authenticateAs(secondStudent.user.id);
 			const res = await submitConcessionResubmission(rejectedAppId, {
 				applicationType: "New",
-				previousApplicationId: null,
 				stationId: SEED.stations[0].id,
 				concessionClassId: SEED.concessionClasses[0].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id
@@ -367,11 +360,131 @@ describe("Concession Integration", () => {
 			expect(res.isSuccess).toBe(false);
 		});
 
+		it("rejects resubmitting a first-time rejected application as a renewal when no pass was ever issued", async () => {
+			await authenticateAs(studentUser.user.id);
+			const res = await submitConcessionResubmission(rejectedAppId, {
+				applicationType: "Renewal",
+				stationId: SEED.stations[0].id,
+				concessionClassId: SEED.concessionClasses[0].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+
+			expect(res.isSuccess).toBe(false);
+			if (!res.isSuccess) {
+				expect(res.error.message).toContain("previously issued");
+			}
+
+			const stored = await prisma.concessionApplication.findUnique({ where: { id: rejectedAppId } });
+			expect(stored?.status).toBe("Rejected");
+			expect(stored?.applicationType).toBe("New");
+			expect(stored?.previousApplicationId).toBeNull();
+		});
+
+		it("returns the latest issued pass as previousApplication for a rejected last application", async () => {
+			await authenticateAs(secondStudent.user.id);
+
+			const firstTimeRejected = await prisma.concessionApplication.create({
+				data: {
+					status: "Rejected",
+					applicationType: "New",
+					stationId: SEED.stations[0].id,
+					studentId: secondStudent.user.id,
+					rejectionReason: "Test rejection",
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
+			const firstTimeRes = await getLastApplication();
+			expect(firstTimeRes.isSuccess).toBe(true);
+			if (firstTimeRes.isSuccess) {
+				expect(firstTimeRes.data?.id).toBe(firstTimeRejected.id);
+				expect(firstTimeRes.data?.previousApplication).toBeNull();
+			}
+
+			const issuedApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Issued",
+					issuedAt: new Date(),
+					reviewedAt: new Date(),
+					applicationType: "New",
+					stationId: SEED.stations[0].id,
+					studentId: secondStudent.user.id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+			const laterRejected = await prisma.concessionApplication.create({
+				data: {
+					status: "Rejected",
+					applicationType: "New",
+					stationId: SEED.stations[0].id,
+					studentId: secondStudent.user.id,
+					rejectionReason: "Test rejection",
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
+			const res = await getLastApplication();
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data?.id).toBe(laterRejected.id);
+				expect(res.data?.previousApplication?.id).toBe(issuedApp.id);
+			}
+
+			await prisma.concessionApplication.deleteMany({
+				where: { id: { in: [firstTimeRejected.id, issuedApp.id, laterRejected.id] } }
+			});
+		});
+
+		it("rejects resubmitting as a renewal while the latest issued pass is still active", async () => {
+			const activeIssuedApp = await prisma.concessionApplication.create({
+				data: {
+					status: "Issued",
+					issuedAt: new Date(),
+					reviewedAt: new Date(),
+					applicationType: "New",
+					stationId: SEED.stations[0].id,
+					studentId: secondStudent.user.id,
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+			const rejectedAfterIssue = await prisma.concessionApplication.create({
+				data: {
+					status: "Rejected",
+					applicationType: "New",
+					stationId: SEED.stations[0].id,
+					studentId: secondStudent.user.id,
+					rejectionReason: "Test rejection",
+					concessionClassId: SEED.concessionClasses[0].id,
+					concessionPeriodId: SEED.concessionPeriods[0].id
+				}
+			});
+
+			await authenticateAs(secondStudent.user.id);
+			const res = await submitConcessionResubmission(rejectedAfterIssue.id, {
+				applicationType: "Renewal",
+				stationId: SEED.stations[0].id,
+				concessionClassId: SEED.concessionClasses[0].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+
+			expect(res.isSuccess).toBe(false);
+			if (!res.isSuccess) {
+				expect(res.error.message).toContain("still active");
+			}
+
+			await prisma.concessionApplication.deleteMany({
+				where: { id: { in: [activeIssuedApp.id, rejectedAfterIssue.id] } }
+			});
+		});
+
 		it("allows student to resubmit their rejected application", async () => {
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionResubmission(rejectedAppId, {
 				applicationType: "New",
-				previousApplicationId: null,
 				stationId: SEED.stations[1].id,
 				concessionClassId: SEED.concessionClasses[0].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id
@@ -389,7 +502,6 @@ describe("Concession Integration", () => {
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionResubmission(rejectedAppId, {
 				applicationType: "New",
-				previousApplicationId: null,
 				stationId: SEED.stations[0].id,
 				concessionClassId: SEED.concessionClasses[0].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id
@@ -508,101 +620,25 @@ describe("Concession Integration", () => {
 			});
 		});
 
-		it("fails when submitting renewal without previousApplicationId", async () => {
-			await authenticateAs(studentUser.user.id);
+		it("fails when submitting a renewal for a student with no previously issued pass", async () => {
+			const newcomer = await createTestStudent(prisma, { status: "Approved" });
+
+			await authenticateAs(newcomer.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "Renewal",
-				previousApplicationId: null,
+				studentId: newcomer.user.id,
 				stationId: SEED.stations[0].id,
-				studentId: studentUser.user.id,
 				concessionClassId: SEED.concessionClasses[0].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id
 			});
 
 			expect(res.isSuccess).toBe(false);
 			if (!res.isSuccess) {
-				expect(res.error.message).toContain("Previous application ID is required");
+				expect(res.error.message).toContain("previously issued");
 			}
 		});
 
-		it("fails when submitting renewal with non-existent previousApplicationId", async () => {
-			await authenticateAs(studentUser.user.id);
-			const res = await submitConcessionApplication({
-				applicationType: "Renewal",
-				stationId: SEED.stations[0].id,
-				studentId: studentUser.user.id,
-				concessionClassId: SEED.concessionClasses[0].id,
-				concessionPeriodId: SEED.concessionPeriods[0].id,
-				previousApplicationId: "00000000-0000-0000-0000-000000000000"
-			});
-
-			expect(res.isSuccess).toBe(false);
-			if (!res.isSuccess) {
-				expect(res.error.message).toContain("Previous application not found");
-			}
-		});
-
-		it("fails when previousApplication belongs to another student", async () => {
-			const otherStudentApp = await prisma.concessionApplication.create({
-				data: {
-					status: "Issued",
-					applicationType: "New",
-					stationId: SEED.stations[0].id,
-					studentId: secondStudent.user.id,
-					concessionClassId: SEED.concessionClasses[0].id,
-					concessionPeriodId: SEED.concessionPeriods[0].id,
-					issuedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-				}
-			});
-
-			await authenticateAs(studentUser.user.id);
-			const res = await submitConcessionApplication({
-				applicationType: "Renewal",
-				stationId: SEED.stations[0].id,
-				studentId: studentUser.user.id,
-				previousApplicationId: otherStudentApp.id,
-				concessionClassId: SEED.concessionClasses[0].id,
-				concessionPeriodId: SEED.concessionPeriods[0].id
-			});
-
-			expect(res.isSuccess).toBe(false);
-			if (!res.isSuccess) {
-				expect(res.error.message).toContain("Unauthorized access to previous application");
-			}
-		});
-
-		it("fails when previousApplication is not in Issued state", async () => {
-			const rejectedApp = await prisma.concessionApplication.create({
-				data: {
-					status: "Rejected",
-					applicationType: "New",
-					studentId: studentUser.user.id,
-					stationId: SEED.stations[0].id,
-					rejectionReason: "Test rejection",
-					concessionClassId: SEED.concessionClasses[0].id,
-					concessionPeriodId: SEED.concessionPeriods[0].id
-				}
-			});
-
-			await authenticateAs(studentUser.user.id);
-			const res = await submitConcessionApplication({
-				applicationType: "Renewal",
-				stationId: SEED.stations[0].id,
-				studentId: studentUser.user.id,
-				previousApplicationId: rejectedApp.id,
-				concessionClassId: SEED.concessionClasses[0].id,
-				concessionPeriodId: SEED.concessionPeriods[0].id
-			});
-
-			expect(res.isSuccess).toBe(false);
-			if (!res.isSuccess) {
-				expect(res.error.message).toContain("Renewal can only be linked to a previously issued concession pass");
-			}
-
-			await prisma.concessionApplication.delete({ where: { id: rejectedApp.id } });
-		});
-
-		it("fails when previousApplication is still active (unexpired)", async () => {
+		it("fails when the latest issued pass is still active (unexpired)", async () => {
 			const activePass = await prisma.concessionApplication.create({
 				data: {
 					status: "Issued",
@@ -620,7 +656,6 @@ describe("Concession Integration", () => {
 				applicationType: "Renewal",
 				stationId: SEED.stations[0].id,
 				studentId: studentUser.user.id,
-				previousApplicationId: activePass.id,
 				concessionClassId: SEED.concessionClasses[0].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id
 			});
@@ -633,13 +668,12 @@ describe("Concession Integration", () => {
 			await prisma.concessionApplication.delete({ where: { id: activePass.id } });
 		});
 
-		it("submits a renewal application linked to the previous expired issued application", async () => {
+		it("submits a renewal application linked by the server to the latest expired issued pass", async () => {
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "Renewal",
 				stationId: SEED.stations[0].id,
 				studentId: studentUser.user.id,
-				previousApplicationId: initialIssuedApp.id,
 				concessionClassId: SEED.concessionClasses[0].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id
 			});
@@ -704,7 +738,6 @@ describe("Concession Integration", () => {
 			const resubmitRes = await submitConcessionResubmission(renewalApp.id, {
 				applicationType: "Renewal",
 				stationId: SEED.stations[0].id,
-				previousApplicationId: initialIssuedApp.id,
 				concessionClassId: SEED.concessionClasses[1].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id
 			});
@@ -716,6 +749,48 @@ describe("Concession Integration", () => {
 				expect(resubmitRes.data?.previousApplication?.id).toBe(initialIssuedApp.id);
 				expect(resubmitRes.data?.rejectionReason).toBeNull();
 				expect(resubmitRes.data?.submissionCount).toBeGreaterThanOrEqual(2);
+			}
+		});
+
+		it("allows a rejected renewal to be resubmitted as a new application", async () => {
+			await authenticateAs(adminUser.user.id);
+			const rejectRes = await reviewConcessionApplication(renewalApp.id, "Rejected", "Should have applied as new");
+			expect(rejectRes.isSuccess).toBe(true);
+
+			await authenticateAs(studentUser.user.id);
+			const res = await submitConcessionResubmission(renewalApp.id, {
+				applicationType: "New",
+				stationId: SEED.stations[0].id,
+				concessionClassId: SEED.concessionClasses[0].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+
+			expect(res.isSuccess).toBe(true);
+
+			const stored = await prisma.concessionApplication.findUnique({ where: { id: renewalApp.id } });
+			expect(stored?.status).toBe("Pending");
+			expect(stored?.applicationType).toBe("New");
+			expect(stored?.previousApplicationId).toBeNull();
+		});
+
+		it("resubmits a rejected application as a renewal linked to the latest issued pass", async () => {
+			await authenticateAs(adminUser.user.id);
+			const rejectRes = await reviewConcessionApplication(renewalApp.id, "Rejected", "Should have applied as renewal");
+			expect(rejectRes.isSuccess).toBe(true);
+
+			await authenticateAs(studentUser.user.id);
+			const res = await submitConcessionResubmission(renewalApp.id, {
+				applicationType: "Renewal",
+				stationId: SEED.stations[0].id,
+				concessionClassId: SEED.concessionClasses[1].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+
+			expect(res.isSuccess).toBe(true);
+			if (res.isSuccess) {
+				expect(res.data?.status).toBe("Pending");
+				expect(res.data?.applicationType).toBe("Renewal");
+				expect(res.data?.previousApplication?.id).toBe(initialIssuedApp.id);
 			}
 		});
 

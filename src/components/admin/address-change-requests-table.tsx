@@ -48,20 +48,73 @@ import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent, DialogT
 
 const PREDEFINED_REJECTION_REASONS = [
 	{
-		label: "Address Mismatch",
-		reason: "The entered address does not match the verification document."
+		label: "Station Not Matching New Address",
+		reason:
+			"The new home station you selected is not the nearest suburban station to the new address you entered. Please select the correct station for your new address."
 	},
 	{
-		label: "Invalid Document",
-		reason: "The uploaded verification document is invalid."
+		label: "Station Not Matching Document Address",
+		reason:
+			"The new home station you selected is not the nearest suburban station to the address mentioned in your verification document. Please select the correct station or upload a document showing your new residence."
 	},
 	{
-		label: "Unclear Document",
-		reason: "The uploaded document is unclear or unreadable."
+		label: "Address Differs From Document",
+		reason:
+			"The new address you entered does not match the address in your verification document. Please correct the address or upload a document that shows the same address."
 	},
 	{
-		label: "Station Mismatch",
-		reason: "The address does not belong to the selected station."
+		label: "Old Address in Document",
+		reason:
+			"Your verification document still shows your old address. Please upload a document that shows your new address, such as an electricity bill or rent agreement."
+	},
+	{
+		label: "Address Proof Required",
+		reason:
+			"Address differs from Aadhaar. Please upload a single combined PDF containing both your Aadhaar card and an electricity bill or rent agreement. Do not upload only the electricity bill or rent agreement, as the Aadhaar card must be included in the same PDF."
+	},
+	{
+		label: "Same Address and Station",
+		reason:
+			"The new address and station are the same as your current details. Please submit a request only if your address or home station has changed."
+	},
+	{
+		label: "Incomplete Address",
+		reason:
+			"The new address you entered is incomplete. Please enter the full address including flat/house number, building, area, city and correct pincode."
+	},
+	{
+		label: "Pincode Mismatch",
+		reason:
+			"The pincode you entered does not match your new address or your verification document. Please enter the correct pincode."
+	},
+	{
+		label: "Both Sides of Aadhaar Required",
+		reason: "Please upload both front and back sides of your Aadhaar card."
+	},
+	{
+		label: "Incomplete Document",
+		reason:
+			"Your verification document is incomplete (cropped or missing pages). Please upload the complete document with all pages."
+	},
+	{
+		label: "Name Mismatch",
+		reason:
+			"The name in the verification document does not match your profile name. Please upload a document in your own name or a document of your parent/guardian along with proof of relation."
+	},
+	{
+		label: "Invalid Verification Document",
+		reason:
+			"The uploaded document is not a valid address proof. Please upload a valid document such as Aadhaar card, electricity bill or rent agreement."
+	},
+	{
+		label: "Document Not Clear",
+		reason:
+			"Your verification document is blurry or unreadable. Please upload a clear, well-lit and legible copy of the document."
+	},
+	{
+		label: "Password Protected Document",
+		reason:
+			"Your verification document is password protected and cannot be opened. Please remove the password and upload a password-free document."
 	}
 ];
 
@@ -685,7 +738,7 @@ const AddressChangeRequestDetailsDialog = ({
 							>
 								{showDocViewer && requestDetails.verificationDocUrl && (
 									<div className="flex flex-col h-full animate-in fade-in duration-300">
-										<div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur-sm">
+										<div className="flex items-center justify-between px-4 py-3 border-b bg-background rounded-t-xl">
 											<div className="flex items-center gap-2">
 												<FileText className="size-4 text-muted-foreground" />
 												<span className="text-sm font-semibold">Verification Document</span>
@@ -915,12 +968,27 @@ const AddressChangeRequestsTable = ({
 		if (!sortConfig) return requests;
 
 		return [...requests].sort((a, b) => {
-			let aValue: string | Date;
-			let bValue: string | Date;
+			let aValue: string | Date | number;
+			let bValue: string | Date | number;
 
 			if (sortConfig.key === "studentName") {
 				aValue = [a.student.firstName, a.student.middleName, a.student.lastName].filter(Boolean).join(" ");
 				bValue = [b.student.firstName, b.student.middleName, b.student.lastName].filter(Boolean).join(" ");
+			} else if (sortConfig.key === "status") {
+				const getStatusRank = (status: AddressChangeStatusType): number => {
+					switch (status) {
+						case "Pending":
+							return 1;
+						case "Approved":
+							return 2;
+						case "Rejected":
+							return 3;
+						default:
+							return 4;
+					}
+				};
+				aValue = getStatusRank(a.status);
+				bValue = getStatusRank(b.status);
 			} else {
 				aValue = a[sortConfig.key] as string | Date;
 				bValue = b[sortConfig.key] as string | Date;

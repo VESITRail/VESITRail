@@ -191,89 +191,114 @@ export const getAddressChangeRequests = async (
 			whereClause.OR = orConditions;
 		}
 
-		const [requests, totalCount] = await Promise.all([
-			prisma.addressChange.findMany({
-				skip,
-				take: pageSize,
-				where: whereClause,
-				orderBy: {
-					createdAt: "desc"
-				},
-				include: {
-					student: {
-						include: {
-							user: {
-								select: {
-									id: true,
-									name: true,
-									email: true,
-									image: true
-								}
-							},
-							class: {
-								include: {
-									year: {
-										select: {
-											id: true,
-											code: true,
-											name: true
-										}
-									},
-									branch: {
-										select: {
-											id: true,
-											code: true,
-											name: true
-										}
+		const requests = await prisma.addressChange.findMany({
+			where: whereClause,
+			include: {
+				student: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+								image: true
+							}
+						},
+						class: {
+							include: {
+								year: {
+									select: {
+										id: true,
+										code: true,
+										name: true
+									}
+								},
+								branch: {
+									select: {
+										id: true,
+										code: true,
+										name: true
 									}
 								}
 							}
 						}
-					},
-					newStation: {
-						select: {
-							id: true,
-							code: true,
-							name: true
-						}
-					},
-					currentStation: {
-						select: {
-							id: true,
-							code: true,
-							name: true
-						}
-					},
-					reviewedBy: {
-						include: {
-							user: {
-								select: {
-									id: true,
-									name: true,
-									email: true,
-									image: true
-								}
+					}
+				},
+				newStation: {
+					select: {
+						id: true,
+						code: true,
+						name: true
+					}
+				},
+				currentStation: {
+					select: {
+						id: true,
+						code: true,
+						name: true
+					}
+				},
+				reviewedBy: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+								image: true
 							}
 						}
 					}
 				}
-			}),
-			prisma.addressChange.count({
-				where: whereClause
-			})
-		]);
+			}
+		});
+
+		const totalCount = requests.length;
+
+		const getStatusRank = (status: AddressChangeStatusType): number => {
+			switch (status) {
+				case "Pending":
+					return 1;
+				case "Approved":
+					return 2;
+				case "Rejected":
+					return 3;
+				default:
+					return 4;
+			}
+		};
+
+		const sortedRequests = requests.sort((a, b) => {
+			const rankA = getStatusRank(a.status);
+			const rankB = getStatusRank(b.status);
+
+			if (rankA !== rankB) {
+				return rankA - rankB;
+			}
+
+			if (a.status === "Pending") {
+				return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+			}
+
+			const reviewedA = new Date(a.reviewedAt ?? a.createdAt).getTime();
+			const reviewedB = new Date(b.reviewedAt ?? b.createdAt).getTime();
+
+			return reviewedB - reviewedA;
+		});
 
 		const totalPages = Math.ceil(totalCount / pageSize);
 		const hasNextPage = page < totalPages;
 		const hasPreviousPage = page > 1;
 
+		const paginatedRequests = sortedRequests.slice(skip, skip + pageSize);
+
 		return success({
 			totalCount,
 			totalPages,
 			hasNextPage,
-			data: requests,
 			hasPreviousPage,
-			currentPage: page
+			currentPage: page,
+			data: paginatedRequests
 		});
 	} catch (error) {
 		console.error("Error fetching address change requests:", error);
@@ -367,6 +392,17 @@ export const reviewAddressChangeRequest = async (
 						verificationDocUrl: ""
 					}
 				});
+
+				await tx.concessionApplication.updateMany({
+					where: {
+						status: { in: ["Pending", "Approved"] },
+						studentId: addressChangeRequest.studentId
+					},
+					data: {
+						updatedAt: new Date(),
+						stationId: addressChangeRequest.newStationId
+					}
+				});
 			}
 
 			return updatedRequest;
@@ -383,8 +419,13 @@ export const reviewAddressChangeRequest = async (
 			console.error("Failed to send address change notification:", error);
 		});
 
+		revalidatePath("/dashboard/admin");
 		revalidatePath("/dashboard/admin/profile");
 		revalidatePath("/dashboard/admin/address-change-requests");
+		revalidatePath("/dashboard/admin/students");
+		revalidatePath("/dashboard/student");
+		revalidatePath("/dashboard/student/apply-concession");
+		revalidatePath("/dashboard/student/change-address");
 
 		return success(result);
 	} catch (error) {

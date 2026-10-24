@@ -1,36 +1,22 @@
 "use server";
 
+import {
+	formatIstDate,
+	calcAgeFromDob,
+	formatIstDayMonth,
+	formatDateOfBirth,
+	formatIstYearShort,
+	calculatePassExpiry
+} from "@/lib/utils";
 import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { PDFDocument, degrees } from "pdf-lib";
 import { requireAdmin } from "@/lib/auth-guard";
-import { formatDateOfBirth, calcAgeFromDob, calculatePassExpiry } from "@/lib/utils";
 import { Result, success, failure, AuthError, databaseError, DatabaseError } from "@/lib/result";
 
 type FormLayout = {
 	left: Record<string, { x: number; y: number }>;
 	right: Record<string, { x: number; y: number }>;
-};
-
-const formatDate = (date: Date) => {
-	const d = new Date(date);
-	const day = d.getDate().toString().padStart(2, "0");
-	const month = (d.getMonth() + 1).toString().padStart(2, "0");
-	const year = d.getFullYear();
-	return `${day}/${month}/${year}`;
-};
-
-const formatDateMonthOnly = (date: Date) => {
-	const d = new Date(date);
-	const day = d.getDate().toString().padStart(2, "0");
-	const month = (d.getMonth() + 1).toString().padStart(2, "0");
-	return `${day}/${month}/`;
-};
-
-const formatYearLastTwoDigits = (date: Date) => {
-	const d = new Date(date);
-	const year = d.getFullYear();
-	return String(year).slice(-2);
 };
 
 const SAMPLE_DATA = {
@@ -102,10 +88,10 @@ export const generateSampleOverlayPDF = async (
 		writeText(eff(layout.left.previous_certificate_number), SAMPLE_DATA.previousCertificateNumber);
 
 		const prevEnd = calculatePassExpiry(SAMPLE_DATA.previousApplicationDate, SAMPLE_DATA.periodDuration);
-		writeText(eff(layout.left.last_season_ticket_held_upto_date), formatDateMonthOnly(prevEnd));
-		writeText(eff(layout.left.last_season_ticket_held_upto_year), formatYearLastTwoDigits(prevEnd));
+		writeText(eff(layout.left.last_season_ticket_held_upto_date), formatIstDayMonth(prevEnd));
+		writeText(eff(layout.left.last_season_ticket_held_upto_year), formatIstYearShort(prevEnd));
 
-		writeText(eff(layout.left.date_of_issue_left), formatDate(now));
+		writeText(eff(layout.left.date_of_issue_left), formatIstDate(now));
 
 		writeText(eff(layout.right.student_name_right), fullName);
 		writeText(eff(layout.right.age_years), String(age.years));
@@ -123,10 +109,10 @@ export const generateSampleOverlayPDF = async (
 
 		const prevStart = SAMPLE_DATA.previousApplicationDate;
 		const prevEndDate = calculatePassExpiry(prevStart, SAMPLE_DATA.periodDuration);
-		writeText(eff(layout.right.current_pass_validity_from), formatDate(prevStart));
-		writeText(eff(layout.right.current_pass_validity_to), formatDate(prevEndDate));
+		writeText(eff(layout.right.current_pass_validity_from), formatIstDate(prevStart));
+		writeText(eff(layout.right.current_pass_validity_to), formatIstDate(prevEndDate));
 
-		writeText(eff(layout.right.date_of_issue_right), formatDate(now));
+		writeText(eff(layout.right.date_of_issue_right), formatIstDate(now));
 
 		const pdfBytes = doc.output("arraybuffer");
 
