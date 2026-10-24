@@ -311,9 +311,9 @@ Approve an incoming concession request and trigger the student notification to v
 
 The application status updates to **`Approved`**. **No booklet slot is assigned yet.** The system sends an automated push notification and email to the student:
 
-> _"Your railway concession application has been approved! Please visit the Railway Concession Office to collect your certificate."_
+> _"Your concession application is approved! Please collect your certificate at the Railway Concession Office (Ground Floor, Admin Office) and bring your college ID card."_
 
-Concession push notifications (approval and rejection) start with the application reference, e.g. `Concession #42: `, so the student can quote it at the counter. The approval email also reminds the student to bring their college ID card when collecting the physical concession certificate.
+Concession push notifications (approval and rejection) start with the application reference, e.g. `Concession #42: `, so the student can quote it at the counter. The approval push notification, in-app notification, and email all remind the student to bring their college ID card when collecting the physical concession certificate. For **Renewal** applications, the approval notifications (titled **Concession Renewal Approved**) additionally ask the student to bring their existing pass along with their college ID card.
 
 ---
 
