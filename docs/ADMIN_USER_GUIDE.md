@@ -462,7 +462,7 @@ Inspect a submitted address change request and compare the old and new stations.
 #### Steps
 
 1. In the sidebar under **Applications**, click **Address Change Requests** (`/dashboard/admin/address-change-requests`).
-2. The table displays:
+2. The table displays requests ordered with **`Pending`** first (sorted chronologically oldest-to-newest in First-In-First-Out order for timely processing), followed by **`Approved`**, and finally **`Rejected`** records:
    - **Sr. No.**
    - **Name** (and student contact number)
    - **Academic Info** (class, year, branch)
