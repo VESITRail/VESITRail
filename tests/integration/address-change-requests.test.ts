@@ -22,18 +22,8 @@ describe("Address Change Requests (Admin) Integration", () => {
 	let studentUser: any;
 	let pendingRequest: any;
 
-	beforeAll(async () => {
-		await cleanAllTables(prisma);
-		await seedReferenceData(prisma);
-
-		adminUser = await createTestAdmin(prisma, { isActive: true });
-		studentUser = await createTestStudent(prisma, {
-			status: "Approved",
-			name: "Rahul Sharma",
-			stationId: SEED.stations[0].id
-		});
-
-		pendingRequest = await prisma.addressChange.create({
+	const createPendingRequest = () =>
+		prisma.addressChange.create({
 			data: {
 				status: "Pending",
 				submissionCount: 1,
@@ -45,6 +35,19 @@ describe("Address Change Requests (Admin) Integration", () => {
 				verificationDocUrl: "https://test-r2.example.com/address-doc.pdf"
 			}
 		});
+
+	beforeAll(async () => {
+		await cleanAllTables(prisma);
+		await seedReferenceData(prisma);
+
+		adminUser = await createTestAdmin(prisma, { isActive: true });
+		studentUser = await createTestStudent(prisma, {
+			status: "Approved",
+			name: "Rahul Sharma",
+			stationId: SEED.stations[0].id
+		});
+
+		pendingRequest = await createPendingRequest();
 	});
 
 	afterAll(async () => {
@@ -270,6 +273,11 @@ describe("Address Change Requests (Admin) Integration", () => {
 	});
 
 	describe("getAddressChangeRequestDetails", () => {
+		beforeAll(async () => {
+			await prisma.addressChange.deleteMany({});
+			pendingRequest = await createPendingRequest();
+		});
+
 		it("returns request details for existing request", async () => {
 			await authenticateAs(adminUser.user.id);
 			const res = await getAddressChangeRequestDetails(pendingRequest.id);
