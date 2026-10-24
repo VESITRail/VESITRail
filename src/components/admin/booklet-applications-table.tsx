@@ -483,18 +483,7 @@ const BookletApplicationsTable = ({
 												</Button>
 											)}
 										</>
-									) : (
-										<Button
-											size="sm"
-											variant="outline"
-											title="Mark this empty slot as Damaged"
-											onClick={() => onInsertDamaged?.(offset)}
-											className="h-7 text-xs px-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
-										>
-											<Plus className="size-3 mr-1" />
-											Mark Damaged
-										</Button>
-									)}
+									) : null}
 								</div>
 							</TableCell>
 						</TableRow>

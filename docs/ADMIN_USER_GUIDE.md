@@ -571,15 +571,13 @@ Inspect every individual certificate leaf (slots 1 to 50) in a booklet.
 Record a spoiled, misprinted, or torn physical certificate leaf so that digital serial numbering remains synchronized with physical paper.
 
 > [!NOTE]
-> **No Note or Description Prompt Required:** Marking a page as damaged is immediate. The system does not require you to type a description or damage note. Clicking **Damaged** or **Mark Damaged** directly updates the slot.
+> **No Note or Description Prompt Required:** Marking a page as damaged is immediate. The system does not require you to type a description or damage note. Clicking **Damaged** directly updates the slot.
 
 #### Steps
 
 1. Open the booklet detail page (`/dashboard/admin/booklets/<id>`).
 2. Click the **Reorder Slots** button in the header action bar to enter Reorder Mode.
-3. Locate the slot corresponding to the physical voucher leaf:
-   - **On an empty slot**: Click the **Mark Damaged** button in the Actions column.
-   - **On an occupied slot**: Click the **Damaged** button in the Actions column.
+3. Locate the occupied slot corresponding to the physical voucher leaf and click the **Damaged** button in the Actions column. Empty slots after the last assigned slip have no action, since a damaged page is always a free page between assigned slips.
 4. The system immediately marks that slot as damaged, displays an **Inserted Damaged** badge, and shifts all subsequent student assignments down by one slot (provided the total count does not exceed 50 pages).
 5. **To remove a damaged marker**:
    - Locate the damaged slot.
@@ -768,7 +766,7 @@ Yes. Administrators can reject an application in `Pending`, `Approved`, or `Issu
 
 #### 3. What should I do if a paper voucher leaf is damaged or torn?
 
-Navigate to **Booklets**, open the booklet detail view, click **Reorder Slots**, and click **Damaged** (on an occupied slot) or **Mark Damaged** (on an empty slot). The system immediately marks that leaf as damaged and shifts subsequent records without requiring a note.
+Navigate to **Booklets**, open the booklet detail view, click **Reorder Slots**, and click **Damaged** on the occupied slot. The system immediately marks that leaf as damaged and shifts subsequent records without requiring a note.
 
 #### 4. How do I reprint a pass if the printer jammed?
 
