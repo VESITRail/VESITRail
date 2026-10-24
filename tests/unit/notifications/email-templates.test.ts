@@ -35,6 +35,19 @@ describe("Email Templates (src/lib/notifications/email-templates.ts)", () => {
 		expect(result.html).toContain("First Class");
 	});
 
+	it("asks renewal students to bring their existing pass and college ID card", () => {
+		const result = generateEmailTemplate(getNotificationScenario("concession_renewal_approval")!, {
+			shortId: 42,
+			userName: "Jay Kerkar",
+			concessionType: "Renewal"
+		});
+
+		expect(result.subject).toBe("Your Concession Renewal Has Been Approved!");
+		expect(result.html).toContain("existing pass");
+		expect(result.html).toContain("college ID card");
+		expect(result.html).toContain("#42");
+	});
+
 	it("includes applicationId fallback when shortId is not provided", () => {
 		const result = generateEmailTemplate(concessionApproval, {
 			userName: "Jay Kerkar",

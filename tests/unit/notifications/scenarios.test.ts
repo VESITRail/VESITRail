@@ -3,14 +3,15 @@ import {
 	getScenariosByType,
 	notificationScenarios,
 	getScenariosByCategory,
-	getNotificationScenario
+	getNotificationScenario,
+	getConcessionScenarioId
 } from "@/lib/notifications/scenarios";
 import { describe, it, expect } from "vitest";
 
 describe("Notification Scenarios (src/lib/notifications/scenarios.ts)", () => {
 	describe("Data Integrity", () => {
-		it("contains exactly 6 configured scenarios", () => {
-			expect(notificationScenarios).toHaveLength(6);
+		it("contains exactly 7 configured scenarios", () => {
+			expect(notificationScenarios).toHaveLength(7);
 		});
 
 		it("ensures every scenario has non-empty identifiers and required content", () => {
@@ -62,7 +63,7 @@ describe("Notification Scenarios (src/lib/notifications/scenarios.ts)", () => {
 
 		it("filters concession scenarios", () => {
 			const concessionScenarios = getScenariosByCategory("concession");
-			expect(concessionScenarios).toHaveLength(2);
+			expect(concessionScenarios).toHaveLength(3);
 			expect(concessionScenarios.every((s) => s.category === "concession")).toBe(true);
 		});
 
@@ -79,9 +80,9 @@ describe("Notification Scenarios (src/lib/notifications/scenarios.ts)", () => {
 	});
 
 	describe("getScenariosByType", () => {
-		it("filters approval scenarios (3 total)", () => {
+		it("filters approval scenarios (4 total)", () => {
 			const approvals = getScenariosByType("approval");
-			expect(approvals).toHaveLength(3);
+			expect(approvals).toHaveLength(4);
 			expect(approvals.every((s) => s.type === "approval")).toBe(true);
 		});
 
@@ -94,6 +95,58 @@ describe("Notification Scenarios (src/lib/notifications/scenarios.ts)", () => {
 		it("returns empty array for invalid or unsupported type value", () => {
 			const invalidType = getScenariosByType("pending" as unknown as "approval");
 			expect(invalidType).toEqual([]);
+		});
+	});
+
+	describe("concession approval instructions", () => {
+		it("asks for the college ID card on every channel of the new concession approval", () => {
+			const scenario = getNotificationScenario("concession_approval")!;
+
+			expect(scenario.push.body).toContain("college ID card");
+			expect(scenario.inApp.body).toContain("college ID card");
+			expect(scenario.email.description).toContain("college ID card");
+		});
+
+		it("asks for the existing pass and the college ID card on every channel of the renewal approval", () => {
+			const scenario = getNotificationScenario("concession_renewal_approval")!;
+
+			expect(scenario.type).toBe("approval");
+			expect(scenario.category).toBe("concession");
+			expect(scenario.push.body).toContain("existing pass");
+			expect(scenario.push.body).toContain("college ID card");
+			expect(scenario.inApp.body).toContain("existing pass");
+			expect(scenario.inApp.body).toContain("college ID card");
+			expect(scenario.email.description).toContain("existing pass");
+			expect(scenario.email.description).toContain("college ID card");
+		});
+
+		it("does not ask for an existing pass on the new concession approval", () => {
+			const scenario = getNotificationScenario("concession_approval")!;
+
+			expect(scenario.push.body).not.toContain("existing pass");
+			expect(scenario.inApp.body).not.toContain("existing pass");
+			expect(scenario.email.description).not.toContain("existing pass");
+		});
+	});
+
+	describe("getConcessionScenarioId", () => {
+		it("selects the renewal approval scenario for approved renewals", () => {
+			expect(getConcessionScenarioId(true, "Renewal")).toBe("concession_renewal_approval");
+		});
+
+		it("selects the standard approval scenario for approved new applications", () => {
+			expect(getConcessionScenarioId(true, "New")).toBe("concession_approval");
+		});
+
+		it("selects the rejection scenario for rejected applications regardless of type", () => {
+			expect(getConcessionScenarioId(false, "Renewal")).toBe("concession_rejection");
+			expect(getConcessionScenarioId(false, "New")).toBe("concession_rejection");
+		});
+
+		it("resolves to existing scenarios", () => {
+			for (const type of ["New", "Renewal"]) {
+				expect(getNotificationScenario(getConcessionScenarioId(true, type))).toBeDefined();
+			}
 		});
 	});
 

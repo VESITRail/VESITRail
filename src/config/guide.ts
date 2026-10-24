@@ -37,6 +37,6 @@ export const guide: Guide[] = [
 		icon: CheckCircle,
 		title: "Collect from Office",
 		description:
-			"After approval, visit the railway concession office in your college to collect the printed concession."
+			"After approval, visit the railway concession office in your college with your college ID card (and your existing pass if you are renewing) to collect the printed concession."
 	}
 ];

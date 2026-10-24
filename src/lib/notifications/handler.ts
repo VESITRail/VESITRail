@@ -3,8 +3,8 @@ import nodemailer from "nodemailer";
 import { getMessaging } from "firebase-admin/messaging";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { generateEmailTemplate, type EmailTemplateParams } from "./email-templates";
-import { getPushBody, getNotificationScenario, type NotificationScenario } from "./scenarios";
 import { Result, success, failure, type AppError, databaseError, validationError } from "@/lib/result";
+import { getPushBody, getNotificationScenario, getConcessionScenarioId, type NotificationScenario } from "./scenarios";
 
 if (!getApps().length) {
 	const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -320,7 +320,7 @@ export const sendConcessionNotification = async (
 		studentId,
 		applicationId,
 		url: "/dashboard/student",
-		scenarioId: isApproved ? "concession_approval" : "concession_rejection"
+		scenarioId: getConcessionScenarioId(isApproved, concessionType)
 	});
 };
 

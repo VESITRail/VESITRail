@@ -252,7 +252,9 @@ const ConcessionApplicationForm = () => {
 								iconColor: "text-white",
 								title: "Concession Approved",
 								description:
-									"Your concession application has been approved! Please visit the Railway Concession Office (Ground Floor, Admin Office) to collect your physical certificate."
+									application.applicationType === "Renewal"
+										? "Your concession renewal has been approved! Please visit the Railway Concession Office (Ground Floor, Admin Office) to collect your physical certificate. Bring your existing pass along with your college ID card."
+										: "Your concession application has been approved! Please visit the Railway Concession Office (Ground Floor, Admin Office) to collect your physical certificate. Bring your college ID card with you."
 							});
 							break;
 

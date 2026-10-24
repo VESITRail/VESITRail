@@ -78,17 +78,41 @@ export const notificationScenarios: NotificationScenario[] = [
 		name: "Concession Application Approved",
 		push: {
 			title: "Concession Approved!",
-			body: "Your concession application is approved! Please collect your certificate at the Railway Concession Office (Ground Floor, Admin Office)."
+			body: "Your concession application is approved! Please collect your certificate at the Railway Concession Office (Ground Floor, Admin Office) and bring your college ID card."
 		},
 		inApp: {
 			title: "Concession Application Approved",
-			body: "Your concession application has been approved. Please collect your concession certificate at the Railway Concession Office, located on the ground floor of the Admin Office."
+			body: "Your concession application has been approved. Please collect your concession certificate at the Railway Concession Office, located on the ground floor of the Admin Office. Bring your college ID card with you."
 		},
 		email: {
 			heading: "Concession Application Approved",
 			subject: "Your Concession Application Has Been Approved!",
 			description:
 				"Excellent news! Your concession application has been approved.<br /><br />Please collect your physical concession certificate at the Railway Concession Office, located on the ground floor of the Admin Office.<br /><br />Please bring your college ID card with you when you come to collect it.",
+			cta: {
+				text: "View Details",
+				url: "/dashboard/student"
+			}
+		}
+	},
+	{
+		type: "approval",
+		category: "concession",
+		id: "concession_renewal_approval",
+		name: "Concession Renewal Approved",
+		push: {
+			title: "Concession Renewal Approved!",
+			body: "Your renewal is approved! Please visit the Railway Concession Office (Ground Floor, Admin Office) and bring your existing pass along with your college ID card."
+		},
+		inApp: {
+			title: "Concession Renewal Approved",
+			body: "Your concession renewal has been approved. Please visit the Railway Concession Office, located on the ground floor of the Admin Office, and bring your existing pass along with your college ID card."
+		},
+		email: {
+			heading: "Concession Renewal Approved",
+			subject: "Your Concession Renewal Has Been Approved!",
+			description:
+				"Excellent news! Your concession renewal has been approved.<br /><br />Please collect your new physical concession certificate at the Railway Concession Office, located on the ground floor of the Admin Office.<br /><br /><strong>Important:</strong> Please bring your existing pass along with your college ID card when you come to collect it.",
 			cta: {
 				text: "View Details",
 				url: "/dashboard/student"
@@ -181,6 +205,12 @@ export const getScenariosByCategory = (
 
 export const getScenariosByType = (type: "approval" | "rejection"): NotificationScenario[] => {
 	return notificationScenarios.filter((scenario) => scenario.type === type);
+};
+
+export const getConcessionScenarioId = (isApproved: boolean, applicationType: string): string => {
+	if (!isApproved) return "concession_rejection";
+
+	return applicationType === "Renewal" ? "concession_renewal_approval" : "concession_approval";
 };
 
 export const getPushBody = (scenario: NotificationScenario, shortId?: number): string => {
