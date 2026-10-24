@@ -55,7 +55,23 @@ import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@
 import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
 
-const PREDEFINED_REJECTION_REASONS = [
+type SortOrder = "asc" | "desc";
+type Station = AdminApplication["station"];
+type ApplicationStatus = AdminApplication["status"];
+type ApplicationType = AdminApplication["applicationType"];
+type ConcessionClass = AdminApplication["concessionClass"];
+type ConcessionPeriod = AdminApplication["concessionPeriod"];
+
+const PREDEFINED_REJECTION_REASONS: {
+	label: string;
+	reason: string;
+	applicationType?: ApplicationType;
+}[] = [
+	{
+		label: "Incorrect Home Station",
+		reason:
+			"The home station in your application is incorrect for your residential address. If you have moved, submit an address change request first, then reapply with the correct home station."
+	},
 	{
 		label: "Monthly Period Only",
 		reason: "Only monthly concessions are available. Please reapply with 'Monthly'."
@@ -63,15 +79,29 @@ const PREDEFINED_REJECTION_REASONS = [
 	{
 		label: "Quarterly Period Only",
 		reason: "Only quarterly concessions are available. Please reapply with 'Quarterly'."
+	},
+	{
+		label: "Incorrect Concession Class",
+		reason: "The concession class you selected is incorrect. Please reapply with the correct class."
+	},
+	{
+		label: "Duplicate Application",
+		reason:
+			"You already have another concession application for this period. Please wait for it to be processed instead of submitting a new one."
+	},
+	{
+		label: "Apply as New Only",
+		applicationType: "Renewal",
+		reason:
+			"This request cannot be processed as a renewal. Please submit a fresh application with the application type 'New'."
+	},
+	{
+		label: "Apply as Renewal Only",
+		applicationType: "New",
+		reason:
+			"This request cannot be processed as a new application. Please submit a fresh application with the application type 'Renewal'."
 	}
 ];
-
-type SortOrder = "asc" | "desc";
-type Station = AdminApplication["station"];
-type ApplicationStatus = AdminApplication["status"];
-type ApplicationType = AdminApplication["applicationType"];
-type ConcessionClass = AdminApplication["concessionClass"];
-type ConcessionPeriod = AdminApplication["concessionPeriod"];
 
 const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
 	const variants = {
@@ -725,10 +755,14 @@ const ApplicationsTable = ({
 		});
 	};
 
+	const availableRejectionReasons = PREDEFINED_REJECTION_REASONS.filter(
+		(r) => !r.applicationType || r.applicationType === selectedApplication?.applicationType
+	);
+
 	const confirmReject = async () => {
 		if (!selectedApplication) return;
 
-		const selectedReasonObj = PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason);
+		const selectedReasonObj = availableRejectionReasons.find((r) => r.label === selectedPredefinedReason);
 		const finalReason = rejectionReason.trim() || selectedReasonObj?.reason || "";
 
 		if (!finalReason) {
@@ -1504,7 +1538,7 @@ const ApplicationsTable = ({
 								</SelectTrigger>
 
 								<SelectContent className="w-full max-h-60 overflow-y-auto">
-									{PREDEFINED_REJECTION_REASONS.map((reasonObj, index) => (
+									{availableRejectionReasons.map((reasonObj, index) => (
 										<SelectItem key={index} value={reasonObj.label} className="whitespace-normal text-sm py-2 px-3">
 											{reasonObj.label}
 										</SelectItem>
@@ -1545,7 +1579,7 @@ const ApplicationsTable = ({
 
 								<p className="text-sm wrap-break-word">
 									{rejectionReason ||
-										PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason)?.reason}
+										availableRejectionReasons.find((r) => r.label === selectedPredefinedReason)?.reason}
 								</p>
 							</div>
 						)}
