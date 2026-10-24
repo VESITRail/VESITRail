@@ -574,7 +574,7 @@ const BookletApplicationsPage = () => {
 						</h1>
 					</div>
 
-					<div className="hidden sm:flex items-center gap-2 shrink-0">
+					<div className="hidden sm:flex items-center gap-3 shrink-0">
 						{isReorderMode ? (
 							<>
 								<Button
@@ -691,7 +691,7 @@ const BookletApplicationsPage = () => {
 							<p className="text-sm text-muted-foreground font-normal shrink-0">{stagedChangesCount} changes staged</p>
 						</div>
 					) : (
-						<div className="grid grid-cols-2 gap-2">
+						<div className="grid grid-cols-2 gap-4">
 							<Button
 								variant="outline"
 								onClick={handleEnterReorderMode}
