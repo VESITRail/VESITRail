@@ -27,6 +27,7 @@ import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { requireAdmin, requireStudent } from "@/lib/auth-guard";
 import { sendConcessionNotification } from "@/lib/notifications";
 import { calculateBookletStatus, calculateConcessionValidity } from "@/lib/utils";
+import { lockStudentSubmission, SUBMISSION_LOCK_NAMESPACE } from "@/lib/advisory-lock";
 
 export type Concession =
 	| (Pick<
@@ -621,225 +622,233 @@ export const submitConcessionApplication = async (
 			return failure(validationError("Selected concession period is currently unavailable", "concessionPeriodId"));
 		}
 
-		const existingApplication = await prisma.concessionApplication.findFirst({
-			where: {
-				studentId: targetStudentId
-			},
-			orderBy: {
-				createdAt: "desc"
-			},
-			include: {
-				concessionPeriod: true
+		const submission = await prisma.$transaction(async (tx): Promise<Result<Concession, ValidationError>> => {
+			await lockStudentSubmission(tx, SUBMISSION_LOCK_NAMESPACE.concession, targetStudentId);
+
+			const existingApplication = await tx.concessionApplication.findFirst({
+				where: {
+					studentId: targetStudentId
+				},
+				orderBy: {
+					createdAt: "desc"
+				},
+				include: {
+					concessionPeriod: true
+				}
+			});
+
+			if (existingApplication?.status === "Pending") {
+				return failure(validationError("You already have a concession application under review", "status"));
 			}
+
+			if (existingApplication?.status === "Approved") {
+				return failure(
+					validationError(
+						"You already have an approved concession application waiting to be issued at the counter",
+						"status"
+					)
+				);
+			}
+
+			if (existingApplication?.status === "Issued") {
+				const issueDate = existingApplication.issuedAt ?? existingApplication.reviewedAt;
+				if (issueDate) {
+					const validity = calculateConcessionValidity(issueDate, existingApplication.concessionPeriod.duration);
+					if (validity.isValid) {
+						return failure(
+							validationError(
+								"Cannot apply for a new concession while your current concession pass is still active",
+								"status"
+							)
+						);
+					}
+				}
+			}
+
+			let previousApplicationId: string | null = null;
+
+			if (data.applicationType === "Renewal") {
+				const renewalPass = await resolveRenewalPass(targetStudentId);
+				if (!renewalPass.isSuccess) return renewalPass;
+				previousApplicationId = renewalPass.data;
+			}
+
+			let application: Concession;
+
+			if (!existingApplication || existingApplication.status === "Issued") {
+				application = await tx.concessionApplication.create({
+					data: {
+						status: "Pending",
+						submissionCount: 1,
+						previousApplicationId,
+						stationId: data.stationId,
+						studentId: targetStudentId,
+						applicationType: data.applicationType,
+						concessionClassId: data.concessionClassId,
+						concessionPeriodId: data.concessionPeriodId
+					},
+					select: {
+						id: true,
+						status: true,
+						shortId: true,
+						issuedAt: true,
+						createdAt: true,
+						reviewedAt: true,
+						applicationType: true,
+						rejectionReason: true,
+						submissionCount: true,
+						station: {
+							select: {
+								id: true,
+								code: true,
+								name: true
+							}
+						},
+						concessionClass: {
+							select: {
+								id: true,
+								code: true,
+								name: true
+							}
+						},
+						concessionPeriod: {
+							select: {
+								id: true,
+								name: true,
+								duration: true
+							}
+						},
+						previousApplication: {
+							select: {
+								id: true,
+								status: true,
+								shortId: true,
+								issuedAt: true,
+								createdAt: true,
+								reviewedAt: true,
+								applicationType: true,
+								rejectionReason: true,
+								submissionCount: true,
+								station: {
+									select: {
+										id: true,
+										code: true,
+										name: true
+									}
+								},
+								concessionClass: {
+									select: {
+										id: true,
+										code: true,
+										name: true
+									}
+								},
+								concessionPeriod: {
+									select: {
+										id: true,
+										name: true,
+										duration: true
+									}
+								}
+							}
+						}
+					}
+				});
+			} else {
+				application = await tx.concessionApplication.update({
+					where: {
+						id: existingApplication.id
+					},
+					data: {
+						issuedAt: null,
+						reviewedAt: null,
+						status: "Pending",
+						reviewedById: null,
+						previousApplicationId,
+						rejectionReason: null,
+						stationId: data.stationId,
+						submissionCount: { increment: 1 },
+						applicationType: data.applicationType,
+						concessionClassId: data.concessionClassId,
+						concessionPeriodId: data.concessionPeriodId
+					},
+					select: {
+						id: true,
+						status: true,
+						shortId: true,
+						issuedAt: true,
+						createdAt: true,
+						reviewedAt: true,
+						applicationType: true,
+						rejectionReason: true,
+						submissionCount: true,
+						station: {
+							select: {
+								id: true,
+								code: true,
+								name: true
+							}
+						},
+						concessionClass: {
+							select: {
+								id: true,
+								code: true,
+								name: true
+							}
+						},
+						concessionPeriod: {
+							select: {
+								id: true,
+								name: true,
+								duration: true
+							}
+						},
+						previousApplication: {
+							select: {
+								id: true,
+								status: true,
+								shortId: true,
+								issuedAt: true,
+								createdAt: true,
+								reviewedAt: true,
+								applicationType: true,
+								rejectionReason: true,
+								submissionCount: true,
+								station: {
+									select: {
+										id: true,
+										code: true,
+										name: true
+									}
+								},
+								concessionClass: {
+									select: {
+										id: true,
+										code: true,
+										name: true
+									}
+								},
+								concessionPeriod: {
+									select: {
+										id: true,
+										name: true,
+										duration: true
+									}
+								}
+							}
+						}
+					}
+				});
+			}
+
+			return success(application);
 		});
 
-		if (existingApplication?.status === "Pending") {
-			return failure(validationError("You already have a concession application under review", "status"));
-		}
-
-		if (existingApplication?.status === "Approved") {
-			return failure(
-				validationError(
-					"You already have an approved concession application waiting to be issued at the counter",
-					"status"
-				)
-			);
-		}
-
-		if (existingApplication?.status === "Issued") {
-			const issueDate = existingApplication.issuedAt ?? existingApplication.reviewedAt;
-			if (issueDate) {
-				const validity = calculateConcessionValidity(issueDate, existingApplication.concessionPeriod.duration);
-				if (validity.isValid) {
-					return failure(
-						validationError(
-							"Cannot apply for a new concession while your current concession pass is still active",
-							"status"
-						)
-					);
-				}
-			}
-		}
-
-		let previousApplicationId: string | null = null;
-
-		if (data.applicationType === "Renewal") {
-			const renewalPass = await resolveRenewalPass(targetStudentId);
-			if (!renewalPass.isSuccess) return renewalPass;
-			previousApplicationId = renewalPass.data;
-		}
-
-		let application: Concession;
-
-		if (!existingApplication || existingApplication.status === "Issued") {
-			application = await prisma.concessionApplication.create({
-				data: {
-					status: "Pending",
-					submissionCount: 1,
-					previousApplicationId,
-					stationId: data.stationId,
-					studentId: targetStudentId,
-					applicationType: data.applicationType,
-					concessionClassId: data.concessionClassId,
-					concessionPeriodId: data.concessionPeriodId
-				},
-				select: {
-					id: true,
-					status: true,
-					shortId: true,
-					issuedAt: true,
-					createdAt: true,
-					reviewedAt: true,
-					applicationType: true,
-					rejectionReason: true,
-					submissionCount: true,
-					station: {
-						select: {
-							id: true,
-							code: true,
-							name: true
-						}
-					},
-					concessionClass: {
-						select: {
-							id: true,
-							code: true,
-							name: true
-						}
-					},
-					concessionPeriod: {
-						select: {
-							id: true,
-							name: true,
-							duration: true
-						}
-					},
-					previousApplication: {
-						select: {
-							id: true,
-							status: true,
-							shortId: true,
-							issuedAt: true,
-							createdAt: true,
-							reviewedAt: true,
-							applicationType: true,
-							rejectionReason: true,
-							submissionCount: true,
-							station: {
-								select: {
-									id: true,
-									code: true,
-									name: true
-								}
-							},
-							concessionClass: {
-								select: {
-									id: true,
-									code: true,
-									name: true
-								}
-							},
-							concessionPeriod: {
-								select: {
-									id: true,
-									name: true,
-									duration: true
-								}
-							}
-						}
-					}
-				}
-			});
-		} else {
-			application = await prisma.concessionApplication.update({
-				where: {
-					id: existingApplication.id
-				},
-				data: {
-					issuedAt: null,
-					reviewedAt: null,
-					status: "Pending",
-					reviewedById: null,
-					previousApplicationId,
-					rejectionReason: null,
-					stationId: data.stationId,
-					submissionCount: { increment: 1 },
-					applicationType: data.applicationType,
-					concessionClassId: data.concessionClassId,
-					concessionPeriodId: data.concessionPeriodId
-				},
-				select: {
-					id: true,
-					status: true,
-					shortId: true,
-					issuedAt: true,
-					createdAt: true,
-					reviewedAt: true,
-					applicationType: true,
-					rejectionReason: true,
-					submissionCount: true,
-					station: {
-						select: {
-							id: true,
-							code: true,
-							name: true
-						}
-					},
-					concessionClass: {
-						select: {
-							id: true,
-							code: true,
-							name: true
-						}
-					},
-					concessionPeriod: {
-						select: {
-							id: true,
-							name: true,
-							duration: true
-						}
-					},
-					previousApplication: {
-						select: {
-							id: true,
-							status: true,
-							shortId: true,
-							issuedAt: true,
-							createdAt: true,
-							reviewedAt: true,
-							applicationType: true,
-							rejectionReason: true,
-							submissionCount: true,
-							station: {
-								select: {
-									id: true,
-									code: true,
-									name: true
-								}
-							},
-							concessionClass: {
-								select: {
-									id: true,
-									code: true,
-									name: true
-								}
-							},
-							concessionPeriod: {
-								select: {
-									id: true,
-									name: true,
-									duration: true
-								}
-							}
-						}
-					}
-				}
-			});
-		}
+		if (!submission.isSuccess) return submission;
 
 		revalidatePath("/dashboard/student");
 
-		return success(application);
+		return success(submission.data);
 	} catch (error) {
 		console.error("Error while submitting application:", error);
 		return failure(databaseError("Failed to submit application"));
