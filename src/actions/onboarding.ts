@@ -216,6 +216,21 @@ export const submitOnboarding = async (
 
 	try {
 		const targetUserId = authResult.data.userId;
+
+		const existingStudent = await prisma.student.findUnique({
+			select: { status: true },
+			where: { userId: targetUserId }
+		});
+
+		if (existingStudent?.status === "Approved") {
+			return failure(
+				validationError(
+					"Your account is already approved. Onboarding can only be resubmitted after an admin rejects it",
+					"status"
+				)
+			);
+		}
+
 		const {
 			status: _status,
 			class: _classData,
