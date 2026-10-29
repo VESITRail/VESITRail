@@ -1037,7 +1037,7 @@ export const reviewConcessionApplication = async (
 
 		const updatedApplication = await prisma.$transaction(async (tx) => {
 			const updated = await tx.concessionApplication.update({
-				where: { id: applicationId },
+				where: { id: applicationId, status: application.status },
 				data: {
 					status,
 					reviewedAt: new Date(),
@@ -1110,6 +1110,10 @@ export const reviewConcessionApplication = async (
 
 		return success(updatedApplication);
 	} catch (error) {
+		if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+			return failure(validationError("Application has already been reviewed", "status"));
+		}
+
 		console.error("Error reviewing concession application:", error);
 		return failure(databaseError("Failed to review application"));
 	}

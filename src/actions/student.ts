@@ -472,7 +472,7 @@ export const approveStudent = async (
 		}
 
 		const updatedStudent = await prisma.student.update({
-			where: { userId: data.studentId },
+			where: { userId: data.studentId, status: "Pending" },
 			data: {
 				status: "Approved",
 				rejectionReason: null,
@@ -564,6 +564,10 @@ export const approveStudent = async (
 		revalidatePath("/dashboard/admin/students");
 		return success(updatedStudent);
 	} catch (error) {
+		if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+			return failure(validationError("Only pending students can be approved"));
+		}
+
 		console.error("Error while approving student:", error);
 		return failure(databaseError("Failed to approve student"));
 	}
