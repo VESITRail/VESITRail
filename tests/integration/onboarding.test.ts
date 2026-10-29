@@ -15,7 +15,7 @@ import {
 	getExistingStudentData,
 	getLegacyStudentByEmail
 } from "@/actions/onboarding";
-import { approveStudent, rejectStudent } from "@/actions/student";
+import { getStudents, approveStudent, rejectStudent } from "@/actions/student";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 
 describe("Onboarding Integration", () => {
@@ -286,6 +286,66 @@ describe("Onboarding Integration", () => {
 				expect(approveRes.data.rejectionReason).toBeNull();
 				expect(approveRes.data.reviewedBy?.userId).toBe(adminUser.user.id);
 			}
+		});
+
+		it("returns an approved student rejected by an admin to the pending queue after resubmission", async () => {
+			const approvedThenRejectedUser = await createTestUser(prisma, { email: "vesitrail.rereview@ves.ac.in" });
+			await authenticateAs(approvedThenRejectedUser.id);
+			expect((await submitOnboarding(baseOnboardingData)).isSuccess).toBe(true);
+
+			await authenticateAs(adminUser.user.id);
+			expect((await approveStudent({ studentId: approvedThenRejectedUser.id })).isSuccess).toBe(true);
+			const rejectRes = await rejectStudent({
+				studentId: approvedThenRejectedUser.id,
+				rejectionReason: "Address proof no longer valid"
+			});
+			expect(rejectRes.isSuccess).toBe(true);
+			if (rejectRes.isSuccess) expect(rejectRes.data.status).toBe("Rejected");
+
+			await authenticateAs(approvedThenRejectedUser.id);
+			const resubmitRes = await submitOnboarding({ ...baseOnboardingData, address: "New Valid Address 789, Mumbai" });
+			expect(resubmitRes.isSuccess).toBe(true);
+			if (resubmitRes.isSuccess) {
+				expect(resubmitRes.data.status).toBe("Pending");
+				expect(resubmitRes.data.submissionCount).toBe(2);
+				expect(resubmitRes.data.address).toBe("New Valid Address 789, Mumbai");
+			}
+
+			await authenticateAs(adminUser.user.id);
+			const pendingQueue = await getStudents({ page: 1, pageSize: 50, statusFilter: "Pending" });
+			expect(pendingQueue.isSuccess).toBe(true);
+			if (pendingQueue.isSuccess) {
+				expect(pendingQueue.data.data.map((student) => student.userId)).toContain(approvedThenRejectedUser.id);
+			}
+		});
+	});
+
+	describe("approved student resubmission", () => {
+		it("blocks an approved student from resubmitting onboarding and leaves their record unchanged", async () => {
+			const approvedUser = await createTestUser(prisma, { email: "vesitrail.noresubmit@ves.ac.in" });
+			await authenticateAs(approvedUser.id);
+			expect((await submitOnboarding(baseOnboardingData)).isSuccess).toBe(true);
+
+			await authenticateAs(adminUser.user.id);
+			expect((await approveStudent({ studentId: approvedUser.id })).isSuccess).toBe(true);
+
+			await authenticateAs(approvedUser.id);
+			const res = await submitOnboarding({ ...baseOnboardingData, address: "Sneaky New Address, Mumbai" });
+
+			expect(res.isSuccess).toBe(false);
+			if (!res.isSuccess) {
+				expect(res.error).toMatchObject({
+					type: "VALIDATION_ERROR",
+					message: "Your account is already approved. Onboarding can only be resubmitted after an admin rejects it"
+				});
+			}
+
+			const stored = await prisma.student.findUnique({ where: { userId: approvedUser.id } });
+			expect(stored).toMatchObject({
+				status: "Approved",
+				submissionCount: 1,
+				address: baseOnboardingData.address
+			});
 		});
 	});
 

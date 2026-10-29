@@ -337,7 +337,7 @@ export const reviewAddressChangeRequest = async (
 
 		const result = await prisma.$transaction(async (tx) => {
 			const updatedRequest = await tx.addressChange.update({
-				where: { id: requestId },
+				where: { id: requestId, status: "Pending" },
 				data: {
 					status,
 					reviewedAt: new Date(),
@@ -428,6 +428,10 @@ export const reviewAddressChangeRequest = async (
 
 		return success(result);
 	} catch (error) {
+		if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+			return failure(validationError("Request has already been reviewed", "status"));
+		}
+
 		console.error("Error reviewing address change request:", error);
 		return failure(databaseError("Failed to review address change request"));
 	}

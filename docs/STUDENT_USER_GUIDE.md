@@ -207,6 +207,7 @@ Your profile registration status transitions to `Pending` and you are redirected
 - **Classroom division missing:** Ensure you selected the correct Academic Year and Branch first; the division options populate dynamically based on those selections.
 - **Station not found:** Search using either the station's official name or station code (for example, `CSMT` or `Chhatrapati Shivaji Maharaj Terminus`, `Dadar` or `DR`, `Vashi` or `VSH`).
 - **Resubmission after rejection:** If your registration is rejected by an administrator, the onboarding screen displays an **Application Rejected** alert card outlining the exact rejection reason and submission count. You can modify the required fields and submit your updated application for re-review. Resubmissions are always routed to manual administrator review (`Pending`) to ensure all corrections comply with railway verification policies.
+- **Approved accounts cannot be resubmitted:** Once your registration is `Approved`, opening the onboarding screen redirects you to the Student Dashboard, and your registration details can no longer be resubmitted. If your details need to change, an administrator must first reject your registration, after which you can correct and resubmit it as described above.
 
 ---
 
