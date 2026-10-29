@@ -128,6 +128,14 @@ describe("Utility Functions (src/lib/utils.ts)", () => {
 			expect(age.years).toBe(19);
 			expect(age.months).toBe(8);
 		});
+
+		it("decrements the year when the birthday is later in the current month", () => {
+			expect(calcAgeFromDob("2004-06-20")).toEqual({ years: 19, months: 11 });
+		});
+
+		it("counts a full year on the exact birthday", () => {
+			expect(calcAgeFromDob("2004-06-15")).toEqual({ years: 20, months: 0 });
+		});
 	});
 
 	describe("formatFieldName", () => {
@@ -218,6 +226,16 @@ describe("Utility Functions (src/lib/utils.ts)", () => {
 		it("handles month overflow to end of prior month in non-leap year", () => {
 			const expiry = calculatePassExpiry(new Date("2023-01-31T10:00:00+05:30"), 1);
 			expect(istDay(expiry)).toBe("2023-02-28");
+		});
+
+		it("clamps a leap-day issue to the end of February in the following year", () => {
+			const expiry = calculatePassExpiry(new Date("2024-02-29T10:00:00+05:30"), 12);
+			expect(istDay(expiry)).toBe("2025-02-28");
+		});
+
+		it("crosses the year boundary for a six month pass", () => {
+			const expiry = calculatePassExpiry(new Date("2024-08-01T10:00:00+05:30"), 6);
+			expect(istDay(expiry)).toBe("2025-01-31");
 		});
 
 		it("uses the IST calendar day for slips issued shortly after IST midnight", () => {
@@ -344,6 +362,18 @@ describe("Utility Functions (src/lib/utils.ts)", () => {
 			const items = [{ code: "UNKNOWN" }, { code: "FE" }];
 			const sorted = sortByYearOrder(items);
 			expect(sorted.map((i) => i.code)).toEqual(["FE", "UNKNOWN"]);
+		});
+
+		it("sorts by name when code is missing", () => {
+			const items = [{ name: "Final Year" }, { name: "Third Year" }, { name: "First Year" }, { name: "Second Year" }];
+			const sorted = sortByYearOrder(items);
+			expect(sorted.map((i) => i.name)).toEqual(["First Year", "Second Year", "Third Year", "Final Year"]);
+		});
+
+		it("places items without code or name at the end", () => {
+			const items = [{}, { code: "SE" }];
+			const sorted = sortByYearOrder(items);
+			expect(sorted).toEqual([{ code: "SE" }, {}]);
 		});
 	});
 

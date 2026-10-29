@@ -1,3 +1,13 @@
+import {
+	toReleaseData,
+	mapContributors,
+	type Contributor,
+	type ReleaseData,
+	mapContributorStats,
+	type GitHubContributor,
+	type GitHubReleaseResponse,
+	type GitHubContributorStats
+} from "@/lib/github/transform";
 import { unstable_cache } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,61 +21,9 @@ const CACHE_DURATIONS = {
 	contributors: 3600
 };
 
-const BOT_PATTERNS = [
-	"bot",
-	"[bot]",
-	"renovate",
-	"dependabot",
-	"greenkeeper",
-	"github-actions",
-	"semantic-release-bot"
-];
-
 type GitHubRepoResponse = {
 	stargazers_count: number;
 };
-
-type GitHubReleaseResponse = {
-	draft: boolean;
-	tag_name: string;
-	body: string | null;
-	prerelease: boolean;
-	published_at: string;
-};
-
-type ReleaseData = {
-	version: string;
-	tagName: string;
-	changelog: string;
-	publishedAt: string;
-};
-
-type GitHubContributor = {
-	id: number;
-	type: string;
-	login: string;
-	html_url: string;
-	avatar_url: string;
-	contributions: number;
-};
-
-type GitHubContributorStats = {
-	total: number;
-	author: GitHubContributor;
-};
-
-type Contributor = {
-	avatar: string;
-	commits: number;
-	username: string;
-	profileUrl: string;
-};
-
-function isBot(username: string, type: string): boolean {
-	if (type === "Bot") return true;
-	const lowerUsername = username.toLowerCase();
-	return BOT_PATTERNS.some((pattern) => lowerUsername.includes(pattern));
-}
 
 const fetchGitHub = async <T>(endpoint: string): Promise<T> => {
 	const headers: Record<string, string> = {
@@ -102,17 +60,7 @@ const getCachedStars = unstable_cache(
 const getCachedRelease = unstable_cache(
 	async (): Promise<ReleaseData | null> => {
 		const data = await fetchGitHub<GitHubReleaseResponse>("/releases/latest");
-
-		if (data.draft || data.prerelease) {
-			return null;
-		}
-
-		return {
-			tagName: data.tag_name,
-			publishedAt: data.published_at,
-			version: data.tag_name.replace(/^v/, ""),
-			changelog: data.body || "No changelog available."
-		};
+		return toReleaseData(data);
 	},
 	["github-release"],
 	{
@@ -128,15 +76,7 @@ const getCachedContributors = unstable_cache(
 				const stats = await fetchGitHub<GitHubContributorStats[] | Record<string, never>>("/stats/contributors");
 
 				if (Array.isArray(stats) && stats.length > 0) {
-					return stats
-						.filter((item) => item.author && !isBot(item.author.login, item.author.type))
-						.map((item) => ({
-							commits: item.total,
-							username: item.author.login,
-							avatar: item.author.avatar_url,
-							profileUrl: item.author.html_url
-						}))
-						.sort((a, b) => b.commits - a.commits);
+					return mapContributorStats(stats);
 				}
 			} catch (statsError) {
 				console.warn("Failed to fetch GitHub contributor stats, falling back to contributors endpoint:", statsError);
@@ -144,15 +84,7 @@ const getCachedContributors = unstable_cache(
 
 			const data = await fetchGitHub<GitHubContributor[]>("/contributors?per_page=100");
 
-			return data
-				.filter((contributor) => !isBot(contributor.login, contributor.type))
-				.map((contributor) => ({
-					username: contributor.login,
-					avatar: contributor.avatar_url,
-					profileUrl: contributor.html_url,
-					commits: contributor.contributions
-				}))
-				.sort((a, b) => b.commits - a.commits);
+			return mapContributors(data);
 		} catch (error) {
 			console.error("Failed to fetch GitHub contributors:", error);
 			return [];

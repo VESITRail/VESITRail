@@ -21,7 +21,9 @@ import {
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guard";
+import { getPaginationMeta } from "@/lib/pagination";
 import type { Prisma } from "@/generated/prisma/client";
+import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { calculateSerialEndNumber, calculateBookletStatus } from "@/lib/utils";
 
 export type CreateBookletInput = {
@@ -270,9 +272,7 @@ export const getBooklets = async (
 			return b.bookletNumber - a.bookletNumber;
 		});
 
-		const totalPages = Math.ceil(totalCount / pageSize);
-		const hasNextPage = page < totalPages;
-		const hasPreviousPage = page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, page, pageSize);
 
 		const paginatedBooklets = sortedBooklets.slice(skip, skip + pageSize).map(({ applications, ...rest }) => ({
 			...rest,
@@ -538,13 +538,7 @@ export const getBookletApplications = async (
 		const applicationsWithDerivedData: BookletApplicationItem[] = applications.map((app) => {
 			const actualPageOffset = app.pageOffset ?? 0;
 
-			const serialStart = booklet.serialStartNumber;
-			const prefix = serialStart.replace(/\d+$/, "");
-			const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-			const certificateNum = startNum + actualPageOffset;
-			const derivedCertificateNo = `${prefix}${certificateNum
-				.toString()
-				.padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+			const derivedCertificateNo = deriveCertificateNumber(booklet.serialStartNumber, actualPageOffset) ?? undefined;
 
 			return {
 				id: app.id,
@@ -576,13 +570,7 @@ export const getBookletApplications = async (
 		const damagedPageItems: DamagedPageItem[] = [];
 		for (let i = 0; i <= upperBound; i++) {
 			if (!assignedOffsets.has(i)) {
-				const serialStart = booklet.serialStartNumber;
-				const prefix = serialStart.replace(/\d+$/, "");
-				const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-				const certificateNum = startNum + i;
-				const serialNumber = `${prefix}${certificateNum
-					.toString()
-					.padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+				const serialNumber = deriveCertificateNumber(booklet.serialStartNumber, i) ?? booklet.serialStartNumber;
 
 				damagedPageItems.push({
 					serialNumber,

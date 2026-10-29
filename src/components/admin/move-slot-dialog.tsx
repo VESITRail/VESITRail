@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useMemo } from "react";
 import { AlertCircle, ArrowRightLeft } from "lucide-react";
+import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { cn, toTitleCase, formatSlipNumber } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -73,11 +74,7 @@ export const MoveSlotDialog = ({
 
 	const sourceCertSerial = useMemo(() => {
 		if (!sourceSlot) return "";
-		const serialStart = booklet.serialStartNumber;
-		const prefix = serialStart.replace(/\d+$/, "");
-		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-		const certNum = startNum + sourceSlot.offset;
-		return `${prefix}${certNum.toString().padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+		return deriveCertificateNumber(booklet.serialStartNumber, sourceSlot.offset) ?? booklet.serialStartNumber;
 	}, [sourceSlot, booklet.serialStartNumber]);
 
 	const sourceItemName = useMemo(() => {

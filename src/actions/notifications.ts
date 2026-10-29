@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-guard";
 import type { Notification } from "@/generated/zod";
+import { getPaginationMeta } from "@/lib/pagination";
 import { Result, success, failure, authError, AuthError, DatabaseError, databaseError } from "@/lib/result";
 
 export type NotificationItem = Pick<Notification, "id" | "title" | "body" | "url" | "isRead" | "createdAt">;
@@ -65,9 +66,7 @@ export const getNotifications = async (
 			})
 		]);
 
-		const totalPages = Math.ceil(totalCount / pageSize);
-		const hasNextPage = page < totalPages;
-		const hasPreviousPage = page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, page, pageSize);
 
 		return success({
 			totalCount,

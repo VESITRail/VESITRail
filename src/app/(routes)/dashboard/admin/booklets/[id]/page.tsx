@@ -17,6 +17,7 @@ import { printBase64PDF } from "@/lib/print-pdf";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useRouter, useParams } from "next/navigation";
+import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import MoveSlotDialog from "@/components/admin/move-slot-dialog";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { generateBookletPDF } from "@/actions/generate-booklet-pdf";
@@ -244,10 +245,7 @@ const BookletApplicationsPage = () => {
 	const createDamagedItem = useCallback(
 		(offset: number): DamagedPageItem => {
 			const serialStart = bookletData.booklet.serialStartNumber;
-			const prefix = serialStart.replace(/\d+$/, "");
-			const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-			const certNum = startNum + offset;
-			const serialNumber = `${prefix}${certNum.toString().padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+			const serialNumber = deriveCertificateNumber(serialStart, offset) ?? serialStart;
 
 			return {
 				serialNumber,

@@ -18,6 +18,7 @@ import { ConcessionBookletStatusType, ConcessionClass, ConcessionPeriod } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AvailableBooklet, getAvailableBooklets, getBookletAssignedStudents } from "@/actions/booklets";
 import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
+import { getSlipRange, parseSerialNumber, slipInputToOffset, deriveCertificateNumber } from "@/lib/booklet-serial";
 
 type ReprintApplicationDialogProps = {
 	isOpen: boolean;
@@ -64,86 +65,6 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 	const [availableBooklets, setAvailableBooklets] = useState<AvailableBooklet[]>([]);
 	const [assignedOffsets, setAssignedOffsets] = useState<Map<number, { studentName: string; shortId: number }>>(
 		new Map()
-	);
-
-	const getBookletSerialInfo = useCallback((booklet: AvailableBooklet) => {
-		const serialStart = booklet.serialStartNumber;
-		const prefix = serialStart.replace(/\d+$/, "");
-		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-		const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 2;
-		return { prefix, startNum, paddingLength };
-	}, []);
-
-	const offsetToSerialNumber = useCallback(
-		(offset: number, booklet: AvailableBooklet): string => {
-			const { prefix, startNum, paddingLength } = getBookletSerialInfo(booklet);
-			const num = startNum + offset;
-			return `${prefix}${num.toString().padStart(paddingLength, "0")}`;
-		},
-		[getBookletSerialInfo]
-	);
-
-	const offsetToSlipDisplay = useCallback(
-		(offset: number, booklet: AvailableBooklet): string => {
-			const { startNum } = getBookletSerialInfo(booklet);
-			const currNum = startNum + offset;
-			const isUnderHundred = startNum % 100 <= 50 && startNum % 100 > 0;
-
-			if (currNum % 100 === 0) {
-				return "100";
-			}
-			if (isUnderHundred) {
-				return (currNum % 100).toString().padStart(2, "0");
-			}
-			return (currNum % 100).toString();
-		},
-		[getBookletSerialInfo]
-	);
-
-	const getBookletRange = useCallback(
-		(booklet: AvailableBooklet) => {
-			const minSlip = offsetToSlipDisplay(0, booklet);
-			const maxSlip = offsetToSlipDisplay(booklet.totalPages - 1, booklet);
-			const rangeLabel = `${minSlip} to ${maxSlip}`;
-			const placeholder = "Slip No.";
-			const maxInputLength = Math.max(minSlip.length, maxSlip.length, 2);
-
-			return {
-				minSlip,
-				maxSlip,
-				rangeLabel,
-				placeholder,
-				maxInputLength
-			};
-		},
-		[offsetToSlipDisplay]
-	);
-
-	const slipInputToOffset = useCallback(
-		(input: string, booklet: AvailableBooklet): number | null => {
-			const trimmed = input.trim();
-			if (!trimmed) return null;
-
-			const { startNum } = getBookletSerialInfo(booklet);
-			const endNum = startNum + booklet.totalPages - 1;
-
-			let inputNum = parseInt(trimmed, 10);
-			if (isNaN(inputNum)) return null;
-
-			if ((trimmed === "00" || trimmed === "0") && endNum % 100 === 0) {
-				inputNum = 100;
-			}
-
-			for (let offset = 0; offset < booklet.totalPages; offset++) {
-				const slip = offsetToSlipDisplay(offset, booklet);
-				if (slip === trimmed || parseInt(slip, 10) === inputNum) {
-					return offset;
-				}
-			}
-
-			return null;
-		},
-		[getBookletSerialInfo, offsetToSlipDisplay]
 	);
 
 	const loadDialogData = useCallback(async () => {
@@ -235,7 +156,7 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 
 	const generateBookletSearchTerms = (booklet: AvailableBooklet) => {
 		const serialStart = booklet.serialStartNumber;
-		const prefix = serialStart.replace(/\d+$/, "");
+		const prefix = parseSerialNumber(serialStart)?.prefix ?? serialStart;
 		const serialEnd = booklet.serialEndNumber || "";
 		const statusText = booklet.status === "InUse" ? "in use" : "available";
 
@@ -263,7 +184,9 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 
 	const handleSlipInputChange = (value: string) => {
 		const selectedBooklet = availableBooklets.find((b) => b.id === selectedBookletId);
-		const rangeInfo = selectedBooklet ? getBookletRange(selectedBooklet) : null;
+		const rangeInfo = selectedBooklet
+			? getSlipRange(selectedBooklet.serialStartNumber, selectedBooklet.totalPages)
+			: null;
 
 		const maxLen = rangeInfo ? rangeInfo.maxInputLength : 3;
 		const cleaned = value.replace(/\D/g, "").slice(0, maxLen);
@@ -275,7 +198,7 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 			return;
 		}
 
-		const offset = slipInputToOffset(cleaned, selectedBooklet);
+		const offset = slipInputToOffset(cleaned, selectedBooklet.serialStartNumber, selectedBooklet.totalPages);
 		if (offset === null) {
 			const label = rangeInfo ? rangeInfo.rangeLabel : "valid range";
 			setSlipError(`Enter a number between ${label}`);
@@ -283,7 +206,7 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 			return;
 		}
 
-		const serial = offsetToSerialNumber(offset, selectedBooklet);
+		const serial = deriveCertificateNumber(selectedBooklet.serialStartNumber, offset) ?? "";
 		setNextSerialNumber(serial);
 
 		if (application && selectedBookletId === application.concessionBookletId && offset === application.pageOffset) {
@@ -312,9 +235,9 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 		const selectedBooklet = availableBooklets.find((b) => b.id === selectedBookletId);
 		if (!selectedBooklet) return;
 
-		const offset = slipInputToOffset(slipInput, selectedBooklet);
+		const offset = slipInputToOffset(slipInput, selectedBooklet.serialStartNumber, selectedBooklet.totalPages);
 		if (offset === null) {
-			const { rangeLabel } = getBookletRange(selectedBooklet);
+			const { rangeLabel } = getSlipRange(selectedBooklet.serialStartNumber, selectedBooklet.totalPages);
 			setSlipError(`Please enter a valid slip number (${rangeLabel})`);
 			return;
 		}
@@ -380,7 +303,9 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 	}, [selectedBookletId, availableBooklets, loadBookletAssignedOffsets]);
 
 	const selectedBooklet = availableBooklets.find((b) => b.id === selectedBookletId);
-	const bookletRangeInfo = selectedBooklet ? getBookletRange(selectedBooklet) : null;
+	const bookletRangeInfo = selectedBooklet
+		? getSlipRange(selectedBooklet.serialStartNumber, selectedBooklet.totalPages)
+		: null;
 
 	const { issuedCount, damagedCount, remainingCount } = useMemo(() => {
 		if (!selectedBooklet) return { issuedCount: 0, damagedCount: 0, remainingCount: 0 };
@@ -404,7 +329,7 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 
 	const isSlipValid = (() => {
 		if (!slipInput.trim() || !selectedBooklet || !application) return false;
-		const offset = slipInputToOffset(slipInput, selectedBooklet);
+		const offset = slipInputToOffset(slipInput, selectedBooklet.serialStartNumber, selectedBooklet.totalPages);
 		if (offset === null) return false;
 		if (selectedBookletId === application.concessionBookletId && offset === application.pageOffset) return false;
 		if (assignedOffsets.has(offset)) {
@@ -423,12 +348,7 @@ const ReprintApplicationDialog: React.FC<ReprintApplicationDialogProps> = ({
 			return null;
 		}
 
-		const serialStart = booklet.serialStartNumber;
-		const prefix = serialStart.replace(/\d+$/, "");
-		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-		const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 2;
-		const certNum = startNum + pageOffset;
-		const certSerial = `${prefix}${certNum.toString().padStart(paddingLength, "0")}`;
+		const certSerial = deriveCertificateNumber(booklet.serialStartNumber, pageOffset) ?? booklet.serialStartNumber;
 
 		return {
 			bookletNumber: booklet.bookletNumber,

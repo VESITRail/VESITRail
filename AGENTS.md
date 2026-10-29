@@ -10,14 +10,37 @@
   All unit tests reside in `tests/unit/` using simple, flat group folders (e.g., `tests/unit/onboarding/`, `tests/unit/admin/`, `tests/unit/notifications/`, `tests/unit/pwa/`, or root `tests/unit/` for standalone utilities). Do NOT create deeply nested mirror paths like `tests/unit/src/lib/validations/...`.
 - **Existing File Modification Rule**:
   Whenever modifying an existing file that has a corresponding unit test in `tests/unit/`, you MUST update its unit test to reflect the code changes and verify that all tests pass (`pnpm run test:unit`). Never leave existing tests broken or out-of-sync.
-- **New File Creation Rule**:
-  Whenever creating a new file containing pure logic (validations, utilities, helpers, algorithms, transformers, monads), assess if a unit test is required. If yes, create a test under `tests/unit/<group>/<feature>.test.ts` following the exact conventions of existing tests:
-  1. Explicit imports from `"vitest"` (`import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"`).
+- **Test-Driven Development (MANDATORY)**:
+  This project follows TDD. For every new feature, behaviour change, or bug fix:
+  1. Write or update the unit tests in `tests/unit/` FIRST, describing the expected behaviour.
+  2. Run `pnpm run test:unit` and confirm the new tests fail for the expected reason (not because of a typo or broken import).
+  3. Implement the minimal code needed to make them pass, then refactor while keeping tests green.
+  4. Bug fixes MUST start with a regression test that reproduces the bug before the code is changed.
+- **Maximize Unit Test Coverage**:
+  Write as many meaningful unit tests as possible wherever logic is pure. Unit tests are REQUIRED (not optional) for any validation, utility, helper, algorithm, calculation, parser, formatter, transformer, mapper, sorter, filter, or monad — whether it lives in a new file or is added to an existing server action, route handler, hook, or component.
+- **Extract Pure Logic for Testability**:
+  Never embed non-trivial pure logic inline inside server actions, route handlers, hooks, or components. Extract it into `src/lib/` (or a dedicated module), export it, and unit-test it. Never duplicate logic across files — reuse the shared, tested helper. Calls between functions in the same module cannot be mocked from outside, so separate logic that needs to be tested independently into its own module.
+- **Test File Conventions**:
+  Create tests under `tests/unit/<group>/<feature>.test.ts` following the exact conventions of existing tests:
+  1. Explicit imports from `"vitest"` (`import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"`). Use `vi` APIs only — never Jest APIs (`jest.fn`, `jest.mock`).
   2. Always use `@/...` path aliases for imports (e.g., `@/lib/utils`, `@/lib/validations/...`).
   3. Keep test files clean with NO comments.
-  4. Pure logic only: NEVER touch Prisma, Postgres, Better Auth, or network I/O.
-  5. Test both happy paths and edge cases (empty strings, null/undefined, whitespace trimming, boundary values, invalid schemas).
-  6. Always verify changes by running `pnpm run test:unit`, `pnpm run typecheck`, and `pnpm run format:check`.
+  4. Pure logic only: NEVER touch Prisma, Postgres, Better Auth, or real network I/O.
+  5. Group tests per function with `describe` (max 1–2 levels of nesting). Keep each `it` focused on one behaviour with a short name that reads like a specification (e.g., `"returns null for an empty string"`).
+  6. Use `it.each` for tables of inputs/outputs instead of copy-pasted tests.
+  7. Assert on observable behaviour (return values, thrown errors, resulting state), never on implementation details. Assertions must check meaningful values, not just `toBeDefined()`.
+- **Mocking Browser, Time & External APIs**:
+  Logic that depends on `localStorage`, `fetch`, `navigator`, `crypto`, timers, or the current date is still unit-testable and MUST NOT be skipped:
+  1. Use `vi.stubGlobal(...)` for globals. The unit project enables `unstubGlobals: true` in `vitest.config.ts`, so stubs are restored automatically after each test.
+  2. Use `vi.useFakeTimers()` + `vi.setSystemTime(...)` for dates/timers and ALWAYS restore with `vi.useRealTimers()` in `afterEach` (fake timers are NOT restored by config).
+  3. Use `vi.mock(import("@/..."), ...)` (the `import()` form, so TypeScript validates the path) for module dependencies; use the async `importOriginal` argument for partial mocks.
+  4. Mock only the dependencies of the unit under test — never the unit itself. The unit project enables `restoreMocks: true`, so mocks and spies are restored before each test; set mock return values inside each test or in `beforeEach`, never at module level.
+- **Mandatory Edge Cases**:
+  Beyond happy paths, always cover: empty strings, `null`/`undefined`, whitespace trimming, boundary values, invalid formats/schemas, and error paths. Where relevant also cover month-end and leap-year dates, IST (`Asia/Kolkata`) time zone handling, zero-padding of serial/certificate numbers, pagination with zero results, and sorting order.
+- **Coverage Enforcement**:
+  Every newly unit-tested module MUST be added to `coverage.include` in `vitest.config.ts` so the 80% per-file threshold applies to it. Verify with `pnpm run test:unit:coverage`.
+- **Verification**:
+  Always run tests with `vitest run` (never watch mode). Verify changes by running `pnpm run test:unit`, `pnpm run typecheck`, and `pnpm run format:check`.
 
 <!-- VITEST-DOCS-END -->
 
@@ -58,3 +81,14 @@ Whenever modifying, adding, or refactoring features in the codebase:
 - **Zero Speculation / 100% Codebase Accuracy**: Documentation must never contain speculative placeholders or assumed labels (e.g., "to be confirmed against the live app"). All steps, button labels, modal titles, routes, and status meanings must precisely match the implementation in the codebase.
 
 <!-- USER-DOCS-SYNC-END -->
+
+<!-- GIT-ATTRIBUTION-START -->
+
+## Git Commit & Attribution Rules
+
+- **No AI Co-Authors**: NEVER add AI agents as co-authors or contributors. Do not append `Co-Authored-By:` trailers for any AI agent or tool (e.g., Claude, Copilot, Codex, Cursor, Gemini) to commit messages, and do not add AI attribution lines (e.g., "Generated with ...") to commit messages, pull request descriptions, or issues.
+- **Author Identity**: Every commit MUST be authored solely under the developer's own configured git identity (`git config user.name` / `user.email`). Never change or override the author.
+- **Human Co-Authors Are Allowed**: If two or more human developers collaborated on a change, adding `Co-Authored-By: Name <email>` trailers for those humans is fine.
+- **Conventional Commits**: Commit messages must follow the Conventional Commits format (e.g., `feat(scope): ...`, `fix(scope): ...`, `chore(scope): ...`, `docs(scope): ...`, `test(scope): ...`).
+
+<!-- GIT-ATTRIBUTION-END -->

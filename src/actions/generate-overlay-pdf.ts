@@ -22,6 +22,7 @@ import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { PDFDocument, degrees } from "pdf-lib";
 import { requireAdmin } from "@/lib/auth-guard";
+import { deriveCertificateNumber } from "@/lib/booklet-serial";
 
 type FormLayout = {
 	left: Record<string, { x: number; y: number }>;
@@ -113,19 +114,9 @@ export const generateOverlayPDF = async (
 		if (application.applicationType === "Renewal" && application.previousApplication?.concessionBooklet) {
 			const prevBooklet = application.previousApplication.concessionBooklet;
 			const pageOffset = application.previousApplication.pageOffset || 0;
-			const serialStartParts = prevBooklet.serialStartNumber.match(/^([A-Z]*)(\d+)$/);
+			const certificateNumber = deriveCertificateNumber(prevBooklet.serialStartNumber, pageOffset);
 
-			if (serialStartParts) {
-				const prefix = serialStartParts[1];
-				const startNum = parseInt(serialStartParts[2], 10);
-				const effectiveCertNumber = startNum + pageOffset;
-				const certificateNumber = `${prefix}${effectiveCertNumber
-					.toString()
-					.padStart(serialStartParts[2].length, "0")}`;
-				writeText(eff(layout.left.previous_certificate_number), certificateNumber);
-			} else {
-				writeText(eff(layout.left.previous_certificate_number), "-");
-			}
+			writeText(eff(layout.left.previous_certificate_number), certificateNumber ?? "-");
 
 			const prevDate = application.previousApplication.issuedAt || application.previousApplication.createdAt;
 			const prevEnd = calculatePassExpiry(
@@ -154,21 +145,10 @@ export const generateOverlayPDF = async (
 		if (application.applicationType === "Renewal" && application.previousApplication?.concessionBooklet) {
 			const prevBooklet = application.previousApplication.concessionBooklet;
 			const pageOffset = application.previousApplication.pageOffset || 0;
-			const serialStartParts = prevBooklet.serialStartNumber.match(/^([A-Z]*)(\d+)$/);
+			const certificateNumber = deriveCertificateNumber(prevBooklet.serialStartNumber, pageOffset);
 
 			writeText(eff(layout.right.current_pass_class), application.previousApplication.concessionClass?.code || "-");
-
-			if (serialStartParts) {
-				const prefix = serialStartParts[1];
-				const startNum = parseInt(serialStartParts[2], 10);
-				const effectiveCertNumber = startNum + pageOffset;
-				const certificateNumber = `${prefix}${effectiveCertNumber
-					.toString()
-					.padStart(serialStartParts[2].length, "0")}`;
-				writeText(eff(layout.right.current_pass_season_ticket_number), certificateNumber);
-			} else {
-				writeText(eff(layout.right.current_pass_season_ticket_number), "-");
-			}
+			writeText(eff(layout.right.current_pass_season_ticket_number), certificateNumber ?? "-");
 
 			writeText(
 				eff(layout.right.current_pass_from_station),

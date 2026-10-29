@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBooklet } from "@/generated/zod";
 import { FileText, AlertCircle, ArrowRightLeft, Plus, X } from "lucide-react";
 import { toTitleCase, formatDateOfBirth, formatSlipNumber } from "@/lib/utils";
+import { getBookletSerialNo, deriveCertificateNumber } from "@/lib/booklet-serial";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { DamagedPageItem, BookletTableItem, BookletApplicationItem, StagedSlotInfo } from "@/actions/booklets";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
@@ -54,15 +55,12 @@ const BookletApplicationsTable = ({
 			return "N/A";
 		}
 
-		const serialStart = previousApplication.concessionBooklet.serialStartNumber;
-		const prefix = serialStart.replace(/\d+$/, "");
-		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-		const certificateNum = startNum + (previousApplication.pageOffset || 0);
-		const derivedCertificateNo = `${prefix}${certificateNum
-			.toString()
-			.padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
-
-		return derivedCertificateNo;
+		return (
+			deriveCertificateNumber(
+				previousApplication.concessionBooklet.serialStartNumber,
+				previousApplication.pageOffset || 0
+			) ?? "N/A"
+		);
 	};
 
 	const isDamagedPage = (item: BookletTableItem | null): item is DamagedPageItem => {
@@ -87,18 +85,7 @@ const BookletApplicationsTable = ({
 				header: () => <div className="text-center px-2">Sr. No.</div>,
 				cell: ({ row }) => {
 					const item = row.original;
-					let serialNo: number;
-
-					if (isDamagedPage(item)) {
-						const match = item.serialNumber.match(/\d+$/);
-						const certNumber = match ? parseInt(match[0], 10) : 0;
-						serialNo = ((certNumber - 1) % 50) + 1;
-					} else {
-						const certificateNo = generateCertificateNo(item);
-						const match = certificateNo.match(/\d+$/);
-						const certNumber = match ? parseInt(match[0], 10) : 0;
-						serialNo = ((certNumber - 1) % 50) + 1;
-					}
+					const serialNo = getBookletSerialNo(isDamagedPage(item) ? item.serialNumber : generateCertificateNo(item));
 
 					return <div className="font-normal text-foreground text-center">{serialNo}</div>;
 				}
@@ -309,12 +296,11 @@ const BookletApplicationsTable = ({
 
 					if (isDamaged) {
 						const damagedItem = item as DamagedPageItem;
-						const match = damagedItem.serialNumber.match(/\d+$/);
 
 						return (
 							<TableRow key={row.id} className="hover:bg-muted/50 border-border/50">
 								<TableCell className="p-4 text-center align-middle">
-									{match ? ((parseInt(match[0], 10) - 1) % 50) + 1 : 1}
+									{getBookletSerialNo(damagedItem.serialNumber)}
 								</TableCell>
 								<TableCell className="p-4 text-center align-middle">
 									<span className="text-muted-foreground">-</span>
@@ -359,11 +345,7 @@ const BookletApplicationsTable = ({
 					const isModified = !!slot.isModified;
 					const slipNo = formatSlipNumber(offset, booklet.serialStartNumber);
 
-					const serialStart = booklet.serialStartNumber;
-					const prefix = serialStart.replace(/\d+$/, "");
-					const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-					const certNum = startNum + offset;
-					const certSerial = `${prefix}${certNum.toString().padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+					const certSerial = deriveCertificateNumber(booklet.serialStartNumber, offset) ?? booklet.serialStartNumber;
 
 					let origSlipNo: string | null = null;
 					if (isModified && slot.originalOffset !== undefined && slot.originalOffset !== null) {

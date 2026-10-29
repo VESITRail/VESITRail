@@ -25,10 +25,20 @@ export default defineConfig({
 			reportsDirectory: "coverage",
 			reporter: ["text", "text-summary", "json-summary", "json", "lcov", "html"],
 			include: [
+				"src/proxy.ts",
 				"src/lib/utils.ts",
 				"src/lib/result.ts",
+				"src/lib/platform.ts",
+				"src/lib/changelog.ts",
+				"src/lib/pagination.ts",
+				"src/lib/time-range.ts",
+				"src/lib/pwa/config.ts",
+				"src/lib/github-client.ts",
+				"src/lib/booklet-serial.ts",
 				"src/lib/validations/**/*.ts",
+				"src/lib/github/transform.ts",
 				"src/lib/pwa/version-utils.ts",
+				"src/lib/pwa/version-manager.ts",
 				"src/lib/notifications/scenarios.ts",
 				"src/lib/notifications/email-templates.ts"
 			],
@@ -52,6 +62,8 @@ export default defineConfig({
 				test: {
 					name: "unit",
 					globals: true,
+					restoreMocks: true,
+					unstubGlobals: true,
 					environment: "node",
 					include: ["tests/unit/**/*.test.ts"]
 				}

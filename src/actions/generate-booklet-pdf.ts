@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth-guard";
 import { formatDateOfBirth } from "@/lib/utils";
 import { format, toZonedTime } from "date-fns-tz";
 import autoTable, { UserOptions } from "jspdf-autotable";
+import { deriveCertificateNumber, getBookletSerialNo } from "@/lib/booklet-serial";
 import { Result, success, failure, AuthError, validationError, ValidationError } from "@/lib/result";
 import { DamagedPageItem, BookletTableItem, getBookletApplications, BookletApplicationItem } from "./booklets";
 
@@ -87,12 +88,11 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 					});
 
 					if (prevApp?.concessionBooklet) {
-						const serialStart = prevApp.concessionBooklet.serialStartNumber;
-						const prefix = serialStart.replace(/\d+$/, "");
-						const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-						const prevOffset = prevApp.pageOffset ?? 0;
-						const certificateNum = startNum + prevOffset;
-						return `${prefix}${certificateNum.toString().padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+						const certificateNo = deriveCertificateNumber(
+							prevApp.concessionBooklet.serialStartNumber,
+							prevApp.pageOffset ?? 0
+						);
+						if (certificateNo) return certificateNo;
 					}
 				} catch (error) {
 					console.error("Error fetching previous application:", error);
@@ -104,9 +104,7 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 
 		const tableDataPromises = allItems.map(async (item) => {
 			if (isDamagedPage(item)) {
-				const match = item.serialNumber.match(/\d+$/);
-				const certNumber = match ? parseInt(match[0], 10) : 0;
-				const serialNo = ((certNumber - 1) % 50) + 1;
+				const serialNo = getBookletSerialNo(item.serialNumber);
 
 				return [
 					serialNo,
@@ -121,9 +119,7 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 			} else {
 				const currentPassNo = await getCurrentPassNo(item);
 				const certificateNo = item.derivedCertificateNo || "Pending";
-				const match = certificateNo.match(/\d+$/);
-				const certNumber = match ? parseInt(match[0], 10) : 0;
-				const serialNo = ((certNumber - 1) % 50) + 1;
+				const serialNo = getBookletSerialNo(certificateNo);
 
 				const fullName = [item.student.firstName, item.student.middleName, item.student.lastName]
 					.filter(Boolean)

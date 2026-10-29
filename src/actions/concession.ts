@@ -1,14 +1,6 @@
 "use server";
 
 import {
-	Station,
-	ConcessionClass,
-	ConcessionPeriod,
-	ConcessionApplication,
-	ConcessionApplicationTypeType,
-	ConcessionApplicationStatusType
-} from "@/generated/zod";
-import {
 	Result,
 	success,
 	failure,
@@ -19,9 +11,19 @@ import {
 	validationError,
 	ValidationError
 } from "@/lib/result";
+import {
+	Station,
+	ConcessionClass,
+	ConcessionPeriod,
+	ConcessionApplication,
+	ConcessionApplicationTypeType,
+	ConcessionApplicationStatusType
+} from "@/generated/zod";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getPaginationMeta } from "@/lib/pagination";
 import type { Prisma } from "@/generated/prisma/client";
+import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { requireAdmin, requireStudent } from "@/lib/auth-guard";
 import { sendConcessionNotification } from "@/lib/notifications";
 import { calculateBookletStatus, calculateConcessionValidity } from "@/lib/utils";
@@ -118,10 +120,8 @@ export const getConcessions = async (
 			where: whereClause
 		});
 
-		const totalPages = Math.ceil(totalCount / params.pageSize);
 		const skip = (params.page - 1) * params.pageSize;
-		const hasNextPage = params.page < totalPages;
-		const hasPreviousPage = params.page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, params.page, params.pageSize);
 
 		const concessions = await prisma.concessionApplication.findMany({
 			skip,
@@ -567,10 +567,8 @@ export const getAllApplications = async (
 			return b.shortId - a.shortId;
 		});
 
-		const totalPages = Math.ceil(totalCount / params.pageSize);
 		const skip = (params.page - 1) * params.pageSize;
-		const hasNextPage = params.page < totalPages;
-		const hasPreviousPage = params.page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, params.page, params.pageSize);
 
 		const paginatedApplications = sortedApplications.slice(skip, skip + params.pageSize);
 
@@ -1713,13 +1711,8 @@ export const getStudentConcessionHistory = async (
 			let derivedCertificateNo: string | undefined;
 
 			if (app.concessionBooklet && app.pageOffset !== null && app.pageOffset !== undefined) {
-				const serialStart = app.concessionBooklet.serialStartNumber;
-				const prefix = serialStart.replace(/\d+$/, "");
-				const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-				const certificateNum = startNum + app.pageOffset;
-				derivedCertificateNo = `${prefix}${certificateNum
-					.toString()
-					.padStart(serialStart.match(/\d+$/)?.[0]?.length || 3, "0")}`;
+				derivedCertificateNo =
+					deriveCertificateNumber(app.concessionBooklet.serialStartNumber, app.pageOffset) ?? undefined;
 			}
 
 			return {

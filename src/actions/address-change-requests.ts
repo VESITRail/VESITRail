@@ -15,6 +15,7 @@ import prisma from "@/lib/prisma";
 import { deleteR2File } from "./r2";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guard";
+import { getPaginationMeta } from "@/lib/pagination";
 import type { Prisma } from "@/generated/prisma/client";
 import { sendAddressChangeNotification } from "@/lib/notifications";
 import { AddressChange, AddressChangeStatusType } from "@/generated/zod";
@@ -286,9 +287,7 @@ export const getAddressChangeRequests = async (
 			return reviewedB - reviewedA;
 		});
 
-		const totalPages = Math.ceil(totalCount / pageSize);
-		const hasNextPage = page < totalPages;
-		const hasPreviousPage = page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, page, pageSize);
 
 		const paginatedRequests = sortedRequests.slice(skip, skip + pageSize);
 
