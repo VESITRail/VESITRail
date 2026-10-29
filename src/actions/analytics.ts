@@ -3,11 +3,11 @@
 import jsPDF from "jspdf";
 import prisma from "@/lib/prisma";
 import { toTitleCase } from "@/lib/utils";
-import { subMonths, subYears } from "date-fns";
 import { requireAdmin } from "@/lib/auth-guard";
-import { getPaginationMeta } from "@/lib/pagination";
 import { format, toZonedTime } from "date-fns-tz";
+import { getPaginationMeta } from "@/lib/pagination";
 import autoTable, { UserOptions } from "jspdf-autotable";
+import { getStartDateForFilter, type TimeRangeFilter } from "@/lib/time-range";
 import { Result, success, failure, AuthError, databaseError, type DatabaseError } from "@/lib/result";
 
 declare module "jspdf" {
@@ -16,7 +16,7 @@ declare module "jspdf" {
 	}
 }
 
-export type TimeRangeFilter = "1m" | "3m" | "6m" | "1y" | "all";
+export type { TimeRangeFilter };
 
 export type CombinedAnalyticsStats = {
 	totalContribution: number;
@@ -51,23 +51,6 @@ export type PaginatedAnalyticsResult = {
 	hasPreviousPage: boolean;
 	data: AdminContributionItem[];
 	combinedStats: CombinedAnalyticsStats;
-};
-
-const getStartDateForFilter = (filter: TimeRangeFilter): Date | null => {
-	const now = new Date();
-	switch (filter) {
-		case "1m":
-			return subMonths(now, 1);
-		case "3m":
-			return subMonths(now, 3);
-		case "6m":
-			return subMonths(now, 6);
-		case "1y":
-			return subYears(now, 1);
-		case "all":
-		default:
-			return null;
-	}
 };
 
 const fetchAdminAnalyticsRaw = async (timeRange: TimeRangeFilter, searchQuery?: string) => {

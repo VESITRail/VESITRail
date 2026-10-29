@@ -2,8 +2,8 @@
 
 import { toast } from "sonner";
 import posthog from "posthog-js";
+import { getPlatform } from "@/lib/platform";
 import { messaging } from "@/config/firebase";
-import { FcmPlatformType } from "@/generated/zod";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getToken, onMessage, type Messaging } from "firebase/messaging";
 import { saveFcmToken, removeFcmTokenForDevice, disablePushNotifications } from "@/actions/fcm";
@@ -13,14 +13,6 @@ type FcmState = {
 	error: string | null;
 	token: string | null;
 	permission: NotificationPermission;
-};
-
-const getPlatform = (): FcmPlatformType => {
-	const userAgent = navigator.userAgent.toLowerCase();
-
-	if (/android/.test(userAgent)) return "Android";
-	if (/iphone|ipad|ipod/.test(userAgent)) return "iOS";
-	return "Web";
 };
 
 const generateDeviceId = (): string => {
@@ -97,13 +89,13 @@ export const useFcm = (userId?: string) => {
 				posthog.capture("fcm_token_registration_attempted", {
 					userId,
 					deviceId,
-					platform: getPlatform()
+					platform: getPlatform(navigator.userAgent)
 				});
 
 				const result = await saveFcmToken({
 					token,
 					deviceId,
-					platform: getPlatform()
+					platform: getPlatform(navigator.userAgent)
 				});
 
 				if (!result.isSuccess) {
@@ -112,8 +104,8 @@ export const useFcm = (userId?: string) => {
 					posthog.capture("fcm_token_registration_failed", {
 						userId,
 						deviceId,
-						platform: getPlatform(),
-						error: result.error.message
+						error: result.error.message,
+						platform: getPlatform(navigator.userAgent)
 					});
 
 					toast.error("Notification Setup Failed", {
@@ -127,7 +119,7 @@ export const useFcm = (userId?: string) => {
 				posthog.capture("fcm_token_registered", {
 					userId,
 					deviceId,
-					platform: getPlatform()
+					platform: getPlatform(navigator.userAgent)
 				});
 
 				return true;
@@ -136,7 +128,7 @@ export const useFcm = (userId?: string) => {
 
 				posthog.capture("fcm_token_registration_failed", {
 					userId,
-					platform: getPlatform(),
+					platform: getPlatform(navigator.userAgent),
 					error: error instanceof Error ? error.message : "Unknown error"
 				});
 
