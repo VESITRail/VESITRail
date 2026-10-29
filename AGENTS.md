@@ -81,3 +81,14 @@ Whenever modifying, adding, or refactoring features in the codebase:
 - **Zero Speculation / 100% Codebase Accuracy**: Documentation must never contain speculative placeholders or assumed labels (e.g., "to be confirmed against the live app"). All steps, button labels, modal titles, routes, and status meanings must precisely match the implementation in the codebase.
 
 <!-- USER-DOCS-SYNC-END -->
+
+<!-- GIT-ATTRIBUTION-START -->
+
+## Git Commit & Attribution Rules
+
+- **No AI Co-Authors**: NEVER add AI agents as co-authors or contributors. Do not append `Co-Authored-By:` trailers for any AI agent or tool (e.g., Claude, Copilot, Codex, Cursor, Gemini) to commit messages, and do not add AI attribution lines (e.g., "Generated with ...") to commit messages, pull request descriptions, or issues.
+- **Author Identity**: Every commit MUST be authored solely under the developer's own configured git identity (`git config user.name` / `user.email`). Never change or override the author.
+- **Human Co-Authors Are Allowed**: If two or more human developers collaborated on a change, adding `Co-Authored-By: Name <email>` trailers for those humans is fine.
+- **Conventional Commits**: Commit messages must follow the Conventional Commits format (e.g., `feat(scope): ...`, `fix(scope): ...`, `chore(scope): ...`, `docs(scope): ...`, `test(scope): ...`).
+
+<!-- GIT-ATTRIBUTION-END -->
