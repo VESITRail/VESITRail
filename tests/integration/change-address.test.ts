@@ -27,7 +27,6 @@ describe("Address Change Integration", () => {
 		await seedReferenceData(prisma);
 
 		adminUser = await createTestAdmin(prisma, { isActive: true });
-		studentUser = await createTestStudent(prisma, { status: "Approved" });
 	});
 
 	afterAll(async () => {
@@ -36,9 +35,23 @@ describe("Address Change Integration", () => {
 		await pool.end();
 	});
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		unauthenticate();
+		studentUser = await createTestStudent(prisma, { status: "Approved" });
 	});
+
+	const submitInitialRequest = async (): Promise<string> => {
+		await authenticateAs(studentUser.user.id);
+		const res = await submitAddressChangeApplication({
+			currentAddress: "Old Address",
+			newAddress: "New Address 456",
+			newStationId: SEED.stations[1].id,
+			currentStationId: SEED.stations[0].id,
+			verificationDocUrl: "https://test-r2.example.com/addr.pdf"
+		});
+		expect(res.isSuccess).toBe(true);
+		return res.isSuccess ? res.data.id : "";
+	};
 
 	describe("getStudentAddressAndStation", () => {
 		it("returns current address and station for student", async () => {
@@ -84,6 +97,7 @@ describe("Address Change Integration", () => {
 
 	describe("getLastAddressChangeApplication", () => {
 		it("returns the submitted address change application", async () => {
+			await submitInitialRequest();
 			await authenticateAs(studentUser.user.id);
 			const res = await getLastAddressChangeApplication();
 			expect(res.isSuccess).toBe(true);
@@ -95,16 +109,8 @@ describe("Address Change Integration", () => {
 	});
 
 	describe("admin review address change", () => {
-		let requestId: string;
-
-		beforeAll(async () => {
-			const req = await prisma.addressChange.findFirst({
-				where: { studentId: studentUser.user.id }
-			});
-			requestId = req!.id;
-		});
-
 		it("admin retrieves pending address change requests", async () => {
+			await submitInitialRequest();
 			await authenticateAs(adminUser.user.id);
 			const res = await getAddressChangeRequests({ page: 1, pageSize: 10 });
 			expect(res.isSuccess).toBe(true);
@@ -114,6 +120,7 @@ describe("Address Change Integration", () => {
 		});
 
 		it("admin approves request and student address and station update", async () => {
+			const requestId = await submitInitialRequest();
 			await authenticateAs(adminUser.user.id);
 			const res = await reviewAddressChangeRequest(requestId, "Approved");
 			expect(res.isSuccess).toBe(true);
@@ -129,6 +136,10 @@ describe("Address Change Integration", () => {
 		});
 
 		it("preserves review metadata on resubmission after rejection and clears on approval", async () => {
+			const initialRequestId = await submitInitialRequest();
+			await authenticateAs(adminUser.user.id);
+			expect((await reviewAddressChangeRequest(initialRequestId, "Approved")).isSuccess).toBe(true);
+
 			await authenticateAs(studentUser.user.id);
 			const submitRes = await submitAddressChangeApplication({
 				currentAddress: "New Address 456",
