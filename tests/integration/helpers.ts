@@ -225,3 +225,53 @@ export async function createTestStudent(
 
 	return { user, student };
 }
+
+let bookletCounter = 0;
+
+export async function createTestBooklet(
+	prisma: PrismaClient,
+	overrides: { status?: "Available" | "InUse" | "Exhausted"; totalPages?: number } = {}
+) {
+	bookletCounter++;
+	const totalPages = overrides.totalPages ?? 50;
+	const start = 6000001 + (Date.now() % 10000) * 1000 + bookletCounter * 100;
+
+	return prisma.concessionBooklet.create({
+		data: {
+			totalPages,
+			anchorX: 0,
+			anchorY: 0,
+			serialStartNumber: `0${start}`,
+			status: overrides.status ?? "Available",
+			serialEndNumber: `0${start + totalPages - 1}`
+		}
+	});
+}
+
+export async function createTestApplication(
+	prisma: PrismaClient,
+	overrides: {
+		issuedAt?: Date;
+		studentId: string;
+		reviewedAt?: Date;
+		pageOffset?: number;
+		reviewedById?: string;
+		submissionCount?: number;
+		rejectionReason?: string;
+		concessionBookletId?: string;
+		applicationType?: "New" | "Renewal";
+		status?: "Pending" | "Approved" | "Rejected" | "Issued";
+	}
+) {
+	return prisma.concessionApplication.create({
+		data: {
+			status: "Pending",
+			submissionCount: 1,
+			applicationType: "New",
+			stationId: SEED.stations[0].id,
+			concessionClassId: SEED.concessionClasses[0].id,
+			concessionPeriodId: SEED.concessionPeriods[0].id,
+			...overrides
+		}
+	});
+}
