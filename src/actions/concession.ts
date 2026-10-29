@@ -1240,13 +1240,19 @@ export const assignBookletToConcession = async (
 				errorMessage.includes("already assigned") ||
 				errorMessage.includes("already been reviewed") ||
 				errorMessage.includes("exhausted") ||
-				errorMessage.includes("out of bounds")
+				errorMessage.includes("out of bounds") ||
+				errorMessage.includes("not available") ||
+				errorMessage.includes("between 0 and")
 			) {
 				return failure(validationError(errorMessage, "pageOffset"));
 			}
 
 			if (errorMessage.includes("not found")) {
 				return failure(validationError(errorMessage, "applicationId"));
+			}
+
+			if (errorMessage.includes("Only approved")) {
+				return failure(validationError(errorMessage, "status"));
 			}
 		}
 
