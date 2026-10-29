@@ -21,6 +21,7 @@ import {
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guard";
+import { getPaginationMeta } from "@/lib/pagination";
 import type { Prisma } from "@/generated/prisma/client";
 import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { calculateSerialEndNumber, calculateBookletStatus } from "@/lib/utils";
@@ -271,9 +272,7 @@ export const getBooklets = async (
 			return b.bookletNumber - a.bookletNumber;
 		});
 
-		const totalPages = Math.ceil(totalCount / pageSize);
-		const hasNextPage = page < totalPages;
-		const hasPreviousPage = page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, page, pageSize);
 
 		const paginatedBooklets = sortedBooklets.slice(skip, skip + pageSize).map(({ applications, ...rest }) => ({
 			...rest,

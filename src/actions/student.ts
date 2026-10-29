@@ -13,6 +13,7 @@ import {
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guard";
+import { getPaginationMeta } from "@/lib/pagination";
 import type { Prisma } from "@/generated/prisma/client";
 import { normalizeDob, capitalizeWords } from "@/lib/utils";
 import { sendStudentAccountNotification } from "@/lib/notifications";
@@ -329,9 +330,7 @@ export const getStudents = async (
 			return timeB - timeA;
 		});
 
-		const totalPages = Math.ceil(totalCount / pageSize);
-		const hasNextPage = page < totalPages;
-		const hasPreviousPage = page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, page, pageSize);
 
 		const paginatedStudents = sortedStudents.slice(skip, skip + pageSize);
 

@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { toTitleCase } from "@/lib/utils";
 import { subMonths, subYears } from "date-fns";
 import { requireAdmin } from "@/lib/auth-guard";
+import { getPaginationMeta } from "@/lib/pagination";
 import { format, toZonedTime } from "date-fns-tz";
 import autoTable, { UserOptions } from "jspdf-autotable";
 import { Result, success, failure, AuthError, databaseError, type DatabaseError } from "@/lib/result";
@@ -202,18 +203,14 @@ export const getAdminAnalytics = async (
 		const { combinedStats, filteredContributions } = await fetchAdminAnalyticsRaw(timeRange, searchQuery);
 
 		const totalCount = filteredContributions.length;
-		const totalPages = Math.ceil(totalCount / pageSize) || 1;
 		const skip = (page - 1) * pageSize;
 		const paginatedData = filteredContributions.slice(skip, skip + pageSize);
 
 		return success({
 			totalCount,
-			totalPages,
 			combinedStats,
-			currentPage: page,
 			data: paginatedData,
-			hasPreviousPage: page > 1,
-			hasNextPage: page < totalPages
+			...getPaginationMeta(totalCount, page, pageSize, 1)
 		});
 	} catch (error) {
 		console.error("Error while fetching admin analytics:", error);

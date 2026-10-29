@@ -21,6 +21,7 @@ import {
 } from "@/generated/zod";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getPaginationMeta } from "@/lib/pagination";
 import type { Prisma } from "@/generated/prisma/client";
 import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { requireAdmin, requireStudent } from "@/lib/auth-guard";
@@ -119,10 +120,8 @@ export const getConcessions = async (
 			where: whereClause
 		});
 
-		const totalPages = Math.ceil(totalCount / params.pageSize);
 		const skip = (params.page - 1) * params.pageSize;
-		const hasNextPage = params.page < totalPages;
-		const hasPreviousPage = params.page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, params.page, params.pageSize);
 
 		const concessions = await prisma.concessionApplication.findMany({
 			skip,
@@ -568,10 +567,8 @@ export const getAllApplications = async (
 			return b.shortId - a.shortId;
 		});
 
-		const totalPages = Math.ceil(totalCount / params.pageSize);
 		const skip = (params.page - 1) * params.pageSize;
-		const hasNextPage = params.page < totalPages;
-		const hasPreviousPage = params.page > 1;
+		const { totalPages, hasNextPage, hasPreviousPage } = getPaginationMeta(totalCount, params.page, params.pageSize);
 
 		const paginatedApplications = sortedApplications.slice(skip, skip + params.pageSize);
 
