@@ -917,7 +917,7 @@ export const submitConcessionResubmission = async (
 		}
 
 		const updatedApplication = await prisma.concessionApplication.update({
-			where: { id: applicationId },
+			where: { id: applicationId, status: "Rejected" },
 			data: {
 				issuedAt: null,
 				reviewedAt: null,
@@ -1003,6 +1003,10 @@ export const submitConcessionResubmission = async (
 
 		return success(updatedApplication);
 	} catch (error) {
+		if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+			return failure(validationError("Only rejected applications can be resubmitted", "status"));
+		}
+
 		console.error("Error while resubmitting application:", error);
 		return failure(databaseError("Failed to resubmit application"));
 	}
