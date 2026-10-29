@@ -8,10 +8,18 @@ import {
 	createTestStudent,
 	seedReferenceData
 } from "./helpers";
-import { approveStudent } from "@/actions/student";
+import {
+	assignBookletToConcession,
+	reviewConcessionApplication,
+	submitConcessionApplication,
+	submitConcessionResubmission
+} from "@/actions/concession";
+import { auth } from "./test-auth";
+import { setTestHeaders } from "./headers-state";
+import { approveStudent, rejectStudent } from "@/actions/student";
+import { submitAddressChangeApplication } from "@/actions/change-address";
 import { reviewAddressChangeRequest } from "@/actions/address-change-requests";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { assignBookletToConcession, reviewConcessionApplication } from "@/actions/concession";
 
 describe("Concurrency Integration", () => {
 	const { prisma, pool } = getTestPrisma();
@@ -21,7 +29,29 @@ describe("Concurrency Integration", () => {
 
 	const successes = (results: { isSuccess: boolean }[]) => results.filter((r) => r.isSuccess).length;
 
-	const createApplication = async (studentId: string, status: "Pending" | "Approved" = "Pending") =>
+	const loginHeaders = async (userId: string): Promise<Headers> => {
+		const ctx = await auth.$context;
+		const { headers } = await (ctx as any).test.login({ userId });
+		return headers;
+	};
+
+	const newConcession = (studentId: string) => ({
+		studentId,
+		stationId: SEED.stations[0].id,
+		applicationType: "New" as const,
+		concessionClassId: SEED.concessionClasses[0].id,
+		concessionPeriodId: SEED.concessionPeriods[0].id
+	});
+
+	const newAddressChange = () => ({
+		newStationId: SEED.stations[1].id,
+		currentStationId: SEED.stations[0].id,
+		currentAddress: "Test Address, Mumbai 400001",
+		newAddress: "Flat 4, Lake Road, Mumbai 400078",
+		verificationDocUrl: "https://test-r2.example.com/address-doc.pdf"
+	});
+
+	const createApplication = async (studentId: string, status: "Pending" | "Approved" | "Rejected" = "Pending") =>
 		prisma.concessionApplication.create({
 			data: {
 				status,
@@ -125,5 +155,98 @@ describe("Concurrency Integration", () => {
 		]);
 
 		expect(successes(results)).toBe(1);
+	});
+
+	it("rejects exactly one of two simultaneous rejections of the same student", async () => {
+		const { user } = await createTestStudent(prisma, { status: "Pending" });
+		await authenticateAs(adminUser.user.id);
+
+		const results = await Promise.all([
+			rejectStudent({ studentId: user.id, rejectionReason: "First reviewer" }),
+			rejectStudent({ studentId: user.id, rejectionReason: "Second reviewer" })
+		]);
+
+		expect(successes(results)).toBe(1);
+	});
+
+	it("creates only one pending concession when a student submits twice at the same time", async () => {
+		const { user } = await createTestStudent(prisma, { status: "Approved" });
+		await authenticateAs(user.id);
+
+		const results = await Promise.all([
+			submitConcessionApplication(newConcession(user.id)),
+			submitConcessionApplication(newConcession(user.id))
+		]);
+
+		expect(successes(results)).toBe(1);
+		expect(await prisma.concessionApplication.count({ where: { studentId: user.id, status: "Pending" } })).toBe(1);
+	});
+
+	it("counts only one resubmission when a rejected student submits twice at the same time", async () => {
+		const { user } = await createTestStudent(prisma, { status: "Approved" });
+		const rejected = await createApplication(user.id, "Rejected");
+		await authenticateAs(user.id);
+
+		const results = await Promise.all([
+			submitConcessionApplication(newConcession(user.id)),
+			submitConcessionApplication(newConcession(user.id))
+		]);
+
+		expect(successes(results)).toBe(1);
+		const stored = await prisma.concessionApplication.findUnique({ where: { id: rejected.id } });
+		expect(stored).toMatchObject({ status: "Pending", submissionCount: 2 });
+		expect(await prisma.concessionApplication.count({ where: { studentId: user.id } })).toBe(1);
+	});
+
+	it("accepts exactly one of two simultaneous resubmissions of the same rejected application", async () => {
+		const { user } = await createTestStudent(prisma, { status: "Approved" });
+		const rejected = await createApplication(user.id, "Rejected");
+		await authenticateAs(user.id);
+
+		const { studentId: _studentId, ...resubmission } = newConcession(user.id);
+		const results = await Promise.all([
+			submitConcessionResubmission(rejected.id, resubmission),
+			submitConcessionResubmission(rejected.id, resubmission)
+		]);
+
+		expect(successes(results)).toBe(1);
+		const stored = await prisma.concessionApplication.findUnique({ where: { id: rejected.id } });
+		expect(stored).toMatchObject({ status: "Pending", submissionCount: 2 });
+	});
+
+	it("creates only one pending address change when a student submits twice at the same time", async () => {
+		const { user } = await createTestStudent(prisma, { status: "Approved" });
+		await authenticateAs(user.id);
+
+		const results = await Promise.all([
+			submitAddressChangeApplication(newAddressChange()),
+			submitAddressChangeApplication(newAddressChange())
+		]);
+
+		expect(successes(results)).toBe(2);
+		const requests = await prisma.addressChange.findMany({ where: { studentId: user.id } });
+		expect(requests).toHaveLength(1);
+		expect(requests[0]).toMatchObject({ status: "Pending", submissionCount: 2 });
+	});
+
+	it("lets different students submit concessions and address changes at the same time", async () => {
+		const { user: first } = await createTestStudent(prisma, { status: "Approved" });
+		const { user: second } = await createTestStudent(prisma, { status: "Approved" });
+		const [firstHeaders, secondHeaders] = await Promise.all([loginHeaders(first.id), loginHeaders(second.id)]);
+
+		setTestHeaders(firstHeaders);
+		const firstConcession = submitConcessionApplication(newConcession(first.id));
+		const firstAddress = submitAddressChangeApplication(newAddressChange());
+		setTestHeaders(secondHeaders);
+		const secondConcession = submitConcessionApplication(newConcession(second.id));
+		const secondAddress = submitAddressChangeApplication(newAddressChange());
+
+		const results = await Promise.all([firstConcession, firstAddress, secondConcession, secondAddress]);
+
+		expect(successes(results)).toBe(4);
+		for (const studentId of [first.id, second.id]) {
+			expect(await prisma.concessionApplication.count({ where: { studentId, status: "Pending" } })).toBe(1);
+			expect(await prisma.addressChange.count({ where: { studentId, status: "Pending" } })).toBe(1);
+		}
 	});
 });
