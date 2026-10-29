@@ -23,8 +23,6 @@ describe("Student Management Integration", () => {
 		await seedReferenceData(prisma);
 
 		adminUser = await createTestAdmin(prisma, { isActive: true });
-		pendingStudent = await createTestStudent(prisma, { status: "Pending" });
-		approvedStudent = await createTestStudent(prisma, { status: "Approved" });
 	});
 
 	afterAll(async () => {
@@ -33,8 +31,10 @@ describe("Student Management Integration", () => {
 		await pool.end();
 	});
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		unauthenticate();
+		pendingStudent = await createTestStudent(prisma, { status: "Pending" });
+		approvedStudent = await createTestStudent(prisma, { status: "Approved" });
 	});
 
 	describe("getStudents", () => {
@@ -157,6 +157,7 @@ describe("Student Management Integration", () => {
 
 		it("prevents double-approving an already approved student (state-transition race)", async () => {
 			await authenticateAs(adminUser.user.id);
+			expect((await approveStudent({ studentId: pendingStudent.user.id })).isSuccess).toBe(true);
 			const res = await approveStudent({ studentId: pendingStudent.user.id });
 			expect(res.isSuccess).toBe(false);
 			if (!res.isSuccess) {
