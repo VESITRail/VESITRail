@@ -41,13 +41,6 @@ describe("Address Change Requests (Admin) Integration", () => {
 		await seedReferenceData(prisma);
 
 		adminUser = await createTestAdmin(prisma, { isActive: true });
-		studentUser = await createTestStudent(prisma, {
-			status: "Approved",
-			name: "Rahul Sharma",
-			stationId: SEED.stations[0].id
-		});
-
-		pendingRequest = await createPendingRequest();
 	});
 
 	afterAll(async () => {
@@ -56,8 +49,15 @@ describe("Address Change Requests (Admin) Integration", () => {
 		await pool.end();
 	});
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		unauthenticate();
+		studentUser = await createTestStudent(prisma, {
+			status: "Approved",
+			name: "Rahul Sharma",
+			stationId: SEED.stations[0].id
+		});
+
+		pendingRequest = await createPendingRequest();
 	});
 
 	describe("Authorization Guards", () => {
@@ -273,11 +273,6 @@ describe("Address Change Requests (Admin) Integration", () => {
 	});
 
 	describe("getAddressChangeRequestDetails", () => {
-		beforeAll(async () => {
-			await prisma.addressChange.deleteMany({});
-			pendingRequest = await createPendingRequest();
-		});
-
 		it("returns request details for existing request", async () => {
 			await authenticateAs(adminUser.user.id);
 			const res = await getAddressChangeRequestDetails(pendingRequest.id);
@@ -419,6 +414,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 
 		it("prevents re-reviewing an already reviewed request (state-transition race)", async () => {
 			await authenticateAs(adminUser.user.id);
+			expect((await reviewAddressChangeRequest(pendingRequest.id, "Approved")).isSuccess).toBe(true);
 
 			const reApproveRes = await reviewAddressChangeRequest(pendingRequest.id, "Approved");
 			expect(reApproveRes.isSuccess).toBe(false);
