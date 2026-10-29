@@ -1,11 +1,12 @@
 "use client";
 
 import { format } from "date-fns";
+import { useState, useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState, useMemo } from "react";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { AdminApplication } from "@/actions/concession";
+import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { CustomCalendar } from "@/components/ui/custom-calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogTitle, DialogFooter, DialogHeader, DialogContent } from "@/components/ui/dialog";
@@ -36,12 +37,7 @@ export const UpdateIssueDateDialog: React.FC<UpdateIssueDateDialogProps> = ({
 			return null;
 		}
 
-		const serialStart = booklet.serialStartNumber;
-		const prefix = serialStart.replace(/\d+$/, "");
-		const startNum = parseInt(serialStart.match(/\d+$/)?.[0] || "0", 10);
-		const paddingLength = serialStart.match(/\d+$/)?.[0]?.length || 2;
-		const certNum = startNum + pageOffset;
-		const certSerial = `${prefix}${certNum.toString().padStart(paddingLength, "0")}`;
+		const certSerial = deriveCertificateNumber(booklet.serialStartNumber, pageOffset) ?? booklet.serialStartNumber;
 
 		return {
 			certSerial,

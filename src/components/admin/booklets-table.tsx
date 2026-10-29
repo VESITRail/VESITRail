@@ -41,6 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { parseSerialNumber } from "@/lib/booklet-serial";
 import { ConcessionBookletStatusType } from "@/generated/zod";
 import { BookletItem, deleteBooklet } from "@/actions/booklets";
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -298,7 +299,7 @@ const BookletsTable = ({
 					const end = row.original.serialEndNumber;
 					const startNum = start.match(/\d+$/)?.[0];
 					const endNum = end.match(/\d+$/)?.[0];
-					const prefix = start.replace(/\d+$/, "");
+					const prefix = parseSerialNumber(start)?.prefix ?? start;
 
 					const shortEndNum = endNum ? endNum.slice(-3) : "";
 
