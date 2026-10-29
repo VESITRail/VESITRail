@@ -29,8 +29,6 @@ describe("Settings Integration", () => {
 		await seedReferenceData(prisma);
 
 		adminUser = await createTestAdmin(prisma, { isActive: true });
-		studentUser = await createTestStudent(prisma, { status: "Approved" });
-		pendingStudent = await createTestStudent(prisma, { status: "Pending" });
 	});
 
 	afterAll(async () => {
@@ -39,8 +37,10 @@ describe("Settings Integration", () => {
 		await pool.end();
 	});
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		unauthenticate();
+		studentUser = await createTestStudent(prisma, { status: "Approved" });
+		pendingStudent = await createTestStudent(prisma, { status: "Pending" });
 	});
 
 	describe("concession preferences", () => {
