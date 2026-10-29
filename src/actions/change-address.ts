@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireStudent } from "@/lib/auth-guard";
 import { Student, Station, AddressChange } from "@/generated/zod";
+import { lockStudentSubmission, SUBMISSION_LOCK_NAMESPACE } from "@/lib/advisory-lock";
 import { Result, failure, success, AppError, authError, databaseError, validationError } from "@/lib/result";
 
 export type AddressChangeData = Pick<
@@ -77,46 +78,48 @@ export const submitAddressChangeApplication = async (
 			return failure(validationError("Selected new station is currently unavailable", "newStationId"));
 		}
 
-		const existingApplication = await prisma.addressChange.findFirst({
-			where: {
-				studentId: targetStudentId
-			},
-			orderBy: {
-				createdAt: "desc"
+		const application = await prisma.$transaction(async (tx) => {
+			await lockStudentSubmission(tx, SUBMISSION_LOCK_NAMESPACE.addressChange, targetStudentId);
+
+			const existingApplication = await tx.addressChange.findFirst({
+				where: {
+					studentId: targetStudentId
+				},
+				orderBy: {
+					createdAt: "desc"
+				}
+			});
+
+			if (!existingApplication || existingApplication.status === "Approved") {
+				return tx.addressChange.create({
+					data: {
+						status: "Pending",
+						submissionCount: 1,
+						studentId: targetStudentId,
+						newAddress: data.newAddress,
+						newStationId: data.newStationId,
+						currentAddress: data.currentAddress,
+						currentStationId: data.currentStationId,
+						verificationDocUrl: data.verificationDocUrl
+					}
+				});
+			} else {
+				return tx.addressChange.update({
+					where: {
+						id: existingApplication.id
+					},
+					data: {
+						status: "Pending",
+						newAddress: data.newAddress,
+						newStationId: data.newStationId,
+						submissionCount: { increment: 1 },
+						currentAddress: data.currentAddress,
+						currentStationId: data.currentStationId,
+						verificationDocUrl: data.verificationDocUrl
+					}
+				});
 			}
 		});
-
-		let application: AddressChange;
-
-		if (!existingApplication || existingApplication.status === "Approved") {
-			application = await prisma.addressChange.create({
-				data: {
-					status: "Pending",
-					submissionCount: 1,
-					studentId: targetStudentId,
-					newAddress: data.newAddress,
-					newStationId: data.newStationId,
-					currentAddress: data.currentAddress,
-					currentStationId: data.currentStationId,
-					verificationDocUrl: data.verificationDocUrl
-				}
-			});
-		} else {
-			application = await prisma.addressChange.update({
-				where: {
-					id: existingApplication.id
-				},
-				data: {
-					status: "Pending",
-					newAddress: data.newAddress,
-					newStationId: data.newStationId,
-					submissionCount: { increment: 1 },
-					currentAddress: data.currentAddress,
-					currentStationId: data.currentStationId,
-					verificationDocUrl: data.verificationDocUrl
-				}
-			});
-		}
 
 		revalidatePath("/dashboard/student/change-address");
 

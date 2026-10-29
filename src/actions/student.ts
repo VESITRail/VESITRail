@@ -604,7 +604,7 @@ export const rejectStudent = async (
 
 		const updatedStudent = await prisma.$transaction(async (tx) => {
 			const updated = await tx.student.update({
-				where: { userId: data.studentId },
+				where: { userId: data.studentId, status: student.status },
 				data: {
 					status: "Rejected",
 					reviewedAt: new Date(),
@@ -732,6 +732,10 @@ export const rejectStudent = async (
 		revalidatePath("/dashboard/admin/address-change-requests");
 		return success(updatedStudent);
 	} catch (error) {
+		if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+			return failure(validationError("Student has already been reviewed"));
+		}
+
 		console.error("Error while rejecting student:", error);
 		return failure(databaseError("Failed to reject student"));
 	}

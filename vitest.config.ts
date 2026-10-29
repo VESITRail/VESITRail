@@ -88,6 +88,7 @@ export default defineConfig({
 					hookTimeout: 30000,
 					environment: "node",
 					name: "integration",
+					sequence: { shuffle: true },
 					setupFiles: ["tests/integration/setup.ts"],
 					include: ["tests/integration/**/*.test.ts"],
 					globalSetup: ["tests/integration/global-setup.ts"]

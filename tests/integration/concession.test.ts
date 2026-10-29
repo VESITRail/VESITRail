@@ -5,8 +5,10 @@ import {
 	authenticateAs,
 	unauthenticate,
 	createTestAdmin,
+	createTestBooklet,
 	createTestStudent,
-	seedReferenceData
+	seedReferenceData,
+	createTestApplication
 } from "./helpers";
 import {
 	getConcessions,
@@ -39,20 +41,6 @@ describe("Concession Integration", () => {
 		await seedReferenceData(prisma);
 
 		adminUser = await createTestAdmin(prisma, { isActive: true });
-		studentUser = await createTestStudent(prisma, { status: "Approved" });
-		pendingStudent = await createTestStudent(prisma, { status: "Pending" });
-		secondStudent = await createTestStudent(prisma, { status: "Approved" });
-
-		booklet = await prisma.concessionBooklet.create({
-			data: {
-				anchorX: 10,
-				anchorY: 20,
-				totalPages: 50,
-				status: "Available",
-				serialEndNumber: "0807599",
-				serialStartNumber: "0807550"
-			}
-		});
 	});
 
 	afterAll(async () => {
@@ -61,8 +49,12 @@ describe("Concession Integration", () => {
 		await pool.end();
 	});
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		unauthenticate();
+		booklet = await createTestBooklet(prisma);
+		studentUser = await createTestStudent(prisma, { status: "Approved" });
+		pendingStudent = await createTestStudent(prisma, { status: "Pending" });
+		secondStudent = await createTestStudent(prisma, { status: "Approved" });
 	});
 
 	describe("submitConcessionApplication", () => {
@@ -111,6 +103,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("prevents creating/submitting a new application when student already has a Pending application", async () => {
+			await createTestApplication(prisma, { studentId: studentUser.user.id });
 			await authenticateAs(studentUser.user.id);
 
 			const res = await submitConcessionApplication({
@@ -130,6 +123,7 @@ describe("Concession Integration", () => {
 
 	describe("getConcessions & getLastApplication", () => {
 		it("fetches concessions for student", async () => {
+			await createTestApplication(prisma, { studentId: studentUser.user.id });
 			await authenticateAs(studentUser.user.id);
 			const res = await getConcessions({ page: 1, pageSize: 10 });
 			expect(res.isSuccess).toBe(true);
@@ -139,6 +133,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("fetches the last application for student", async () => {
+			await createTestApplication(prisma, { studentId: studentUser.user.id });
 			await authenticateAs(studentUser.user.id);
 			const res = await getLastApplication();
 			expect(res.isSuccess).toBe(true);
@@ -182,14 +177,24 @@ describe("Concession Integration", () => {
 	describe("admin review and state-transition races", () => {
 		let createdAppId: string;
 
-		beforeAll(async () => {
-			const app = await prisma.concessionApplication.findFirst({
-				where: { studentId: studentUser.user.id }
+		const createApp = async (
+			status: "Pending" | "Approved" | "Rejected" | "Issued",
+			extra: Omit<Parameters<typeof createTestApplication>[1], "studentId" | "status"> = {}
+		) => {
+			const app = await createTestApplication(prisma, { status, studentId: studentUser.user.id, ...extra });
+			createdAppId = app.id;
+		};
+
+		const createIssuedApp = () =>
+			createApp("Issued", {
+				pageOffset: 0,
+				issuedAt: new Date(),
+				reviewedAt: new Date(),
+				concessionBookletId: booklet.id
 			});
-			createdAppId = app!.id;
-		});
 
 		it("allows admin to get all applications", async () => {
+			await createApp("Pending");
 			await authenticateAs(adminUser.user.id);
 			const res = await getAllApplications({ page: 1, pageSize: 10 });
 			expect(res.isSuccess).toBe(true);
@@ -199,6 +204,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("requires rejectionReason when rejecting", async () => {
+			await createApp("Pending");
 			await authenticateAs(adminUser.user.id);
 			const res = await reviewConcessionApplication(createdAppId, "Rejected", "");
 			expect(res.isSuccess).toBe(false);
@@ -208,6 +214,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("allows admin to approve a pending application", async () => {
+			await createApp("Pending");
 			await authenticateAs(adminUser.user.id);
 			const res = await reviewConcessionApplication(createdAppId, "Approved");
 			expect(res.isSuccess).toBe(true);
@@ -217,6 +224,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("prevents creating a new application when student already has an Approved application", async () => {
+			await createApp("Approved");
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "New",
@@ -232,6 +240,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("prevents re-approving an already approved application (state-transition race)", async () => {
+			await createApp("Approved");
 			await authenticateAs(adminUser.user.id);
 			const res = await reviewConcessionApplication(createdAppId, "Approved");
 			expect(res.isSuccess).toBe(false);
@@ -241,6 +250,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("allows admin to assign a booklet slip to the approved application", async () => {
+			await createApp("Approved");
 			await authenticateAs(adminUser.user.id);
 			const res = await assignBookletToConcession(createdAppId, booklet.id, 0);
 			expect(res.isSuccess).toBe(true);
@@ -251,6 +261,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("prevents creating a new application while an issued concession pass is still active", async () => {
+			await createIssuedApp();
 			await authenticateAs(studentUser.user.id);
 			const res = await submitConcessionApplication({
 				applicationType: "New",
@@ -315,6 +326,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("allows admin to reject an application and unlinks booklet", async () => {
+			await createIssuedApp();
 			await authenticateAs(adminUser.user.id);
 			const rejectRes = await reviewConcessionApplication(createdAppId, "Rejected", "Incorrect pass type selected");
 			expect(rejectRes.isSuccess).toBe(true);
@@ -329,6 +341,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("prevents rejecting an already rejected application (state-transition race)", async () => {
+			await createApp("Rejected", { rejectionReason: "Incorrect pass type selected" });
 			await authenticateAs(adminUser.user.id);
 			const res = await reviewConcessionApplication(createdAppId, "Rejected", "Another rejection reason");
 			expect(res.isSuccess).toBe(false);
@@ -341,11 +354,13 @@ describe("Concession Integration", () => {
 	describe("submitConcessionResubmission", () => {
 		let rejectedAppId: string;
 
-		beforeAll(async () => {
-			const app = await prisma.concessionApplication.findFirst({
-				where: { studentId: studentUser.user.id, status: "Rejected" }
+		beforeEach(async () => {
+			const app = await createTestApplication(prisma, {
+				status: "Rejected",
+				studentId: studentUser.user.id,
+				rejectionReason: "Incorrect pass type selected"
 			});
-			rejectedAppId = app!.id;
+			rejectedAppId = app.id;
 		});
 
 		it("fails if application does not belong to authenticated student", async () => {
@@ -500,6 +515,13 @@ describe("Concession Integration", () => {
 
 		it("fails when trying to resubmit an application that is already Pending", async () => {
 			await authenticateAs(studentUser.user.id);
+			const firstResubmission = await submitConcessionResubmission(rejectedAppId, {
+				applicationType: "New",
+				stationId: SEED.stations[1].id,
+				concessionClassId: SEED.concessionClasses[0].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+			expect(firstResubmission.isSuccess).toBe(true);
 			const res = await submitConcessionResubmission(rejectedAppId, {
 				applicationType: "New",
 				stationId: SEED.stations[0].id,
@@ -517,7 +539,13 @@ describe("Concession Integration", () => {
 	describe("approveConcessionWithBooklet, reprintConcessionApplication, updateConcessionIssueDate", () => {
 		let issuedAppId: string;
 
-		beforeAll(async () => {
+		const issueApp = async () => {
+			await authenticateAs(adminUser.user.id);
+			const res = await approveConcessionWithBooklet(issuedAppId, booklet.id, 5);
+			expect(res.isSuccess).toBe(true);
+		};
+
+		beforeEach(async () => {
 			const app = await prisma.concessionApplication.create({
 				data: {
 					status: "Pending",
@@ -543,6 +571,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("reprintConcessionApplication fails when reprinting to exact same voucher slip", async () => {
+			await issueApp();
 			await authenticateAs(adminUser.user.id);
 			const res = await reprintConcessionApplication(issuedAppId, booklet.id, 5);
 			expect(res.isSuccess).toBe(false);
@@ -552,6 +581,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("reprintConcessionApplication succeeds when moving to a different slip offset", async () => {
+			await issueApp();
 			await authenticateAs(adminUser.user.id);
 			const res = await reprintConcessionApplication(issuedAppId, booklet.id, 6);
 
@@ -563,6 +593,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("updateConcessionIssueDate fails with invalid date", async () => {
+			await issueApp();
 			await authenticateAs(adminUser.user.id);
 			const res = await updateConcessionIssueDate(issuedAppId, "invalid-date-string");
 			expect(res.isSuccess).toBe(false);
@@ -572,6 +603,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("updateConcessionIssueDate updates date for issued application", async () => {
+			await issueApp();
 			await authenticateAs(adminUser.user.id);
 			const newDate = new Date("2026-05-10T10:00:00Z");
 			const res = await updateConcessionIssueDate(issuedAppId, newDate);
@@ -583,6 +615,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("getStudentConcessionHistory returns application history with derived certificates", async () => {
+			await issueApp();
 			await authenticateAs(adminUser.user.id);
 			const res = await getStudentConcessionHistory(secondStudent.user.id);
 
@@ -599,7 +632,20 @@ describe("Concession Integration", () => {
 		let renewalApp: any;
 		let initialIssuedApp: any;
 
-		beforeAll(async () => {
+		const submitRenewal = async () => {
+			await authenticateAs(studentUser.user.id);
+			const res = await submitConcessionApplication({
+				applicationType: "Renewal",
+				stationId: SEED.stations[0].id,
+				studentId: studentUser.user.id,
+				concessionClassId: SEED.concessionClasses[0].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			});
+			expect(res.isSuccess).toBe(true);
+			renewalApp = res.isSuccess ? res.data : null;
+		};
+
+		beforeEach(async () => {
 			const expiredDate = new Date();
 			expiredDate.setMonth(expiredDate.getMonth() - 2);
 
@@ -692,6 +738,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("filters student concessions by typeFilter (Renewal vs New)", async () => {
+			await submitRenewal();
 			await authenticateAs(studentUser.user.id);
 
 			const renewalRes = await getConcessions({ page: 1, pageSize: 10, typeFilter: "Renewal" });
@@ -709,6 +756,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("filters admin applications by typeFilter (Renewal vs New)", async () => {
+			await submitRenewal();
 			await authenticateAs(adminUser.user.id);
 
 			const adminRenewalRes = await getAllApplications({ page: 1, pageSize: 10, typeFilter: "Renewal" });
@@ -726,6 +774,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("handles rejection and resubmission of a renewal application preserving previousApplicationId", async () => {
+			await submitRenewal();
 			await authenticateAs(adminUser.user.id);
 			const rejectRes = await reviewConcessionApplication(
 				renewalApp.id,
@@ -753,6 +802,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("allows a rejected renewal to be resubmitted as a new application", async () => {
+			await submitRenewal();
 			await authenticateAs(adminUser.user.id);
 			const rejectRes = await reviewConcessionApplication(renewalApp.id, "Rejected", "Should have applied as new");
 			expect(rejectRes.isSuccess).toBe(true);
@@ -774,6 +824,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("resubmits a rejected application as a renewal linked to the latest issued pass", async () => {
+			await submitRenewal();
 			await authenticateAs(adminUser.user.id);
 			const rejectRes = await reviewConcessionApplication(renewalApp.id, "Rejected", "Should have applied as renewal");
 			expect(rejectRes.isSuccess).toBe(true);
@@ -795,6 +846,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("approves and assigns booklet to the resubmitted renewal application", async () => {
+			await submitRenewal();
 			await authenticateAs(adminUser.user.id);
 			const approveRes = await reviewConcessionApplication(renewalApp.id, "Approved");
 			expect(approveRes.isSuccess).toBe(true);

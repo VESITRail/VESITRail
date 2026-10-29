@@ -59,7 +59,6 @@ describe("Onboarding Integration", () => {
 
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 		legacyUser = await createTestUser(prisma, { email: "vesitrail.legacy@ves.ac.in" });
-		studentUser = await createTestUser(prisma, { email: "vesitrail.onboarding@ves.ac.in" });
 
 		await prisma.legacyStudent.create({
 			data: {
@@ -75,8 +74,9 @@ describe("Onboarding Integration", () => {
 		await pool.end();
 	});
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		unauthenticate();
+		studentUser = await createTestUser(prisma);
 	});
 
 	describe("Unauthorized Access (Guards)", () => {
@@ -220,6 +220,7 @@ describe("Onboarding Integration", () => {
 
 		it("handles duplicate onboarding submission for same user by incrementing submissionCount", async () => {
 			await authenticateAs(studentUser.id);
+			expect((await submitOnboarding(baseOnboardingData)).isSuccess).toBe(true);
 			const res = await submitOnboarding({
 				...baseOnboardingData,
 				address: "Updated 456 Street, Mumbai"
@@ -352,6 +353,7 @@ describe("Onboarding Integration", () => {
 	describe("getExistingStudentData", () => {
 		it("returns existing student data after onboarding is submitted", async () => {
 			await authenticateAs(studentUser.id);
+			expect((await submitOnboarding(baseOnboardingData)).isSuccess).toBe(true);
 			const res = await getExistingStudentData();
 			expect(res.isSuccess).toBe(true);
 			if (res.isSuccess) {
