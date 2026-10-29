@@ -31,6 +31,16 @@ describe("Notifications Integration", () => {
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
+	});
+
+	afterAll(async () => {
+		await cleanAllTables(prisma);
+		await prisma.$disconnect();
+		await pool.end();
+	});
+
+	beforeEach(async () => {
+		unauthenticate();
 
 		user = await createTestUser(prisma);
 		otherUser = await createTestUser(prisma);
@@ -54,15 +64,15 @@ describe("Notifications Integration", () => {
 		});
 	});
 
-	afterAll(async () => {
-		await cleanAllTables(prisma);
-		await prisma.$disconnect();
-		await pool.end();
-	});
-
-	beforeEach(() => {
-		unauthenticate();
-	});
+	const saveDeviceToken = async () => {
+		await authenticateAs(user.id);
+		const res = await saveFcmToken({
+			platform: "Web",
+			deviceId: "device-xyz",
+			token: `fcm-token-${user.id}`
+		});
+		expect(res.isSuccess).toBe(true);
+	};
 
 	describe("Guards & Authorization", () => {
 		it("rejects unauthenticated access for notification operations", async () => {
@@ -147,6 +157,7 @@ describe("Notifications Integration", () => {
 		});
 
 		it("allows marking an already-read notification as read without error", async () => {
+			await prisma.notification.update({ where: { id: notification1.id }, data: { isRead: true } });
 			await authenticateAs(user.id);
 			const res = await markNotificationAsRead(notification1.id);
 			expect(res.isSuccess).toBe(true);
@@ -193,7 +204,7 @@ describe("Notifications Integration", () => {
 		});
 
 		it("updates existing token on duplicate FCM token save for same device", async () => {
-			await authenticateAs(user.id);
+			await saveDeviceToken();
 			const res = await saveFcmToken({
 				platform: "Android",
 				deviceId: "device-xyz",
@@ -210,18 +221,18 @@ describe("Notifications Integration", () => {
 		});
 
 		it("removes FCM token for device", async () => {
-			await authenticateAs(user.id);
+			await saveDeviceToken();
 			const res = await removeFcmTokenForDevice("device-xyz");
 			expect(res.isSuccess).toBe(true);
 
 			const tokenRecord = await prisma.fcmToken.findFirst({
-				where: { token: "fcm-token-updated-999" }
+				where: { token: `fcm-token-${user.id}` }
 			});
 			expect(tokenRecord).toBeNull();
 		});
 
 		it("disables push notifications", async () => {
-			await authenticateAs(user.id);
+			await saveDeviceToken();
 			const res = await disablePushNotifications();
 			expect(res.isSuccess).toBe(true);
 
