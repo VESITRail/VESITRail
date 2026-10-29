@@ -52,6 +52,8 @@ export default defineConfig({
 				test: {
 					name: "unit",
 					globals: true,
+					restoreMocks: true,
+					unstubGlobals: true,
 					environment: "node",
 					include: ["tests/unit/**/*.test.ts"]
 				}
