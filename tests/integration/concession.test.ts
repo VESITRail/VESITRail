@@ -453,6 +453,40 @@ describe("Concession Integration", () => {
 			});
 		});
 
+		it("breaks createdAt ties using shortId so the most recently inserted application wins", async () => {
+			await authenticateAs(secondStudent.user.id);
+
+			const sharedCreatedAt = new Date();
+			const base = {
+				createdAt: sharedCreatedAt,
+				stationId: SEED.stations[0].id,
+				applicationType: "New" as const,
+				studentId: secondStudent.user.id,
+				concessionClassId: SEED.concessionClasses[0].id,
+				concessionPeriodId: SEED.concessionPeriods[0].id
+			};
+
+			const issuedApp = await prisma.concessionApplication.create({
+				data: { ...base, status: "Issued", issuedAt: sharedCreatedAt, reviewedAt: sharedCreatedAt }
+			});
+			const laterRejected = await prisma.concessionApplication.create({
+				data: { ...base, status: "Rejected", rejectionReason: "Test rejection" }
+			});
+
+			try {
+				const res = await getLastApplication();
+				expect(res.isSuccess).toBe(true);
+				if (res.isSuccess) {
+					expect(res.data?.id).toBe(laterRejected.id);
+					expect(res.data?.previousApplication?.id).toBe(issuedApp.id);
+				}
+			} finally {
+				await prisma.concessionApplication.deleteMany({
+					where: { id: { in: [issuedApp.id, laterRejected.id] } }
+				});
+			}
+		});
+
 		it("rejects resubmitting as a renewal while the latest issued pass is still active", async () => {
 			const activeIssuedApp = await prisma.concessionApplication.create({
 				data: {
