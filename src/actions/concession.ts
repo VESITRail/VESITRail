@@ -26,6 +26,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { requireAdmin, requireStudent } from "@/lib/auth-guard";
 import { sendConcessionNotification } from "@/lib/notifications";
+import { LATEST_APPLICATION_ORDER } from "@/lib/application-order";
 import { calculateBookletStatus, calculateConcessionValidity } from "@/lib/utils";
 import { lockStudentSubmission, SUBMISSION_LOCK_NAMESPACE } from "@/lib/advisory-lock";
 
@@ -59,7 +60,7 @@ const resolveRenewalPass = async (
 	excludeApplicationId?: string
 ): Promise<Result<string, ValidationError>> => {
 	const latestIssuedApplication = await prisma.concessionApplication.findFirst({
-		orderBy: { createdAt: "desc" },
+		orderBy: LATEST_APPLICATION_ORDER,
 		include: { concessionPeriod: true },
 		where: { studentId, status: "Issued", ...(excludeApplicationId && { id: { not: excludeApplicationId } }) }
 	});
@@ -128,7 +129,7 @@ export const getConcessions = async (
 			skip,
 			where: whereClause,
 			take: params.pageSize,
-			orderBy: { createdAt: "desc" },
+			orderBy: LATEST_APPLICATION_ORDER,
 			select: {
 				id: true,
 				status: true,
@@ -221,8 +222,8 @@ export const getLastApplication = async (): Promise<Result<Concession, AuthError
 		const targetStudentId = studentResult.data.studentId;
 
 		const lastApplication = await prisma.concessionApplication.findFirst({
+			orderBy: LATEST_APPLICATION_ORDER,
 			where: { studentId: targetStudentId },
-			orderBy: { createdAt: "desc" },
 			select: {
 				id: true,
 				status: true,
@@ -262,8 +263,8 @@ export const getLastApplication = async (): Promise<Result<Concession, AuthError
 		}
 
 		const latestIssuedApplication = await prisma.concessionApplication.findFirst({
+			orderBy: LATEST_APPLICATION_ORDER,
 			where: { studentId: targetStudentId, status: "Issued", id: { not: lastApplication.id } },
-			orderBy: { createdAt: "desc" },
 			select: {
 				id: true,
 				status: true,
@@ -629,9 +630,7 @@ export const submitConcessionApplication = async (
 				where: {
 					studentId: targetStudentId
 				},
-				orderBy: {
-					createdAt: "desc"
-				},
+				orderBy: LATEST_APPLICATION_ORDER,
 				include: {
 					concessionPeriod: true
 				}
@@ -1679,8 +1678,8 @@ export const getStudentConcessionHistory = async (
 
 	try {
 		const applications = await prisma.concessionApplication.findMany({
+			orderBy: LATEST_APPLICATION_ORDER,
 			where: { studentId: studentUserId },
-			orderBy: { createdAt: "desc" },
 			select: {
 				id: true,
 				status: true,
