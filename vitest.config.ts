@@ -38,6 +38,7 @@ export default defineConfig({
 				"src/lib/booklet-serial.ts",
 				"src/lib/validations/**/*.ts",
 				"src/lib/github/transform.ts",
+				"src/lib/application-order.ts",
 				"src/lib/pwa/version-utils.ts",
 				"src/lib/pwa/version-manager.ts",
 				"src/lib/notifications/scenarios.ts",
