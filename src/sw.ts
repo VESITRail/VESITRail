@@ -143,6 +143,14 @@ const serwist = new Serwist({
 	precacheEntries: self.__SW_MANIFEST,
 	runtimeCaching: [
 		{
+			matcher: ({ url, sameOrigin }) =>
+				sameOrigin &&
+				(url.pathname === "/sw.js" ||
+					url.pathname === "/firebase-messaging-sw.js" ||
+					/^\/swe-worker-[0-9a-f]+\.js$/.test(url.pathname)),
+			handler: new NetworkOnly()
+		},
+		{
 			matcher: /^https:\/\/fonts\.googleapis\.com\/.*/i,
 			handler: createStrategy(CacheFirst, "google-fonts", {
 				plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 })]
