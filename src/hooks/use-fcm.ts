@@ -6,8 +6,8 @@ import { getPlatform } from "@/lib/platform";
 import { messaging } from "@/config/firebase";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getToken, onMessage, type Messaging } from "firebase/messaging";
-import { saveFcmToken, removeFcmTokenForDevice, disablePushNotifications } from "@/actions/fcm";
 import { getActiveServiceWorkerRegistration } from "@/lib/pwa/service-worker-registration";
+import { saveFcmToken, removeFcmTokenForDevice, disablePushNotifications } from "@/actions/fcm";
 
 type FcmState = {
 	loading: boolean;

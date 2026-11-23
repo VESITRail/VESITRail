@@ -33,7 +33,6 @@ export default defineConfig({
 				"src/lib/pagination.ts",
 				"src/lib/time-range.ts",
 				"src/lib/pwa/config.ts",
-				"src/lib/pwa/service-worker-registration.ts",
 				"src/lib/auth-hooks.ts",
 				"src/lib/github-client.ts",
 				"src/lib/booklet-serial.ts",
@@ -43,7 +42,8 @@ export default defineConfig({
 				"src/lib/pwa/version-utils.ts",
 				"src/lib/pwa/version-manager.ts",
 				"src/lib/notifications/scenarios.ts",
-				"src/lib/notifications/email-templates.ts"
+				"src/lib/notifications/email-templates.ts",
+				"src/lib/pwa/service-worker-registration.ts"
 			],
 			thresholds: isIntegration
 				? undefined

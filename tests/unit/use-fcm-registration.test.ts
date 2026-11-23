@@ -1,5 +1,5 @@
-import { getActiveServiceWorkerRegistration } from "@/lib/pwa/service-worker-registration";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { getActiveServiceWorkerRegistration } from "@/lib/pwa/service-worker-registration";
 
 const registration = { scope: "https://example.test/" } as ServiceWorkerRegistration;
 
