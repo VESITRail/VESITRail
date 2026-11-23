@@ -11,11 +11,17 @@ import {
 	type ValidationError
 } from "@/lib/result";
 import {
+	paginateAcademicSemesters,
+	AcademicSemesterListSchema,
+	type AcademicSemesterListParams
+} from "@/lib/academic-semester-table";
+import {
 	AcademicSemesterIdSchema,
 	type AcademicSemesterInput,
 	AcademicSemesterInputSchema
 } from "@/lib/validations/admin/academic-semester";
 import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guard";
 import { Prisma } from "@/generated/prisma/client";
 import { getAcademicSemesterOverlapBounds } from "@/lib/academic-semester-window";
@@ -25,11 +31,15 @@ const semesterSelect = {
 	term: true,
 	endDate: true,
 	startDate: true,
-	academicYearStart: true
+	academicYearStart: true,
+	_count: { select: { applications: true } }
 } satisfies Prisma.AcademicSemesterSelect;
 
+const academicSemestersPath = "/dashboard/admin/academic-semesters";
 type SemesterActionError = AuthError | DatabaseError | ValidationError;
+
 export type AcademicSemesterItem = Prisma.AcademicSemesterGetPayload<{ select: typeof semesterSelect }>;
+export type AcademicSemesterPage = ReturnType<typeof paginateAcademicSemesters<AcademicSemesterItem>>;
 
 export async function getAcademicSemesters(): Promise<Result<AcademicSemesterItem[], AuthError | DatabaseError>> {
 	const adminResult = await requireAdmin();
@@ -45,6 +55,16 @@ export async function getAcademicSemesters(): Promise<Result<AcademicSemesterIte
 		console.error("Error listing academic semesters:", error);
 		return failure(databaseError("Failed to list academic semesters"));
 	}
+}
+
+export async function getPaginatedAcademicSemesters(
+	params: AcademicSemesterListParams
+): Promise<Result<AcademicSemesterPage, SemesterActionError>> {
+	const result = await getAcademicSemesters();
+	if (!result.isSuccess) return result;
+	const parsed = AcademicSemesterListSchema.safeParse(params);
+	if (!parsed.success) return failure(validationError("Invalid semester filters or page"));
+	return success(paginateAcademicSemesters(result.data, parsed.data));
 }
 
 export async function getAcademicSemester(id: string): Promise<Result<AcademicSemesterItem, SemesterActionError>> {
@@ -85,7 +105,7 @@ async function saveAcademicSemester(
 	const { earliestEndDate, latestStartDate } = getAcademicSemesterOverlapBounds(data.startDate, data.endDate);
 
 	try {
-		return await prisma.$transaction(
+		const result = await prisma.$transaction(
 			async (tx) => {
 				await tx.$executeRaw`LOCK TABLE "AcademicSemester" IN SHARE ROW EXCLUSIVE MODE`;
 
@@ -120,6 +140,8 @@ async function saveAcademicSemester(
 			},
 			{ isolationLevel: "ReadCommitted" }
 		);
+		if (result.isSuccess) revalidatePath(academicSemestersPath);
+		return result;
 	} catch (error) {
 		if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
 			return failure(validationError("Academic semester not found"));
@@ -163,6 +185,7 @@ export async function deleteAcademicSemester(id: string): Promise<Result<{ id: s
 			select: { id: true },
 			where: { id: semesterId.data }
 		});
+		revalidatePath(academicSemestersPath);
 		return success(semester);
 	} catch (error) {
 		if (error instanceof Prisma.PrismaClientKnownRequestError) {

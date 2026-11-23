@@ -19,6 +19,18 @@ describe("AcademicSemesterInputSchema", () => {
 	});
 
 	it.each([
+		["academicYearStart", "Enter a valid academic year start"],
+		["term", "Select Odd or Even"],
+		["startDate", "Enter a valid date"],
+		["endDate", "Enter a valid date"]
+	])("gives a clear error when %s is missing", (field, message) => {
+		expect(AcademicSemesterInputSchema.safeParse({ ...semester, [field]: undefined })).toMatchObject({
+			success: false,
+			error: { issues: [{ path: [field], message }] }
+		});
+	});
+
+	it.each([
 		"",
 		" ",
 		null,

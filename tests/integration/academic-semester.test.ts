@@ -1,11 +1,4 @@
 import {
-	getAcademicSemester,
-	getAcademicSemesters,
-	updateAcademicSemester,
-	deleteAcademicSemester,
-	createAcademicSemester
-} from "@/actions/academic-semester";
-import {
 	getTestPrisma,
 	authenticateAs,
 	cleanAllTables,
@@ -15,7 +8,16 @@ import {
 	seedReferenceData,
 	createTestApplication
 } from "./helpers";
+import {
+	getAcademicSemester,
+	getAcademicSemesters,
+	updateAcademicSemester,
+	deleteAcademicSemester,
+	createAcademicSemester,
+	getPaginatedAcademicSemesters
+} from "@/actions/academic-semester";
 import { unwrap } from "@/lib/result";
+import { revalidatePath } from "next/cache";
 import type { AcademicSemesterInput } from "@/lib/validations/admin/academic-semester";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -78,16 +80,112 @@ describe("Academic semester actions", () => {
 
 		const error = { isSuccess: false, error: { type: "AUTH_ERROR", code } };
 		expect(await getAcademicSemesters()).toMatchObject(error);
+		expect(await getPaginatedAcademicSemesters({ page: 0, searchQuery: "", term: "all" })).toMatchObject(error);
 		expect(await getAcademicSemester(semester.id)).toMatchObject(error);
 		expect(await createAcademicSemester(oddSemester)).toMatchObject(error);
 		expect(await updateAcademicSemester(semester.id, oddSemester)).toMatchObject(error);
 		expect(await updateAcademicSemester("invalid-id", oddSemester)).toMatchObject(error);
 		expect(await deleteAcademicSemester(semester.id)).toMatchObject(error);
-		expect(await prisma.academicSemester.findMany()).toMatchObject([semester]);
+		expect(
+			await prisma.academicSemester.findMany({ include: { _count: { select: { applications: true } } } })
+		).toMatchObject([semester]);
 	});
 
 	it("lists an empty calendar", async () => {
 		expect(await getAcademicSemesters()).toEqual({ isSuccess: true, data: [] });
+	});
+
+	it("returns only the requested semesters and reports the count after filtering", async () => {
+		const even = unwrap(await createAcademicSemester(evenSemester));
+		unwrap(await createAcademicSemester(oddSemester));
+		const { student } = await createTestStudent(prisma);
+		await createTestApplication(prisma, { studentId: student.userId, semesterId: even.id });
+		expect(unwrap(await getPaginatedAcademicSemesters({ page: 1, searchQuery: "2027", term: "Even" }))).toEqual({
+			totalCount: 1,
+			totalPages: 1,
+			currentPage: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+			data: [{ ...even, _count: { applications: 1 } }]
+		});
+	});
+
+	it("counts linked applications across all statuses and returns zero for an unlinked semester", async () => {
+		const even = unwrap(await createAcademicSemester(evenSemester));
+		const odd = unwrap(await createAcademicSemester(oddSemester));
+		const { student } = await createTestStudent(prisma);
+		for (const status of ["Pending", "Approved", "Rejected", "Issued"] as const) {
+			await createTestApplication(prisma, { studentId: student.userId, semesterId: even.id, status });
+		}
+		await createTestApplication(prisma, { studentId: student.userId, status: "Pending" });
+
+		const { data } = unwrap(await getPaginatedAcademicSemesters({ page: 1, searchQuery: "", term: "all" }));
+		expect(data).toEqual([odd, { ...even, _count: { applications: 4 } }]);
+	});
+
+	it("returns the previous page after deleting the only semester on the last page", async () => {
+		const academicYears = Array.from({ length: 11 }, (_, index) => 2020 + index);
+		await prisma.academicSemester.createMany({
+			data: academicYears.map((academicYearStart) => ({
+				term: "Odd",
+				academicYearStart,
+				endDate: new Date(`${academicYearStart}-12-15`),
+				startDate: new Date(`${academicYearStart}-08-01`)
+			}))
+		});
+
+		const request = { page: 2, searchQuery: "", term: "all" } as const;
+		const firstPage = unwrap(await getPaginatedAcademicSemesters({ ...request, page: 1 }));
+		const lastPage = unwrap(await getPaginatedAcademicSemesters(request));
+		expect(lastPage).toMatchObject({
+			totalPages: 2,
+			totalCount: 11,
+			currentPage: 2,
+			hasNextPage: false,
+			hasPreviousPage: true,
+			data: [{ academicYearStart: 2020 }]
+		});
+
+		unwrap(await deleteAcademicSemester(lastPage.data[0].id));
+
+		expect(unwrap(await getPaginatedAcademicSemesters(request))).toEqual({
+			totalPages: 1,
+			totalCount: 10,
+			currentPage: 1,
+			hasNextPage: false,
+			data: firstPage.data,
+			hasPreviousPage: false
+		});
+	});
+
+	it("validates pagination inputs", async () => {
+		expect(await getPaginatedAcademicSemesters({ page: 0, searchQuery: "", term: "all" })).toMatchObject({
+			isSuccess: false,
+			error: { type: "VALIDATION_ERROR" }
+		});
+	});
+
+	it("refreshes the admin calendar after each successful mutation", async () => {
+		const calendarPath = "/dashboard/admin/academic-semesters";
+		const semester = unwrap(await createAcademicSemester(evenSemester));
+		expect(revalidatePath).toHaveBeenCalledWith(calendarPath);
+		expect(revalidatePath).toHaveBeenCalledTimes(1);
+
+		unwrap(await updateAcademicSemester(semester.id, { ...evenSemester, endDate: "2027-07-23" }));
+		expect(revalidatePath).toHaveBeenLastCalledWith(calendarPath);
+		expect(revalidatePath).toHaveBeenCalledTimes(2);
+
+		unwrap(await deleteAcademicSemester(semester.id));
+		expect(revalidatePath).toHaveBeenLastCalledWith(calendarPath);
+		expect(revalidatePath).toHaveBeenCalledTimes(3);
+	});
+
+	it("keeps the calendar cache when a write is rejected", async () => {
+		expect(await createAcademicSemester({ ...evenSemester, endDate: "2027-01-10" })).toMatchObject({
+			isSuccess: false,
+			error: { type: "VALIDATION_ERROR", field: "endDate" }
+		});
+		expect(revalidatePath).not.toHaveBeenCalled();
 	});
 
 	it("creates and reads semesters from different academic years in the same calendar year", async () => {
@@ -98,6 +196,7 @@ describe("Academic semester actions", () => {
 			term: "Even",
 			id: expect.any(String),
 			academicYearStart: 2026,
+			_count: { applications: 0 },
 			endDate: new Date("2027-07-24"),
 			startDate: new Date("2027-01-11")
 		});
@@ -317,7 +416,7 @@ describe("Academic semester actions", () => {
 			isSuccess: false,
 			error: { type: "VALIDATION_ERROR", message: "This semester cannot be deleted because it has applications" }
 		});
-		expect(unwrap(await getAcademicSemester(semester.id))).toEqual(semester);
+		expect(unwrap(await getAcademicSemester(semester.id))).toEqual({ ...semester, _count: { applications: 1 } });
 		expect(await prisma.concessionApplication.findUnique({ where: { id: application.id } })).toMatchObject({
 			semesterId: semester.id
 		});
@@ -330,7 +429,7 @@ describe("Academic semester actions", () => {
 		const endDate = "2027-07-23";
 		const updated = unwrap(await updateAcademicSemester(semester.id, { ...evenSemester, endDate }));
 
-		expect(updated).toEqual({ ...semester, endDate: new Date(endDate) });
+		expect(updated).toEqual({ ...semester, endDate: new Date(endDate), _count: { applications: 1 } });
 		expect(await prisma.concessionApplication.findUnique({ where: { id: application.id } })).toMatchObject({
 			semesterId: semester.id
 		});
