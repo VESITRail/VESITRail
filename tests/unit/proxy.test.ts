@@ -92,9 +92,19 @@ describe("Route Protection Proxy (src/proxy.ts)", () => {
 			expect(unstable_doesMiddlewareMatch({ config, url })).toBe(false);
 		});
 
+		it.each(["/ingest/e", "/ingest/static/array.js", "/ingest/decide"])(
+			"skips the proxy for PostHog rewrite %s in Next.js",
+			(url) => {
+				expect(unstable_doesMiddlewareMatch({ config, url })).toBe(false);
+			}
+		);
+
 		it.each([
 			"/dashboard/student/apply-concession",
 			"/dashboard/admin/booklets",
+			"/dashboard/student/settings",
+			"/ingest",
+			"/ingestion-report",
 			"/some-random-page",
 			"/some-random-page.html",
 			"/swXjs",
