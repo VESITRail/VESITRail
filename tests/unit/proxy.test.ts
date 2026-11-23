@@ -1,5 +1,5 @@
-import { NextRequest } from "next/server";
 import { config, proxy } from "@/proxy";
+import { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
