@@ -12,12 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Concession } from "@/actions/concession";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCallback, useState, useMemo } from "react";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
 import { Dialog, DialogTitle, DialogHeader, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Filter, XCircle, History, ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
-import { Inbox, Filter, XCircle, History, ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 type SortOrder = "asc" | "desc";
 type Station = NonNullable<Concession>["station"];
@@ -659,23 +660,14 @@ const ApplicationsTable = ({
 							</TableHeader>
 						</Table>
 
-						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-							<div className="flex flex-col items-center space-y-4">
-								<div className="p-4 rounded-full bg-primary">
-									<Inbox className="size-8 text-white" />
-								</div>
-
-								<div className="space-y-2 text-center">
-									<h3 className="text-lg font-semibold text-foreground">No applications found</h3>
-
-									<p className="text-sm text-muted-foreground max-w-md">
-										{selectedStatus !== "all" || selectedType !== "all"
-											? "No concession applications match your current filter criteria."
-											: "You haven't submitted any concession applications yet."}
-									</p>
-								</div>
-							</div>
-						</div>
+						<TableEmptyState
+							title="No applications found"
+							description={
+								selectedStatus !== "all" || selectedType !== "all"
+									? "No concession applications match your current filter criteria."
+									: "You haven't submitted any concession applications yet."
+							}
+						/>
 					</div>
 				)}
 			</div>

@@ -3,7 +3,6 @@
 import {
 	X,
 	Eye,
-	Inbox,
 	Check,
 	Filter,
 	Search,
@@ -37,6 +36,7 @@ import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "../ui/status";
 import { toTitleCase } from "@/lib/utils";
+import { printPDF } from "@/lib/print-pdf";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -44,9 +44,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import UpdateIssueDateDialog from "./update-issue-date-dialog";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
-import { printPDF } from "@/lib/print-pdf";
 import ApproveApplicationDialog from "./approve-application-dialog";
 import ReprintApplicationDialog from "./reprint-application-dialog";
 import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
@@ -1358,25 +1358,16 @@ const ApplicationsTable = ({
 							</TableHeader>
 						</Table>
 
-						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-							<div className="flex flex-col items-center space-y-4">
-								<div className="p-4 rounded-full bg-primary">
-									<Inbox className="size-8 text-white" />
-								</div>
-
-								<div className="space-y-2 text-center">
-									<h3 className="text-lg font-semibold text-foreground">No applications found</h3>
-
-									<p className="text-sm text-muted-foreground max-w-md">
-										{localSearchQuery
-											? `No applications found for "${localSearchQuery}".`
-											: selectedStatus !== "all" || selectedType !== "all"
-												? "No applications match your current filter criteria."
-												: "No concession applications have been submitted yet."}
-									</p>
-								</div>
-							</div>
-						</div>
+						<TableEmptyState
+							title="No applications found"
+							description={
+								localSearchQuery
+									? `No applications found for "${localSearchQuery}".`
+									: selectedStatus !== "all" || selectedType !== "all"
+										? "No applications match your current filter criteria."
+										: "No concession applications have been submitted yet."
+							}
+						/>
 					</div>
 				)}
 			</div>

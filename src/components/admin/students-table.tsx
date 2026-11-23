@@ -2,7 +2,6 @@ import {
 	X,
 	Eye,
 	UserX,
-	Inbox,
 	Filter,
 	Search,
 	XCircle,
@@ -35,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditStudentDrawer } from "./edit-student-drawer";
 import { StudentApprovalStatusType } from "@/generated/zod";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { getUserInitials, toTitleCase, formatDateOfBirth } from "@/lib/utils";
@@ -1352,23 +1352,14 @@ const StudentsTable = ({
 							</TableHeader>
 						</Table>
 
-						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-							<div className="flex flex-col items-center space-y-4">
-								<div className="p-4 rounded-full bg-primary">
-									<Inbox className="size-8 text-white" />
-								</div>
-
-								<div className="space-y-2 text-center">
-									<h3 className="text-lg font-semibold text-foreground">No students found</h3>
-
-									<p className="text-sm text-muted-foreground max-w-md">
-										{localSearchQuery || selectedStatus !== "all"
-											? "No students match your current search and filter criteria."
-											: "No student records found."}
-									</p>
-								</div>
-							</div>
-						</div>
+						<TableEmptyState
+							title="No students found"
+							description={
+								localSearchQuery || selectedStatus !== "all"
+									? "No students match your current search and filter criteria."
+									: "No student records found."
+							}
+						/>
 					</div>
 				)}
 			</div>

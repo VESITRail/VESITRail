@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StudentListItem } from "@/actions/student";
 import { Skeleton } from "@/components/ui/skeleton";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { ConcessionApplicationStatusType } from "@/generated/zod";
+import { History, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { getStudentConcessionHistory, StudentConcessionHistoryItem } from "@/actions/concession";
-import { Inbox, History, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { Sheet, SheetTitle, SheetHeader, SheetContent, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 
@@ -264,21 +265,10 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 								</TableHeader>
 							</Table>
 
-							<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-								<div className="flex flex-col items-center space-y-4">
-									<div className="p-4 rounded-full bg-primary">
-										<Inbox className="size-8 text-white" />
-									</div>
-
-									<div className="space-y-2 text-center">
-										<h3 className="text-lg font-semibold text-foreground">No applications found</h3>
-
-										<p className="text-sm text-muted-foreground max-w-md">
-											No concession applications have been submitted for this student yet.
-										</p>
-									</div>
-								</div>
-							</div>
+							<TableEmptyState
+								title="No applications found"
+								description="No concession applications have been submitted for this student yet."
+							/>
 						</div>
 					) : (
 						<>
