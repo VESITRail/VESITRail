@@ -33,6 +33,7 @@
   - [How to Mark or Remove a Damaged Page in a Booklet](#how-to-mark-or-remove-a-damaged-page-in-a-booklet)
   - [How to Move or Reorder Slots in a Booklet](#how-to-move-or-reorder-slots-in-a-booklet)
   - [How to Print the Master Booklet Register](#how-to-print-the-master-booklet-register)
+- [Managing Academic Semesters](#managing-academic-semesters)
 - [Calibrating Form Layout and Printing](#calibrating-form-layout-and-printing)
   - [How to Calibrate Booklet Anchor Offsets](#how-to-calibrate-booklet-anchor-offsets)
   - [How to Print a Sample Calibration Test Sheet](#how-to-print-a-sample-calibration-test-sheet)
@@ -94,10 +95,13 @@ Sign in to the system and enter the administrative workspace.
    - **Applications**:
      - **Concession Requests** (`/dashboard/admin`)
      - **Address Change Requests** (`/dashboard/admin/address-change-requests`)
-   - **Management**:
+   - **Academics**:
      - **Students** (`/dashboard/admin/students`)
+     - **Academic Semesters** (`/dashboard/admin/academic-semesters`)
+   - **Concessions**:
      - **Booklets** (`/dashboard/admin/booklets`)
      - **Form Layout** (`/dashboard/admin/form-layout`)
+   - **Reports**:
      - **Analytics** (`/dashboard/admin/analytics`)
    - **Secondary Navigation**:
      - **Profile** (`/dashboard/admin/profile`)
@@ -128,7 +132,7 @@ Inspect a student's personal details, academic division, and uploaded Aadhaar ve
 
 #### Steps
 
-1. In the sidebar under **Management**, click **Students** (`/dashboard/admin/students`).
+1. In the sidebar under **Academics**, click **Students** (`/dashboard/admin/students`).
 2. Observe that the table displays **`Pending`** student registrations first by default (sorted chronologically oldest-to-newest so staff can review them in First-In-First-Out order), followed by `Approved` and `Rejected` records.
 3. (Optional) Use the **Filter by Status** dropdown (`All Statuses`, `Pending`, `Approved`, `Rejected`) or type a name, email, mobile number, division, home station, or 6-digit pincode in the search bar. Other parts of the address (such as building or area names) are not searched.
 4. Locate the student you wish to review.
@@ -535,7 +539,7 @@ Register a newly received physical 50-leaf voucher booklet into digital inventor
 
 #### Steps
 
-1. In the sidebar under **Management**, click **Booklets** (`/dashboard/admin/booklets`).
+1. In the sidebar under **Concessions**, click **Booklets** (`/dashboard/admin/booklets`).
 2. Click the **Add Booklet** button in the top right corner.
 3. On the **Add New Booklet** page (`/dashboard/admin/booklets/create`):
    - In **Serial Start Number**, enter the starting serial number stamped on leaf 1 (e.g., `0807551` or `A0807551`).
@@ -556,7 +560,7 @@ Inspect every individual certificate leaf (slots 1 to 50) in a booklet.
 
 #### Steps
 
-1. In the sidebar under **Management**, click **Booklets** (`/dashboard/admin/booklets`).
+1. In the sidebar under **Concessions**, click **Booklets** (`/dashboard/admin/booklets`).
 2. In the Booklets table, locate the booklet.
 3. In the **Actions** column, click the **Three Dots** menu button (`<MoreVertical />`) and select **View Booklet**.
 4. The detail view opens at `/dashboard/admin/booklets/<id>`, showing:
@@ -626,6 +630,20 @@ Generate an official 50-entry tabular printout of the entire booklet for railway
 
 ---
 
+## Managing Academic Semesters
+
+Open **Academic Semesters** under **Academics** (`/dashboard/admin/academic-semesters`). The table shows numbered rows with the most recent start date first. The **Applications** column counts linked **Pending**, **Approved**, **Rejected**, and **Issued** applications. Semesters with no linked applications show `0`. Enter an academic year or term and press **Enter** or click the search button. Use **All Terms** to narrow the list to **Odd** or **Even**, and **Columns** to choose which fields to display.
+
+Click **Academic Year**, **Term**, **Start Date**, **End Date**, or **Applications** to sort the current page. Click again to reverse the order, and a third time to restore the default order.
+
+1. To create a semester, click **Add Semester**. Enter the **Academic Year Start** (for example, `2026` for 2026–2027), choose the **Term**, and enter the official **Start Date** and **End Date**. Click **Add Semester** to save.
+2. To correct a semester, click the edit icon in its **Actions** column, update the fields, and click **Save Changes**.
+3. To remove a semester, click the delete icon in its **Actions** column and confirm with **Delete Semester**. If the semester has linked concession applications, the dialog shows how many are linked and disables **Delete Semester**. If you delete the last result on the final page and other results remain, the table returns to the previous page.
+
+Each Odd or Even term can be entered once per academic year. The end date may be the same as the start date or later. When checking for overlaps, the system includes the seven calendar days before each semester starts and the full end date.
+
+---
+
 ## 🖨️ Calibrating Form Layout and Printing
 
 Because pre-printed paper railway slips and printer feed margins vary slightly between batches, VESITRail provides calibration tools.
@@ -638,7 +656,7 @@ Fine-tune horizontal and vertical print offsets for an individual voucher bookle
 
 #### Steps
 
-1. In the sidebar under **Management**, click **Booklets** (`/dashboard/admin/booklets`).
+1. In the sidebar under **Concessions**, click **Booklets** (`/dashboard/admin/booklets`).
 2. In the Booklets table, locate the target booklet.
 3. Click the **Three Dots** (`<MoreVertical />`) menu in the Actions column and select **Calibrate Anchors**.
 4. The **Anchor Calibration — Booklet #<number>** dialog opens:
@@ -672,7 +690,7 @@ Calibrate relative field positions across the master print template.
 
 #### Steps
 
-1. In the sidebar under **Management**, click **Form Layout** (`/dashboard/admin/form-layout`).
+1. In the sidebar under **Concessions**, click **Form Layout** (`/dashboard/admin/form-layout`).
 2. The page displays the **Form Layout Calibration** workspace:
    - Header: _Form Layout Calibration — Calibrate element placement coordinates and field mappings for printed concession forms_.
 3. Use the visual coordinate editor to reposition specific fields (such as Student Name, Station, or Class) across the master layout.
@@ -692,7 +710,7 @@ Inspect application volume and review statistics across different time periods.
 
 #### Steps
 
-1. In the sidebar under **Management**, click **Analytics** (`/dashboard/admin/analytics`).
+1. In the sidebar under **Reports**, click **Analytics** (`/dashboard/admin/analytics`).
 2. Observe the four summary metric cards:
    - **Students Reviewed**: Total student onboarding registrations audited.
    - **Address Changes**: Total address modification requests processed.

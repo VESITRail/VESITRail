@@ -1,4 +1,16 @@
 import {
+	User,
+	Users,
+	MapPin,
+	Sliders,
+	BookOpen,
+	BookText,
+	FileText,
+	BarChart3,
+	CalendarDays,
+	MessageSquare
+} from "lucide-react";
+import {
 	Sidebar,
 	useSidebar,
 	SidebarMenu,
@@ -14,7 +26,6 @@ import NavMain from "@/components/nav-main";
 import NavSecondary from "@/components/nav-secondary";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 import NavUser from "@/components/app-sidebar/admin/nav-user";
-import { User, Users, MapPin, BookOpen, BookText, FileText, MessageSquare, Sliders, BarChart3 } from "lucide-react";
 
 const data = {
 	navSecondary: [
@@ -56,13 +67,23 @@ const data = {
 			]
 		},
 		{
-			label: "Management",
+			label: "Academics",
 			items: [
 				{
 					icon: Users,
 					name: "Students",
 					url: "/dashboard/admin/students"
 				},
+				{
+					icon: CalendarDays,
+					name: "Academic Semesters",
+					url: "/dashboard/admin/academic-semesters"
+				}
+			]
+		},
+		{
+			label: "Concessions",
+			items: [
 				{
 					icon: BookOpen,
 					name: "Booklets",
@@ -72,7 +93,12 @@ const data = {
 					icon: Sliders,
 					name: "Form Layout",
 					url: "/dashboard/admin/form-layout"
-				},
+				}
+			]
+		},
+		{
+			label: "Reports",
+			items: [
 				{
 					icon: BarChart3,
 					name: "Analytics",
