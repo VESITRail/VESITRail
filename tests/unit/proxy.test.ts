@@ -113,5 +113,47 @@ describe("Route Protection Proxy (src/proxy.ts)", () => {
 		])("runs the proxy for %s in Next.js", (url) => {
 			expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
 		});
+
+		it.each([
+			"/api",
+			"/api/github",
+			"/api/auth/session",
+			"/icons/ios/x.png",
+			"/favicon.ico",
+			"/robots.txt",
+			"/sitemap.xml",
+			"/manifest.webmanifest",
+			"/sw.js",
+			"/swe-worker-f61931bc2770d10b.js",
+			"/firebase-messaging-sw.js",
+			"/google74cc593637a99f30.html",
+			"/privacy-policy",
+			"/terms-of-service",
+			"/ingest/e",
+			"/icon.svg",
+			"/apple-icon.png",
+			"/twitter-image.png",
+			"/opengraph-image.png",
+			"/_next/static/chunks/a.js"
+		])("skips the proxy for excluded path %s in Next.js", (url) => {
+			expect(unstable_doesMiddlewareMatch({ config, url })).toBe(false);
+		});
+
+		it.each([
+			"/ingest",
+			"/ingestion-report",
+			"/apiary",
+			"/icons-foo",
+			"/sw.json",
+			"/sw.js.map",
+			"/swe-worker-abc.json",
+			"/privacy-policy-old",
+			"/faviconXico",
+			"/robotsXtxt",
+			"/dashboard/student/settings",
+			"/some-random-page"
+		])("runs the proxy outside the exact exclusions for %s in Next.js", (url) => {
+			expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
+		});
 	});
 });
