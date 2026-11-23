@@ -42,7 +42,8 @@ export default defineConfig({
 				"src/lib/pwa/version-utils.ts",
 				"src/lib/pwa/version-manager.ts",
 				"src/lib/notifications/scenarios.ts",
-				"src/lib/notifications/email-templates.ts"
+				"src/lib/notifications/email-templates.ts",
+				"src/lib/pwa/service-worker-registration.ts"
 			],
 			thresholds: isIntegration
 				? undefined

@@ -6,6 +6,7 @@ import { getPlatform } from "@/lib/platform";
 import { messaging } from "@/config/firebase";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getToken, onMessage, type Messaging } from "firebase/messaging";
+import { getActiveServiceWorkerRegistration } from "@/lib/pwa/service-worker-registration";
 import { saveFcmToken, removeFcmTokenForDevice, disablePushNotifications } from "@/actions/fcm";
 
 type FcmState = {
@@ -265,14 +266,7 @@ export const useFcm = (userId?: string) => {
 
 			let serviceWorkerRegistration: ServiceWorkerRegistration | undefined;
 			if ("serviceWorker" in navigator) {
-				try {
-					serviceWorkerRegistration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-						scope: "/"
-					});
-				} catch (swError) {
-					console.warn("Failed to register /firebase-messaging-sw.js, trying fallback getRegistration:", swError);
-					serviceWorkerRegistration = await navigator.serviceWorker.getRegistration();
-				}
+				serviceWorkerRegistration = await getActiveServiceWorkerRegistration(navigator.serviceWorker);
 			}
 
 			const currentToken = await getToken(messagingInstance, {

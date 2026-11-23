@@ -1,7 +1,8 @@
-import { NextRequest } from "next/server";
 import { config, proxy } from "@/proxy";
+import { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 
 vi.mock(import("better-auth/cookies"), () => ({
 	getSessionCookie: vi.fn()
@@ -78,6 +79,81 @@ describe("Route Protection Proxy (src/proxy.ts)", () => {
 			"/terms-of-service"
 		])("skips the proxy for %s", (path) => {
 			expect(matcher.test(path)).toBe(false);
+		});
+
+		it.each([
+			"/sw.js",
+			"/swe-worker-f61931bc2770d10b.js",
+			"/firebase-messaging-sw.js",
+			"/google74cc593637a99f30.html",
+			"/icon.svg",
+			"/apple-icon.png"
+		])("skips the proxy for public asset %s in Next.js", (url) => {
+			expect(unstable_doesMiddlewareMatch({ config, url })).toBe(false);
+		});
+
+		it.each(["/ingest/e", "/ingest/static/array.js", "/ingest/decide"])(
+			"skips the proxy for PostHog rewrite %s in Next.js",
+			(url) => {
+				expect(unstable_doesMiddlewareMatch({ config, url })).toBe(false);
+			}
+		);
+
+		it.each([
+			"/dashboard/student/apply-concession",
+			"/dashboard/admin/booklets",
+			"/dashboard/student/settings",
+			"/ingest",
+			"/ingestion-report",
+			"/some-random-page",
+			"/some-random-page.html",
+			"/swXjs",
+			"/firebase-messaging-swXjs",
+			"/google74cc593637a99f30Xhtml"
+		])("runs the proxy for %s in Next.js", (url) => {
+			expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
+		});
+
+		it.each([
+			"/api",
+			"/api/github",
+			"/api/auth/session",
+			"/icons/ios/x.png",
+			"/favicon.ico",
+			"/robots.txt",
+			"/sitemap.xml",
+			"/manifest.webmanifest",
+			"/sw.js",
+			"/swe-worker-f61931bc2770d10b.js",
+			"/firebase-messaging-sw.js",
+			"/google74cc593637a99f30.html",
+			"/privacy-policy",
+			"/terms-of-service",
+			"/ingest/e",
+			"/icon.svg",
+			"/apple-icon.png",
+			"/twitter-image.png",
+			"/opengraph-image.png",
+			"/_next/static/chunks/a.js"
+		])("skips the proxy for excluded path %s in Next.js", (url) => {
+			expect(unstable_doesMiddlewareMatch({ config, url })).toBe(false);
+		});
+
+		it.each([
+			"/ingest",
+			"/ingestion-report",
+			"/apiary",
+			"/icons-foo",
+			"/sw.json",
+			"/sw.js.map",
+			"/swe-worker-abc.json",
+			"/privacy-policy-old",
+			"/faviconXico",
+			"/robotsXtxt",
+			"/dashboard/student/settings",
+			"/some-random-page"
+		])("runs the proxy outside the exact exclusions for %s in Next.js", (url) => {
+			expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
 		});
 	});
 });
