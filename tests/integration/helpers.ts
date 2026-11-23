@@ -117,6 +117,7 @@ export async function cleanAllTables(prisma: PrismaClient) {
 	await prisma.notification.deleteMany();
 	await prisma.fcmToken.deleteMany();
 	await prisma.concessionApplication.deleteMany();
+	await prisma.academicSemester.deleteMany();
 	await prisma.concessionBooklet.deleteMany();
 	await prisma.addressChange.deleteMany();
 	await prisma.legacyStudent.deleteMany();
@@ -254,6 +255,7 @@ export async function createTestApplication(
 		issuedAt?: Date;
 		studentId: string;
 		reviewedAt?: Date;
+		semesterId?: string;
 		pageOffset?: number;
 		reviewedById?: string;
 		submissionCount?: number;
