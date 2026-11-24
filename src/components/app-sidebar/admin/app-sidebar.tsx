@@ -82,7 +82,7 @@ const data = {
 			]
 		},
 		{
-			label: "Concessions",
+			label: "Printing",
 			items: [
 				{
 					icon: BookOpen,
