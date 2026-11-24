@@ -4,6 +4,7 @@ dotenv.config({ path: ".env.test", override: true });
 import pg from "pg";
 import { auth } from "./test-auth";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { formatInTimeZone } from "date-fns-tz";
 import { PrismaClient } from "@/generated/prisma/client";
 import { setTestHeaders, clearTestHeaders } from "./headers-state";
 
@@ -246,6 +247,31 @@ export async function createTestBooklet(
 			status: overrides.status ?? "Available",
 			serialEndNumber: `0${start + totalPages - 1}`
 		}
+	});
+}
+
+export function createTestSemester(
+	prisma: PrismaClient,
+	{
+		term = "Odd",
+		endOffset = 30,
+		startOffset = -90
+	}: {
+		endOffset?: number;
+		startOffset?: number;
+		term?: "Odd" | "Even";
+	} = {}
+) {
+	const today = new Date(`${formatInTimeZone(new Date(), "Asia/Kolkata", "yyyy-MM-dd")}T00:00:00Z`);
+
+	const startDate = new Date(today);
+	startDate.setUTCDate(startDate.getUTCDate() + startOffset);
+
+	const endDate = new Date(today);
+	endDate.setUTCDate(endDate.getUTCDate() + endOffset);
+
+	return prisma.academicSemester.create({
+		data: { academicYearStart: startDate.getUTCFullYear(), term, startDate, endDate }
 	});
 }
 

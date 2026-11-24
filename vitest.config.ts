@@ -41,6 +41,7 @@ export default defineConfig({
 				"src/lib/application-order.ts",
 				"src/lib/pwa/version-utils.ts",
 				"src/lib/pwa/version-manager.ts",
+				"src/lib/concession-eligibility.ts",
 				"src/lib/notifications/scenarios.ts",
 				"src/lib/academic-semester-table.ts",
 				"src/lib/academic-semester-window.ts",

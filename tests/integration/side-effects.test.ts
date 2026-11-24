@@ -6,7 +6,8 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
-	seedReferenceData
+	seedReferenceData,
+	createTestSemester
 } from "./helpers";
 import {
 	assignBookletToConcession,
@@ -27,6 +28,7 @@ import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vites
 
 describe("Action Side Effects Integration", () => {
 	const { prisma, pool } = getTestPrisma();
+	let semesterId: string;
 
 	let adminUser: Awaited<ReturnType<typeof createTestAdmin>>;
 	let serialCounter = 0;
@@ -78,6 +80,7 @@ describe("Action Side Effects Integration", () => {
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
+		semesterId = (await createTestSemester(prisma)).id;
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 	});
 
@@ -191,8 +194,7 @@ describe("Action Side Effects Integration", () => {
 			await authenticateAs(user.id);
 
 			const res = await submitConcessionApplication({
-				studentId: user.id,
-				applicationType: "New",
+				expectedSemesterId: semesterId,
 				stationId: SEED.stations[0].id,
 				concessionClassId: SEED.concessionClasses[0].id,
 				concessionPeriodId: SEED.concessionPeriods[0].id

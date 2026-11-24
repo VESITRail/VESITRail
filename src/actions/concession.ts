@@ -19,16 +19,23 @@ import {
 	ConcessionApplicationTypeType,
 	ConcessionApplicationStatusType
 } from "@/generated/zod";
+import {
+	type ConcessionSubmission,
+	ConcessionSubmissionSchema,
+	ConcessionApplicationIdSchema
+} from "@/lib/validations/student/concession-submission";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getPaginationMeta } from "@/lib/pagination";
+import { calculateBookletStatus } from "@/lib/utils";
 import type { Prisma } from "@/generated/prisma/client";
 import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { requireAdmin, requireStudent } from "@/lib/auth-guard";
 import { sendConcessionNotification } from "@/lib/notifications";
 import { LATEST_APPLICATION_ORDER } from "@/lib/application-order";
-import { calculateBookletStatus, calculateConcessionValidity } from "@/lib/utils";
 import { lockStudentSubmission, SUBMISSION_LOCK_NAMESPACE } from "@/lib/advisory-lock";
+import { getConcessionEligibility, type ConcessionBlocker } from "@/lib/concession-eligibility";
+import { getAcademicSemesterApplicationOpening, getCollegeCalendarDate } from "@/lib/academic-semester-window";
 
 export type Concession =
 	| (Pick<
@@ -50,39 +57,25 @@ export type Concession =
 	  })
 	| null;
 
-export type ConcessionApplicationData = Pick<
-	ConcessionApplication,
-	"studentId" | "stationId" | "applicationType" | "concessionClassId" | "concessionPeriodId"
->;
+const studentConcessionSelect = {
+	id: true,
+	status: true,
+	shortId: true,
+	issuedAt: true,
+	createdAt: true,
+	reviewedAt: true,
+	applicationType: true,
+	rejectionReason: true,
+	submissionCount: true,
+	station: { select: { id: true, code: true, name: true } },
+	concessionClass: { select: { id: true, code: true, name: true } },
+	concessionPeriod: { select: { id: true, name: true, duration: true } }
+} satisfies Prisma.ConcessionApplicationSelect;
 
-const resolveRenewalPass = async (
-	studentId: string,
-	excludeApplicationId?: string
-): Promise<Result<string, ValidationError>> => {
-	const latestIssuedApplication = await prisma.concessionApplication.findFirst({
-		orderBy: LATEST_APPLICATION_ORDER,
-		include: { concessionPeriod: true },
-		where: { studentId, status: "Issued", ...(excludeApplicationId && { id: { not: excludeApplicationId } }) }
-	});
-
-	if (!latestIssuedApplication) {
-		return failure(
-			validationError(
-				"Renewal requires a previously issued concession pass. Please apply as a new concession instead",
-				"applicationType"
-			)
-		);
-	}
-
-	const issueDate = latestIssuedApplication.issuedAt ?? latestIssuedApplication.reviewedAt;
-	if (issueDate && calculateConcessionValidity(issueDate, latestIssuedApplication.concessionPeriod.duration).isValid) {
-		return failure(
-			validationError("Cannot apply for renewal while the previous concession pass is still active", "applicationType")
-		);
-	}
-
-	return success(latestIssuedApplication.id);
-};
+const studentConcessionWithPreviousSelect = {
+	...studentConcessionSelect,
+	previousApplication: { select: studentConcessionSelect }
+} satisfies Prisma.ConcessionApplicationSelect;
 
 export type PaginationParams = {
 	page: number;
@@ -130,72 +123,7 @@ export const getConcessions = async (
 			where: whereClause,
 			take: params.pageSize,
 			orderBy: LATEST_APPLICATION_ORDER,
-			select: {
-				id: true,
-				status: true,
-				shortId: true,
-				issuedAt: true,
-				createdAt: true,
-				reviewedAt: true,
-				applicationType: true,
-				rejectionReason: true,
-				submissionCount: true,
-				station: {
-					select: {
-						id: true,
-						code: true,
-						name: true
-					}
-				},
-				concessionClass: {
-					select: {
-						id: true,
-						code: true,
-						name: true
-					}
-				},
-				concessionPeriod: {
-					select: {
-						id: true,
-						name: true,
-						duration: true
-					}
-				},
-				previousApplication: {
-					select: {
-						id: true,
-						status: true,
-						shortId: true,
-						issuedAt: true,
-						createdAt: true,
-						reviewedAt: true,
-						applicationType: true,
-						rejectionReason: true,
-						submissionCount: true,
-						station: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						concessionClass: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						concessionPeriod: {
-							select: {
-								id: true,
-								name: true,
-								duration: true
-							}
-						}
-					}
-				}
-			}
+			select: studentConcessionWithPreviousSelect
 		});
 
 		const result: PaginatedResult<Concession> = {
@@ -224,38 +152,7 @@ export const getLastApplication = async (): Promise<Result<Concession, AuthError
 		const lastApplication = await prisma.concessionApplication.findFirst({
 			orderBy: LATEST_APPLICATION_ORDER,
 			where: { studentId: targetStudentId },
-			select: {
-				id: true,
-				status: true,
-				shortId: true,
-				issuedAt: true,
-				createdAt: true,
-				reviewedAt: true,
-				applicationType: true,
-				rejectionReason: true,
-				submissionCount: true,
-				station: {
-					select: {
-						id: true,
-						code: true,
-						name: true
-					}
-				},
-				concessionClass: {
-					select: {
-						id: true,
-						code: true,
-						name: true
-					}
-				},
-				concessionPeriod: {
-					select: {
-						id: true,
-						name: true,
-						duration: true
-					}
-				}
-			}
+			select: studentConcessionSelect
 		});
 
 		if (lastApplication?.status !== "Rejected") {
@@ -265,26 +162,75 @@ export const getLastApplication = async (): Promise<Result<Concession, AuthError
 		const latestIssuedApplication = await prisma.concessionApplication.findFirst({
 			orderBy: LATEST_APPLICATION_ORDER,
 			where: { studentId: targetStudentId, status: "Issued", id: { not: lastApplication.id } },
-			select: {
-				id: true,
-				status: true,
-				shortId: true,
-				issuedAt: true,
-				createdAt: true,
-				reviewedAt: true,
-				applicationType: true,
-				rejectionReason: true,
-				submissionCount: true,
-				station: { select: { id: true, code: true, name: true } },
-				concessionClass: { select: { id: true, code: true, name: true } },
-				concessionPeriod: { select: { id: true, name: true, duration: true } }
-			}
+			select: studentConcessionSelect
 		});
 
 		return success({ ...lastApplication, previousApplication: latestIssuedApplication });
 	} catch (error) {
 		console.error("Error while fetching application:", error);
 		return failure(databaseError("Failed to fetch application"));
+	}
+};
+
+async function readConcessionApplicationState(db: Prisma.TransactionClient, studentId: string) {
+	const today = getCollegeCalendarDate(new Date());
+
+	const nextSemester = await db.academicSemester.findFirst({
+		orderBy: { startDate: "asc" },
+		where: { endDate: { gte: today } },
+		select: { id: true, startDate: true, academicYearStart: true, term: true }
+	});
+
+	const latestApplication = await db.concessionApplication.findFirst({
+		where: { studentId },
+		orderBy: LATEST_APPLICATION_ORDER,
+		select: { id: true, status: true, rejectionReason: true }
+	});
+
+	const openingDate = nextSemester ? getAcademicSemesterApplicationOpening(nextSemester.startDate) : null;
+	const upcomingSemester =
+		nextSemester && openingDate && openingDate > today
+			? { academicYearStart: nextSemester.academicYearStart, term: nextSemester.term, openingDate }
+			: null;
+
+	const semester = nextSemester && !upcomingSemester ? { id: nextSemester.id } : null;
+	const applications = await db.concessionApplication.findMany({
+		where: {
+			studentId,
+			OR: [{ status: { in: ["Pending", "Approved", "Issued"] } }, ...(semester ? [{ semesterId: semester.id }] : [])]
+		},
+		orderBy: LATEST_APPLICATION_ORDER,
+		select: { ...studentConcessionSelect, semesterId: true }
+	});
+
+	const eligibility = getConcessionEligibility(applications, semester?.id ?? null);
+	const applicationType: ConcessionApplicationTypeType = eligibility.previousPass ? "Renewal" : "New";
+
+	return {
+		...eligibility,
+		semester,
+		applicationType,
+		upcomingSemester,
+		latestApplication
+	};
+}
+
+export type ConcessionApplicationState = Awaited<ReturnType<typeof readConcessionApplicationState>>;
+
+export const getConcessionApplicationState = async (): Promise<
+	Result<ConcessionApplicationState, AuthError | DatabaseError>
+> => {
+	const studentResult = await requireStudent();
+	if (!studentResult.isSuccess) return studentResult;
+
+	try {
+		const state = await prisma.$transaction((tx) => readConcessionApplicationState(tx, studentResult.data.studentId), {
+			isolationLevel: "RepeatableRead"
+		});
+		return success(state);
+	} catch (error) {
+		console.error("Error while fetching concession application state:", error);
+		return failure(databaseError("Failed to fetch application status"));
 	}
 };
 
@@ -590,426 +536,172 @@ export const getAllApplications = async (
 	}
 };
 
-export const submitConcessionApplication = async (
-	data: ConcessionApplicationData
-): Promise<Result<Concession, AuthError | DatabaseError | ValidationError>> => {
+async function submitStudentConcession(
+	data: ConcessionSubmission,
+	correction?: { applicationId: string }
+): Promise<Result<Concession, AuthError | DatabaseError | ValidationError>> {
 	const studentResult = await requireStudent();
 	if (!studentResult.isSuccess) return studentResult;
 
-	try {
-		const targetStudentId = studentResult.data.studentId;
-
-		const [station, concessionClass, concessionPeriod] = await Promise.all([
-			prisma.station.findFirst({
-				where: { id: data.stationId, isActive: true }
-			}),
-			prisma.concessionClass.findFirst({
-				where: { id: data.concessionClassId, isActive: true }
-			}),
-			prisma.concessionPeriod.findFirst({
-				where: { id: data.concessionPeriodId, isActive: true }
-			})
-		]);
-
-		if (!station) {
-			return failure(validationError("Selected station is currently unavailable", "stationId"));
-		}
-
-		if (!concessionClass) {
-			return failure(validationError("Selected concession class is currently unavailable", "concessionClassId"));
-		}
-
-		if (!concessionPeriod) {
-			return failure(validationError("Selected concession period is currently unavailable", "concessionPeriodId"));
-		}
-
-		const submission = await prisma.$transaction(async (tx): Promise<Result<Concession, ValidationError>> => {
-			await lockStudentSubmission(tx, SUBMISSION_LOCK_NAMESPACE.concession, targetStudentId);
-
-			const existingApplication = await tx.concessionApplication.findFirst({
-				where: {
-					studentId: targetStudentId
-				},
-				orderBy: LATEST_APPLICATION_ORDER,
-				include: {
-					concessionPeriod: true
-				}
-			});
-
-			if (existingApplication?.status === "Pending") {
-				return failure(validationError("You already have a concession application under review", "status"));
-			}
-
-			if (existingApplication?.status === "Approved") {
-				return failure(
-					validationError(
-						"You already have an approved concession application waiting to be issued at the counter",
-						"status"
-					)
-				);
-			}
-
-			if (existingApplication?.status === "Issued") {
-				const issueDate = existingApplication.issuedAt ?? existingApplication.reviewedAt;
-				if (issueDate) {
-					const validity = calculateConcessionValidity(issueDate, existingApplication.concessionPeriod.duration);
-					if (validity.isValid) {
-						return failure(
-							validationError(
-								"Cannot apply for a new concession while your current concession pass is still active",
-								"status"
-							)
-						);
-					}
-				}
-			}
-
-			let previousApplicationId: string | null = null;
-
-			if (data.applicationType === "Renewal") {
-				const renewalPass = await resolveRenewalPass(targetStudentId);
-				if (!renewalPass.isSuccess) return renewalPass;
-				previousApplicationId = renewalPass.data;
-			}
-
-			let application: Concession;
-
-			if (!existingApplication || existingApplication.status === "Issued") {
-				application = await tx.concessionApplication.create({
-					data: {
-						status: "Pending",
-						submissionCount: 1,
-						previousApplicationId,
-						stationId: data.stationId,
-						studentId: targetStudentId,
-						applicationType: data.applicationType,
-						concessionClassId: data.concessionClassId,
-						concessionPeriodId: data.concessionPeriodId
-					},
-					select: {
-						id: true,
-						status: true,
-						shortId: true,
-						issuedAt: true,
-						createdAt: true,
-						reviewedAt: true,
-						applicationType: true,
-						rejectionReason: true,
-						submissionCount: true,
-						station: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						concessionClass: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						concessionPeriod: {
-							select: {
-								id: true,
-								name: true,
-								duration: true
-							}
-						},
-						previousApplication: {
-							select: {
-								id: true,
-								status: true,
-								shortId: true,
-								issuedAt: true,
-								createdAt: true,
-								reviewedAt: true,
-								applicationType: true,
-								rejectionReason: true,
-								submissionCount: true,
-								station: {
-									select: {
-										id: true,
-										code: true,
-										name: true
-									}
-								},
-								concessionClass: {
-									select: {
-										id: true,
-										code: true,
-										name: true
-									}
-								},
-								concessionPeriod: {
-									select: {
-										id: true,
-										name: true,
-										duration: true
-									}
-								}
-							}
-						}
-					}
-				});
-			} else {
-				application = await tx.concessionApplication.update({
-					where: {
-						id: existingApplication.id
-					},
-					data: {
-						issuedAt: null,
-						reviewedAt: null,
-						status: "Pending",
-						reviewedById: null,
-						previousApplicationId,
-						rejectionReason: null,
-						stationId: data.stationId,
-						submissionCount: { increment: 1 },
-						applicationType: data.applicationType,
-						concessionClassId: data.concessionClassId,
-						concessionPeriodId: data.concessionPeriodId
-					},
-					select: {
-						id: true,
-						status: true,
-						shortId: true,
-						issuedAt: true,
-						createdAt: true,
-						reviewedAt: true,
-						applicationType: true,
-						rejectionReason: true,
-						submissionCount: true,
-						station: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						concessionClass: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						concessionPeriod: {
-							select: {
-								id: true,
-								name: true,
-								duration: true
-							}
-						},
-						previousApplication: {
-							select: {
-								id: true,
-								status: true,
-								shortId: true,
-								issuedAt: true,
-								createdAt: true,
-								reviewedAt: true,
-								applicationType: true,
-								rejectionReason: true,
-								submissionCount: true,
-								station: {
-									select: {
-										id: true,
-										code: true,
-										name: true
-									}
-								},
-								concessionClass: {
-									select: {
-										id: true,
-										code: true,
-										name: true
-									}
-								},
-								concessionPeriod: {
-									select: {
-										id: true,
-										name: true,
-										duration: true
-									}
-								}
-							}
-						}
-					}
-				});
-			}
-
-			return success(application);
-		});
-
-		if (!submission.isSuccess) return submission;
-
-		revalidatePath("/dashboard/student");
-
-		return success(submission.data);
-	} catch (error) {
-		console.error("Error while submitting application:", error);
-		return failure(databaseError("Failed to submit application"));
+	const parsed = ConcessionSubmissionSchema.safeParse(data);
+	if (!parsed.success) {
+		const issue = parsed.error.issues[0];
+		return failure(validationError(issue.message, issue.path[0]?.toString()));
 	}
-};
 
-export const submitConcessionResubmission = async (
-	applicationId: string,
-	data: Omit<ConcessionApplicationData, "studentId">
-): Promise<Result<Concession, AuthError | DatabaseError | ValidationError>> => {
-	const studentResult = await requireStudent();
-	if (!studentResult.isSuccess) return studentResult;
+	const correctionId = correction ? ConcessionApplicationIdSchema.safeParse(correction.applicationId) : null;
+	if (correctionId && !correctionId.success) {
+		return failure(validationError("Application not found", "applicationId"));
+	}
+
+	const studentId = studentResult.data.studentId;
+	const applicationId = correctionId?.data;
+	const { stationId, concessionClassId, concessionPeriodId, expectedSemesterId } = parsed.data;
 
 	try {
-		const existingApplication = await prisma.concessionApplication.findUnique({
-			where: { id: applicationId },
-			include: { student: true }
-		});
+		const submission = await prisma.$transaction(
+			async (tx): Promise<Result<Concession, AuthError | ValidationError>> => {
+				await lockStudentSubmission(tx, SUBMISSION_LOCK_NAMESPACE.concession, studentId);
 
-		if (!existingApplication) {
-			return failure(validationError("Application not found", "applicationId"));
-		}
+				const student = await tx.student.findUnique({
+					where: { userId: studentId },
+					select: { status: true, station: { select: { id: true, isActive: true } } }
+				});
+				if (student?.status !== "Approved") {
+					return failure(authError("Student account is not approved", "FORBIDDEN"));
+				}
 
-		if (existingApplication.studentId !== studentResult.data.studentId) {
-			return failure(authError("Unauthorized access to application", "FORBIDDEN"));
-		}
-
-		if (existingApplication.status !== "Rejected") {
-			return failure(validationError("Only rejected applications can be resubmitted", "status"));
-		}
-
-		if (existingApplication.student.status !== "Approved") {
-			return failure(authError("Student is not approved"));
-		}
-
-		const [station, concessionClass, concessionPeriod] = await Promise.all([
-			prisma.station.findFirst({
-				where: { id: data.stationId, isActive: true }
-			}),
-			prisma.concessionClass.findFirst({
-				where: { id: data.concessionClassId, isActive: true }
-			}),
-			prisma.concessionPeriod.findFirst({
-				where: { id: data.concessionPeriodId, isActive: true }
-			})
-		]);
-
-		if (!station) {
-			return failure(validationError("Selected station is currently unavailable", "stationId"));
-		}
-
-		if (!concessionClass) {
-			return failure(validationError("Selected concession class is currently unavailable", "concessionClassId"));
-		}
-
-		if (!concessionPeriod) {
-			return failure(validationError("Selected concession period is currently unavailable", "concessionPeriodId"));
-		}
-
-		let previousApplicationId: string | null = null;
-
-		if (data.applicationType === "Renewal") {
-			const renewalPass = await resolveRenewalPass(existingApplication.studentId, applicationId);
-			if (!renewalPass.isSuccess) return renewalPass;
-			previousApplicationId = renewalPass.data;
-		}
-
-		const updatedApplication = await prisma.concessionApplication.update({
-			where: { id: applicationId, status: "Rejected" },
-			data: {
-				issuedAt: null,
-				reviewedAt: null,
-				status: "Pending",
-				reviewedById: null,
-				previousApplicationId,
-				rejectionReason: null,
-				stationId: data.stationId,
-				submissionCount: { increment: 1 },
-				applicationType: data.applicationType,
-				concessionClassId: data.concessionClassId,
-				concessionPeriodId: data.concessionPeriodId
-			},
-			select: {
-				id: true,
-				status: true,
-				shortId: true,
-				issuedAt: true,
-				createdAt: true,
-				reviewedAt: true,
-				applicationType: true,
-				rejectionReason: true,
-				submissionCount: true,
-				station: {
-					select: {
-						id: true,
-						code: true,
-						name: true
+				if (applicationId) {
+					const requested = await tx.concessionApplication.findUnique({
+						where: { id: applicationId },
+						select: { studentId: true, status: true }
+					});
+					if (!requested) return failure(validationError("Application not found", "applicationId"));
+					if (requested.studentId !== studentId) {
+						return failure(authError("Unauthorized access to application", "FORBIDDEN"));
 					}
-				},
-				concessionClass: {
-					select: {
-						id: true,
-						code: true,
-						name: true
-					}
-				},
-				concessionPeriod: {
-					select: {
-						id: true,
-						name: true,
-						duration: true
-					}
-				},
-				previousApplication: {
-					select: {
-						id: true,
-						status: true,
-						shortId: true,
-						issuedAt: true,
-						createdAt: true,
-						reviewedAt: true,
-						applicationType: true,
-						rejectionReason: true,
-						submissionCount: true,
-						station: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						concessionClass: {
-							select: {
-								id: true,
-								code: true,
-								name: true
-							}
-						},
-						concessionPeriod: {
-							select: {
-								id: true,
-								name: true,
-								duration: true
-							}
-						}
+					if (requested.status !== "Rejected") {
+						return failure(validationError("Only rejected applications can be resubmitted", "status"));
 					}
 				}
+
+				await tx.$executeRaw`LOCK TABLE "AcademicSemester" IN SHARE MODE`;
+				const state = await readConcessionApplicationState(tx, studentId);
+				if (!state.semester) {
+					return failure(validationError("Concession applications are closed for the semester break", "semesterId"));
+				}
+
+				if (expectedSemesterId !== state.semester.id) {
+					return failure(
+						validationError("The application semester has changed. Review the current form and try again", "semesterId")
+					);
+				}
+
+				if (applicationId && state.correction?.id !== applicationId) {
+					return failure(
+						validationError("This rejected application is no longer eligible for resubmission", "applicationId")
+					);
+				}
+
+				if (state.blocker) {
+					const messages: Record<ConcessionBlocker["status"], string> = {
+						Pending: "You already have a concession application under review",
+						ActivePass: "Cannot apply while your current concession pass is still active",
+						UnverifiedPass: "Your issued application needs verification. Please contact support",
+						Approved: "You already have an approved concession application waiting to be issued at the counter"
+					};
+					return failure(validationError(messages[state.blocker.status], "status"));
+				}
+
+				if (!applicationId && state.correction) {
+					return failure(
+						validationError("Your application status has changed. Review the current form and try again", "status")
+					);
+				}
+
+				if (student.station.id !== stationId || !student.station.isActive) {
+					return failure(
+						validationError("Selected station is currently unavailable for your student profile", "stationId")
+					);
+				}
+
+				const concessionClass = await tx.concessionClass.findFirst({
+					select: { id: true },
+					where: { id: concessionClassId, isActive: true }
+				});
+
+				if (!concessionClass) {
+					return failure(validationError("Selected concession class is currently unavailable", "concessionClassId"));
+				}
+
+				const concessionPeriod = await tx.concessionPeriod.findFirst({
+					select: { id: true },
+					where: { id: concessionPeriodId, isActive: true }
+				});
+
+				if (!concessionPeriod) {
+					return failure(validationError("Selected concession period is currently unavailable", "concessionPeriodId"));
+				}
+
+				const details = {
+					stationId,
+					concessionClassId,
+					concessionPeriodId,
+					status: "Pending" as const,
+					applicationType: state.applicationType,
+					previousApplicationId: state.previousPass?.id ?? null
+				};
+				const application = state.correction
+					? await tx.concessionApplication.update({
+							where: { id: state.correction.id, studentId, status: "Rejected", semesterId: state.semester.id },
+							data: {
+								...details,
+								issuedAt: null,
+								reviewedAt: null,
+								reviewedById: null,
+								rejectionReason: null,
+								submissionCount: { increment: 1 }
+							},
+							select: studentConcessionWithPreviousSelect
+						})
+					: await tx.concessionApplication.create({
+							data: { ...details, studentId, semesterId: state.semester.id, submissionCount: 1 },
+							select: studentConcessionWithPreviousSelect
+						});
+
+				return success(application);
 			}
-		});
+		);
 
-		revalidatePath("/dashboard/student");
+		if (submission.isSuccess) revalidatePath("/dashboard/student");
 
-		return success(updatedApplication);
+		return submission;
 	} catch (error) {
 		if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
-			return failure(validationError("Only rejected applications can be resubmitted", "status"));
+			return failure(
+				validationError("Your application status has changed. Review the current form and try again", "status")
+			);
 		}
-
-		console.error("Error while resubmitting application:", error);
-		return failure(databaseError("Failed to resubmit application"));
+		console.error("Error while saving concession application:", error);
+		return failure(databaseError("Failed to save application"));
 	}
-};
+}
+
+export const submitConcessionApplication = async (data: ConcessionSubmission) => submitStudentConcession(data);
+
+export const submitConcessionResubmission = async (applicationId: string, data: ConcessionSubmission) =>
+	submitStudentConcession(data, { applicationId });
+
+async function findConcessionForUpdate(tx: Prisma.TransactionClient, applicationId: string) {
+	const owner = await tx.concessionApplication.findUnique({
+		select: { studentId: true },
+		where: { id: applicationId }
+	});
+	if (!owner) return null;
+
+	await lockStudentSubmission(tx, SUBMISSION_LOCK_NAMESPACE.concession, owner.studentId);
+	return tx.concessionApplication.findUnique({ where: { id: applicationId } });
+}
 
 export const reviewConcessionApplication = async (
 	applicationId: string,
@@ -1019,35 +711,37 @@ export const reviewConcessionApplication = async (
 	const adminResult = await requireAdmin();
 	if (!adminResult.isSuccess) return adminResult;
 
+	if (status !== "Approved" && status !== "Rejected") {
+		return failure(validationError("Select Approval or Rejection to review this application", "status"));
+	}
+
+	if (status === "Rejected" && (typeof rejectionReason !== "string" || !rejectionReason.trim())) {
+		return failure(validationError("Rejection reason is required when rejecting", "rejectionReason"));
+	}
+
 	try {
-		if (status === "Rejected" && (!rejectionReason || !rejectionReason.trim())) {
-			return failure(validationError("Rejection reason is required when rejecting", "rejectionReason"));
-		}
+		const result = await prisma.$transaction(async (tx) => {
+			const application = await findConcessionForUpdate(tx, applicationId);
 
-		const application = await prisma.concessionApplication.findUnique({
-			where: { id: applicationId }
-		});
-
-		if (!application) {
-			return failure(validationError("Application not found", "applicationId"));
-		}
-
-		if (status === "Approved" && application.status !== "Pending") {
-			return failure(validationError("Application has already been reviewed", "status"));
-		}
-
-		if (status === "Rejected") {
-			if (application.status === "Rejected") {
-				return failure(validationError("Application is already rejected", "status"));
+			if (!application) {
+				return failure(validationError("Application not found", "applicationId"));
 			}
-			if (!["Pending", "Approved", "Issued"].includes(application.status)) {
-				return failure(validationError("Cannot reject application with current status", "status"));
+
+			if (status === "Approved" && application.status !== "Pending") {
+				return failure(validationError("Application has already been reviewed", "status"));
 			}
-		}
 
-		const bookletId = application.concessionBookletId;
+			if (status === "Rejected") {
+				if (application.status === "Rejected") {
+					return failure(validationError("Application is already rejected", "status"));
+				}
+				if (!["Pending", "Approved", "Issued"].includes(application.status)) {
+					return failure(validationError("Cannot reject application with current status", "status"));
+				}
+			}
 
-		const updatedApplication = await prisma.$transaction(async (tx) => {
+			const bookletId = application.concessionBookletId;
+
 			const updated = await tx.concessionApplication.update({
 				where: { id: applicationId, status: application.status },
 				data: {
@@ -1101,15 +795,18 @@ export const reviewConcessionApplication = async (
 				}
 			}
 
-			return updated;
+			return success({ updated, bookletId });
 		});
 
+		if (!result.isSuccess) return result;
+		const { updated, bookletId } = result.data;
+
 		sendConcessionNotification(
-			application.studentId,
+			updated.studentId,
 			applicationId,
 			status === "Approved",
-			application.applicationType,
-			rejectionReason
+			updated.applicationType,
+			updated.rejectionReason ?? undefined
 		).catch((error) => {
 			console.error("Failed to send concession notification:", error);
 		});
@@ -1120,7 +817,7 @@ export const reviewConcessionApplication = async (
 			revalidatePath(`/dashboard/admin/booklets/${bookletId}`);
 		}
 
-		return success(updatedApplication);
+		return success(updated);
 	} catch (error) {
 		if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
 			return failure(validationError("Application has already been reviewed", "status"));
@@ -1153,9 +850,7 @@ export const assignBookletToConcession = async (
 		const verifiedAdminId = adminResult.data.userId;
 
 		const result = await prisma.$transaction(async (tx) => {
-			const application = await tx.concessionApplication.findUnique({
-				where: { id: applicationId }
-			});
+			const application = await findConcessionForUpdate(tx, applicationId);
 
 			if (!application) {
 				throw new Error("Application not found");
@@ -1317,9 +1012,7 @@ export const reprintConcessionApplication = async (
 		const verifiedAdminId = adminResult.data.userId;
 
 		const result = await prisma.$transaction(async (tx) => {
-			const application = await tx.concessionApplication.findUnique({
-				where: { id: applicationId }
-			});
+			const application = await findConcessionForUpdate(tx, applicationId);
 
 			if (!application) {
 				throw new Error("Application not found");
@@ -1504,41 +1197,44 @@ export const updateConcessionIssueDate = async (
 
 	try {
 		const parsedDate = typeof issueDate === "string" ? new Date(issueDate) : issueDate;
-		if (isNaN(parsedDate.getTime())) {
+		if (!(parsedDate instanceof Date) || Number.isNaN(parsedDate.getTime())) {
 			return failure(validationError("Invalid issue date provided", "issueDate"));
 		}
 
-		const application = await prisma.concessionApplication.findUnique({
-			where: { id: applicationId },
-			select: { id: true, status: true, concessionBookletId: true, createdAt: true }
-		});
+		const result = await prisma.$transaction(async (tx) => {
+			const application = await findConcessionForUpdate(tx, applicationId);
 
-		if (!application) {
-			return failure(validationError("Application not found", "applicationId"));
-		}
-
-		if (application.status !== "Issued") {
-			return failure(validationError("Only issued applications can have their issue date updated", "status"));
-		}
-
-		const updatedApplication = await prisma.concessionApplication.update({
-			where: { id: applicationId },
-			data: {
-				issuedAt: parsedDate
-			},
-			include: {
-				concessionClass: {
-					select: { id: true, code: true, name: true }
-				},
-				concessionPeriod: {
-					select: { id: true, name: true, duration: true }
-				}
+			if (!application) {
+				return failure(validationError("Application not found", "applicationId"));
 			}
+
+			if (application.status !== "Issued") {
+				return failure(validationError("Only issued applications can have their issue date updated", "status"));
+			}
+
+			const updatedApplication = await tx.concessionApplication.update({
+				where: { id: applicationId, status: "Issued" },
+				data: {
+					issuedAt: parsedDate
+				},
+				include: {
+					concessionClass: {
+						select: { id: true, code: true, name: true }
+					},
+					concessionPeriod: {
+						select: { id: true, name: true, duration: true }
+					}
+				}
+			});
+
+			return success(updatedApplication);
 		});
+		if (!result.isSuccess) return result;
+		const updatedApplication = result.data;
 
 		revalidatePath("/dashboard/admin");
-		if (application.concessionBookletId) {
-			revalidatePath(`/dashboard/admin/booklets/${application.concessionBookletId}`);
+		if (updatedApplication.concessionBookletId) {
+			revalidatePath(`/dashboard/admin/booklets/${updatedApplication.concessionBookletId}`);
 		}
 		revalidatePath("/dashboard/student/apply-concession");
 
