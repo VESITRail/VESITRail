@@ -34,6 +34,7 @@ export default defineConfig({
 				"src/lib/time-range.ts",
 				"src/lib/pwa/config.ts",
 				"src/lib/auth-hooks.ts",
+				"src/lib/posthog-logs.ts",
 				"src/lib/github-client.ts",
 				"src/lib/booklet-serial.ts",
 				"src/lib/validations/**/*.ts",

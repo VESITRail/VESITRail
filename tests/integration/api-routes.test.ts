@@ -1,9 +1,15 @@
 import { auth } from "./test-auth";
 import { NextRequest } from "next/server";
+import { emitServerLog } from "@/lib/posthog-logs";
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import { GET as githubGET } from "@/app/api/github/route";
 import { GET as authGET } from "@/app/api/auth/[...all]/route";
 import { getTestPrisma, cleanAllTables, createTestUser } from "./helpers";
 import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from "vitest";
+
+vi.mock(import("@/lib/posthog-logs"), () => ({
+	emitServerLog: vi.fn()
+}));
 
 const githubResponse = (data: unknown, status = 200) =>
 	new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
@@ -48,6 +54,17 @@ describe("API Routes Integration", () => {
 			expect(res.status).toBe(200);
 			expect(await res.json()).toEqual({ stars: 128 });
 			expect(res.headers.get("Cache-Control")).toBe("public, s-maxage=3600, stale-while-revalidate=7200");
+			expect(emitServerLog).toHaveBeenCalledExactlyOnceWith({
+				severityText: "INFO",
+				severityNumber: SeverityNumber.INFO,
+				body: "GitHub API request completed",
+				attributes: {
+					"http.route": "/api/github",
+					"github.operation": "stars",
+					"http.request.method": "GET",
+					"http.response.status_code": 200
+				}
+			});
 			expect(fetchMock).toHaveBeenCalledWith(
 				"https://api.github.com/repos/VESITRail/VESITRail",
 				expect.objectContaining({ headers: expect.objectContaining({ Accept: "application/vnd.github.v3+json" }) })
@@ -143,7 +160,7 @@ describe("API Routes Integration", () => {
 			expect(await res.json()).toEqual([]);
 		});
 
-		it.each([undefined, "unknown"])("returns 400 for type %s", async (type) => {
+		it.each([undefined, "unknown", "student%40example.test"])("returns 400 for type %s", async (type) => {
 			stubGitHub({});
 
 			const res = await githubGET(githubRequest(type));
@@ -151,6 +168,7 @@ describe("API Routes Integration", () => {
 			expect(res.status).toBe(400);
 			expect(await res.json()).toEqual({ error: "Invalid type parameter" });
 			expect(fetchMock).not.toHaveBeenCalled();
+			expect(emitServerLog).not.toHaveBeenCalled();
 		});
 
 		it.each([
@@ -163,6 +181,17 @@ describe("API Routes Integration", () => {
 
 			expect(res.status).toBe(500);
 			expect(await res.json()).toEqual({ error: "Failed to fetch data from GitHub" });
+			expect(emitServerLog).toHaveBeenCalledExactlyOnceWith({
+				severityText: "ERROR",
+				body: "GitHub API request completed",
+				severityNumber: SeverityNumber.ERROR,
+				attributes: {
+					"github.operation": type,
+					"http.route": "/api/github",
+					"http.request.method": "GET",
+					"http.response.status_code": 500
+				}
+			});
 		});
 	});
 

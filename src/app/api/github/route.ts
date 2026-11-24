@@ -9,7 +9,9 @@ import {
 	type GitHubContributorStats
 } from "@/lib/github/transform";
 import { unstable_cache } from "next/cache";
+import { emitServerLog } from "@/lib/posthog-logs";
 import { NextRequest, NextResponse } from "next/server";
+import { SeverityNumber } from "@opentelemetry/api-logs";
 
 const REPO_NAME = "VESITRail";
 const REPO_OWNER = "VESITRail";
@@ -97,10 +99,7 @@ const getCachedContributors = unstable_cache(
 	}
 );
 
-export async function GET(request: NextRequest) {
-	const searchParams = request.nextUrl.searchParams;
-	const type = searchParams.get("type");
-
+async function getGitHubResponse(type: keyof typeof CACHE_DURATIONS) {
 	try {
 		if (type === "stars") {
 			const stars = await getCachedStars();
@@ -129,19 +128,39 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		if (type === "contributors") {
-			const contributors = await getCachedContributors();
+		const contributors = await getCachedContributors();
 
-			return NextResponse.json(contributors, {
-				headers: {
-					"Cache-Control": `public, s-maxage=${CACHE_DURATIONS.contributors}, stale-while-revalidate=${CACHE_DURATIONS.contributors * 2}`
-				}
-			});
-		}
-
-		return NextResponse.json({ error: "Invalid type parameter" }, { status: 400 });
+		return NextResponse.json(contributors, {
+			headers: {
+				"Cache-Control": `public, s-maxage=${CACHE_DURATIONS.contributors}, stale-while-revalidate=${CACHE_DURATIONS.contributors * 2}`
+			}
+		});
 	} catch (error) {
 		console.error("GitHub API error:", error);
 		return NextResponse.json({ error: "Failed to fetch data from GitHub" }, { status: 500 });
 	}
+}
+
+export async function GET(request: NextRequest) {
+	const type = request.nextUrl.searchParams.get("type");
+	if (type !== "stars" && type !== "release" && type !== "contributors") {
+		return NextResponse.json({ error: "Invalid type parameter" }, { status: 400 });
+	}
+
+	const response = await getGitHubResponse(type);
+	const failed = response.status >= 500;
+
+	emitServerLog({
+		body: "GitHub API request completed",
+		severityText: failed ? "ERROR" : "INFO",
+		severityNumber: failed ? SeverityNumber.ERROR : SeverityNumber.INFO,
+		attributes: {
+			"github.operation": type,
+			"http.route": "/api/github",
+			"http.request.method": "GET",
+			"http.response.status_code": response.status
+		}
+	});
+
+	return response;
 }

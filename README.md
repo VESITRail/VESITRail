@@ -154,6 +154,12 @@ _A modern web application for VESIT students to apply for and manage railway con
 
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### PostHog Server Logs
+
+Set `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` to the Cloud project token beginning with `phc_`. The server uses the same token as browser analytics and skips log export when the value is missing or has an invalid format.
+
+To verify delivery, request `/api/github?type=stars` on the running app and search [PostHog Logs](https://app.posthog.com/logs) for `GitHub API request completed` with `service.name=vesitrail`. These records include the route, method, GitHub operation, and response status.
+
 ---
 
 ## Testing & Quality Assurance
