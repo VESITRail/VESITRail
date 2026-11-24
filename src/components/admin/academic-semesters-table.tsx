@@ -294,8 +294,8 @@ export default function AcademicSemestersTable({
 											<TableHead
 												scope="col"
 												key={header.id}
+												className="h-12 text-center px-4"
 												style={{ width: header.getSize() }}
-												className="font-semibold h-12 text-center px-4"
 												aria-sort={sort === "asc" ? "ascending" : sort === "desc" ? "descending" : undefined}
 											>
 												{isLoading ? (
@@ -304,7 +304,7 @@ export default function AcademicSemestersTable({
 													<Button
 														type="button"
 														variant="ghost"
-														className="h-auto py-2 font-semibold"
+														className="h-auto py-2"
 														onClick={header.column.getToggleSortingHandler()}
 														aria-label={`${String(header.column.columnDef.header)} (sort current page)`}
 													>

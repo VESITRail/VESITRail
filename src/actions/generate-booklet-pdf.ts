@@ -103,9 +103,9 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 		};
 
 		const tableDataPromises = allItems.map(async (item) => {
-			if (isDamagedPage(item)) {
-				const serialNo = getBookletSerialNo(item.serialNumber);
+			const serialNo = getBookletSerialNo(item) ?? "-";
 
+			if (isDamagedPage(item)) {
 				return [
 					serialNo,
 					"-",
@@ -119,7 +119,6 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 			} else {
 				const currentPassNo = await getCurrentPassNo(item);
 				const certificateNo = item.derivedCertificateNo || "Pending";
-				const serialNo = getBookletSerialNo(certificateNo);
 
 				const fullName = [item.student.firstName, item.student.middleName, item.student.lastName]
 					.filter(Boolean)
@@ -148,7 +147,6 @@ export const generateBookletPDF = async (bookletId: string): Promise<Result<stri
 		});
 
 		const tableData = await Promise.all(tableDataPromises);
-		tableData.sort((a, b) => Number(a[0]) - Number(b[0]));
 
 		autoTable(doc, {
 			head: [

@@ -136,22 +136,21 @@ describe("Semester-aware concession applications", () => {
 		});
 	});
 
-	it.each(["prior semester", "unassigned"])("opens a new application with only %s history", async (history) => {
+	it("opens a new application with only prior-semester history", async () => {
 		const prior = await createTestSemester(prisma, { startOffset: -180, endOffset: -20 });
 		const current = await createTestSemester(prisma, { startOffset: 7, endOffset: 80, term: "Even" });
 
-		const oldSemesterId = history === "prior semester" ? prior.id : undefined;
 		const oldPass = await createTestApplication(prisma, {
 			studentId,
 			status: "Issued",
-			issuedAt: prior.startDate,
-			semesterId: oldSemesterId
+			semesterId: prior.id,
+			issuedAt: prior.startDate
 		});
 
 		const oldRejection = await createTestApplication(prisma, {
 			studentId,
 			status: "Rejected",
-			semesterId: oldSemesterId,
+			semesterId: prior.id,
 			applicationType: "Renewal",
 			rejectionReason: "Unreadable pass"
 		});
@@ -239,7 +238,8 @@ describe("Semester-aware concession applications", () => {
 	);
 
 	it("derives Renewal and the history pass from the latest issued application in the open semester", async () => {
-		const semester = await createTestSemester(prisma);
+		const prior = await createTestSemester(prisma, { startOffset: -240, endOffset: -98 });
+		const semester = await createTestSemester(prisma, { term: "Even" });
 		const oldIssueDate = semester.startDate;
 
 		await createTestApplication(prisma, {
@@ -257,7 +257,12 @@ describe("Semester-aware concession applications", () => {
 			applicationType: "Renewal"
 		});
 
-		await createTestApplication(prisma, { studentId, status: "Issued", issuedAt: oldIssueDate });
+		await createTestApplication(prisma, {
+			studentId,
+			status: "Issued",
+			semesterId: prior.id,
+			issuedAt: prior.startDate
+		});
 		await authenticateAs(studentId);
 
 		expect(await getConcessionApplicationState()).toMatchObject({

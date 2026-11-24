@@ -1292,7 +1292,7 @@ const AddressChangeRequestsTable = ({
 								{table.getHeaderGroups().map((headerGroup) => (
 									<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
 										{headerGroup.headers.map((header) => (
-											<TableHead key={header.id} className="font-semibold h-12 text-center px-4">
+											<TableHead key={header.id} className="h-12 text-center px-4">
 												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 											</TableHead>
 										))}
@@ -1309,7 +1309,7 @@ const AddressChangeRequestsTable = ({
 								{table.getHeaderGroups().map((headerGroup) => (
 									<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
 										{headerGroup.headers.map((header) => (
-											<TableHead key={header.id} className="font-semibold h-12 text-center px-4">
+											<TableHead key={header.id} className="h-12 text-center px-4">
 												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 											</TableHead>
 										))}

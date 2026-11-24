@@ -6,7 +6,8 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
-	seedReferenceData
+	seedReferenceData,
+	createTestSemester
 } from "./helpers";
 import {
 	getBooklet,
@@ -30,10 +31,12 @@ describe("Booklets Integration", () => {
 	let adminUser: any;
 	let studentUser: any;
 	let seededBooklet: any;
+	let semesterId: string;
 
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
+		semesterId = (await createTestSemester(prisma)).id;
 
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 		studentUser = await createTestStudent(prisma, { status: "Approved" });
@@ -260,6 +263,7 @@ describe("Booklets Integration", () => {
 
 			await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					pageOffset: 0,
 					status: "Issued",
 					applicationType: "New",
@@ -337,6 +341,7 @@ describe("Booklets Integration", () => {
 
 			testApp1 = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					pageOffset: 0,
 					status: "Issued",
 					applicationType: "New",
@@ -350,6 +355,7 @@ describe("Booklets Integration", () => {
 
 			testApp2 = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					pageOffset: 2,
 					status: "Issued",
 					applicationType: "New",
@@ -363,6 +369,7 @@ describe("Booklets Integration", () => {
 
 			testApp3 = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					pageOffset: 3,
 					status: "Issued",
 					applicationType: "Renewal",
@@ -389,12 +396,13 @@ describe("Booklets Integration", () => {
 			expect(res.isSuccess).toBe(true);
 			if (res.isSuccess) {
 				expect(res.data.booklet.id).toBe(testBooklet.id);
-				expect(res.data.totalCount).toBeGreaterThanOrEqual(4);
-
-				const damagedPage = res.data.data.find(
-					(item) => "isDamaged" in item && item.isDamaged === true && item.pageNumber === 2
-				);
-				expect(damagedPage).toBeDefined();
+				expect(res.data.totalCount).toBe(4);
+				expect(res.data.data).toMatchObject([
+					{ id: testApp1.id, derivedSerialNumber: 1, derivedCertificateNo: "0960000" },
+					{ isDamaged: true, pageNumber: 2, serialNumber: "0960001" },
+					{ id: testApp2.id, derivedSerialNumber: 3, derivedCertificateNo: "0960002" },
+					{ id: testApp3.id, derivedSerialNumber: 4, derivedCertificateNo: "0960003" }
+				]);
 			}
 		});
 
@@ -509,6 +517,7 @@ describe("Booklets Integration", () => {
 
 			appA = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					pageOffset: 0,
 					status: "Issued",
 					applicationType: "New",
@@ -522,6 +531,7 @@ describe("Booklets Integration", () => {
 
 			appB = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					pageOffset: 1,
 					status: "Issued",
 					applicationType: "New",

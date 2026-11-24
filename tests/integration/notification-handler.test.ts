@@ -1,11 +1,18 @@
 import {
+	SEED,
+	getTestPrisma,
+	cleanAllTables,
+	createTestStudent,
+	seedReferenceData,
+	createTestSemester
+} from "./helpers";
+import {
 	sendNotification,
 	sendConcessionNotification,
 	sendAddressChangeNotification,
 	sendStudentAccountNotification
 } from "@/lib/notifications/handler";
 import { getNotificationScenario } from "@/lib/notifications/scenarios";
-import { SEED, getTestPrisma, cleanAllTables, createTestStudent, seedReferenceData } from "./helpers";
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vitest";
 
 const { sendMail, sendEachForMulticast } = vi.hoisted(() => ({
@@ -25,8 +32,9 @@ vi.mock("firebase-admin/messaging", () => ({
 describe("Notification Handler Integration", () => {
 	const { prisma, pool } = getTestPrisma();
 
-	let approvedStudent: Awaited<ReturnType<typeof createTestStudent>>;
+	let semesterId: string;
 	let pendingStudent: Awaited<ReturnType<typeof createTestStudent>>;
+	let approvedStudent: Awaited<ReturnType<typeof createTestStudent>>;
 
 	const scenario = (id: string) => getNotificationScenario(id)!;
 
@@ -45,6 +53,7 @@ describe("Notification Handler Integration", () => {
 		prisma.concessionApplication.create({
 			data: {
 				studentId,
+				semesterId,
 				applicationType,
 				status: "Pending",
 				submissionCount: 1,
@@ -57,6 +66,7 @@ describe("Notification Handler Integration", () => {
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
+		semesterId = (await createTestSemester(prisma)).id;
 
 		approvedStudent = await createTestStudent(prisma, { status: "Approved", name: "Approved Student" });
 		pendingStudent = await createTestStudent(prisma, { status: "Pending", name: "Pending Student" });

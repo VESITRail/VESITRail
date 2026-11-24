@@ -117,8 +117,6 @@ describe("Academic semester actions", () => {
 		for (const status of ["Pending", "Approved", "Rejected", "Issued"] as const) {
 			await createTestApplication(prisma, { studentId: student.userId, semesterId: even.id, status });
 		}
-		await createTestApplication(prisma, { studentId: student.userId, status: "Pending" });
-
 		const { data } = unwrap(await getPaginatedAcademicSemesters({ page: 1, searchQuery: "", term: "all" }));
 		expect(data).toEqual([odd, { ...even, _count: { applications: 4 } }]);
 	});

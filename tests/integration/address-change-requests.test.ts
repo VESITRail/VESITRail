@@ -6,6 +6,7 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
+	createTestSemester,
 	seedReferenceData
 } from "./helpers";
 import {
@@ -20,6 +21,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 
 	let adminUser: any;
 	let studentUser: any;
+	let semesterId: string;
 	let pendingRequest: any;
 
 	const createPendingRequest = () =>
@@ -39,6 +41,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
+		semesterId = (await createTestSemester(prisma)).id;
 
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 	});
@@ -327,6 +330,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 
 			const pendingApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Pending",
 					applicationType: "New",
 					studentId: studentUser.user.id,
@@ -338,6 +342,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 
 			const approvedApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Approved",
 					applicationType: "New",
 					studentId: studentUser.user.id,
@@ -349,6 +354,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 
 			const issuedApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Issued",
 					applicationType: "New",
 					studentId: studentUser.user.id,
@@ -360,6 +366,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 
 			const rejectedApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Rejected",
 					applicationType: "New",
 					studentId: studentUser.user.id,
@@ -371,6 +378,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 
 			const otherStudentPendingApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Pending",
 					applicationType: "New",
 					stationId: SEED.stations[0].id,
@@ -445,6 +453,7 @@ describe("Address Change Requests (Admin) Integration", () => {
 
 			const studentPendingApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Pending",
 					applicationType: "New",
 					studentId: studentUser.user.id,

@@ -182,15 +182,15 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 									<Table className="min-w-full h-full">
 										<TableHeader className="sticky top-0 bg-card z-10">
 											<TableRow className="hover:bg-transparent border-border/50">
-												<TableHead className="font-semibold h-12 text-center px-3 w-16">Sr. No.</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-16">ID</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-20">Type</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-20">Status</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-20">Class</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-20">Period</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-28">Home Station</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-24">Applied Date</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-36">Certificate / Reason</TableHead>
+												<TableHead className="h-12 text-center px-3 w-16">Sr. No.</TableHead>
+												<TableHead className="h-12 text-center px-3 w-16">ID</TableHead>
+												<TableHead className="h-12 text-center px-3 w-20">Type</TableHead>
+												<TableHead className="h-12 text-center px-3 w-20">Status</TableHead>
+												<TableHead className="h-12 text-center px-3 w-20">Class</TableHead>
+												<TableHead className="h-12 text-center px-3 w-20">Period</TableHead>
+												<TableHead className="h-12 text-center px-3 w-28">Home Station</TableHead>
+												<TableHead className="h-12 text-center px-3 w-24">Applied Date</TableHead>
+												<TableHead className="h-12 text-center px-3 w-36">Certificate / Reason</TableHead>
 											</TableRow>
 										</TableHeader>
 
@@ -252,15 +252,15 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 							<Table className="min-w-full">
 								<TableHeader className="bg-card">
 									<TableRow className="hover:bg-transparent border-border/50">
-										<TableHead className="font-semibold h-12 text-center px-3 w-16">Sr. No.</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-3 w-16">ID</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-3 w-20">Type</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-3 w-20">Status</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-3 w-20">Class</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-3 w-20">Period</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-3 w-28">Home Station</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-3 w-24">Applied Date</TableHead>
-										<TableHead className="font-semibold h-12 text-center px-3 w-36">Certificate / Reason</TableHead>
+										<TableHead className="h-12 text-center px-3 w-16">Sr. No.</TableHead>
+										<TableHead className="h-12 text-center px-3 w-16">ID</TableHead>
+										<TableHead className="h-12 text-center px-3 w-20">Type</TableHead>
+										<TableHead className="h-12 text-center px-3 w-20">Status</TableHead>
+										<TableHead className="h-12 text-center px-3 w-20">Class</TableHead>
+										<TableHead className="h-12 text-center px-3 w-20">Period</TableHead>
+										<TableHead className="h-12 text-center px-3 w-28">Home Station</TableHead>
+										<TableHead className="h-12 text-center px-3 w-24">Applied Date</TableHead>
+										<TableHead className="h-12 text-center px-3 w-36">Certificate / Reason</TableHead>
 									</TableRow>
 								</TableHeader>
 							</Table>
@@ -277,15 +277,15 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 									<Table className="min-w-full h-full">
 										<TableHeader className="sticky top-0 bg-card z-10">
 											<TableRow className="hover:bg-transparent border-border/50">
-												<TableHead className="font-semibold h-12 text-center px-3 w-16">Sr. No.</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-16">ID</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-20">Type</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-20">Status</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-20">Class</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-20">Period</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-28">Home Station</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-24">Applied Date</TableHead>
-												<TableHead className="font-semibold h-12 text-center px-3 w-36">Certificate / Reason</TableHead>
+												<TableHead className="h-12 text-center px-3 w-16">Sr. No.</TableHead>
+												<TableHead className="h-12 text-center px-3 w-16">ID</TableHead>
+												<TableHead className="h-12 text-center px-3 w-20">Type</TableHead>
+												<TableHead className="h-12 text-center px-3 w-20">Status</TableHead>
+												<TableHead className="h-12 text-center px-3 w-20">Class</TableHead>
+												<TableHead className="h-12 text-center px-3 w-20">Period</TableHead>
+												<TableHead className="h-12 text-center px-3 w-28">Home Station</TableHead>
+												<TableHead className="h-12 text-center px-3 w-24">Applied Date</TableHead>
+												<TableHead className="h-12 text-center px-3 w-36">Certificate / Reason</TableHead>
 											</TableRow>
 										</TableHeader>
 

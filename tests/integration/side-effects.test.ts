@@ -39,6 +39,7 @@ describe("Action Side Effects Integration", () => {
 		prisma.concessionApplication.create({
 			data: {
 				studentId,
+				semesterId,
 				applicationType,
 				status: "Pending",
 				submissionCount: 1,

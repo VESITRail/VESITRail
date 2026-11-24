@@ -6,12 +6,19 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
-	seedReferenceData
+	seedReferenceData,
+	createTestSemester
 } from "./helpers";
+import autoTable from "jspdf-autotable";
 import { generateBookletPDF } from "@/actions/generate-booklet-pdf";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { generateSampleOverlayPDF } from "@/actions/generate-sample-overlay-pdf";
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vitest";
+
+vi.mock(import("jspdf-autotable"), async (importOriginal) => {
+	const original = await importOriginal();
+	return { ...original, default: vi.fn(original.default) };
+});
 
 const mockLayout = {
 	left: {
@@ -51,6 +58,7 @@ describe("PDF Generation Integration", () => {
 	let booklet: any;
 	let adminUser: any;
 	let studentUser: any;
+	let semesterId: string;
 	let issuedApplication: any;
 	let renewalApplication: any;
 
@@ -58,6 +66,7 @@ describe("PDF Generation Integration", () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
 
+		semesterId = (await createTestSemester(prisma)).id;
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 		studentUser = await createTestStudent(prisma, { status: "Approved" });
 
@@ -67,13 +76,14 @@ describe("PDF Generation Integration", () => {
 				anchorY: 0,
 				totalPages: 50,
 				status: "InUse",
-				serialEndNumber: "0807599",
-				serialStartNumber: "0807550"
+				serialEndNumber: "B0647248",
+				serialStartNumber: "B0647199"
 			}
 		});
 
 		issuedApplication = await prisma.concessionApplication.create({
 			data: {
+				semesterId,
 				pageOffset: 0,
 				status: "Issued",
 				issuedAt: new Date(),
@@ -90,7 +100,8 @@ describe("PDF Generation Integration", () => {
 
 		renewalApplication = await prisma.concessionApplication.create({
 			data: {
-				pageOffset: 1,
+				semesterId,
+				pageOffset: 2,
 				status: "Issued",
 				issuedAt: new Date(),
 				reviewedAt: new Date(),
@@ -137,6 +148,12 @@ describe("PDF Generation Integration", () => {
 			if (res.isSuccess) {
 				expect(res.data).toContain("data:application/pdf;base64,");
 			}
+			const tableRows = vi.mocked(autoTable).mock.calls[0]?.[1].body;
+			expect(tableRows?.map((row) => (Array.isArray(row) ? [row[0], row[2]] : null))).toEqual([
+				[1, "B0647199"],
+				[2, "B0647200"],
+				[3, "B0647201"]
+			]);
 		});
 	});
 
@@ -156,6 +173,7 @@ describe("PDF Generation Integration", () => {
 		it("returns error when application has no booklet assigned", async () => {
 			const unassignedApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Approved",
 					applicationType: "New",
 					studentId: studentUser.user.id,

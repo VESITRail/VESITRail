@@ -879,7 +879,7 @@ const createColumns = (
 		cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
 		header: () => {
 			return (
-				<Button variant="ghost" className="h-auto py-2 font-semibold" onClick={() => onSortChange("status")}>
+				<Button variant="ghost" className="h-auto py-2" onClick={() => onSortChange("status")}>
 					Status
 					<ArrowUpDown className="ml-2 size-4" />
 				</Button>
@@ -891,7 +891,7 @@ const createColumns = (
 		accessorKey: "createdAt",
 		header: () => {
 			return (
-				<Button variant="ghost" className="h-auto py-2 font-semibold" onClick={() => onSortChange("createdAt")}>
+				<Button variant="ghost" className="h-auto py-2" onClick={() => onSortChange("createdAt")}>
 					Applied Date
 					<ArrowUpDown className="ml-2 size-4" />
 				</Button>
@@ -1208,25 +1208,25 @@ const StudentsTable = ({
 						<Table>
 							<TableHeader className="sticky top-0 bg-card z-10">
 								<TableRow className="hover:bg-transparent border-border/50">
-									<TableHead className="font-semibold h-12 text-center px-4 w-20">
+									<TableHead className="h-12 text-center px-4 w-20">
 										<Skeleton className="h-4 w-12 mx-auto" />
 									</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4 w-50">
+									<TableHead className="h-12 text-center px-4 w-50">
 										<Skeleton className="h-4 w-16 mx-auto" />
 									</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
+									<TableHead className="h-12 text-center px-4 w-37.5">
 										<Skeleton className="h-4 w-24 mx-auto" />
 									</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4 w-45">
+									<TableHead className="h-12 text-center px-4 w-45">
 										<Skeleton className="h-4 w-16 mx-auto" />
 									</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4 w-30">
+									<TableHead className="h-12 text-center px-4 w-30">
 										<Skeleton className="h-4 w-14 mx-auto" />
 									</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4 w-37.5">
+									<TableHead className="h-12 text-center px-4 w-37.5">
 										<Skeleton className="h-4 w-20 mx-auto" />
 									</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4 w-25">
+									<TableHead className="h-12 text-center px-4 w-25">
 										<Skeleton className="h-4 w-14 mx-auto" />
 									</TableHead>
 								</TableRow>
@@ -1307,7 +1307,7 @@ const StudentsTable = ({
 												<TableHead
 													key={header.id}
 													style={{ width: header.getSize() }}
-													className="font-semibold h-12 text-center px-4"
+													className="h-12 text-center px-4"
 												>
 													{header.isPlaceholder
 														? null
@@ -1339,11 +1339,7 @@ const StudentsTable = ({
 								{table.getHeaderGroups().map((headerGroup) => (
 									<TableRow key={headerGroup.id} className="hover:bg-transparent border-border/50">
 										{headerGroup.headers.map((header) => (
-											<TableHead
-												key={header.id}
-												style={{ width: header.getSize() }}
-												className="font-semibold h-12 text-center px-4"
-											>
+											<TableHead key={header.id} style={{ width: header.getSize() }} className="h-12 text-center px-4">
 												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 											</TableHead>
 										))}
