@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { parseSerialNumber } from "@/lib/booklet-serial";
 import { ConcessionBookletStatusType } from "@/generated/zod";
 import { BookletItem, deleteBooklet } from "@/actions/booklets";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import AnchorCalibrationDialog from "@/components/admin/anchor-calibration-dialog";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
@@ -597,8 +598,8 @@ const BookletsTable = ({
 							</TableHeader>
 						</Table>
 
-						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-							{isError ? (
+						{isError ? (
+							<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
 								<div className="flex flex-col items-center space-y-4">
 									<div className="p-4 rounded-full bg-destructive/10 text-destructive">
 										<AlertCircle className="size-8" />
@@ -610,22 +611,18 @@ const BookletsTable = ({
 										</p>
 									</div>
 								</div>
-							) : (
-								<div className="flex flex-col items-center space-y-4">
-									<div className="p-4 rounded-full bg-primary">
-										<BookOpen className="size-8 text-white" />
-									</div>
-									<div className="space-y-2 text-center">
-										<h3 className="text-lg font-semibold text-foreground">No Booklets Found</h3>
-										<p className="text-sm text-muted-foreground max-w-md">
-											{searchQuery || selectedStatus !== "all"
-												? "Try adjusting your search or filters."
-												: "Add your first booklet to get started."}
-										</p>
-									</div>
-								</div>
-							)}
-						</div>
+							</div>
+						) : (
+							<TableEmptyState
+								icon={BookOpen}
+								title="No Booklets Found"
+								description={
+									searchQuery || selectedStatus !== "all"
+										? "Try adjusting your search or filters."
+										: "Add your first booklet to get started."
+								}
+							/>
+						)}
 					</div>
 				)}
 			</div>

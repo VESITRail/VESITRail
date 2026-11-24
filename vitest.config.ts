@@ -34,6 +34,7 @@ export default defineConfig({
 				"src/lib/time-range.ts",
 				"src/lib/pwa/config.ts",
 				"src/lib/auth-hooks.ts",
+				"src/lib/posthog-logs.ts",
 				"src/lib/github-client.ts",
 				"src/lib/booklet-serial.ts",
 				"src/lib/validations/**/*.ts",
@@ -41,7 +42,10 @@ export default defineConfig({
 				"src/lib/application-order.ts",
 				"src/lib/pwa/version-utils.ts",
 				"src/lib/pwa/version-manager.ts",
+				"src/lib/concession-eligibility.ts",
 				"src/lib/notifications/scenarios.ts",
+				"src/lib/academic-semester-table.ts",
+				"src/lib/academic-semester-window.ts",
 				"src/lib/notifications/email-templates.ts",
 				"src/lib/pwa/service-worker-registration.ts"
 			],

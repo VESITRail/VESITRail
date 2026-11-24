@@ -3,7 +3,6 @@
 import {
 	X,
 	Eye,
-	Inbox,
 	Check,
 	Filter,
 	Search,
@@ -37,6 +36,7 @@ import posthog from "posthog-js";
 import { format } from "date-fns";
 import Status from "../ui/status";
 import { toTitleCase } from "@/lib/utils";
+import { printPDF } from "@/lib/print-pdf";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -44,9 +44,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import UpdateIssueDateDialog from "./update-issue-date-dialog";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
-import { printPDF } from "@/lib/print-pdf";
 import ApproveApplicationDialog from "./approve-application-dialog";
 import ReprintApplicationDialog from "./reprint-application-dialog";
 import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
@@ -62,11 +62,7 @@ type ApplicationType = AdminApplication["applicationType"];
 type ConcessionClass = AdminApplication["concessionClass"];
 type ConcessionPeriod = AdminApplication["concessionPeriod"];
 
-const PREDEFINED_REJECTION_REASONS: {
-	label: string;
-	reason: string;
-	applicationType?: ApplicationType;
-}[] = [
+const PREDEFINED_REJECTION_REASONS = [
 	{
 		label: "Incorrect Home Station",
 		reason:
@@ -88,18 +84,6 @@ const PREDEFINED_REJECTION_REASONS: {
 		label: "Duplicate Application",
 		reason:
 			"You already have another concession application for this period. Please wait for it to be processed instead of submitting a new one."
-	},
-	{
-		label: "Apply as New Only",
-		applicationType: "Renewal",
-		reason:
-			"This request cannot be processed as a renewal. Please submit a fresh application with the application type 'New'."
-	},
-	{
-		label: "Apply as Renewal Only",
-		applicationType: "New",
-		reason:
-			"This request cannot be processed as a new application. Please submit a fresh application with the application type 'Renewal'."
 	}
 ];
 
@@ -755,14 +739,10 @@ const ApplicationsTable = ({
 		});
 	};
 
-	const availableRejectionReasons = PREDEFINED_REJECTION_REASONS.filter(
-		(r) => !r.applicationType || r.applicationType === selectedApplication?.applicationType
-	);
-
 	const confirmReject = async () => {
 		if (!selectedApplication) return;
 
-		const selectedReasonObj = availableRejectionReasons.find((r) => r.label === selectedPredefinedReason);
+		const selectedReasonObj = PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason);
 		const finalReason = rejectionReason.trim() || selectedReasonObj?.reason || "";
 
 		if (!finalReason) {
@@ -1358,25 +1338,16 @@ const ApplicationsTable = ({
 							</TableHeader>
 						</Table>
 
-						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-							<div className="flex flex-col items-center space-y-4">
-								<div className="p-4 rounded-full bg-primary">
-									<Inbox className="size-8 text-white" />
-								</div>
-
-								<div className="space-y-2 text-center">
-									<h3 className="text-lg font-semibold text-foreground">No applications found</h3>
-
-									<p className="text-sm text-muted-foreground max-w-md">
-										{localSearchQuery
-											? `No applications found for "${localSearchQuery}".`
-											: selectedStatus !== "all" || selectedType !== "all"
-												? "No applications match your current filter criteria."
-												: "No concession applications have been submitted yet."}
-									</p>
-								</div>
-							</div>
-						</div>
+						<TableEmptyState
+							title="No applications found"
+							description={
+								localSearchQuery
+									? `No applications found for "${localSearchQuery}".`
+									: selectedStatus !== "all" || selectedType !== "all"
+										? "No applications match your current filter criteria."
+										: "No concession applications have been submitted yet."
+							}
+						/>
 					</div>
 				)}
 			</div>
@@ -1538,7 +1509,7 @@ const ApplicationsTable = ({
 								</SelectTrigger>
 
 								<SelectContent className="w-full max-h-60 overflow-y-auto">
-									{availableRejectionReasons.map((reasonObj, index) => (
+									{PREDEFINED_REJECTION_REASONS.map((reasonObj, index) => (
 										<SelectItem key={index} value={reasonObj.label} className="whitespace-normal text-sm py-2 px-3">
 											{reasonObj.label}
 										</SelectItem>
@@ -1579,7 +1550,7 @@ const ApplicationsTable = ({
 
 								<p className="text-sm wrap-break-word">
 									{rejectionReason ||
-										availableRejectionReasons.find((r) => r.label === selectedPredefinedReason)?.reason}
+										PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason)?.reason}
 								</p>
 							</div>
 						)}

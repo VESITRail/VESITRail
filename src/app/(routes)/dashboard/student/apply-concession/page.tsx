@@ -7,11 +7,11 @@ import {
 	Loader2,
 	XCircle,
 	History,
+	RotateCw,
 	FileText,
 	CheckCircle,
 	TicketCheck,
-	AlertTriangle,
-	type LucideIcon
+	AlertTriangle
 } from "lucide-react";
 import {
 	StudentStation,
@@ -22,10 +22,10 @@ import {
 	getStudentPreferences
 } from "@/actions/utils";
 import {
-	Concession,
-	getLastApplication,
 	submitConcessionApplication,
-	submitConcessionResubmission
+	submitConcessionResubmission,
+	getConcessionApplicationState,
+	type ConcessionApplicationState
 } from "@/actions/concession";
 import {
 	AlertDialog,
@@ -39,54 +39,141 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import posthog from "posthog-js";
-import { format } from "date-fns";
 import Status from "@/components/ui/status";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { authClient } from "@/lib/auth-client";
 import { formatInTimeZone } from "date-fns-tz";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect, useState, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
-import { calculateConcessionValidity } from "@/lib/utils";
-import { ConcessionApplicationType } from "@/generated/prisma/client";
+import { formatAcademicYear } from "@/lib/academic-semester-table";
+import { ConcessionClass, ConcessionPeriod } from "@/generated/zod";
+import { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SlideButton, { type SlideButtonRef } from "@/components/ui/slide-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ConcessionClass, ConcessionPeriod, ConcessionApplicationStatusType } from "@/generated/zod";
+import { PreviousApplicationDialog } from "@/components/student/previous-application-dialog";
 import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
-import { Dialog, DialogTitle, DialogHeader, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 
-const ApplicationTypeBadge = ({ type }: { type: ConcessionApplicationType }) => {
-	return <Badge variant="secondary">{type}</Badge>;
-};
+const formPageClassName = "container max-w-5xl mx-auto py-8 px-4";
+const formGridClassName = "grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-7";
+const readOnlyFieldClassName =
+	"flex h-10 items-center justify-between rounded-md border border-border bg-input/30 px-3 text-sm";
+const statusPageClassName = "container mx-auto flex max-w-5xl flex-1 flex-col justify-center gap-6 px-4 py-6";
 
-const StatusBadge = ({ status }: { status: ConcessionApplicationStatusType }) => {
-	const variants: Record<ConcessionApplicationStatusType, string> = {
-		Rejected: "bg-red-600 text-white",
-		Issued: "bg-green-600 text-white",
-		Approved: "bg-primary text-white",
-		Pending: "bg-amber-600 text-white"
-	};
+function ConcessionFormSkeleton({ showHistory = false, isResubmission = false }) {
+	return (
+		<Card role="status" aria-label="Loading concession application form">
+			<CardContent className="py-2.5">
+				<div className="space-y-6 md:space-y-7">
+					<div className={formGridClassName}>
+						<div className="space-y-3.5">
+							<Skeleton className="h-5 w-28" />
+							<div className={readOnlyFieldClassName}>
+								<Skeleton className="h-3.5 w-12" />
+								{showHistory && <Skeleton className="h-8 w-30" />}
+							</div>
+						</div>
+						<div className="space-y-3.5">
+							<Skeleton className="h-5 w-24" />
+							<div className={readOnlyFieldClassName}>
+								<Skeleton className="h-3.5 w-36" />
+							</div>
+						</div>
+					</div>
+					<div className={formGridClassName}>
+						<div className="space-y-3.5">
+							<Skeleton className="h-5 w-28" />
+							<Skeleton className="h-10 w-full" />
+						</div>
+						<div className="space-y-3.5">
+							<Skeleton className="h-5 w-32" />
+							<Skeleton className="h-10 w-full" />
+						</div>
+					</div>
+					<div className="flex justify-end pt-4">
+						<Skeleton
+							className={`h-12 w-full rounded-lg md:h-10 md:rounded-md ${isResubmission ? "md:w-43" : "md:w-39"}`}
+						/>
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
 
-	return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
-};
+function ConcessionPageSkeleton() {
+	return (
+		<div className={formPageClassName}>
+			<div className="flex justify-between items-center">
+				<div className="flex items-center gap-3">
+					<Skeleton className="size-10 rounded-lg" />
+					<Skeleton className="h-8 w-56" />
+				</div>
+				<Skeleton className="size-10 rounded-md" />
+			</div>
+
+			<Separator className="my-6" />
+
+			<ConcessionFormSkeleton />
+		</div>
+	);
+}
+
+function getBlockerStatus(blocker: NonNullable<ConcessionApplicationState["blocker"]>) {
+	switch (blocker.status) {
+		case "Pending":
+			return {
+				icon: Clock,
+				iconBg: "bg-amber-500",
+				title: "Application Under Review",
+				description:
+					"Your concession application is currently being reviewed. Please wait for approval before applying again."
+			};
+		case "Approved":
+			return {
+				icon: TicketCheck,
+				iconBg: "bg-primary",
+				title: "Concession Approved",
+				description:
+					blocker.applicationType === "Renewal"
+						? "Please collect your certificate at the Railway Concession Office (Ground Floor, Admin Office). Bring your existing pass and college ID card."
+						: "Please collect your certificate at the Railway Concession Office (Ground Floor, Admin Office). Bring your college ID card."
+			};
+		case "ActivePass":
+			return {
+				icon: CheckCircle,
+				iconBg: "bg-green-600",
+				title: "Active Concession",
+				description: `Your concession is valid until ${formatInTimeZone(
+					blocker.expiryDate,
+					"Asia/Kolkata",
+					"MMMM dd, yyyy"
+				)}. Days remaining: ${blocker.daysRemaining}.`
+			};
+		case "UnverifiedPass":
+			return {
+				icon: AlertTriangle,
+				iconBg: "bg-amber-600",
+				title: "Data Verification Required",
+				description: "Your issued application needs verification. Please contact support before applying again."
+			};
+	}
+}
 
 const ConcessionApplicationForm = () => {
 	const router = useRouter();
+	const mounted = useRef(false);
 	const isMobile = useIsMobile();
-	const { data, isPending } = authClient.useSession();
 	const slideButtonRef = useRef<SlideButtonRef>(null);
 	const [loading, setLoading] = useState<boolean>(true);
-	const [canApply, setCanApply] = useState<boolean>(false);
+	const [refreshVersion, setRefreshVersion] = useState(0);
+	const [loadError, setLoadError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 	const [loadingOptions, setLoadingOptions] = useState<boolean>(true);
 	const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
-	const lastApplicationStatusRef = useRef<ConcessionApplicationStatusType | null>(null);
 
 	const [student, setStudent] = useState<
 		| (StudentPreferences & {
@@ -94,9 +181,7 @@ const ConcessionApplicationForm = () => {
 		  })
 		| null
 	>(null);
-	const [lastApplication, setLastApplication] = useState<Concession | null>(null);
-	const previousPass =
-		lastApplication?.status === "Rejected" ? (lastApplication.previousApplication ?? null) : lastApplication;
+	const [applicationState, setApplicationState] = useState<ConcessionApplicationState | null>(null);
 
 	const [selectedConcessionClass, setSelectedConcessionClass] = useState<string>("");
 	const [selectedConcessionPeriod, setSelectedConcessionPeriod] = useState<string>("");
@@ -104,30 +189,21 @@ const ConcessionApplicationForm = () => {
 	const [concessionClasses, setConcessionClasses] = useState<ConcessionClass[]>([]);
 	const [concessionPeriods, setConcessionPeriods] = useState<ConcessionPeriod[]>([]);
 
-	const [selectedApplicationType, setSelectedApplicationType] = useState<ConcessionApplicationType>("New");
-
-	const [status, setStatus] = useState<{
-		title: string;
-		iconBg?: string;
-		icon: LucideIcon;
-		iconColor?: string;
-		description: string;
-		iconClassName?: string;
-		containerClassName?: string;
-		button?: {
-			href?: string;
-			label: string;
-			icon: LucideIcon;
-			onClick?: () => void;
+	useLayoutEffect(() => {
+		mounted.current = true;
+		return () => {
+			mounted.current = false;
 		};
-	} | null>(null);
+	}, []);
 
 	useEffect(() => {
+		let current = true;
 		const fetchOptions = async () => {
 			setLoadingOptions(true);
 
 			try {
 				const [classesResult, periodsResult] = await Promise.all([getConcessionClasses(), getConcessionPeriods()]);
+				if (!current) return;
 
 				if (classesResult.error) {
 					toast.error("Classes Not Loading", {
@@ -145,281 +221,130 @@ const ConcessionApplicationForm = () => {
 					setConcessionPeriods(periodsResult.data);
 				}
 			} catch (error) {
+				if (!current) return;
 				console.error("Error while loading form options:", error);
 				toast.error("Options Not Loading", {
 					description: "Unable to load form options. Please try again."
 				});
 			} finally {
-				setLoadingOptions(false);
+				if (current) setLoadingOptions(false);
 			}
 		};
 
-		fetchOptions();
+		void fetchOptions();
+		return () => {
+			current = false;
+		};
 	}, []);
 
 	useEffect(() => {
-		const fetchStudentDetails = async () => {
-			if (isPending || !data?.user?.id) return;
-
-			try {
-				const [prefResult, stationResult] = await Promise.all([getStudentPreferences(), getStudentStation()]);
-
-				if (prefResult.error || stationResult.error) {
-					toast.error("Details Not Loading", {
-						description: "Unable to load student details. Please try again."
-					});
-					return;
-				}
-
-				if (prefResult.data && stationResult.data) {
-					setStudent({
-						station: stationResult.data,
-						...prefResult.data
-					});
-
-					if (lastApplicationStatusRef.current !== "Rejected") {
-						setSelectedConcessionClass(prefResult.data.preferredConcessionClass.id);
-						setSelectedConcessionPeriod(prefResult.data.preferredConcessionPeriod.id);
-					}
-				}
-			} catch (error) {
-				console.error("Error while loading student details:", error);
-				toast.error("Details Not Loading", {
-					description: "Unable to load your student details. Please try again."
-				});
-			}
-		};
-
-		fetchStudentDetails();
-	}, [data?.user?.id, isPending]);
-
-	useEffect(() => {
-		const checkApplicationStatus = async () => {
-			if (isPending || !data?.user?.id) {
-				return;
-			}
-
+		let current = true;
+		const loadApplication = async () => {
 			setLoading(true);
-
+			setLoadError(null);
 			try {
-				const result = await getLastApplication();
+				const [applicationResult, prefResult, stationResult] = await Promise.all([
+					getConcessionApplicationState(),
+					getStudentPreferences(),
+					getStudentStation()
+				]);
+				if (!current) return;
 
-				if (result.error) {
-					setCanApply(false);
-					setStatus({
-						icon: XCircle,
-						iconColor: "text-white",
-						iconBg: "bg-destructive",
-						title: "Failed to Load Previous Application",
-						description:
-							"We couldn't retrieve your previous application details. This might be due to a network issue or server error. Please try again shortly."
-					});
+				if (!applicationResult.isSuccess || !prefResult.isSuccess || !stationResult.isSuccess) {
+					setLoadError("We couldn't load your application details. Please try again.");
 					return;
 				}
 
-				const application = result.data;
-				lastApplicationStatusRef.current = application?.status ?? null;
-
-				setLastApplication(application);
-				setSelectedApplicationType(
-					application ? (application.status === "Rejected" ? application.applicationType : "Renewal") : "New"
+				const state = applicationResult.data;
+				setApplicationState(state);
+				setStudent({ station: stationResult.data, ...prefResult.data });
+				setSelectedConcessionClass(state.correction?.concessionClass.id ?? prefResult.data.preferredConcessionClass.id);
+				setSelectedConcessionPeriod(
+					state.correction?.concessionPeriod.id ?? prefResult.data.preferredConcessionPeriod.id
 				);
-
-				if (!application) {
-					setStatus(null);
-					setCanApply(true);
-				} else {
-					switch (application.status) {
-						case "Rejected":
-							setSelectedConcessionClass(application.concessionClass.id);
-							setSelectedConcessionPeriod(application.concessionPeriod.id);
-							setStatus(null);
-							setCanApply(true);
-							break;
-
-						case "Pending":
-							setCanApply(false);
-							setStatus({
-								icon: Clock,
-								iconBg: "bg-amber-500",
-								iconColor: "text-white",
-								title: "Application Under Review",
-								description:
-									"Your concession application is currently being reviewed. Please wait for approval before applying again."
-							});
-							break;
-
-						case "Approved":
-							setCanApply(false);
-							setStatus({
-								icon: TicketCheck,
-								iconBg: "bg-primary",
-								iconColor: "text-white",
-								title: "Concession Approved",
-								description:
-									application.applicationType === "Renewal"
-										? "Your concession renewal has been approved! Please visit the Railway Concession Office (Ground Floor, Admin Office) to collect your physical certificate. Bring your existing pass along with your college ID card."
-										: "Your concession application has been approved! Please visit the Railway Concession Office (Ground Floor, Admin Office) to collect your physical certificate. Bring your college ID card with you."
-							});
-							break;
-
-						case "Issued": {
-							const issueDate = application.issuedAt
-								? new Date(application.issuedAt)
-								: application.reviewedAt
-									? new Date(application.reviewedAt)
-									: null;
-
-							if (issueDate) {
-								const validity = calculateConcessionValidity(issueDate, application.concessionPeriod.duration);
-
-								if (validity.isValid) {
-									setCanApply(false);
-									setStatus({
-										icon: CheckCircle,
-										iconBg: "bg-green-600",
-										iconColor: "text-white",
-										title: "Active Concession",
-										description: `Your concession is currently active and valid until ${formatInTimeZone(
-											validity.expiryDate,
-											"Asia/Kolkata",
-											"MMMM dd, yyyy"
-										)}. You have ${validity.daysRemaining} day${validity.daysRemaining !== 1 ? "s" : ""} remaining.`
-									});
-								} else {
-									setStatus(null);
-									setCanApply(true);
-								}
-							} else {
-								console.error("Issued application missing issue date:", application.id);
-
-								setCanApply(false);
-								setStatus({
-									icon: AlertTriangle,
-									iconBg: "bg-amber-600",
-									iconColor: "text-white",
-									title: "Data Verification Required",
-									description:
-										"Your issued application needs verification. Please contact support before applying for a new concession."
-								});
-							}
-							break;
-						}
-
-						default:
-							setStatus(null);
-							setCanApply(true);
-					}
-				}
 			} catch (error) {
-				console.error("Error while checking application status:", error);
-
-				setCanApply(false);
-				setStatus({
-					icon: XCircle,
-					iconColor: "text-white",
-					iconBg: "bg-destructive",
-					title: "Error Loading Application",
-					description: "An unexpected error occurred while checking your application status. Please try again later."
-				});
+				if (!current) return;
+				console.error("Error while loading application details:", error);
+				setLoadError("We couldn't load your application details. Please try again.");
 			} finally {
-				setLoading(false);
+				if (current) setLoading(false);
 			}
 		};
 
-		checkApplicationStatus();
-	}, [data?.user?.id, isPending]);
+		void loadApplication();
+		return () => {
+			current = false;
+		};
+	}, [refreshVersion]);
 
 	const selectedClassIsActive = concessionClasses.some((c) => c.id === selectedConcessionClass && c.isActive);
 
 	const selectedPeriodIsActive = concessionPeriods.some((p) => p.id === selectedConcessionPeriod && p.isActive);
 
 	const handleSubmit = async () => {
-		if (!student || !data?.user?.id || !selectedConcessionClass || !selectedConcessionPeriod) {
-			toast.error("Selection Required", {
-				description: "Please select both a concession class and period to continue."
-			});
-			return;
-		}
+		if (!applicationState?.semester || !student || !isFormValid || isSubmitting) return;
 
 		const selectedClass = concessionClasses.find((c) => c.id === selectedConcessionClass);
 		const selectedPeriod = concessionPeriods.find((p) => p.id === selectedConcessionPeriod);
-
-		posthog.capture("concession_submit_initiated", {
+		const analytics = {
 			class: selectedClass?.name,
 			period: selectedPeriod?.name,
 			station: student.station.name,
-			application_type: selectedApplicationType
-		});
+			application_type: applicationState.applicationType
+		};
+		posthog.capture("concession_submit_initiated", analytics);
 
 		setIsSubmitting(true);
 		setShowConfirmDialog(false);
-
-		if (isMobile) {
-			slideButtonRef.current?.showSubmitting();
-		}
+		if (isMobile) slideButtonRef.current?.showSubmitting();
 
 		const applicationData = {
-			studentId: data.user.id,
 			stationId: student.station.id,
-			applicationType: selectedApplicationType,
 			concessionClassId: selectedConcessionClass,
-			concessionPeriodId: selectedConcessionPeriod
+			concessionPeriodId: selectedConcessionPeriod,
+			expectedSemesterId: applicationState.semester.id
 		};
-
-		const isResubmission = lastApplication?.status === "Rejected";
+		const correction = applicationState.correction;
 
 		try {
-			const submissionPromise = (async () => {
-				const result =
-					isResubmission && lastApplication?.id
-						? await submitConcessionResubmission(lastApplication.id, {
-								stationId: applicationData.stationId,
-								applicationType: applicationData.applicationType,
-								concessionClassId: applicationData.concessionClassId,
-								concessionPeriodId: applicationData.concessionPeriodId
-							})
-						: await submitConcessionApplication(applicationData);
+			const submission = correction
+				? submitConcessionResubmission(correction.id, applicationData)
+				: submitConcessionApplication(applicationData);
+			const result = await submission;
+			if (!mounted.current) return;
 
-				if (!result.isSuccess) {
-					throw new Error(
-						result.error.message || (isResubmission ? "Failed to resubmit application" : "Failed to submit application")
-					);
+			if (!result.isSuccess) {
+				posthog.capture("concession_submitted_failed", analytics);
+				toast.error(correction ? "Resubmission Failed" : "Submission Failed", { description: result.error.message });
+				if (
+					result.error.type === "VALIDATION_ERROR" &&
+					["expectedSemesterId", "semesterId", "status", "applicationId", "stationId"].includes(
+						result.error.field ?? ""
+					)
+				) {
+					setRefreshVersion((version) => version + 1);
 				}
+				return;
+			}
 
-				return result.data;
-			})();
-
-			toast.promise(submissionPromise, {
-				loading: isResubmission ? "Resubmitting your application..." : "Submitting your application...",
-				success: isResubmission
-					? "Application resubmitted successfully! Redirecting..."
-					: "Application submitted successfully! Redirecting...",
-				error: (error) =>
-					error instanceof Error
-						? error.message
-						: isResubmission
-							? "Failed to resubmit application"
-							: "Failed to submit application"
+			toast.success(correction ? "Application Resubmitted" : "Application Submitted", {
+				description: "You can track its status on your dashboard."
 			});
-
 			posthog.capture("concession_submitted_success", {
-				class: selectedClass?.name,
-				period: selectedPeriod?.name,
-				station: student.station.name,
-				application_type: selectedApplicationType
+				...analytics,
+				application_type: result.data?.applicationType ?? analytics.application_type
 			});
 			router.push("/dashboard/student");
 		} catch (error) {
-			posthog.capture("concession_submitted_failed", {
-				class: selectedClass?.name,
-				period: selectedPeriod?.name,
-				station: student.station.name,
-				application_type: selectedApplicationType
-			});
+			if (!mounted.current) return;
+			posthog.capture("concession_submitted_failed", analytics);
 			console.error("Submission error:", error);
+			toast.error("Application Failed to Save", { description: "Please try again." });
 		} finally {
-			setIsSubmitting(false);
+			if (mounted.current) {
+				setIsSubmitting(false);
+				slideButtonRef.current?.reset();
+			}
 		}
 	};
 
@@ -432,88 +357,53 @@ const ConcessionApplicationForm = () => {
 
 	const isFormValid = Boolean(selectedClassIsActive && selectedPeriodIsActive);
 
-	if (isPending || loading || loadingOptions || !student) {
-		return (
-			<div className="container max-w-5xl mx-auto py-8 px-4">
-				<div className="flex justify-between items-center">
-					<div className="flex items-center gap-3">
-						<Skeleton className="size-10 rounded-lg" />
-						<Skeleton className="h-8 w-56" />
-					</div>
-					<Skeleton className="size-10 rounded-md" />
-				</div>
+	if (loading) return <ConcessionPageSkeleton />;
 
-				<Skeleton className="h-px w-full my-6" />
-
-				<div className="mb-6 rounded-lg border p-4">
-					<div className="flex items-center gap-2 mb-2">
-						<Skeleton className="size-4 rounded-full" />
-						<Skeleton className="h-5 w-40" />
-					</div>
-					<Skeleton className="h-4 w-full" />
-				</div>
-
-				<div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-					<div className="p-6">
-						<div className="space-y-8">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-								<div className="space-y-4">
-									<Skeleton className="h-4 w-32" />
-									<div className="flex items-center justify-between h-10 px-3 rounded-md border">
-										<Skeleton className="h-4 w-20" />
-										<Skeleton className="h-4 w-24 rounded-md" />
-									</div>
-								</div>
-								<div className="space-y-4">
-									<Skeleton className="h-4 w-28" />
-									<div className="flex items-center justify-between h-10 px-3 rounded-md border">
-										<Skeleton className="h-4 w-36" />
-									</div>
-								</div>
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-								<div className="space-y-4">
-									<Skeleton className="h-4 w-32" />
-									<Skeleton className="h-10 w-full rounded-md" />
-								</div>
-								<div className="space-y-4">
-									<Skeleton className="h-4 w-36" />
-									<Skeleton className="h-10 w-full rounded-md" />
-								</div>
-							</div>
-
-							<div className="flex justify-end pt-4">
-								{isMobile ? (
-									<Skeleton className="h-12 w-full rounded-lg" />
-								) : (
-									<Skeleton className="h-11 w-40 rounded-md" />
-								)}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		);
-	}
-
-	if (!canApply && status) {
+	if (loadError || !applicationState || !student) {
 		return (
 			<Status
-				icon={status.icon}
-				title={status.title}
-				iconBg={status.iconBg}
-				button={status.button}
-				iconColor={status.iconColor}
-				description={status.description}
-				containerClassName="min-h-[88vh]"
-				iconClassName={status.iconClassName}
+				icon={XCircle}
+				iconColor="text-white"
+				iconBg="bg-destructive"
+				containerClassName="flex-1"
+				title="Failed to Load Application"
+				description={loadError ?? "Application details are unavailable."}
+				button={{ icon: RotateCw, label: "Try Again", onClick: () => setRefreshVersion((version) => version + 1) }}
 			/>
 		);
 	}
 
+	const { semester, blocker, correction, latestApplication, upcomingSemester, applicationType, previousPass } =
+		applicationState;
+
+	if (!semester || blocker) {
+		return (
+			<div className={statusPageClassName}>
+				{!semester ? (
+					<Status
+						icon={Clock}
+						iconBg="bg-amber-500"
+						iconColor="text-white"
+						containerClassName="p-0"
+						title="Semester Applications Closed"
+						button={{ href: "/dashboard/student", label: "View Application History", icon: History }}
+						description={
+							upcomingSemester
+								? `Concession applications for the ${formatAcademicYear(upcomingSemester.academicYearStart)} ${upcomingSemester.term} semester open on ${formatInTimeZone(upcomingSemester.openingDate, "UTC", "MMMM d, yyyy")}.`
+								: "Please check back for the next application opening date."
+						}
+					/>
+				) : (
+					blocker && <Status {...getBlockerStatus(blocker)} iconColor="text-white" containerClassName="p-0" />
+				)}
+			</div>
+		);
+	}
+
+	const isResubmission = Boolean(correction);
+
 	return (
-		<div className="container max-w-5xl mx-auto py-8 px-4">
+		<div className={formPageClassName}>
 			<div className="flex justify-between items-center">
 				<span className="flex items-center gap-3">
 					<div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center">
@@ -542,7 +432,7 @@ const ConcessionApplicationForm = () => {
 
 			<Separator className="my-6" />
 
-			{lastApplication?.status === "Rejected" && (
+			{correction && (
 				<div className="pb-6">
 					<div className="bg-card border border-border rounded-lg py-6 pl-2 pr-6 md:p-6 shadow-sm">
 						<div className="flex items-start gap-4">
@@ -556,12 +446,12 @@ const ConcessionApplicationForm = () => {
 								<h3 className="text-base font-semibold mb-2">Application Rejected</h3>
 
 								<div className="space-y-3">
-									{lastApplication.rejectionReason ? (
+									{correction.rejectionReason ? (
 										<div className="space-y-2 mt-3">
 											<div className="p-4 bg-muted/50 rounded-md border-l-4 border-muted-foreground/20">
 												<div className="flex items-start gap-2">
 													<span className="text-sm font-medium text-foreground">Reason:</span>
-													<span className="text-sm text-foreground">{lastApplication.rejectionReason}</span>
+													<span className="text-sm text-foreground">{correction.rejectionReason}</span>
 												</div>
 											</div>
 
@@ -584,7 +474,7 @@ const ConcessionApplicationForm = () => {
 				</div>
 			)}
 
-			{!lastApplication && (
+			{!latestApplication && (
 				<Alert className="mb-6">
 					<Info className="size-4" />
 					<AlertTitle>First Time Application</AlertTitle>
@@ -595,278 +485,186 @@ const ConcessionApplicationForm = () => {
 				</Alert>
 			)}
 
-			<Card>
-				<CardContent className="py-2.5">
-					<div className="space-y-6 md:space-y-7">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
-							<div className="space-y-3.5">
-								<Label htmlFor="application-type" className="text-sm font-medium">
-									Application Type <span className="text-destructive">*</span>
-								</Label>
-
-								{!previousPass ? (
-									<div className="flex items-center text-sm justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
-										{selectedApplicationType}
+			{loadingOptions ? (
+				<ConcessionFormSkeleton showHistory={Boolean(previousPass)} isResubmission={isResubmission} />
+			) : (
+				<>
+					<Card>
+						<CardContent className="py-2.5">
+							<div className="space-y-6 md:space-y-7">
+								<div className={formGridClassName}>
+									<div className="space-y-3.5">
+										<p id="application-type-label" className="text-sm font-medium">
+											Application Type
+										</p>
+										<div aria-labelledby="application-type-label" role="group" className={readOnlyFieldClassName}>
+											{applicationType}
+											{previousPass && <PreviousApplicationDialog previousApplication={previousPass} showLabel />}
+										</div>
 									</div>
-								) : (
-									<div className="relative">
+
+									<div className="space-y-3.5">
+										<p className="text-sm font-medium">Home Station</p>
+
+										<div className={readOnlyFieldClassName}>
+											{student.station.name} ({student.station.code})
+										</div>
+									</div>
+								</div>
+
+								<div className={formGridClassName}>
+									<div className="space-y-3.5">
+										<Label htmlFor="concession-class" className="text-sm font-medium">
+											Concession Class <span className="text-destructive">*</span>
+										</Label>
+
 										<Select
-											value={selectedApplicationType}
-											onValueChange={(value: ConcessionApplicationType) => {
-												posthog.capture("concession_application_type_changed", {
-													application_type: value
+											onValueChange={(value) => {
+												const selectedClass = concessionClasses.find((c) => c.id === value);
+												posthog.capture("concession_form_option_changed", {
+													field_name: "class",
+													value: selectedClass?.name
 												});
-												setSelectedApplicationType(value);
+												setSelectedConcessionClass(value);
 											}}
+											value={selectedClassIsActive ? selectedConcessionClass : undefined}
 										>
-											<SelectTrigger className="w-full h-10!">
-												<SelectValue />
+											<SelectTrigger id="concession-class" className="w-full h-10!">
+												<SelectValue placeholder="Select concession class" />
 											</SelectTrigger>
+
 											<SelectContent>
-												<SelectItem value="Renewal">Renewal</SelectItem>
-												<SelectItem value="New">New</SelectItem>
+												{concessionClasses.map((cls) => (
+													<SelectItem key={cls.id} value={cls.id} isUnavailable={!cls.isActive}>
+														{cls.name} ({cls.code})
+													</SelectItem>
+												))}
 											</SelectContent>
 										</Select>
-
-										{selectedApplicationType === "Renewal" && previousPass && (
-											<Dialog>
-												<DialogTrigger asChild>
-													<Button
-														size="sm"
-														variant="ghost"
-														title="View previous application details"
-														className="absolute right-8 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors h-8 px-2"
-													>
-														<History className="size-4" />
-													</Button>
-												</DialogTrigger>
-
-												<DialogContent className="sm:max-w-lg">
-													<DialogHeader>
-														<DialogTitle>Previous Application Details</DialogTitle>
-													</DialogHeader>
-
-													<Separator className="my-2" />
-
-													<div className="space-y-6">
-														<div className="grid grid-cols-2 gap-4">
-															<div className="space-y-1">
-																<p className="text-sm font-medium text-muted-foreground">Status</p>
-																<StatusBadge status={previousPass.status} />
-															</div>
-															<div className="space-y-1">
-																<p className="text-sm font-medium text-muted-foreground">Type</p>
-																<ApplicationTypeBadge type={previousPass.applicationType} />
-															</div>
-														</div>
-
-														<div className="grid grid-cols-2 gap-6">
-															<div className="space-y-1">
-																<p className="text-sm font-medium text-muted-foreground">Class</p>
-																<p className="font-medium text-foreground/90">
-																	{previousPass.concessionClass.name} ({previousPass.concessionClass.code})
-																</p>
-															</div>
-
-															<div className="space-y-1">
-																<p className="text-sm font-medium text-muted-foreground">Period</p>
-																<p className="font-medium text-foreground/90">
-																	{previousPass.concessionPeriod.name} ({previousPass.concessionPeriod.duration}{" "}
-																	{previousPass.concessionPeriod.duration === 1 ? "month" : "months"})
-																</p>
-															</div>
-														</div>
-
-														<div className="grid grid-cols-2 gap-6">
-															<div className="space-y-1">
-																<p className="text-sm font-medium text-muted-foreground">Home Station</p>
-																<p className="font-medium text-foreground/90">
-																	{previousPass.station.name} ({previousPass.station.code})
-																</p>
-															</div>
-
-															<div className="space-y-1">
-																<p className="text-sm font-medium text-muted-foreground">Applied Date</p>
-																<p className="font-medium text-foreground/90">
-																	{format(new Date(previousPass.createdAt), "MMMM dd, yyyy")}
-																</p>
-															</div>
-														</div>
-													</div>
-												</DialogContent>
-											</Dialog>
-										)}
 									</div>
-								)}
-							</div>
 
-							<div className="space-y-3.5">
-								<Label htmlFor="home-station" className="text-sm font-medium">
-									Home Station <span className="text-destructive">*</span>
-								</Label>
+									<div className="space-y-3.5">
+										<Label htmlFor="concession-period" className="text-sm font-medium">
+											Concession Period <span className="text-destructive">*</span>
+										</Label>
 
-								<div className="flex text-sm items-center justify-between h-10 px-3 bg-input/30 rounded-md border border-border">
-									{student.station.name} ({student.station.code})
+										<Select
+											onValueChange={(value) => {
+												const selectedPeriod = concessionPeriods.find((p) => p.id === value);
+												posthog.capture("concession_form_option_changed", {
+													field_name: "period",
+													value: selectedPeriod?.name
+												});
+												setSelectedConcessionPeriod(value);
+											}}
+											value={selectedPeriodIsActive ? selectedConcessionPeriod : undefined}
+										>
+											<SelectTrigger id="concession-period" className="w-full h-10!">
+												<SelectValue placeholder="Select concession period" />
+											</SelectTrigger>
+
+											<SelectContent>
+												{concessionPeriods.map((period) => (
+													<SelectItem key={period.id} value={period.id} isUnavailable={!period.isActive}>
+														{period.name} ({period.duration} {period.duration === 1 ? "month" : "months"})
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</div>
+								</div>
+
+								<div className="flex justify-end pt-4">
+									{isMobile ? (
+										<SlideButton
+											fullWidth
+											ref={slideButtonRef}
+											disabled={!isFormValid}
+											isSubmitting={isSubmitting}
+											loadingText={isResubmission ? "Resubmitting..." : "Submitting..."}
+											text={isResubmission ? "Slide to resubmit application" : "Slide to submit application"}
+											onSlideComplete={() => {
+												setShowConfirmDialog(true);
+											}}
+										/>
+									) : (
+										<Button
+											size="lg"
+											onClick={() => {
+												setShowConfirmDialog(true);
+											}}
+											disabled={!isFormValid || isSubmitting}
+										>
+											{isSubmitting ? (
+												<>
+													<Loader2 className="mr-1 size-4 animate-spin" />
+													{isResubmission ? "Resubmitting..." : "Submitting..."}
+												</>
+											) : (
+												<>
+													<Send className="mr-1 size-4" />
+													{isResubmission ? "Resubmit Application" : "Submit Application"}
+												</>
+											)}
+										</Button>
+									)}
 								</div>
 							</div>
-						</div>
+						</CardContent>
+					</Card>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
-							<div className="space-y-3.5">
-								<Label htmlFor="concession-class" className="text-sm font-medium">
-									Concession Class <span className="text-destructive">*</span>
-								</Label>
+					<AlertDialog open={showConfirmDialog} onOpenChange={handleDialogClose}>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<div className="flex items-center gap-3">
+									<div className="size-10 bg-destructive rounded-full flex items-center justify-center shrink-0">
+										<AlertTriangle className="size-5 text-white" />
+									</div>
+									<div>
+										<AlertDialogTitle>
+											{isResubmission ? "Confirm Application Resubmission" : "Final Submission"}
+										</AlertDialogTitle>
+										<AlertDialogDescription>
+											{isResubmission
+												? "Please review your application details before resubmitting. Once resubmitted, you cannot modify this application."
+												: "Are you absolutely sure you want to submit?"}
+										</AlertDialogDescription>
+									</div>
+								</div>
+							</AlertDialogHeader>
 
-								<Select
-									onValueChange={(value) => {
-										const selectedClass = concessionClasses.find((c) => c.id === value);
-										posthog.capture("concession_form_option_changed", {
-											field_name: "class",
-											value: selectedClass?.name
-										});
-										setSelectedConcessionClass(value);
-									}}
-									value={selectedClassIsActive ? selectedConcessionClass : undefined}
-								>
-									<SelectTrigger className="w-full h-10!">
-										<SelectValue placeholder="Select concession class" />
-									</SelectTrigger>
-
-									<SelectContent>
-										{concessionClasses.map((cls) => (
-											<SelectItem key={cls.id} value={cls.id} isUnavailable={!cls.isActive}>
-												{cls.name} ({cls.code})
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+							<div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10">
+								<div className="text-sm text-destructive text-left">
+									<p className="font-medium mb-1">Important Notes:</p>
+									<ul className="list-disc list-inside space-y-1 text-xs">
+										<li key="undo">This action cannot be undone</li>
+										<li key="review">Please review all details one final time</li>
+										<li key="edit">You won&apos;t be able to edit your application after submission.</li>
+									</ul>
+								</div>
 							</div>
 
-							<div className="space-y-3.5">
-								<Label htmlFor="concession-period" className="text-sm font-medium">
-									Concession Period <span className="text-destructive">*</span>
-								</Label>
+							<AlertDialogFooter className="gap-4 pt-2">
+								<AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
 
-								<Select
-									onValueChange={(value) => {
-										const selectedPeriod = concessionPeriods.find((p) => p.id === value);
-										posthog.capture("concession_form_option_changed", {
-											field_name: "period",
-											value: selectedPeriod?.name
-										});
-										setSelectedConcessionPeriod(value);
-									}}
-									value={selectedPeriodIsActive ? selectedConcessionPeriod : undefined}
-								>
-									<SelectTrigger className="w-full h-10!">
-										<SelectValue placeholder="Select concession period" />
-									</SelectTrigger>
-
-									<SelectContent>
-										{concessionPeriods.map((period) => (
-											<SelectItem key={period.id} value={period.id} isUnavailable={!period.isActive}>
-												{period.name} ({period.duration} {period.duration === 1 ? "month" : "months"})
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-						</div>
-
-						<div className="flex justify-end pt-4">
-							{isMobile ? (
-								<SlideButton
-									fullWidth
-									ref={slideButtonRef}
-									text={
-										lastApplication?.status === "Rejected"
-											? "Slide to resubmit application"
-											: "Slide to submit application"
-									}
-									loadingText={lastApplication?.status === "Rejected" ? "Resubmitting..." : "Submitting..."}
-									onSlideComplete={() => {
-										setShowConfirmDialog(true);
-									}}
-									disabled={!isFormValid}
-									isLoading={loadingOptions}
-									isSubmitting={isSubmitting}
-								/>
-							) : (
-								<Button
-									size="lg"
-									onClick={() => {
-										setShowConfirmDialog(true);
-									}}
-									disabled={!isFormValid || isSubmitting}
-								>
+								<AlertDialogAction onClick={handleSubmit} disabled={isSubmitting}>
 									{isSubmitting ? (
 										<>
-											<Loader2 className="mr-1 size-4 animate-spin" />
-											{lastApplication?.status === "Rejected" ? "Resubmitting..." : "Submitting..."}
+											<Loader2 className="mr-2 size-4 animate-spin" />
+											Submitting...
 										</>
 									) : (
 										<>
-											<Send className="mr-1 size-4" />
-											{lastApplication?.status === "Rejected" ? "Resubmit Application" : "Submit Application"}
+											<Send className="mr-2 size-4" />
+											Yes, Submit Now
 										</>
 									)}
-								</Button>
-							)}
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			<AlertDialog open={showConfirmDialog} onOpenChange={handleDialogClose}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<div className="flex items-center gap-3">
-							<div className="size-10 bg-destructive rounded-full flex items-center justify-center shrink-0">
-								<AlertTriangle className="size-5 text-white" />
-							</div>
-							<div>
-								<AlertDialogTitle>
-									{lastApplication?.status === "Rejected" ? "Confirm Application Resubmission" : "Final Submission"}
-								</AlertDialogTitle>
-								<AlertDialogDescription>
-									{lastApplication?.status === "Rejected"
-										? "Please review your application details before resubmitting. Once resubmitted, you cannot modify this application."
-										: "Are you absolutely sure you want to submit?"}
-								</AlertDialogDescription>
-							</div>
-						</div>
-					</AlertDialogHeader>
-
-					<div className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10">
-						<div className="text-sm text-destructive text-left">
-							<p className="font-medium mb-1">Important Notes:</p>
-							<ul className="list-disc list-inside space-y-1 text-xs">
-								<li key="undo">This action cannot be undone</li>
-								<li key="review">Please review all details one final time</li>
-								<li key="edit">You won&apos;t be able to edit your application after submission.</li>
-							</ul>
-						</div>
-					</div>
-
-					<AlertDialogFooter className="gap-4">
-						<AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
-
-						<AlertDialogAction onClick={handleSubmit} disabled={isSubmitting}>
-							{isSubmitting ? (
-								<>
-									<Loader2 className="mr-2 size-4 animate-spin" />
-									Submitting...
-								</>
-							) : (
-								<>
-									<Send className="mr-2 size-4" />
-									Yes, Submit Now
-								</>
-							)}
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				</>
+			)}
 		</div>
 	);
 };

@@ -14,32 +14,36 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-export const auth = betterAuth({
-	plugins: [nextCookies(), testUtils()],
-	database: prismaAdapter(prisma, {
-		provider: "postgresql"
-	}),
-	user: {
-		additionalFields: {
-			pushNotificationsEnabled: {
-				input: false,
-				required: true,
-				type: "boolean",
-				defaultValue: true
-			},
-			emailNotificationsEnabled: {
-				input: false,
-				required: true,
-				type: "boolean",
-				defaultValue: true
-			}
-		}
-	},
-	databaseHooks: {
+export function createTestAuth(prisma: PrismaClient) {
+	return betterAuth({
+		plugins: [nextCookies(), testUtils()],
+		database: prismaAdapter(prisma, {
+			provider: "postgresql"
+		}),
 		user: {
-			create: {
-				before: beforeUserCreate
+			additionalFields: {
+				pushNotificationsEnabled: {
+					input: false,
+					required: true,
+					type: "boolean",
+					defaultValue: true
+				},
+				emailNotificationsEnabled: {
+					input: false,
+					required: true,
+					type: "boolean",
+					defaultValue: true
+				}
+			}
+		},
+		databaseHooks: {
+			user: {
+				create: {
+					before: beforeUserCreate
+				}
 			}
 		}
-	}
-});
+	});
+}
+
+export const auth = createTestAuth(prisma);

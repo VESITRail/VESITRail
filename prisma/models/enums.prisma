@@ -38,3 +38,8 @@ enum ConcessionApplicationStatus {
   Approved
   Rejected
 }
+
+enum SemesterTerm {
+  Odd
+  Even
+}

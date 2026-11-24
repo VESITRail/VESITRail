@@ -6,8 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect, useCallback } from "react";
 import { getUserInitials, toTitleCase } from "@/lib/utils";
 import { AdminContributionItem } from "@/actions/analytics";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, ChevronLeft, ChevronRight, Inbox, AlertCircle } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 
 interface AnalyticsTableProps {
@@ -192,8 +193,8 @@ const AnalyticsTable = ({
 							</TableHeader>
 						</Table>
 
-						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-							{isError ? (
+						{isError ? (
+							<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
 								<div className="flex flex-col items-center space-y-4">
 									<div className="p-4 rounded-full bg-destructive/10 text-destructive">
 										<AlertCircle className="size-8" />
@@ -206,24 +207,17 @@ const AnalyticsTable = ({
 										</p>
 									</div>
 								</div>
-							) : (
-								<div className="flex flex-col items-center space-y-4">
-									<div className="p-4 rounded-full bg-primary">
-										<Inbox className="size-8 text-white" />
-									</div>
-
-									<div className="space-y-2 text-center">
-										<h3 className="text-lg font-semibold text-foreground">No admins found</h3>
-
-										<p className="text-sm text-muted-foreground max-w-md">
-											{searchQuery || localSearchQuery
-												? `No admins found for "${searchQuery || localSearchQuery}".`
-												: "No admin contribution records found."}
-										</p>
-									</div>
-								</div>
-							)}
-						</div>
+							</div>
+						) : (
+							<TableEmptyState
+								title="No admins found"
+								description={
+									searchQuery || localSearchQuery
+										? `No admins found for "${searchQuery || localSearchQuery}".`
+										: "No admin contribution records found."
+								}
+							/>
+						)}
 					</div>
 				)}
 			</div>

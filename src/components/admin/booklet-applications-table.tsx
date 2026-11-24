@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConcessionBooklet } from "@/generated/zod";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { FileText, AlertCircle, ArrowRightLeft, Plus, X } from "lucide-react";
 import { toTitleCase, formatDateOfBirth, formatSlipNumber } from "@/lib/utils";
 import { getBookletSerialNo, deriveCertificateNumber } from "@/lib/booklet-serial";
@@ -542,8 +543,8 @@ const BookletApplicationsTable = ({
 						</TableHeader>
 					</Table>
 
-					<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-						{isError ? (
+					{isError ? (
+						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
 							<div className="flex flex-col items-center space-y-4">
 								<div className="p-4 rounded-full bg-destructive/10 text-destructive">
 									<AlertCircle className="size-8" />
@@ -555,18 +556,14 @@ const BookletApplicationsTable = ({
 									</p>
 								</div>
 							</div>
-						) : (
-							<div className="flex flex-col items-center space-y-4">
-								<div className="p-4 rounded-full bg-primary">
-									<FileText className="size-8 text-white" />
-								</div>
-								<div className="space-y-2 text-center">
-									<h3 className="text-lg font-semibold text-foreground">No Applications Found</h3>
-									<p className="text-sm text-muted-foreground max-w-md">This booklet has no applications yet.</p>
-								</div>
-							</div>
-						)}
-					</div>
+						</div>
+					) : (
+						<TableEmptyState
+							icon={FileText}
+							title="No Applications Found"
+							description="This booklet has no applications yet."
+						/>
+					)}
 				</div>
 			)}
 		</div>

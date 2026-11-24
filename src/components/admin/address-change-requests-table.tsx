@@ -40,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressChangeStatusType } from "@/generated/zod";
+import TableEmptyState from "@/components/ui/table-empty-state";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
@@ -1317,8 +1318,8 @@ const AddressChangeRequestsTable = ({
 							</TableHeader>
 						</Table>
 
-						<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-							{isError ? (
+						{isError ? (
+							<div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
 								<div className="flex flex-col items-center space-y-4">
 									<div className="p-4 rounded-full bg-destructive/10 text-destructive">
 										<XCircle className="size-8" />
@@ -1331,22 +1332,14 @@ const AddressChangeRequestsTable = ({
 										</p>
 									</div>
 								</div>
-							) : (
-								<div className="flex flex-col items-center space-y-4">
-									<div className="p-4 rounded-full bg-primary">
-										<MapPin className="size-8 text-white" />
-									</div>
-
-									<div className="space-y-2 text-center">
-										<h3 className="text-lg font-semibold text-foreground">No address change requests found</h3>
-
-										<p className="text-sm text-muted-foreground max-w-md">
-											No address change requests match your current search and filter criteria.
-										</p>
-									</div>
-								</div>
-							)}
-						</div>
+							</div>
+						) : (
+							<TableEmptyState
+								icon={MapPin}
+								title="No address change requests found"
+								description="No address change requests match your current search and filter criteria."
+							/>
+						)}
 					</div>
 				)}
 			</div>

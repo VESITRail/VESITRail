@@ -6,17 +6,24 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
-	seedReferenceData
+	seedReferenceData,
+	createTestSemester,
+	createTestApplication
 } from "./helpers";
 import {
 	assignBookletToConcession,
+	updateConcessionIssueDate,
 	reviewConcessionApplication,
 	submitConcessionApplication,
 	submitConcessionResubmission
 } from "@/actions/concession";
 import { auth } from "./test-auth";
+import type { PoolClient } from "pg";
 import { setTestHeaders } from "./headers-state";
+import { SUBMISSION_LOCK_NAMESPACE } from "@/lib/advisory-lock";
 import { approveStudent, rejectStudent } from "@/actions/student";
+import { updateAcademicSemester } from "@/actions/academic-semester";
+import { getCollegeCalendarDate } from "@/lib/academic-semester-window";
 import { submitAddressChangeApplication } from "@/actions/change-address";
 import { reviewAddressChangeRequest } from "@/actions/address-change-requests";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
@@ -24,8 +31,9 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 describe("Concurrency Integration", () => {
 	const { prisma, pool } = getTestPrisma();
 
-	let adminUser: Awaited<ReturnType<typeof createTestAdmin>>;
+	let semesterId: string;
 	let bookletCounter = 0;
+	let adminUser: Awaited<ReturnType<typeof createTestAdmin>>;
 
 	const successes = (results: { isSuccess: boolean }[]) => results.filter((r) => r.isSuccess).length;
 
@@ -35,13 +43,47 @@ describe("Concurrency Integration", () => {
 		return headers;
 	};
 
-	const newConcession = (studentId: string) => ({
-		studentId,
+	const newConcession = () => ({
+		expectedSemesterId: semesterId,
 		stationId: SEED.stations[0].id,
-		applicationType: "New" as const,
 		concessionClassId: SEED.concessionClasses[0].id,
 		concessionPeriodId: SEED.concessionPeriods[0].id
 	});
+
+	async function runQueuedChanges<First, Second>(
+		holdLock: (client: PoolClient) => Promise<unknown>,
+		startFirst: () => Promise<First>,
+		startSecond: () => Promise<Second>
+	) {
+		const client = await pool.connect();
+		let first: Promise<First> | undefined;
+		let second: Promise<Second> | undefined;
+
+		try {
+			await client.query("BEGIN");
+			await holdLock(client);
+
+			const { rows } = await client.query<{ pid: number }>("SELECT pg_backend_pid() AS pid");
+			const waitForBlocked = async () => {
+				const result = await pool.query("SELECT pid FROM pg_stat_activity WHERE $1 = ANY(pg_blocking_pids(pid))", [
+					rows[0].pid
+				]);
+				return result.rowCount;
+			};
+
+			first = startFirst();
+			await expect.poll(waitForBlocked, { timeout: 2_000 }).toBe(1);
+
+			second = startSecond();
+			await expect.poll(waitForBlocked, { timeout: 2_000 }).toBe(2);
+		} finally {
+			await client.query("ROLLBACK");
+			client.release();
+			await Promise.allSettled([first, second]);
+		}
+
+		return [await first, await second] as const;
+	}
 
 	const newAddressChange = () => ({
 		newStationId: SEED.stations[1].id,
@@ -56,6 +98,7 @@ describe("Concurrency Integration", () => {
 			data: {
 				status,
 				studentId,
+				semesterId,
 				submissionCount: 1,
 				applicationType: "New",
 				stationId: SEED.stations[0].id,
@@ -67,6 +110,7 @@ describe("Concurrency Integration", () => {
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
+		semesterId = (await createTestSemester(prisma)).id;
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 	});
 
@@ -174,22 +218,22 @@ describe("Concurrency Integration", () => {
 		await authenticateAs(user.id);
 
 		const results = await Promise.all([
-			submitConcessionApplication(newConcession(user.id)),
-			submitConcessionApplication(newConcession(user.id))
+			submitConcessionApplication(newConcession()),
+			submitConcessionApplication(newConcession())
 		]);
 
 		expect(successes(results)).toBe(1);
 		expect(await prisma.concessionApplication.count({ where: { studentId: user.id, status: "Pending" } })).toBe(1);
 	});
 
-	it("counts only one resubmission when a rejected student submits twice at the same time", async () => {
+	it("preserves the rejected record when a fresh submit races with a correction", async () => {
 		const { user } = await createTestStudent(prisma, { status: "Approved" });
 		const rejected = await createApplication(user.id, "Rejected");
 		await authenticateAs(user.id);
 
 		const results = await Promise.all([
-			submitConcessionApplication(newConcession(user.id)),
-			submitConcessionApplication(newConcession(user.id))
+			submitConcessionApplication(newConcession()),
+			submitConcessionResubmission(rejected.id, newConcession())
 		]);
 
 		expect(successes(results)).toBe(1);
@@ -203,7 +247,7 @@ describe("Concurrency Integration", () => {
 		const rejected = await createApplication(user.id, "Rejected");
 		await authenticateAs(user.id);
 
-		const { studentId: _studentId, ...resubmission } = newConcession(user.id);
+		const resubmission = newConcession();
 		const results = await Promise.all([
 			submitConcessionResubmission(rejected.id, resubmission),
 			submitConcessionResubmission(rejected.id, resubmission)
@@ -213,6 +257,97 @@ describe("Concurrency Integration", () => {
 		const stored = await prisma.concessionApplication.findUnique({ where: { id: rejected.id } });
 		expect(stored).toMatchObject({ status: "Pending", submissionCount: 2 });
 	});
+
+	it("uses the updated calendar when the admin calendar change enters the lock queue first", async () => {
+		const { user } = await createTestStudent(prisma, { status: "Approved" });
+		const [adminHeaders, studentHeaders] = await Promise.all([loginHeaders(adminUser.user.id), loginHeaders(user.id)]);
+		const semester = await prisma.academicSemester.findUniqueOrThrow({ where: { id: semesterId } });
+		const closedDate = getCollegeCalendarDate(new Date());
+		closedDate.setUTCDate(closedDate.getUTCDate() - 2);
+
+		try {
+			const [edit, submission] = await runQueuedChanges(
+				(client) => client.query('LOCK TABLE "AcademicSemester" IN SHARE ROW EXCLUSIVE MODE'),
+				() => {
+					setTestHeaders(adminHeaders);
+					return updateAcademicSemester(semesterId, {
+						term: semester.term,
+						academicYearStart: semester.academicYearStart,
+						endDate: closedDate.toISOString().slice(0, 10),
+						startDate: semester.startDate.toISOString().slice(0, 10)
+					});
+				},
+				() => {
+					setTestHeaders(studentHeaders);
+					return submitConcessionApplication(newConcession());
+				}
+			);
+			expect(edit).toMatchObject({ isSuccess: true, data: { endDate: closedDate } });
+			expect(submission).toMatchObject({ isSuccess: false, error: { field: "semesterId" } });
+			expect(await prisma.concessionApplication.count({ where: { studentId: user.id } })).toBe(0);
+		} finally {
+			await prisma.academicSemester.update({ where: { id: semesterId }, data: { endDate: semester.endDate } });
+		}
+	});
+
+	it.each(["admin", "student"] as const)(
+		"checks pass validity when the %s operation enters the lock queue first",
+		async (first) => {
+			const { user } = await createTestStudent(prisma, { status: "Approved" });
+			const [adminHeaders, studentHeaders] = await Promise.all([
+				loginHeaders(adminUser.user.id),
+				loginHeaders(user.id)
+			]);
+
+			const semester = await prisma.academicSemester.findUniqueOrThrow({ where: { id: semesterId } });
+			const issued = await createTestApplication(prisma, {
+				semesterId,
+				status: "Issued",
+				studentId: user.id,
+				issuedAt: semester.startDate
+			});
+
+			const updatedIssueDate = new Date();
+			const holdLock = (client: PoolClient) =>
+				client.query("SELECT pg_advisory_xact_lock($1::int, hashtext($2))", [
+					SUBMISSION_LOCK_NAMESPACE.concession,
+					user.id
+				]);
+			const startEdit = () => {
+				setTestHeaders(adminHeaders);
+				return updateConcessionIssueDate(issued.id, updatedIssueDate);
+			};
+			const startSubmission = () => {
+				setTestHeaders(studentHeaders);
+				return submitConcessionApplication(newConcession());
+			};
+
+			const [edit, submission] =
+				first === "admin"
+					? await runQueuedChanges(holdLock, startEdit, startSubmission)
+					: await runQueuedChanges(holdLock, startSubmission, startEdit).then(
+							([submitted, edited]) => [edited, submitted] as const
+						);
+
+			expect(edit).toMatchObject({ isSuccess: true, data: { issuedAt: updatedIssueDate } });
+
+			if (first === "admin") {
+				expect(submission).toMatchObject({
+					isSuccess: false,
+					error: { field: "status", message: expect.stringContaining("still active") }
+				});
+			} else {
+				expect(submission).toMatchObject({
+					isSuccess: true,
+					data: { status: "Pending", applicationType: "Renewal", previousApplication: { id: issued.id } }
+				});
+			}
+
+			expect(await prisma.concessionApplication.count({ where: { studentId: user.id } })).toBe(
+				first === "admin" ? 1 : 2
+			);
+		}
+	);
 
 	it("creates only one pending address change when a student submits twice at the same time", async () => {
 		const { user } = await createTestStudent(prisma, { status: "Approved" });
@@ -235,10 +370,10 @@ describe("Concurrency Integration", () => {
 		const [firstHeaders, secondHeaders] = await Promise.all([loginHeaders(first.id), loginHeaders(second.id)]);
 
 		setTestHeaders(firstHeaders);
-		const firstConcession = submitConcessionApplication(newConcession(first.id));
+		const firstConcession = submitConcessionApplication(newConcession());
 		const firstAddress = submitAddressChangeApplication(newAddressChange());
 		setTestHeaders(secondHeaders);
-		const secondConcession = submitConcessionApplication(newConcession(second.id));
+		const secondConcession = submitConcessionApplication(newConcession());
 		const secondAddress = submitAddressChangeApplication(newAddressChange());
 
 		const results = await Promise.all([firstConcession, firstAddress, secondConcession, secondAddress]);

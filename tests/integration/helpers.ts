@@ -4,6 +4,7 @@ dotenv.config({ path: ".env.test", override: true });
 import pg from "pg";
 import { auth } from "./test-auth";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { formatInTimeZone } from "date-fns-tz";
 import { PrismaClient } from "@/generated/prisma/client";
 import { setTestHeaders, clearTestHeaders } from "./headers-state";
 
@@ -117,6 +118,7 @@ export async function cleanAllTables(prisma: PrismaClient) {
 	await prisma.notification.deleteMany();
 	await prisma.fcmToken.deleteMany();
 	await prisma.concessionApplication.deleteMany();
+	await prisma.academicSemester.deleteMany();
 	await prisma.concessionBooklet.deleteMany();
 	await prisma.addressChange.deleteMany();
 	await prisma.legacyStudent.deleteMany();
@@ -248,12 +250,38 @@ export async function createTestBooklet(
 	});
 }
 
+export function createTestSemester(
+	prisma: PrismaClient,
+	{
+		term = "Odd",
+		endOffset = 30,
+		startOffset = -90
+	}: {
+		endOffset?: number;
+		startOffset?: number;
+		term?: "Odd" | "Even";
+	} = {}
+) {
+	const today = new Date(`${formatInTimeZone(new Date(), "Asia/Kolkata", "yyyy-MM-dd")}T00:00:00Z`);
+
+	const startDate = new Date(today);
+	startDate.setUTCDate(startDate.getUTCDate() + startOffset);
+
+	const endDate = new Date(today);
+	endDate.setUTCDate(endDate.getUTCDate() + endOffset);
+
+	return prisma.academicSemester.create({
+		data: { academicYearStart: startDate.getUTCFullYear(), term, startDate, endDate }
+	});
+}
+
 export async function createTestApplication(
 	prisma: PrismaClient,
 	overrides: {
 		issuedAt?: Date;
 		studentId: string;
 		reviewedAt?: Date;
+		semesterId?: string;
 		pageOffset?: number;
 		reviewedById?: string;
 		submissionCount?: number;

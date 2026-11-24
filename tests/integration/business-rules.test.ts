@@ -6,6 +6,7 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
+	createTestSemester,
 	seedReferenceData
 } from "./helpers";
 import {
@@ -37,8 +38,9 @@ import { saveFcmToken, removeFcmTokenForDevice, disablePushNotifications } from 
 describe("Business Rules Integration", () => {
 	const { prisma, pool } = getTestPrisma();
 
-	let adminUser: Awaited<ReturnType<typeof createTestAdmin>>;
+	let semesterId: string;
 	let bookletCounter = 0;
+	let adminUser: Awaited<ReturnType<typeof createTestAdmin>>;
 
 	const createApplication = async (
 		studentId: string,
@@ -78,6 +80,7 @@ describe("Business Rules Integration", () => {
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
+		semesterId = (await createTestSemester(prisma)).id;
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 	});
 
@@ -345,8 +348,7 @@ describe("Business Rules Integration", () => {
 				await authenticateAs(user.id);
 
 				const res = await submitConcessionApplication({
-					studentId: user.id,
-					applicationType: "New",
+					expectedSemesterId: semesterId,
 					stationId: SEED.stations[0].id,
 					concessionPeriodId: inactivePeriod.id,
 					concessionClassId: SEED.concessionClasses[0].id
@@ -365,8 +367,8 @@ describe("Business Rules Integration", () => {
 		const addressChange = (newStationId: string) => ({
 			newStationId,
 			currentStationId: SEED.stations[0].id,
-			newAddress: "Flat 9, Station Road, Mumbai 400070",
 			currentAddress: "Test Address, Mumbai 400001",
+			newAddress: "Flat 9, Station Road, Mumbai 400070",
 			verificationDocUrl: "https://test-r2.example.com/address-doc.pdf"
 		});
 

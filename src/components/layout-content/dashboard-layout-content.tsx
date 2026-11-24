@@ -5,8 +5,8 @@ import posthog from "posthog-js";
 import { isFailure } from "@/lib/result";
 import { useFcm } from "@/hooks/use-fcm";
 import Status from "@/components/ui/status";
-import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { Fragment, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import RoleSelection from "@/components/layout/role-selection";
 import { Loader2, UserX, Clock, XCircle, Mail, RefreshCw } from "lucide-react";
@@ -16,6 +16,7 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 	const router = useRouter();
 	const pathname = usePathname();
 	const session = authClient.useSession();
+	const sessionId = session.data?.session.id;
 	const [isVerifying, setIsVerifying] = useState<boolean>(true);
 	const [userRole, setUserRole] = useState<UserRole | null>(null);
 	const [allUserRoles, setAllUserRoles] = useState<UserRoles | null>(null);
@@ -33,9 +34,9 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 	}, [session.data?.user]);
 
 	useEffect(() => {
+		const isOnboardingPath = pathname === "/onboarding";
 		const isAdminPath = pathname.startsWith("/dashboard/admin");
 		const isStudentPath = pathname.startsWith("/dashboard/student");
-		const isOnboardingPath = pathname === "/onboarding";
 
 		const checkAndRedirect = async () => {
 			if (session.isPending) return;
@@ -170,6 +171,8 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 		);
 	}
 
+	if (!sessionId) return null;
+
 	if (showRoleSelection && allUserRoles) {
 		return <RoleSelection roles={allUserRoles} userName={session.data?.user?.name || undefined} />;
 	}
@@ -230,7 +233,7 @@ const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => 
 		}
 	}
 
-	return children;
+	return <Fragment key={sessionId}>{children}</Fragment>;
 };
 
 export default DashboardLayoutContent;
