@@ -85,10 +85,9 @@ const BookletApplicationsTable = ({
 				id: "serialNo",
 				header: () => <div className="text-center px-2">Sr. No.</div>,
 				cell: ({ row }) => {
-					const item = row.original;
-					const serialNo = getBookletSerialNo(isDamagedPage(item) ? item.serialNumber : generateCertificateNo(item));
+					const serialNo = getBookletSerialNo(row.original);
 
-					return <div className="font-normal text-foreground text-center">{serialNo}</div>;
+					return <div className="font-normal text-foreground text-center">{serialNo ?? "-"}</div>;
 				}
 			},
 			{
@@ -300,9 +299,7 @@ const BookletApplicationsTable = ({
 
 						return (
 							<TableRow key={row.id} className="hover:bg-muted/50 border-border/50">
-								<TableCell className="p-4 text-center align-middle">
-									{getBookletSerialNo(damagedItem.serialNumber)}
-								</TableCell>
+								<TableCell className="p-4 text-center align-middle">{getBookletSerialNo(damagedItem) ?? "-"}</TableCell>
 								<TableCell className="p-4 text-center align-middle">
 									<span className="text-muted-foreground">-</span>
 								</TableCell>

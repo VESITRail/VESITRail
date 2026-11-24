@@ -566,6 +566,8 @@ Inspect every individual certificate leaf (slots 1 to 50) in a booklet.
    - Table columns: `Sr. No.` (1 to 50), `Date`, `Certificate` serial number, `Student Name`, `Current Pass`, `Gender`, `Date of Birth`, `Period`, and `Home Station`.
    - Damaged leaves are displayed with a red **Cancelled** indicator.
 
+**Sr. No.** counts physical booklet positions starting at 1 for the first certificate in the series. Cancelled leaves keep their positions in both the table and the booklet PDF.
+
 ---
 
 ### How to Mark or Remove a Damaged Page in a Booklet

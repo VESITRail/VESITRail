@@ -1,4 +1,3 @@
-const BOOKLET_PAGE_SIZE = 50;
 const SERIAL_PATTERN = /^(.*?)(\d+)$/;
 
 export type ParsedSerialNumber = {
@@ -34,9 +33,12 @@ export const deriveCertificateNumber = (serialStartNumber: string, pageOffset: n
 	return `${parsed.prefix}${certificateNumber.toString().padStart(parsed.digitLength, "0")}`;
 };
 
-export const getBookletSerialNo = (certificateNo: string): number => {
-	const certificateNumber = parseSerialNumber(certificateNo)?.startNumber ?? 0;
-	return ((certificateNumber - 1) % BOOKLET_PAGE_SIZE) + 1;
+export const getBookletSerialNo = (slot: { pageOffset: number | null } | { pageNumber: number }): number | null => {
+	const storedPosition = "pageNumber" in slot ? slot.pageNumber : slot.pageOffset;
+	if (storedPosition === null || !Number.isSafeInteger(storedPosition)) return null;
+
+	const position = "pageNumber" in slot ? storedPosition : storedPosition + 1;
+	return position > 0 && Number.isSafeInteger(position) ? position : null;
 };
 
 export const formatSlipDisplay = (serialStartNumber: string, offset: number): string => {

@@ -45,19 +45,24 @@ describe("Booklet Serial Helpers (src/lib/booklet-serial.ts)", () => {
 
 	describe("getBookletSerialNo", () => {
 		it.each([
-			["0807501", 1],
-			["0807525", 25],
-			["0807550", 50],
-			["0807551", 1],
-			["0807600", 50],
-			["A0807525", 25]
-		])("maps certificate %s to Sr. No. %i", (certificateNo, expected) => {
-			expect(getBookletSerialNo(certificateNo)).toBe(expected);
+			[{ pageOffset: 0, derivedCertificateNo: "B0647199" }, 1],
+			[{ pageOffset: 0, derivedCertificateNo: "B0647132" }, 1],
+			[{ pageOffset: 0, derivedCertificateNo: "00045" }, 1],
+			[{ pageOffset: 1, derivedCertificateNo: "B0647200" }, 2],
+			[{ pageOffset: 2, derivedCertificateNo: "B0647201" }, 3],
+			[{ pageOffset: 49, derivedCertificateNo: "B0647248" }, 50],
+			[{ pageNumber: 1, serialNumber: "B0647199" }, 1],
+			[{ pageNumber: 50, serialNumber: "B0647248" }, 50]
+		] as const)("uses the booklet position of %j as Sr. No. %i", (slot, expected) => {
+			expect(getBookletSerialNo(slot)).toBe(expected);
 		});
 
-		it.each(["Pending", "N/A", ""])("returns 0 for certificate %j without digits", (certificateNo) => {
-			expect(getBookletSerialNo(certificateNo)).toBe(0);
-		});
+		it.each([{ pageOffset: null }, { pageOffset: -1 }, { pageOffset: 1.5 }, { pageNumber: 0 }])(
+			"leaves invalid booklet position %j unnumbered",
+			(slot) => {
+				expect(getBookletSerialNo(slot)).toBeNull();
+			}
+		);
 	});
 
 	describe("formatSlipDisplay", () => {

@@ -23,8 +23,8 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guard";
 import { getPaginationMeta } from "@/lib/pagination";
 import type { Prisma } from "@/generated/prisma/client";
-import { deriveCertificateNumber } from "@/lib/booklet-serial";
 import { calculateSerialEndNumber, calculateBookletStatus } from "@/lib/utils";
+import { deriveCertificateNumber, getBookletSerialNo } from "@/lib/booklet-serial";
 
 export type CreateBookletInput = {
 	anchorX: number;
@@ -536,9 +536,11 @@ export const getBookletApplications = async (
 		});
 
 		const applicationsWithDerivedData: BookletApplicationItem[] = applications.map((app) => {
-			const actualPageOffset = app.pageOffset ?? 0;
-
-			const derivedCertificateNo = deriveCertificateNumber(booklet.serialStartNumber, actualPageOffset) ?? undefined;
+			const pageNumber = getBookletSerialNo(app);
+			const derivedCertificateNo =
+				pageNumber === null
+					? undefined
+					: (deriveCertificateNumber(booklet.serialStartNumber, pageNumber - 1) ?? undefined);
 
 			return {
 				id: app.id,
@@ -551,7 +553,7 @@ export const getBookletApplications = async (
 				pageOffset: app.pageOffset,
 				applicationType: app.applicationType,
 				concessionPeriod: app.concessionPeriod,
-				derivedSerialNumber: actualPageOffset + 1,
+				derivedSerialNumber: pageNumber ?? undefined,
 				previousApplication: app.previousApplication
 			};
 		});
@@ -582,8 +584,8 @@ export const getBookletApplications = async (
 		}
 
 		const allItems: BookletTableItem[] = [...applicationsWithDerivedData, ...damagedPageItems].sort((a, b) => {
-			const pageA = "derivedSerialNumber" in a ? a.derivedSerialNumber || 0 : "pageNumber" in a ? a.pageNumber : 0;
-			const pageB = "derivedSerialNumber" in b ? b.derivedSerialNumber || 0 : "pageNumber" in b ? b.pageNumber : 0;
+			const pageA = getBookletSerialNo(a) ?? Number.MAX_SAFE_INTEGER;
+			const pageB = getBookletSerialNo(b) ?? Number.MAX_SAFE_INTEGER;
 			return pageA - pageB;
 		});
 
