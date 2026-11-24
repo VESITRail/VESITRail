@@ -483,20 +483,12 @@ const BookletApplicationsTable = ({
 					<Table>
 						<TableHeader className="sticky top-0 bg-card z-10">
 							<TableRow className="hover:bg-transparent border-border/50">
-								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap w-17.5">Sr. No.</TableHead>
-								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap w-27.5">
-									Certificate
-								</TableHead>
-								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap">
-									Student Name / State
-								</TableHead>
-								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap">
-									Station & Period
-								</TableHead>
-								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap w-37.5">
-									Staged Change
-								</TableHead>
-								<TableHead className="text-center font-semibold h-11 px-3 whitespace-nowrap w-45">Actions</TableHead>
+								<TableHead className="text-center h-11 px-3 whitespace-nowrap w-17.5">Sr. No.</TableHead>
+								<TableHead className="text-center h-11 px-3 whitespace-nowrap w-27.5">Certificate</TableHead>
+								<TableHead className="text-center h-11 px-3 whitespace-nowrap">Student Name / State</TableHead>
+								<TableHead className="text-center h-11 px-3 whitespace-nowrap">Station & Period</TableHead>
+								<TableHead className="text-center h-11 px-3 whitespace-nowrap w-37.5">Staged Change</TableHead>
+								<TableHead className="text-center h-11 px-3 whitespace-nowrap w-45">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						{renderReorderTableContent()}
@@ -512,7 +504,7 @@ const BookletApplicationsTable = ({
 										<TableHead
 											key={header.id}
 											style={{ width: `${header.getSize()}px` }}
-											className="text-center font-semibold h-12 px-2 whitespace-nowrap"
+											className="text-center h-12 px-2 whitespace-nowrap"
 										>
 											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 										</TableHead>
@@ -533,7 +525,7 @@ const BookletApplicationsTable = ({
 										<TableHead
 											key={header.id}
 											style={{ width: `${header.getSize()}px` }}
-											className="text-center font-semibold h-12 px-2 whitespace-nowrap"
+											className="text-center h-12 px-2 whitespace-nowrap"
 										>
 											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 										</TableHead>

@@ -97,12 +97,12 @@ const AnalyticsTable = ({
 						<Table>
 							<TableHeader className="sticky top-0 bg-card z-10">
 								<TableRow className="hover:bg-transparent border-border/50">
-									<TableHead className="font-semibold h-12 text-center px-4">Sr. No.</TableHead>
-									<TableHead className="font-semibold h-12 text-left px-4">Admin</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4">Students Reviewed</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4">Address Changes</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4">Applications Reviewed</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4">Total Contribution</TableHead>
+									<TableHead className="h-12 text-center px-4">Sr. No.</TableHead>
+									<TableHead className="h-12 text-left px-4">Admin</TableHead>
+									<TableHead className="h-12 text-center px-4">Students Reviewed</TableHead>
+									<TableHead className="h-12 text-center px-4">Address Changes</TableHead>
+									<TableHead className="h-12 text-center px-4">Applications Reviewed</TableHead>
+									<TableHead className="h-12 text-center px-4">Total Contribution</TableHead>
 								</TableRow>
 							</TableHeader>
 
@@ -183,12 +183,12 @@ const AnalyticsTable = ({
 						<Table>
 							<TableHeader className="bg-card">
 								<TableRow className="hover:bg-transparent border-border/50">
-									<TableHead className="font-semibold h-12 text-center px-4">Sr. No.</TableHead>
-									<TableHead className="font-semibold h-12 text-left px-4">Admin</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4">Students Reviewed</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4">Address Changes</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4">Applications Reviewed</TableHead>
-									<TableHead className="font-semibold h-12 text-center px-4">Total Contribution</TableHead>
+									<TableHead className="h-12 text-center px-4">Sr. No.</TableHead>
+									<TableHead className="h-12 text-left px-4">Admin</TableHead>
+									<TableHead className="h-12 text-center px-4">Students Reviewed</TableHead>
+									<TableHead className="h-12 text-center px-4">Address Changes</TableHead>
+									<TableHead className="h-12 text-center px-4">Applications Reviewed</TableHead>
+									<TableHead className="h-12 text-center px-4">Total Contribution</TableHead>
 								</TableRow>
 							</TableHeader>
 						</Table>
