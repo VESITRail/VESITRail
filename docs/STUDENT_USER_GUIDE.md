@@ -48,7 +48,7 @@
 
 ---
 
-## 📖 About This Document
+## About This Document
 
 This guide is for VESIT students who use VESITRail to request and manage their suburban railway travel concessions. You do not need any technical background to use this document or the application.
 
@@ -58,7 +58,7 @@ You can read this manual from beginning to end if you are setting up your accoun
 
 ---
 
-## 🚆 About VESITRail
+## About VESITRail
 
 VESITRail is an online platform created for students of Vivekanand Education Society's Institute of Technology (VESIT). It lets you register your student profile, upload required address verification documents, apply for suburban railway travel concessions, and follow the progress of your application from any web browser or smartphone without standing in preliminary paperwork lines on campus.
 
@@ -73,7 +73,7 @@ Suburban railway concessions issued through VESITRail cover daily commuting betw
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 Before you can apply for a railway pass, you must sign in with your official college credentials and verify your student details.
 
@@ -122,7 +122,7 @@ Sign in to create your student account profile or return to your student dashboa
 
 ---
 
-## 📝 Completing Your Profile and Onboarding
+## Completing Your Profile and Onboarding
 
 Every student must complete a one-time onboarding procedure to record personal details, academic division, home railway station, and identity proofs. College administrators review this profile before you can request concessions.
 
@@ -231,9 +231,11 @@ Upload a clear, combined PDF file verifying your identity and residential addres
 
 ---
 
-## 🎫 Applying for a Concession
+## Applying for a Concession
 
-Once your student registration is approved, you can submit an online request for your railway travel concession voucher whenever you require a new pass or a renewal.
+Once your student registration is approved, you can apply for a railway travel concession from seven calendar days before the official semester start through the end of the last day of the semester (India Standard Time). The **Application Type** is assigned automatically. It shows **New** if you have no issued pass for that semester, or **Renewal** if a pass was issued in that semester and you are eligible to apply again.
+
+Between windows, Apply Concession shows **Semester Applications Closed** with the upcoming semester’s academic year, term, and application opening date when available. Use **View Application History** to see existing applications and their statuses on the dashboard. If the semester changes while your form is open, the page refreshes the application details so you can review them again before submitting.
 
 ---
 
@@ -244,13 +246,13 @@ Submit your initial railway pass application for the term.
 #### Prerequisites
 
 - Your student account must be in `Approved` status.
-- You must not have another concession application currently under review (`Pending`) or an active unexpired pass (`Issued`).
+- You must be in an open application window and have no application under review (`Pending`), awaiting collection (`Approved`), or active unexpired pass (`Issued`). An active pass or pending application from a previous semester can still block submission.
 
 #### Steps
 
 1. Open your web browser and sign in to VESITRail.
 2. From the Student Dashboard (`/dashboard/student`), click the `New Concession` button in the top header, or click `Apply Concession` under the `Concession` section in the sidebar.
-3. Review your read-only **Home Station** (`Station Name (Code)` to Kurla).
+3. Confirm that **Application Type** shows **New** and review your read-only **Home Station**.
 4. Review your **Concession Class**:
    - The dropdown defaults to your preferred class (`First Class` or `Second Class`).
    - If you want a different class for this specific concession, select it from the dropdown.
@@ -268,13 +270,13 @@ VESITRail generates a numeric application reference identifier (`Short ID`, disp
 
 #### Common Issues
 
-- **"New Concession" button disabled or redirects to status view:** If you have an active unexpired pass, or an application currently under review, the system will not allow a new application until the existing pass expires or the pending application is processed.
+- Apply Concession shows a standalone status card while an application is under review or awaiting collection, or while a pass is active or needs verification. If you can submit or correct an application, the page shows the form.
 
 ---
 
 ### How to Apply for a Concession Renewal
 
-Renew your concession once your current season ticket validity has expired.
+Renew your concession during the same semester once your current season ticket validity has expired. If your last pass is from an earlier semester, the next eligible application starts as **New**.
 
 #### Prerequisites
 
@@ -286,9 +288,8 @@ Renew your concession once your current season ticket validity has expired.
 1. Sign in to VESITRail and navigate to `Apply Concession` (`/dashboard/student/apply-concession`).
 2. **Observe your pass status:**
    - **If your pass is still active:** A green **Active Concession** status card appears displaying the exact date until which your concession is valid and the number of days remaining. The application form remains hidden because railway rules strictly prohibit overlapping concession vouchers.
-   - **If your pass validity has concluded:** The form automatically unlocks with `Renewal` pre-selected as the application type.
-3. Inspect the optional **Previous Application Details** button:
-   - Click the clock/history icon button next to the Renewal badge to inspect your previous pass details (Class, Period, Home Station, Applied Date, Status).
+   - **If your pass validity has concluded and the application window is open:** The read-only **Application Type** field shows **Renewal** for a pass issued in the current semester.
+3. Click **Show History** next to **Renewal** to open **Previous Application Details** and review the linked pass.
 4. Adjust or confirm your desired `Concession Class` and `Concession Period`.
 5. Submit:
    - **Desktop:** Click `Submit Application`.
@@ -306,20 +307,20 @@ Your renewal request is linked to your previous pass record in the college admin
 
 ### How to Resubmit a Rejected Application
 
-If your concession request is rejected by college administration, you can modify and resubmit it directly.
+If college administration rejects your concession request, correct it in the same semester while its application window is open. Resubmitting keeps the original Short ID. After the window closes, the rejected application stays in your dashboard history. When you next become eligible, Apply Concession shows the form for a fresh application in the new semester.
 
 #### Steps
 
 1. Navigate to `Apply Concession` (`/dashboard/student/apply-concession`).
-2. The page detects the rejected status and renders the application form pre-filled with your previous selections.
-3. Check the `Application Type`. If you have never been issued a pass, it is fixed as `New` and cannot be changed, because you are editing your first application. If you have an earlier pass that has expired, you can choose `New` or `Renewal` (for example, if the administrator asked you to apply as `New` instead of `Renewal`, or the other way round). A `Renewal` is linked to your most recently issued pass.
+2. Review the **Application Rejected** alert and the form pre-filled with your previous selections.
+3. Review the read-only **Application Type**. A **Renewal** links to your most recent issued pass from the same semester.
 4. Adjust the `Concession Class` or `Concession Period` according to the administrative feedback.
 5. Click `Resubmit Application` (or slide `Slide to resubmit application` on mobile).
 6. In the **Confirm Application Resubmission** dialog, click `Yes, Submit Now`.
 
 ---
 
-## 🔍 Tracking Your Application
+## Tracking Your Application
 
 Track your concession applications in real time from your Student Dashboard.
 
@@ -352,7 +353,7 @@ The table below explains what each status badge means and the exact action requi
 | `Pending`    | Your application has been submitted and is in the administrative review queue.                                                                                    | None. Please wait while college staff verify your enrollment, commute route, and documents.                                                                                                                                                         |
 | `Approved`   | An administrator has reviewed and verified your request. **The physical voucher slip number is NOT yet assigned at this stage.**                                  | Visit the Railway Concession Office (Ground Floor Admin Office) during working hours with your college ID card to collect your certificate. For a renewal, also bring your existing pass.                                                           |
 | `Issued`     | You have visited the office, collected your certificate, and the administrator has assigned your official physical voucher slip number from a concession booklet. | Take your printed, stamped physical college voucher slip to the ticket booking window at your local suburban railway station to purchase your discounted season ticket. Your active pass validity will now be tracked on the Apply Concession page. |
-| `Rejected`   | Your application could not be approved due to administrative, jurisdictional, or documentation discrepancies.                                                     | Review the rejection reason on your dashboard or the Apply Concession page, make the necessary corrections, and submit a resubmission.                                                                                                              |
+| `Rejected`   | Your application could not be approved due to administrative, jurisdictional, or documentation discrepancies.                                                     | While the original semester window is open and you can resubmit, review the rejection reason on Apply Concession, then correct and resubmit the application.                                                                                        |
 
 ---
 
@@ -376,7 +377,7 @@ Sometimes the booking window at your home railway station refuses your physical 
 
 ---
 
-## 🏠 Managing Your Home Address
+## Managing Your Home Address
 
 If your residence changes, you must submit an official address update so future concession passes reflect your new commute route to Kurla.
 
@@ -416,7 +417,7 @@ Your request enters the `Pending` address change queue for administrative review
 
 ---
 
-## 🔔 Managing Notifications
+## Managing Notifications
 
 VESITRail delivers alerts so you know the moment your profile registration, concession pass, or address change request is updated.
 
@@ -451,7 +452,7 @@ Inspect all historical alerts sent to your account.
 
 ---
 
-## 📜 Viewing Application History and Past Passes
+## Viewing Application History and Past Passes
 
 You can inspect the full historical record of every concession application you have submitted on VESITRail directly from your dashboard.
 
@@ -492,7 +493,7 @@ Use the unified applications table on the Student Dashboard to view and filter p
 
 ---
 
-## 📱 Installing VESITRail on Your Phone
+## Installing VESITRail on Your Phone
 
 VESITRail is built as an installable Progressive Web Application (PWA). You can install it directly onto your device without an app store for quick one-tap access.
 
@@ -528,7 +529,7 @@ Install VESITRail using Safari on Apple iPhone or iPad.
 
 ---
 
-## ⚙️ Account and Profile Settings
+## Account and Profile Settings
 
 Review your registered student profile, update preferences, and configure appearance.
 
@@ -589,7 +590,7 @@ Toggle the application between Light and Dark visual modes.
 
 ---
 
-## ❓ Frequently Asked Questions (FAQ)
+## Frequently Asked Questions (FAQ)
 
 #### 1. Why do I need to use my @ves.ac.in email address to sign in?
 
@@ -610,7 +611,7 @@ Concessions issued through VESITRail cover suburban commuting between your regis
 
 #### 5. Why was my concession application rejected?
 
-Common reasons for rejection include selecting a concession duration not currently authorized, discrepancies between your uploaded address proof and selected home station, or illegible PDF documents. Review the specific rejection reason displayed on your dashboard and submit a resubmission.
+Common reasons for rejection include selecting a concession duration not currently authorized, discrepancies between your uploaded address proof and selected home station, or illegible PDF documents. If you’re eligible to resubmit, review the rejection reason on Apply Concession and correct the application.
 
 #### 6. Can I change my home station midway through the semester?
 
@@ -618,7 +619,7 @@ Yes. If your residence changes, submit a request via [Change Address](#how-to-re
 
 #### 7. When can I apply for a renewal?
 
-You can apply for a renewal only when your current concession pass validity has concluded (expired). You can check your remaining active pass validity days directly on the Apply Concession page (`/dashboard/student/apply-concession`). Once the validity period ends, the page automatically unlocks the renewal application form.
+Check the remaining validity on the Apply Concession page (`/dashboard/student/apply-concession`). After the pass expires, you can apply again in an open window if no application is under review or awaiting collection. The type is **Renewal** when your previous pass was issued for that semester, or **New** when it was issued for an earlier semester.
 
 #### 8. Does VESITRail replace the physical railway pass issued at the station counter?
 
@@ -628,7 +629,7 @@ No. VESITRail automates the college-side verification and voucher slip distribut
 
 Bring the same physical certificate back to the Railway Concession Counter (Ground Floor Administrative Section) with your college ID card. The administrator will check whether it can be fixed. If it cannot, the existing certificate is cancelled and a new one is printed for you. See [What to Do If Your Concession Is Wrongly Stamped or Rejected at the Railway Station](#what-to-do-if-your-concession-is-wrongly-stamped-or-rejected-at-the-railway-station).
 
-## 🔧 Troubleshooting Common Issues
+## Troubleshooting Common Issues
 
 ### "Invalid Domain" or Login Access Denied
 
@@ -657,7 +658,7 @@ Bring the same physical certificate back to the Railway Concession Counter (Grou
 
 ---
 
-## 📎 Back Matter
+## Back Matter
 
 ### Glossary
 
@@ -668,7 +669,7 @@ Bring the same physical certificate back to the Railway Concession Counter (Grou
 - **Home Station:** The suburban railway station nearest to your residence from which your daily commute to Kurla originates.
 - **Onboarding:** The one-time profile registration workflow where a new student registers demographic information, commute routes, and identity proofs.
 - **Progressive Web App (PWA):** Modern web technology allowing VESITRail to be installed onto smartphones or desktops with native app behavior and offline resilience.
-- **Renewal Application:** A concession request linked to a previously expired pass, submitted once active validity has finished.
+- **Renewal Application:** A concession request linked to an expired pass issued for the same academic semester.
 - **Short ID:** A compact, human-friendly numeric reference number (e.g., `#1042`) assigned to concession applications for quick identification at the administrative counter.
 - **Voucher Slip:** The physical government railway concession certificate printed by the college office, stamped, and assigned a booklet serial number for redemption at suburban railway booking windows.
 

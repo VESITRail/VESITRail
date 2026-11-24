@@ -54,19 +54,19 @@
 
 ---
 
-## 📖 About This Document
+## About This Document
 
 This guide is an operational manual for VESITRail administrators, including railway concession counter staff, administrative officers, and college supervisors. It covers how to review student registrations, process railway concession applications, issue printed physical voucher slips, manage 50-leaf physical voucher booklets, calibrate print offsets, audit address change requests, and generate administrative analytics.
 
 ---
 
-## 🏢 About VESITRail
+## About VESITRail
 
 VESITRail is the official digital railway concession management platform for Vivekanand Education Society's Institute of Technology (VESIT). It coordinates student eligibility verification, paper voucher inventory management, automated print calibration for official Central and Western Railway certificate slips, and lifecycle record-keeping for administrative audits.
 
 ---
 
-## 🔑 Getting Started as an Administrator
+## Getting Started as an Administrator
 
 Administrative access to VESITRail is pre-provisioned. Both new and existing administrators sign in using the dedicated institutional administrative account: **`vesit.railwayconcession@ves.ac.in`**.
 
@@ -98,7 +98,7 @@ Sign in to the system and enter the administrative workspace.
    - **Academics**:
      - **Students** (`/dashboard/admin/students`)
      - **Academic Semesters** (`/dashboard/admin/academic-semesters`)
-   - **Concessions**:
+   - **Printing**:
      - **Booklets** (`/dashboard/admin/booklets`)
      - **Form Layout** (`/dashboard/admin/form-layout`)
    - **Reports**:
@@ -115,7 +115,7 @@ The portal loads the **Concession Requests** table showing student concession ap
 
 ---
 
-## 👥 Reviewing and Approving Student Registrations
+## Reviewing and Approving Student Registrations
 
 Before students can apply for travel concessions, administrative staff must verify their academic division, residential address, and uploaded Aadhaar document.
 
@@ -252,7 +252,7 @@ Audit past concession applications submitted by an approved student.
 
 ---
 
-## 🎫 Processing Concession Applications
+## Processing Concession Applications
 
 Managing concession requests is the primary operational workflow at the railway concession desk.
 
@@ -462,7 +462,7 @@ The system updates the recorded issue date, recalibrating the pass validity star
 
 ---
 
-## 🔄 Managing Address Change Requests
+## Managing Address Change Requests
 
 When students relocate, they submit address change requests and upload new address verification documents that administrators must review.
 
@@ -522,7 +522,7 @@ The student receives an automated notification regarding the approval or rejecti
 
 ---
 
-## 📚 Managing Concession Booklets
+## Managing Concession Booklets
 
 Central and Western Railways supply colleges with official physical concession books containing 50 serialized leaves. Administrators register and manage these 50-slot books in VESITRail.
 
@@ -539,7 +539,7 @@ Register a newly received physical 50-leaf voucher booklet into digital inventor
 
 #### Steps
 
-1. In the sidebar under **Concessions**, click **Booklets** (`/dashboard/admin/booklets`).
+1. In the sidebar under **Printing**, click **Booklets** (`/dashboard/admin/booklets`).
 2. Click the **Add Booklet** button in the top right corner.
 3. On the **Add New Booklet** page (`/dashboard/admin/booklets/create`):
    - In **Serial Start Number**, enter the starting serial number stamped on leaf 1 (e.g., `0807551` or `A0807551`).
@@ -560,7 +560,7 @@ Inspect every individual certificate leaf (slots 1 to 50) in a booklet.
 
 #### Steps
 
-1. In the sidebar under **Concessions**, click **Booklets** (`/dashboard/admin/booklets`).
+1. In the sidebar under **Printing**, click **Booklets** (`/dashboard/admin/booklets`).
 2. In the Booklets table, locate the booklet.
 3. In the **Actions** column, click the **Three Dots** menu button (`<MoreVertical />`) and select **View Booklet**.
 4. The detail view opens at `/dashboard/admin/booklets/<id>`, showing:
@@ -637,14 +637,14 @@ Open **Academic Semesters** under **Academics** (`/dashboard/admin/academic-seme
 Click **Academic Year**, **Term**, **Start Date**, **End Date**, or **Applications** to sort the current page. Click again to reverse the order, and a third time to restore the default order.
 
 1. To create a semester, click **Add Semester**. Enter the **Academic Year Start** (for example, `2026` for 2026–2027), choose the **Term**, and enter the official **Start Date** and **End Date**. Click **Add Semester** to save.
-2. To correct a semester, click the edit icon in its **Actions** column, update the fields, and click **Save Changes**.
+2. To correct a semester, click the edit icon in its **Actions** column, update the fields, and click **Save Changes**. The table stays visible and applies the current filters and page order to the saved dates and term.
 3. To remove a semester, click the delete icon in its **Actions** column and confirm with **Delete Semester**. If the semester has linked concession applications, the dialog shows how many are linked and disables **Delete Semester**. If you delete the last result on the final page and other results remain, the table returns to the previous page.
 
-Each Odd or Even term can be entered once per academic year. The end date may be the same as the start date or later. When checking for overlaps, the system includes the seven calendar days before each semester starts and the full end date.
+Each Odd or Even term can be entered once per academic year. The end date may be the same as the start date or later. Student applications and corrections open seven calendar days before the official start and close after the official end date in India Standard Time. Enter official dates before that opening date so students can see when applications reopen. Applications submitted in the early week count toward the upcoming semester. Student submissions close between semesters, and staff can still review or issue an existing application against its original semester. A calendar update or issue-date correction affects submissions checked after that change is saved. Previously accepted applications keep their assigned semester.
 
 ---
 
-## 🖨️ Calibrating Form Layout and Printing
+## Calibrating Form Layout and Printing
 
 Because pre-printed paper railway slips and printer feed margins vary slightly between batches, VESITRail provides calibration tools.
 
@@ -656,7 +656,7 @@ Fine-tune horizontal and vertical print offsets for an individual voucher bookle
 
 #### Steps
 
-1. In the sidebar under **Concessions**, click **Booklets** (`/dashboard/admin/booklets`).
+1. In the sidebar under **Printing**, click **Booklets** (`/dashboard/admin/booklets`).
 2. In the Booklets table, locate the target booklet.
 3. Click the **Three Dots** (`<MoreVertical />`) menu in the Actions column and select **Calibrate Anchors**.
 4. The **Anchor Calibration — Booklet #<number>** dialog opens:
@@ -690,7 +690,7 @@ Calibrate relative field positions across the master print template.
 
 #### Steps
 
-1. In the sidebar under **Concessions**, click **Form Layout** (`/dashboard/admin/form-layout`).
+1. In the sidebar under **Printing**, click **Form Layout** (`/dashboard/admin/form-layout`).
 2. The page displays the **Form Layout Calibration** workspace:
    - Header: _Form Layout Calibration — Calibrate element placement coordinates and field mappings for printed concession forms_.
 3. Use the visual coordinate editor to reposition specific fields (such as Student Name, Station, or Class) across the master layout.
@@ -698,7 +698,7 @@ Calibrate relative field positions across the master print template.
 
 ---
 
-## 📊 Using the Analytics Dashboard and Reports
+## Using the Analytics Dashboard and Reports
 
 Monitor administrative review throughput and staff performance metrics.
 
@@ -738,7 +738,7 @@ Generate an executive summary report for departmental meetings or administrative
 
 ---
 
-## 🔔 Understanding Notification and Communication Triggers
+## Understanding Notification and Communication Triggers
 
 VESITRail automatically dispatches notifications across browser push notifications, email, and the in-app notification center based on administrative actions.
 
@@ -757,7 +757,7 @@ VESITRail automatically dispatches notifications across browser push notificatio
 
 ---
 
-## 🛡️ Administrator Roles and Access Permissions
+## Administrator Roles and Access Permissions
 
 Administrative operations are governed by account permissions associated with the institutional Google account.
 
@@ -772,7 +772,7 @@ Administrative operations are governed by account permissions associated with th
 
 ---
 
-## ❓ Frequently Asked Questions (FAQ)
+## Frequently Asked Questions (FAQ)
 
 #### 1. Why does approving an application not immediately assign a booklet serial number?
 
@@ -796,7 +796,7 @@ The Students table automatically sorts records with `Pending` students at the to
 
 ---
 
-## 🔧 Troubleshooting Common Issues
+## Troubleshooting Common Issues
 
 ### Cannot Sign In to Administrator Dashboard
 
@@ -815,7 +815,7 @@ The Students table automatically sorts records with `Pending` students at the to
 
 ---
 
-## 📎 Back Matter
+## Back Matter
 
 ### Glossary
 
