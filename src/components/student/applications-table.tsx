@@ -4,20 +4,22 @@ import {
 	DropdownMenuTrigger,
 	DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu";
+import {
+	ConcessionTypeBadge,
+	ConcessionStatusBadge,
+	PreviousApplicationDialog
+} from "@/components/student/previous-application-dialog";
 import { format } from "date-fns";
 import Status from "../ui/status";
-import { Separator } from "../ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Concession } from "@/actions/concession";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCallback, useState, useMemo } from "react";
 import TableEmptyState from "@/components/ui/table-empty-state";
 import { ConcessionApplicationTypeType, ConcessionApplicationStatusType } from "@/generated/zod";
+import { Filter, XCircle, ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Table, TableRow, TableBody, TableCell, TableHead, TableHeader } from "@/components/ui/table";
 import { Select, SelectItem, SelectValue, SelectContent, SelectTrigger } from "@/components/ui/select";
-import { Dialog, DialogTitle, DialogHeader, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Filter, XCircle, History, ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { ColumnDef, flexRender, useReactTable, VisibilityState, getCoreRowModel } from "@tanstack/react-table";
 
 type SortOrder = "asc" | "desc";
@@ -26,101 +28,6 @@ type ApplicationStatus = NonNullable<Concession>["status"];
 type ApplicationType = NonNullable<Concession>["applicationType"];
 type ConcessionClass = NonNullable<Concession>["concessionClass"];
 type ConcessionPeriod = NonNullable<Concession>["concessionPeriod"];
-type PreviousApplication = NonNullable<Concession>["previousApplication"];
-
-const StatusBadge = ({ status }: { status: ApplicationStatus }) => {
-	const variants = {
-		Rejected: "bg-red-600 text-white",
-		Issued: "bg-green-600 text-white",
-		Approved: "bg-primary text-white",
-		Pending: "bg-amber-600 text-white"
-	};
-
-	return <Badge className={`${variants[status]} font-medium`}>{status}</Badge>;
-};
-
-const ApplicationTypeBadge = ({ type }: { type: ApplicationType }) => {
-	return (
-		<Badge variant="secondary" className="font-medium">
-			{type}
-		</Badge>
-	);
-};
-
-const PreviousApplicationDialog = ({ previousApplication }: { previousApplication: PreviousApplication }) => {
-	if (!previousApplication) return null;
-
-	return (
-		<Dialog>
-			<DialogTrigger asChild>
-				<Button
-					size="sm"
-					variant="ghost"
-					title="View previous application details"
-					className="size-6 p-0 text-muted-foreground hover:text-foreground"
-				>
-					<History className="size-4" />
-				</Button>
-			</DialogTrigger>
-
-			<DialogContent className="sm:max-w-lg">
-				<DialogHeader>
-					<DialogTitle>Previous Application Details</DialogTitle>
-				</DialogHeader>
-
-				<Separator className="my-2" />
-
-				<div className="space-y-6">
-					<div className="grid grid-cols-2 gap-6">
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">Status</p>
-							<StatusBadge status={previousApplication.status} />
-						</div>
-
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">Type</p>
-							<ApplicationTypeBadge type={previousApplication.applicationType} />
-						</div>
-					</div>
-
-					<div className="grid grid-cols-2 gap-6">
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">Class</p>
-							<p className="font-medium text-foreground/90">
-								{previousApplication.concessionClass.name} ({previousApplication.concessionClass.code})
-							</p>
-						</div>
-
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">Period</p>
-							<p className="font-medium text-foreground/90">
-								{previousApplication.concessionPeriod.name} ({previousApplication.concessionPeriod.duration}{" "}
-								{previousApplication.concessionPeriod.duration === 1 ? "month" : "months"})
-							</p>
-						</div>
-					</div>
-
-					<div className="grid grid-cols-2 gap-6">
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">Home Station</p>
-							<p className="font-medium text-foreground/90">
-								{previousApplication.station.name} ({previousApplication.station.code})
-							</p>
-						</div>
-
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">Applied Date</p>
-							<p className="font-medium text-foreground/90">
-								{format(new Date(previousApplication.createdAt), "MMMM dd, yyyy")}
-							</p>
-						</div>
-					</div>
-				</div>
-			</DialogContent>
-		</Dialog>
-	);
-};
-
 const createColumns = (onSortChange: (column: string) => void, currentPage: number): ColumnDef<Concession>[] => [
 	{
 		size: 80,
@@ -157,7 +64,7 @@ const createColumns = (onSortChange: (column: string) => void, currentPage: numb
 
 			return (
 				<div className="flex items-center justify-center gap-2">
-					<ApplicationTypeBadge type={type} />
+					<ConcessionTypeBadge type={type} />
 
 					{type === "Renewal" && previousApplication && (
 						<PreviousApplicationDialog previousApplication={previousApplication} />
@@ -175,7 +82,7 @@ const createColumns = (onSortChange: (column: string) => void, currentPage: numb
 	{
 		size: 120,
 		accessorKey: "status",
-		cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
+		cell: ({ row }) => row.original && <ConcessionStatusBadge status={row.original.status} />,
 		header: () => {
 			return (
 				<Button variant="ghost" className="h-auto py-2 font-semibold" onClick={() => onSortChange("status")}>
@@ -555,12 +462,12 @@ const ApplicationsTable = ({
 										</TableCell>
 										<TableCell className="p-4 text-center">
 											<div className="flex items-center justify-center gap-2">
-												<Skeleton className="h-6 w-16 rounded-md" />
-												<Skeleton className="h-6 w-6 rounded" />
+												<Skeleton className="h-5.5 w-16" />
+												{selectedType === "Renewal" && <Skeleton className="size-6" />}
 											</div>
 										</TableCell>
 										<TableCell className="p-4 text-center">
-											<Skeleton className="h-6 w-16 rounded-full mx-auto" />
+											<Skeleton className="mx-auto h-5.5 w-16" />
 										</TableCell>
 										<TableCell className="p-4 text-center">
 											<Skeleton className="h-4 w-28 mx-auto" />

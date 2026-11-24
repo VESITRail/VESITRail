@@ -63,20 +63,21 @@ const Status = ({
 						{button && (
 							<div className="pt-2 w-full">
 								{button.href ? (
-									<Link href={button.href} className="flex items-center gap-2">
-										<Button
-											size="lg"
-											onClick={button.onClick}
-											className={cn(
-												"shadow-md hover:shadow-lg active:scale-[0.98]",
-												"bg-primary hover:bg-primary/90 text-primary-foreground",
-												"w-full h-12 text-base font-medium transition-all duration-200"
-											)}
-										>
+									<Button
+										asChild
+										size="lg"
+										onClick={button.onClick}
+										className={cn(
+											"shadow-md hover:shadow-lg active:scale-[0.98]",
+											"bg-primary hover:bg-primary/90 text-primary-foreground",
+											"w-full h-12 text-base font-medium transition-all duration-200"
+										)}
+									>
+										<Link href={button.href}>
 											<button.icon className="size-5" />
 											{button.label}
-										</Button>
-									</Link>
+										</Link>
+									</Button>
 								) : (
 									<Button
 										size="lg"
