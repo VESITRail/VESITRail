@@ -247,7 +247,7 @@ Audit past concession applications submitted by an approved student.
    - Duration period (`Monthly` or `Quarterly`)
    - Home station
    - Status badge (`Pending`, `Approved`, `Issued`, or `Rejected`)
-   - Certificate serial number (for issued passes)
+   - **Certificate / Reason** shows the certificate serial number for issued passes or the rejection reason for rejected applications. Long reasons wrap within the column.
 6. Use pagination controls at the bottom of the sheet if the student has more than 5 historical records.
 
 ---

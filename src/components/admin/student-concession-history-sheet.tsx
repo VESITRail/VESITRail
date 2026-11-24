@@ -333,13 +333,13 @@ export const StudentConcessionHistorySheet = ({ student }: { student: StudentLis
 														{format(new Date(app.createdAt), "MMM dd, yyyy")}
 													</TableCell>
 
-													<TableCell className="p-3 text-center text-sm">
+													<TableCell className="p-3 text-center text-sm whitespace-normal">
 														{app.derivedCertificateNo ? (
 															<span className="font-mono font-medium text-foreground">{app.derivedCertificateNo}</span>
 														) : app.status === "Rejected" && app.rejectionReason ? (
 															<span
-																className="text-foreground text-xs font-medium wrap-break-word max-w-55 block mx-auto"
 																title={app.rejectionReason}
+																className="text-foreground text-xs font-medium wrap-break-word max-w-55 block mx-auto"
 															>
 																{app.rejectionReason}
 															</span>
