@@ -20,7 +20,7 @@ model ConcessionApplication {
   concessionClassId  String
   concessionPeriodId String
 
-  semesterId            String?
+  semesterId            String
   reviewedById          String?
   concessionBookletId   String?
   previousApplicationId String? @unique
@@ -33,7 +33,7 @@ model ConcessionApplication {
   renewalApplication  ConcessionApplication? @relation("RenewalChain")
   reviewedBy          Admin?                 @relation(fields: [reviewedById], references: [userId])
   concessionBooklet   ConcessionBooklet?     @relation(fields: [concessionBookletId], references: [id])
-  semester            AcademicSemester?      @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  semester            AcademicSemester       @relation(fields: [semesterId], references: [id], onDelete: Restrict)
   previousApplication ConcessionApplication? @relation("RenewalChain", fields: [previousApplicationId], references: [id])
 
   @@unique([concessionBookletId, pageOffset])

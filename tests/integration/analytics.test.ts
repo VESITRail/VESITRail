@@ -5,7 +5,8 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
-	seedReferenceData
+	seedReferenceData,
+	createTestSemester
 } from "./helpers";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { getAdminAnalytics, generateAdminAnalyticsPDF } from "@/actions/analytics";
@@ -15,10 +16,12 @@ describe("Analytics Integration", () => {
 
 	let adminUser: any;
 	let studentUser: any;
+	let semesterId: string;
 
 	beforeAll(async () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
+		semesterId = (await createTestSemester(prisma)).id;
 
 		studentUser = await createTestStudent(prisma, { status: "Approved" });
 		adminUser = await createTestAdmin(prisma, { isActive: true, name: "Analytics Admin" });
@@ -46,6 +49,7 @@ describe("Analytics Integration", () => {
 
 		await prisma.concessionApplication.create({
 			data: {
+				semesterId,
 				status: "Approved",
 				reviewedAt: new Date(),
 				applicationType: "New",

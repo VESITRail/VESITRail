@@ -51,6 +51,7 @@ describe("Business Rules Integration", () => {
 			data: {
 				status,
 				studentId,
+				semesterId,
 				submissionCount: 1,
 				applicationType: "New",
 				stationId: SEED.stations[0].id,
@@ -579,6 +580,7 @@ describe("Business Rules Integration", () => {
 			for (const daysAgo of [10, 60, 150, 300, 500]) {
 				await prisma.concessionApplication.create({
 					data: {
+						semesterId,
 						status: "Rejected",
 						studentId: user.id,
 						submissionCount: 1,

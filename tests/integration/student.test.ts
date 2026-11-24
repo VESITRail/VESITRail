@@ -6,7 +6,8 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
-	seedReferenceData
+	seedReferenceData,
+	createTestSemester
 } from "./helpers";
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { getStudents, getStudentDetails, approveStudent, rejectStudent, updateStudentDetails } from "@/actions/student";
@@ -15,6 +16,7 @@ describe("Student Management Integration", () => {
 	const { prisma, pool } = getTestPrisma();
 
 	let adminUser: any;
+	let semesterId: string;
 	let pendingStudent: any;
 	let approvedStudent: any;
 
@@ -22,6 +24,7 @@ describe("Student Management Integration", () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
 
+		semesterId = (await createTestSemester(prisma)).id;
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 	});
 
@@ -193,6 +196,7 @@ describe("Student Management Integration", () => {
 
 			const concessionApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Pending",
 					applicationType: "New",
 					stationId: SEED.stations[0].id,

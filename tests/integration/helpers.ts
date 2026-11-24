@@ -281,7 +281,7 @@ export async function createTestApplication(
 		issuedAt?: Date;
 		studentId: string;
 		reviewedAt?: Date;
-		semesterId?: string;
+		semesterId: string;
 		pageOffset?: number;
 		reviewedById?: string;
 		submissionCount?: number;

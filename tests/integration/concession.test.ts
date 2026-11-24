@@ -103,7 +103,7 @@ describe("Concession Integration", () => {
 		});
 
 		it("prevents creating/submitting a new application when student already has a Pending application", async () => {
-			await createTestApplication(prisma, { studentId: studentUser.user.id });
+			await createTestApplication(prisma, { studentId: studentUser.user.id, semesterId });
 			await authenticateAs(studentUser.user.id);
 
 			const res = await submitConcessionApplication({
@@ -122,8 +122,9 @@ describe("Concession Integration", () => {
 
 	describe("getConcessions & getLastApplication", () => {
 		it("fetches concessions for student", async () => {
-			await createTestApplication(prisma, { studentId: studentUser.user.id });
+			await createTestApplication(prisma, { studentId: studentUser.user.id, semesterId });
 			await authenticateAs(studentUser.user.id);
+
 			const res = await getConcessions({ page: 1, pageSize: 10 });
 			expect(res.isSuccess).toBe(true);
 			if (res.isSuccess) {
@@ -132,8 +133,9 @@ describe("Concession Integration", () => {
 		});
 
 		it("fetches the last application for student", async () => {
-			await createTestApplication(prisma, { studentId: studentUser.user.id });
+			await createTestApplication(prisma, { studentId: studentUser.user.id, semesterId });
 			await authenticateAs(studentUser.user.id);
+
 			const res = await getLastApplication();
 			expect(res.isSuccess).toBe(true);
 			if (res.isSuccess) {
@@ -178,9 +180,9 @@ describe("Concession Integration", () => {
 
 		const createApp = async (
 			status: "Pending" | "Approved" | "Rejected" | "Issued",
-			extra: Omit<Parameters<typeof createTestApplication>[1], "studentId" | "status"> = {}
+			extra: Omit<Parameters<typeof createTestApplication>[1], "studentId" | "status" | "semesterId"> = {}
 		) => {
-			const app = await createTestApplication(prisma, { status, studentId: studentUser.user.id, ...extra });
+			const app = await createTestApplication(prisma, { semesterId, status, studentId: studentUser.user.id, ...extra });
 			createdAppId = app.id;
 		};
 
@@ -297,6 +299,7 @@ describe("Concession Integration", () => {
 		it("fails assignBookletToConcession when booklet is already assigned to this application", async () => {
 			const appWithBooklet = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Approved",
 					applicationType: "New",
 					stationId: SEED.stations[0].id,
@@ -331,6 +334,7 @@ describe("Concession Integration", () => {
 
 			const newApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Approved",
 					applicationType: "New",
 					stationId: SEED.stations[0].id,
@@ -424,6 +428,7 @@ describe("Concession Integration", () => {
 
 			const firstTimeRejected = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Rejected",
 					applicationType: "New",
 					stationId: SEED.stations[0].id,
@@ -443,6 +448,7 @@ describe("Concession Integration", () => {
 
 			const issuedApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Issued",
 					issuedAt: new Date(),
 					reviewedAt: new Date(),
@@ -455,6 +461,7 @@ describe("Concession Integration", () => {
 			});
 			const laterRejected = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Rejected",
 					applicationType: "New",
 					stationId: SEED.stations[0].id,
@@ -491,10 +498,10 @@ describe("Concession Integration", () => {
 			};
 
 			const issuedApp = await prisma.concessionApplication.create({
-				data: { ...base, status: "Issued", issuedAt: sharedCreatedAt, reviewedAt: sharedCreatedAt }
+				data: { semesterId, ...base, status: "Issued", issuedAt: sharedCreatedAt, reviewedAt: sharedCreatedAt }
 			});
 			const laterRejected = await prisma.concessionApplication.create({
-				data: { ...base, status: "Rejected", rejectionReason: "Test rejection" }
+				data: { semesterId, ...base, status: "Rejected", rejectionReason: "Test rejection" }
 			});
 
 			try {
@@ -514,6 +521,7 @@ describe("Concession Integration", () => {
 		it("rejects resubmitting as a renewal while the latest issued pass is still active", async () => {
 			const activeIssuedApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Issued",
 					issuedAt: new Date(),
 					reviewedAt: new Date(),
@@ -610,6 +618,7 @@ describe("Concession Integration", () => {
 		beforeEach(async () => {
 			const app = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Pending",
 					applicationType: "New",
 					stationId: SEED.stations[0].id,
@@ -749,6 +758,7 @@ describe("Concession Integration", () => {
 		it("fails when the latest issued pass is still active (unexpired)", async () => {
 			const activePass = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Issued",
 					issuedAt: new Date(),
 					applicationType: "New",

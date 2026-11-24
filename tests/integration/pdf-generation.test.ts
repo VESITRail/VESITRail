@@ -6,7 +6,8 @@ import {
 	unauthenticate,
 	createTestAdmin,
 	createTestStudent,
-	seedReferenceData
+	seedReferenceData,
+	createTestSemester
 } from "./helpers";
 import { generateBookletPDF } from "@/actions/generate-booklet-pdf";
 import { generateOverlayPDF } from "@/actions/generate-overlay-pdf";
@@ -51,6 +52,7 @@ describe("PDF Generation Integration", () => {
 	let booklet: any;
 	let adminUser: any;
 	let studentUser: any;
+	let semesterId: string;
 	let issuedApplication: any;
 	let renewalApplication: any;
 
@@ -58,6 +60,7 @@ describe("PDF Generation Integration", () => {
 		await cleanAllTables(prisma);
 		await seedReferenceData(prisma);
 
+		semesterId = (await createTestSemester(prisma)).id;
 		adminUser = await createTestAdmin(prisma, { isActive: true });
 		studentUser = await createTestStudent(prisma, { status: "Approved" });
 
@@ -74,6 +77,7 @@ describe("PDF Generation Integration", () => {
 
 		issuedApplication = await prisma.concessionApplication.create({
 			data: {
+				semesterId,
 				pageOffset: 0,
 				status: "Issued",
 				issuedAt: new Date(),
@@ -90,6 +94,7 @@ describe("PDF Generation Integration", () => {
 
 		renewalApplication = await prisma.concessionApplication.create({
 			data: {
+				semesterId,
 				pageOffset: 1,
 				status: "Issued",
 				issuedAt: new Date(),
@@ -156,6 +161,7 @@ describe("PDF Generation Integration", () => {
 		it("returns error when application has no booklet assigned", async () => {
 			const unassignedApp = await prisma.concessionApplication.create({
 				data: {
+					semesterId,
 					status: "Approved",
 					applicationType: "New",
 					studentId: studentUser.user.id,
