@@ -38,7 +38,6 @@ import { AcademicSemesterInputSchema, type AcademicSemesterInput } from "@/lib/v
 
 type DialogProps = {
 	onClose: () => void;
-	onSuccess: () => void;
 	onCloseAutoFocus: (event: Event) => void;
 };
 
@@ -47,7 +46,10 @@ export function AcademicSemesterFormDialog({
 	semester,
 	onSuccess,
 	onCloseAutoFocus
-}: DialogProps & { semester?: AcademicSemesterItem }) {
+}: DialogProps & {
+	semester?: AcademicSemesterItem;
+	onSuccess: (semester: AcademicSemesterItem) => void | Promise<void>;
+}) {
 	const form = useForm<AcademicSemesterInput>({
 		resolver: zodResolver(AcademicSemesterInputSchema),
 		defaultValues: semester
@@ -69,7 +71,7 @@ export function AcademicSemesterFormDialog({
 				toast.success(semester ? "Semester updated" : "Semester added", {
 					description: `${formatAcademicYear(academicYearStart)} · ${term} Semester`
 				});
-				onSuccess();
+				await onSuccess(result.data);
 				return;
 			}
 
@@ -160,7 +162,7 @@ export function AcademicSemesterFormDialog({
 													required
 													type="date"
 													disabled={isSubmitting}
-													className="relative pr-9 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+													className="relative pr-9 uppercase [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
 												/>
 											</FormControl>
 											<FormMessage />
@@ -197,7 +199,7 @@ export function AcademicSemesterDeleteDialog({
 	semester,
 	onSuccess,
 	onCloseAutoFocus
-}: DialogProps & { semester: AcademicSemesterItem }) {
+}: DialogProps & { semester: AcademicSemesterItem; onSuccess: () => void }) {
 	const [error, setError] = useState<string>();
 	const [pending, setPending] = useState(false);
 	const applicationCount = semester._count.applications;

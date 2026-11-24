@@ -13,8 +13,8 @@ import { useEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Heading3, Small } from "@/components/ui/typography";
-import type { AcademicSemesterListParams } from "@/lib/academic-semester-table";
 import AcademicSemestersTable from "@/components/admin/academic-semesters-table";
+import { applyAcademicSemesterEdit, type AcademicSemesterListParams } from "@/lib/academic-semester-table";
 import { AcademicSemesterDeleteDialog, AcademicSemesterFormDialog } from "@/components/admin/academic-semester-dialogs";
 
 type SemesterDialog = { mode: "add" } | { mode: "edit" | "delete"; semester: AcademicSemesterItem };
@@ -76,16 +76,43 @@ export default function AcademicSemestersPage() {
 		setDialog(selection);
 	}
 
+	function closeAndReload() {
+		setDialog(null);
+		setRequest((previous) => ({ ...previous, page: page.currentPage }));
+	}
+
+	async function handleSemesterEdit(semester: AcademicSemesterItem) {
+		if (!currentResponse?.page) {
+			setDialog(null);
+			return;
+		}
+
+		const editedPage = applyAcademicSemesterEdit(currentResponse.page, semester, request);
+		if (editedPage) {
+			setLoaded((previous) => (previous === currentResponse ? { ...currentResponse, page: editedPage } : previous));
+			setDialog(null);
+			return;
+		}
+
+		try {
+			const result = await getPaginatedAcademicSemesters({ ...request, page: page.currentPage });
+			if (!result.isSuccess) throw new Error(result.error.message);
+			setLoaded((previous) => (previous === currentResponse ? { ...currentResponse, page: result.data } : previous));
+		} catch {
+			toast.warning("Semester saved, but the table could not refresh", {
+				description: "Submit the search again to see the updated results."
+			});
+		} finally {
+			setDialog(null);
+		}
+	}
+
 	const dialogProps = {
 		onClose: () => setDialog(null),
 		onCloseAutoFocus: (event: Event) => {
 			event.preventDefault();
 			const trigger = dialogTrigger.current;
 			(trigger?.isConnected ? trigger : addButton.current)?.focus();
-		},
-		onSuccess: () => {
-			setDialog(null);
-			setRequest((previous) => ({ ...previous, page: page.currentPage }));
 		}
 	};
 
@@ -138,9 +165,13 @@ export default function AcademicSemestersPage() {
 					onSearchChange={(search) => setRequest((previous) => ({ ...previous, page: 1, searchQuery: search.trim() }))}
 				/>
 			</div>
-			{dialog?.mode === "add" && <AcademicSemesterFormDialog {...dialogProps} />}
-			{dialog?.mode === "edit" && <AcademicSemesterFormDialog semester={dialog.semester} {...dialogProps} />}
-			{dialog?.mode === "delete" && <AcademicSemesterDeleteDialog semester={dialog.semester} {...dialogProps} />}
+			{dialog?.mode === "add" && <AcademicSemesterFormDialog {...dialogProps} onSuccess={closeAndReload} />}
+			{dialog?.mode === "edit" && (
+				<AcademicSemesterFormDialog {...dialogProps} semester={dialog.semester} onSuccess={handleSemesterEdit} />
+			)}
+			{dialog?.mode === "delete" && (
+				<AcademicSemesterDeleteDialog {...dialogProps} semester={dialog.semester} onSuccess={closeAndReload} />
+			)}
 		</div>
 	);
 }
