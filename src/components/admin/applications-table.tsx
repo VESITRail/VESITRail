@@ -62,11 +62,7 @@ type ApplicationType = AdminApplication["applicationType"];
 type ConcessionClass = AdminApplication["concessionClass"];
 type ConcessionPeriod = AdminApplication["concessionPeriod"];
 
-const PREDEFINED_REJECTION_REASONS: {
-	label: string;
-	reason: string;
-	applicationType?: ApplicationType;
-}[] = [
+const PREDEFINED_REJECTION_REASONS = [
 	{
 		label: "Incorrect Home Station",
 		reason:
@@ -88,18 +84,6 @@ const PREDEFINED_REJECTION_REASONS: {
 		label: "Duplicate Application",
 		reason:
 			"You already have another concession application for this period. Please wait for it to be processed instead of submitting a new one."
-	},
-	{
-		label: "Apply as New Only",
-		applicationType: "Renewal",
-		reason:
-			"This request cannot be processed as a renewal. Please submit a fresh application with the application type 'New'."
-	},
-	{
-		label: "Apply as Renewal Only",
-		applicationType: "New",
-		reason:
-			"This request cannot be processed as a new application. Please submit a fresh application with the application type 'Renewal'."
 	}
 ];
 
@@ -755,14 +739,10 @@ const ApplicationsTable = ({
 		});
 	};
 
-	const availableRejectionReasons = PREDEFINED_REJECTION_REASONS.filter(
-		(r) => !r.applicationType || r.applicationType === selectedApplication?.applicationType
-	);
-
 	const confirmReject = async () => {
 		if (!selectedApplication) return;
 
-		const selectedReasonObj = availableRejectionReasons.find((r) => r.label === selectedPredefinedReason);
+		const selectedReasonObj = PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason);
 		const finalReason = rejectionReason.trim() || selectedReasonObj?.reason || "";
 
 		if (!finalReason) {
@@ -1529,7 +1509,7 @@ const ApplicationsTable = ({
 								</SelectTrigger>
 
 								<SelectContent className="w-full max-h-60 overflow-y-auto">
-									{availableRejectionReasons.map((reasonObj, index) => (
+									{PREDEFINED_REJECTION_REASONS.map((reasonObj, index) => (
 										<SelectItem key={index} value={reasonObj.label} className="whitespace-normal text-sm py-2 px-3">
 											{reasonObj.label}
 										</SelectItem>
@@ -1570,7 +1550,7 @@ const ApplicationsTable = ({
 
 								<p className="text-sm wrap-break-word">
 									{rejectionReason ||
-										availableRejectionReasons.find((r) => r.label === selectedPredefinedReason)?.reason}
+										PREDEFINED_REJECTION_REASONS.find((r) => r.label === selectedPredefinedReason)?.reason}
 								</p>
 							</div>
 						)}

@@ -377,8 +377,6 @@ Reject a concession request from **`Pending`**, **`Approved`**, or **`Issued`** 
    - **Quarterly Period Only**: _Only quarterly concessions are available. Please reapply with 'Quarterly'._
    - **Incorrect Concession Class**: _The concession class you selected is incorrect. Please reapply with the correct class._
    - **Duplicate Application**: _You already have another concession application for this period. Please wait for it to be processed instead of submitting a new one._
-   - **Apply as New Only**: _This request cannot be processed as a renewal. Please submit a fresh application with the application type 'New'._ (shown only when rejecting a `Renewal` application)
-   - **Apply as Renewal Only**: _This request cannot be processed as a new application. Please submit a fresh application with the application type 'Renewal'._ (shown only when rejecting a `New` application)
 5. (Optional) In the rejection reason textarea, enter or modify specific instructions for the student.
 6. Click **Reject Application**.
 
