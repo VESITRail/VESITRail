@@ -813,7 +813,7 @@ const createColumns = (
 	onStudentUpdate?: (updatedStudent: StudentDetails) => void
 ): ColumnDef<StudentListItem>[] => [
 	{
-		size: 80,
+		size: 84,
 		id: "serialNo",
 		header: "Sr. No.",
 		cell: ({ row, table }) => {
@@ -1208,7 +1208,7 @@ const StudentsTable = ({
 						<Table>
 							<TableHeader className="sticky top-0 bg-card z-10">
 								<TableRow className="hover:bg-transparent border-border/50">
-									<TableHead className="h-12 text-center px-4 w-20">
+									<TableHead className="h-12 text-center px-4 w-21">
 										<Skeleton className="h-4 w-12 mx-auto" />
 									</TableHead>
 									<TableHead className="h-12 text-center px-4 w-50">
