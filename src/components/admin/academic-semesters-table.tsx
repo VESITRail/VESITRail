@@ -148,10 +148,10 @@ export default function AcademicSemestersTable({
 						</Button>
 						<Button
 							size="sm"
-							variant="outline"
+							variant="destructive"
+							className="size-8 p-0"
 							aria-label={`Delete ${label}`}
 							onClick={(event) => onDelete(semester, event.currentTarget)}
-							className="size-8 p-0 text-destructive hover:text-destructive"
 						>
 							<Trash2 className="size-4" />
 						</Button>

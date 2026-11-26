@@ -75,8 +75,8 @@ const data = {
 					url: "/dashboard/admin/students"
 				},
 				{
+					name: "Semesters",
 					icon: CalendarDays,
-					name: "Academic Semesters",
 					url: "/dashboard/admin/academic-semesters"
 				}
 			]

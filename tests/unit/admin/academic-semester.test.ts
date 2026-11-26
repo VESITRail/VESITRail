@@ -14,7 +14,13 @@ describe("AcademicSemesterInputSchema", () => {
 	});
 
 	it("accepts a one-day semester on a leap day", () => {
-		const leapDaySemester = { ...semester, term: "Odd", startDate: "2028-02-29", endDate: "2028-02-29" };
+		const leapDaySemester = {
+			...semester,
+			term: "Odd",
+			endDate: "2028-02-29",
+			academicYearStart: 2027,
+			startDate: "2028-02-29"
+		};
 		expect(AcademicSemesterInputSchema.parse(leapDaySemester)).toEqual(leapDaySemester);
 	});
 
@@ -51,13 +57,32 @@ describe("AcademicSemesterInputSchema", () => {
 		}
 	});
 
-	it.each([1, 2_147_483_647])("accepts the valid academic year boundary %i", (academicYearStart) => {
-		expect(AcademicSemesterInputSchema.parse({ ...semester, academicYearStart }).academicYearStart).toBe(
-			academicYearStart
-		);
+	it.each([
+		[1, "0001-01-01", "0002-12-31"],
+		[2026, "2026-01-01", "2027-12-31"],
+		[9998, "9998-01-01", "9999-12-31"]
+	])("accepts the first and last dates of academic year %i", (academicYearStart, startDate, endDate) => {
+		const input = { ...semester, academicYearStart, startDate, endDate };
+		expect(AcademicSemesterInputSchema.parse(input)).toEqual(input);
 	});
 
-	it.each([0, -1, 2026.5, 2_147_483_648, "2026", null, undefined])(
+	it.each([
+		{ field: "startDate", startDate: "2025-12-31", endDate: "2027-06-15" },
+		{ field: "startDate", startDate: "2028-01-01", endDate: "2028-01-01" },
+		{ field: "endDate", startDate: "2025-12-31", endDate: "2025-12-31" },
+		{ field: "endDate", startDate: "2027-01-11", endDate: "2028-01-01" }
+	])("rejects an out-of-range $field with $startDate through $endDate", ({ field, startDate, endDate }) => {
+		expect(AcademicSemesterInputSchema.safeParse({ ...semester, startDate, endDate })).toMatchObject({
+			success: false,
+			error: {
+				issues: expect.arrayContaining([
+					expect.objectContaining({ path: [field], message: "Choose a date within the academic year" })
+				])
+			}
+		});
+	});
+
+	it.each([0, -1, 2026.5, NaN, 9999, 2_147_483_648, "2026", null, undefined])(
 		"rejects an invalid academic year %j",
 		(academicYearStart) => {
 			expect(AcademicSemesterInputSchema.safeParse({ ...semester, academicYearStart })).toMatchObject({
