@@ -24,17 +24,26 @@ import {
 	AlertDialogContent,
 	AlertDialogDescription
 } from "@/components/ui/alert-dialog";
+import {
+	AcademicYearStartSchema,
+	type AcademicSemesterInput,
+	AcademicSemesterInputSchema
+} from "@/lib/validations/admin/academic-semester";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useForm, useWatch } from "react-hook-form";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format, formatISO, parseISO } from "date-fns";
+import { CustomCalendar } from "@/components/ui/custom-calendar";
 import { formatAcademicYear } from "@/lib/academic-semester-table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { getAcademicYearDateRange, isDateInAcademicYear } from "@/lib/academic-semester-calendar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AcademicSemesterInputSchema, type AcademicSemesterInput } from "@/lib/validations/admin/academic-semester";
 
 type DialogProps = {
 	onClose: () => void;
@@ -50,6 +59,7 @@ export function AcademicSemesterFormDialog({
 	semester?: AcademicSemesterItem;
 	onSuccess: (semester: AcademicSemesterItem) => void | Promise<void>;
 }) {
+	const [openDateField, setOpenDateField] = useState<"startDate" | "endDate">();
 	const form = useForm<AcademicSemesterInput>({
 		resolver: zodResolver(AcademicSemesterInputSchema),
 		defaultValues: semester
@@ -61,7 +71,11 @@ export function AcademicSemesterFormDialog({
 				}
 			: { startDate: "", endDate: "" }
 	});
+
 	const { isSubmitting, errors } = form.formState;
+	const academicYearStart = useWatch({ control: form.control, name: "academicYearStart" });
+	const academicYear = AcademicYearStartSchema.safeParse(academicYearStart);
+	const dateRange = academicYear.success ? getAcademicYearDateRange(academicYear.data) : undefined;
 
 	async function saveSemester(input: AcademicSemesterInput) {
 		try {
@@ -153,23 +167,70 @@ export function AcademicSemesterFormDialog({
 									key={name}
 									name={name}
 									control={form.control}
-									render={({ field }) => (
-										<FormItem className="min-w-0">
-											<FormLabel>{label}</FormLabel>
-											<FormControl>
-												<Input
-													{...field}
-													required
-													type="date"
-													disabled={isSubmitting}
-													className="relative pr-9 uppercase [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-												/>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
+									render={({ field }) => {
+										const selected = field.value ? parseISO(field.value) : undefined;
+										const dateText = selected ? format(selected, "dd/MM/yyyy") : "Pick a date";
+
+										return (
+											<FormItem className="min-w-0">
+												<FormLabel>{label}</FormLabel>
+												<Popover
+													open={!!dateRange && openDateField === name}
+													onOpenChange={(open) => setOpenDateField(open ? name : undefined)}
+												>
+													<PopoverTrigger asChild>
+														<FormControl>
+															<Button
+																type="button"
+																ref={field.ref}
+																variant="outline"
+																onBlur={field.onBlur}
+																aria-label={`${label}, ${dateText}`}
+																disabled={isSubmitting || !dateRange}
+																className={cn(
+																	"border-input w-full justify-between px-3 font-normal",
+																	!selected && "text-muted-foreground"
+																)}
+															>
+																{dateText}
+																<CalendarIcon aria-hidden className="text-foreground size-4" />
+															</Button>
+														</FormControl>
+													</PopoverTrigger>
+
+													{dateRange && (
+														<PopoverContent
+															align="start"
+															collisionPadding={8}
+															className="max-h-(--radix-popover-content-available-height) w-auto overflow-y-auto p-0"
+														>
+															<CustomCalendar
+																key={dateRange.fromYear}
+																toYear={dateRange.toYear}
+																fromYear={dateRange.fromYear}
+																defaultMonth={parseISO(dateRange.firstDate)}
+																selected={isDateInAcademicYear(field.value, dateRange) ? selected : undefined}
+																onSelect={(date) => {
+																	if (date) {
+																		field.onChange(formatISO(date, { representation: "date" }));
+																		setOpenDateField(undefined);
+																	}
+																}}
+															/>
+														</PopoverContent>
+													)}
+												</Popover>
+												<FormMessage />
+											</FormItem>
+										);
+									}}
 								/>
 							))}
+							{!dateRange && (
+								<p className="text-muted-foreground text-sm sm:col-span-2">
+									Enter the Academic Year Start first to choose dates.
+								</p>
+							)}
 						</div>
 						{errors.root?.server?.message && (
 							<p role="alert" className="text-destructive text-sm">

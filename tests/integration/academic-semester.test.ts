@@ -228,6 +228,24 @@ describe("Academic semester actions", () => {
 		expect(unwrap(await getAcademicSemesters())).toEqual([semester]);
 	});
 
+	it("rejects a create with a start date before the academic year", async () => {
+		expect(await createAcademicSemester({ ...evenSemester, startDate: "2025-12-31" })).toMatchObject({
+			isSuccess: false,
+			error: { type: "VALIDATION_ERROR", field: "startDate" }
+		});
+		expect(await prisma.academicSemester.count()).toBe(0);
+	});
+
+	it("leaves the semester unchanged when an edited end date falls after the academic year", async () => {
+		const semester = unwrap(await createAcademicSemester(evenSemester));
+
+		expect(await updateAcademicSemester(semester.id, { ...evenSemester, endDate: "2028-01-01" })).toMatchObject({
+			isSuccess: false,
+			error: { type: "VALIDATION_ERROR", field: "endDate" }
+		});
+		expect(unwrap(await getAcademicSemester(semester.id))).toEqual(semester);
+	});
+
 	it("rejects duplicate academic year and term even when dates do not overlap", async () => {
 		unwrap(await createAcademicSemester(evenSemester));
 		const duplicate = { ...evenSemester, startDate: "2027-08-01", endDate: "2027-12-15" };
@@ -305,13 +323,16 @@ describe("Academic semester actions", () => {
 		});
 	});
 
-	it.each(["0001-01-01", "9999-12-31"])("persists the supported calendar boundary %s", async (date) => {
+	it.each([
+		["0001-01-01", 1],
+		["9999-12-31", 9998]
+	])("persists the supported calendar boundary %s", async (date, academicYearStart) => {
 		const semester = unwrap(
 			await createAcademicSemester({
 				...evenSemester,
 				endDate: date,
 				startDate: date,
-				academicYearStart: Number(date.slice(0, 4))
+				academicYearStart
 			})
 		);
 		expect(unwrap(await getAcademicSemester(semester.id))).toMatchObject({
@@ -364,7 +385,7 @@ describe("Academic semester actions", () => {
 		const newWindow = { startDate: "2028-01-10", endDate: "2028-03-31" };
 
 		const results = await Promise.all([
-			updateAcademicSemester(even.id, { ...evenSemester, ...newWindow }),
+			updateAcademicSemester(even.id, { ...evenSemester, academicYearStart: 2027, ...newWindow }),
 			updateAcademicSemester(odd.id, { ...oddSemester, ...newWindow })
 		]);
 
