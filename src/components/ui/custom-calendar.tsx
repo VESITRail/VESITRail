@@ -2,14 +2,16 @@
 
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { getDay, addMonths, subMonths, startOfMonth, getDaysInMonth } from "date-fns";
-import { Select, SelectItem, SelectValue, SelectTrigger, SelectContent } from "@/components/ui/select";
+import { getCalendarDays } from "@/lib/calendar-days";
+import { setMonth, setYear, startOfMonth, startOfYear } from "date-fns";
+import { Select, SelectItem, SelectTrigger, SelectContent } from "@/components/ui/select";
 
 export type CustomCalendarProps = {
 	toYear?: number;
 	selected?: Date;
 	fromYear?: number;
 	className?: string;
+	defaultMonth?: Date;
 	onSelect?: (date: Date | undefined) => void;
 };
 
@@ -17,19 +19,21 @@ export const CustomCalendar = ({
 	selected,
 	onSelect,
 	className,
+	defaultMonth,
 	fromYear = 1950,
 	toYear = new Date().getFullYear()
 }: CustomCalendarProps) => {
-	const [currentDate, setCurrentDate] = useState<Date>(selected || new Date(toYear, 0, 1));
-	const [currentMonth, setCurrentMonth] = useState<number>(currentDate.getMonth());
-	const [currentYear, setCurrentYear] = useState<number>(currentDate.getFullYear());
+	const [currentDate, setCurrentDate] = useState(
+		() => selected ?? defaultMonth ?? setYear(startOfYear(new Date()), toYear)
+	);
+
+	const currentMonth = currentDate.getMonth();
+	const currentYear = currentDate.getFullYear();
 
 	useEffect(() => {
 		if (selected) {
 			// eslint-disable-next-line react-hooks/set-state-in-effect -- We want to update the state when the selected prop changes
 			setCurrentDate(selected);
-			setCurrentMonth(selected.getMonth());
-			setCurrentYear(selected.getFullYear());
 		}
 	}, [selected]);
 
@@ -51,51 +55,16 @@ export const CustomCalendar = ({
 	const years = Array.from({ length: toYear - fromYear + 1 }, (_, i) => toYear - i);
 	const weekDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-	const generateCalendarDays = () => {
-		const daysInMonth = getDaysInMonth(new Date(currentYear, currentMonth));
-		const firstDayOfMonth = getDay(startOfMonth(new Date(currentYear, currentMonth)));
-
-		const prevMonth = subMonths(new Date(currentYear, currentMonth, 1), 1);
-		const daysInPrevMonth = getDaysInMonth(prevMonth);
-		const prevMonthDays = Array.from({ length: firstDayOfMonth }, (_, i) => ({
-			day: daysInPrevMonth - firstDayOfMonth + i + 1,
-			isCurrentMonth: false,
-			isPrevMonth: true,
-			date: new Date(prevMonth.getFullYear(), prevMonth.getMonth(), daysInPrevMonth - firstDayOfMonth + i + 1)
-		}));
-
-		const currentMonthDays = Array.from({ length: daysInMonth }, (_, i) => ({
-			day: i + 1,
-			isCurrentMonth: true,
-			isPrevMonth: false,
-			isNextMonth: false,
-			date: new Date(currentYear, currentMonth, i + 1)
-		}));
-
-		const nextMonth = addMonths(new Date(currentYear, currentMonth, 1), 1);
-		const remainingDays = (7 - ((firstDayOfMonth + daysInMonth) % 7)) % 7;
-		const nextMonthDays = Array.from({ length: remainingDays }, (_, i) => ({
-			day: i + 1,
-			isCurrentMonth: false,
-			isNextMonth: true,
-			date: new Date(nextMonth.getFullYear(), nextMonth.getMonth(), i + 1)
-		}));
-
-		return [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
-	};
-
-	const calendarDays = generateCalendarDays();
+	const calendarDays = getCalendarDays(currentDate);
 
 	const handleMonthChange = (month: string) => {
 		const monthIndex = months.indexOf(month);
-		setCurrentMonth(monthIndex);
-		setCurrentDate(new Date(currentYear, monthIndex, 1));
+		setCurrentDate(setMonth(startOfMonth(currentDate), monthIndex));
 	};
 
 	const handleYearChange = (year: string) => {
 		const yearValue = Number.parseInt(year);
-		setCurrentYear(yearValue);
-		setCurrentDate(new Date(yearValue, currentMonth, 1));
+		setCurrentDate(setYear(startOfMonth(currentDate), yearValue));
 	};
 
 	const handleDateSelect = (date: Date) => {
@@ -127,11 +96,12 @@ export const CustomCalendar = ({
 			<div className="flex gap-2 mb-4">
 				<div className="flex-1">
 					<Select value={months[currentMonth]} onValueChange={handleMonthChange}>
-						<SelectTrigger className="w-full bg-background border-border">
+						<SelectTrigger aria-label="Month" className="w-full bg-background border-border">
 							<div className="flex items-center justify-between w-full">
 								<span>{months[currentMonth]}</span>
 							</div>
 						</SelectTrigger>
+
 						<SelectContent>
 							{months.map((month) => (
 								<SelectItem key={month} value={month}>
@@ -144,11 +114,12 @@ export const CustomCalendar = ({
 
 				<div className="flex-1">
 					<Select value={currentYear.toString()} onValueChange={handleYearChange}>
-						<SelectTrigger className="w-full bg-background border-border">
+						<SelectTrigger aria-label="Year" className="w-full bg-background border-border">
 							<div className="flex items-center justify-between w-full">
 								<span>{currentYear}</span>
 							</div>
 						</SelectTrigger>
+
 						<SelectContent className="max-h-50">
 							{years.map((year) => (
 								<SelectItem key={year} value={year.toString()}>
@@ -184,7 +155,7 @@ export const CustomCalendar = ({
 							)}
 							disabled={!day.isCurrentMonth}
 						>
-							{day.day}
+							{day.date.getDate()}
 						</button>
 					))}
 				</div>
