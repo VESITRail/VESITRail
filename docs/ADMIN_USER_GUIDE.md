@@ -97,7 +97,7 @@ Sign in to the system and enter the administrative workspace.
      - **Address Change Requests** (`/dashboard/admin/address-change-requests`)
    - **Academics**:
      - **Students** (`/dashboard/admin/students`)
-     - **Academic Semesters** (`/dashboard/admin/academic-semesters`)
+     - **Semesters** (`/dashboard/admin/academic-semesters`)
    - **Printing**:
      - **Booklets** (`/dashboard/admin/booklets`)
      - **Form Layout** (`/dashboard/admin/form-layout`)
@@ -133,7 +133,7 @@ Inspect a student's personal details, academic division, and uploaded Aadhaar ve
 #### Steps
 
 1. In the sidebar under **Academics**, click **Students** (`/dashboard/admin/students`).
-2. Observe that the table displays **`Pending`** student registrations first by default (sorted chronologically oldest-to-newest so staff can review them in First-In-First-Out order), followed by `Approved` and `Rejected` records.
+2. The **Sr. No.** column shows the row number. The table lists **`Pending`** student registrations first by default, oldest to newest, followed by `Approved` and `Rejected` records.
 3. (Optional) Use the **Filter by Status** dropdown (`All Statuses`, `Pending`, `Approved`, `Rejected`) or type a name, email, mobile number, division, home station, or 6-digit pincode in the search bar. Other parts of the address (such as building or area names) are not searched.
 4. Locate the student you wish to review.
 5. In the **Actions** column of that student's row, click the **Eye** icon button to open the **Student Details** dialog.
@@ -632,13 +632,13 @@ Generate an official 50-entry tabular printout of the entire booklet for railway
 
 ## Managing Academic Semesters
 
-Open **Academic Semesters** under **Academics** (`/dashboard/admin/academic-semesters`). The table shows numbered rows with the most recent start date first. The **Applications** column counts linked **Pending**, **Approved**, **Rejected**, and **Issued** applications. Semesters with no linked applications show `0`. Enter an academic year or term and press **Enter** or click the search button. Use **All Terms** to narrow the list to **Odd** or **Even**, and **Columns** to choose which fields to display.
+Open **Semesters** under **Academics** (`/dashboard/admin/academic-semesters`). The table shows numbered rows with the most recent start date first. The **Applications** column counts linked **Pending**, **Approved**, **Rejected**, and **Issued** applications. Semesters with no linked applications show `0`. Enter an academic year or term and press **Enter** or click the search button. Use **All Terms** to narrow the list to **Odd** or **Even**, and **Columns** to choose which fields to display.
 
 Click **Academic Year**, **Term**, **Start Date**, **End Date**, or **Applications** to sort the current page. Click again to reverse the order, and a third time to restore the default order.
 
-1. To create a semester, click **Add Semester**. Enter the **Academic Year Start** (for example, `2026` for 2026–2027), choose the **Term**, and enter the official **Start Date** and **End Date**. Click **Add Semester** to save.
-2. To correct a semester, click the edit icon in its **Actions** column, update the fields, and click **Save Changes**. The table stays visible and applies the current filters and page order to the saved dates and term.
-3. To remove a semester, click the delete icon in its **Actions** column and confirm with **Delete Semester**. If the semester has linked concession applications, the dialog shows how many are linked and disables **Delete Semester**. If you delete the last result on the final page and other results remain, the table returns to the previous page.
+1. To create a semester, click **Add Semester**. The date fields show “Enter the Academic Year Start first to choose dates.” Enter a valid **Academic Year Start** to enable the calendars. For example, entering `2026` allows dates from January 1, 2026 through December 31, 2027, inclusive. Choose the **Term** and select the official dates, then click **Add Semester**.
+2. To correct a semester, click the edit icon in its **Actions** column. The existing **Academic Year Start** is prefilled. If you change the year, check that both dates fall within the new range before clicking **Save Changes**. The table stays visible and applies the current filters and page order to the saved dates and term.
+3. To remove a semester, click the red trash button in its **Actions** column and confirm with **Delete Semester**. If the semester has linked concession applications, the dialog shows how many are linked and disables **Delete Semester**. If you delete the last result on the final page and other results remain, the table returns to the previous page.
 
 Each Odd or Even term can be entered once per academic year. The end date may be the same as the start date or later. Student applications and corrections open seven calendar days before the official start and close after the official end date in India Standard Time. Enter official dates before that opening date so students can see when applications reopen. Applications submitted in the early week count toward the upcoming semester. Student submissions close between semesters, and staff can still review or issue an existing application against its original semester. A calendar update or issue-date correction affects submissions checked after that change is saved. Previously accepted applications keep their assigned semester.
 
