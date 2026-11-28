@@ -113,6 +113,8 @@ Sign in to the system and enter the administrative workspace.
 
 The portal loads the **Concession Requests** table showing student concession applications.
 
+While viewing **Concession Requests**, **Address Change Requests**, **Students**, **Semesters**, **Booklets**, or **Analytics**, click that same item in the sidebar to clear the search, restore the default filters and sorting, and return to page 1 in the same tab. On **Analytics**, the time range returns to **Last 1 Month**.
+
 ---
 
 ## Reviewing and Approving Student Registrations
@@ -635,6 +637,8 @@ Generate an official 50-entry tabular printout of the entire booklet for railway
 Open **Semesters** under **Academics** (`/dashboard/admin/academic-semesters`). The table shows numbered rows with the most recent start date first. The **Applications** column counts linked **Pending**, **Approved**, **Rejected**, and **Issued** applications. Semesters with no linked applications show `0`. Enter an academic year or term and press **Enter** or click the search button. Use **All Terms** to narrow the list to **Odd** or **Even**, and **Columns** to choose which fields to display.
 
 Click **Academic Year**, **Term**, **Start Date**, **End Date**, or **Applications** to sort the current page. Click again to reverse the order, and a third time to restore the default order.
+
+On mobile, **Add Semester** spans the width of the page content below the heading.
 
 1. To create a semester, click **Add Semester**. The date fields show “Enter the Academic Year Start first to choose dates.” Enter a valid **Academic Year Start** to enable the calendars. For example, entering `2026` allows dates from January 1, 2026 through December 31, 2027, inclusive. Choose the **Term** and select the official dates, then click **Add Semester**.
 2. To correct a semester, click the edit icon in its **Actions** column. The existing **Academic Year Start** is prefilled. If you change the year, check that both dates fall within the new range before clicking **Save Changes**. The table stays visible and applies the current filters and page order to the saved dates and term.

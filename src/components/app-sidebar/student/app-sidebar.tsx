@@ -50,6 +50,7 @@ const data = {
 			items: [
 				{
 					icon: Eye,
+					resetOnReselect: true,
 					name: "View Concessions",
 					url: "/dashboard/student"
 				},
@@ -73,7 +74,10 @@ const data = {
 	]
 };
 
-const StudentAppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+const StudentAppSidebar = ({
+	onResetPage,
+	...props
+}: React.ComponentProps<typeof Sidebar> & { onResetPage: () => void }) => {
 	const { isMobile, setOpenMobile } = useSidebar();
 
 	const handleHeaderClick = () => {
@@ -104,7 +108,7 @@ const StudentAppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) =
 			</SidebarHeader>
 
 			<SidebarContent>
-				<NavMain navMain={data.navMain} />
+				<NavMain navMain={data.navMain} onResetPage={onResetPage} />
 				<NavSecondary items={data.navSecondary} className="mt-auto" />
 			</SidebarContent>
 

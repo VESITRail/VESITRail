@@ -134,7 +134,7 @@ export default function AcademicSemestersPage() {
 						</div>
 						<Button
 							ref={addButton}
-							className="self-start sm:self-auto"
+							className="shrink-0"
 							disabled={currentResponse?.page === null}
 							onClick={(event) => openDialog({ mode: "add" }, event.currentTarget)}
 						>

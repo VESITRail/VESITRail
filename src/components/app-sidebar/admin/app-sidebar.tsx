@@ -56,11 +56,13 @@ const data = {
 			items: [
 				{
 					icon: FileText,
+					resetOnReselect: true,
 					url: "/dashboard/admin",
 					name: "Concession Requests"
 				},
 				{
 					icon: MapPin,
+					resetOnReselect: true,
 					name: "Address Change Requests",
 					url: "/dashboard/admin/address-change-requests"
 				}
@@ -72,11 +74,13 @@ const data = {
 				{
 					icon: Users,
 					name: "Students",
+					resetOnReselect: true,
 					url: "/dashboard/admin/students"
 				},
 				{
 					name: "Semesters",
 					icon: CalendarDays,
+					resetOnReselect: true,
 					url: "/dashboard/admin/academic-semesters"
 				}
 			]
@@ -87,6 +91,7 @@ const data = {
 				{
 					icon: BookOpen,
 					name: "Booklets",
+					resetOnReselect: true,
 					url: "/dashboard/admin/booklets"
 				},
 				{
@@ -102,6 +107,7 @@ const data = {
 				{
 					icon: BarChart3,
 					name: "Analytics",
+					resetOnReselect: true,
 					url: "/dashboard/admin/analytics"
 				}
 			]
@@ -109,7 +115,10 @@ const data = {
 	]
 };
 
-const AdminAppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+const AdminAppSidebar = ({
+	onResetPage,
+	...props
+}: React.ComponentProps<typeof Sidebar> & { onResetPage: () => void }) => {
 	const { isMobile, setOpenMobile } = useSidebar();
 
 	const handleHeaderClick = () => {
@@ -140,7 +149,7 @@ const AdminAppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => 
 			</SidebarHeader>
 
 			<SidebarContent>
-				<NavMain navMain={data.navMain} />
+				<NavMain navMain={data.navMain} onResetPage={onResetPage} />
 				<NavSecondary items={data.navSecondary} className="mt-auto" />
 			</SidebarContent>
 

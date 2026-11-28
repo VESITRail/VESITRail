@@ -462,6 +462,8 @@ You can inspect the full historical record of every concession application you h
 
 Use the unified applications table on the Student Dashboard to view and filter passes.
 
+Click **View Concessions** again in the sidebar to clear the type and status filters, restore the default sorting, and return to page 1 in the same tab.
+
 > **Note:** Concession records are managed in a single table on your Student Dashboard (`/dashboard/student`). There is no separate "Application History" tab or student concession history sheet.
 
 #### Steps
