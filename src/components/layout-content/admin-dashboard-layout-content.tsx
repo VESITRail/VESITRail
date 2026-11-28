@@ -9,6 +9,7 @@ import {
 	BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
 import { toTitleCase } from "@/lib/utils";
+import { Fragment, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "../ui/theme-toggle";
 import { Separator } from "@/components/ui/separator";
@@ -17,6 +18,7 @@ import { SidebarInset, SidebarTrigger, SidebarProvider } from "@/components/ui/s
 
 const AdminDashboardLayoutContent = ({ children }: { children: React.ReactNode }) => {
 	const pathname = usePathname();
+	const [pageKey, setPageKey] = useState(0);
 
 	const generateBreadcrumbs = () => {
 		let currentPath = "";
@@ -64,7 +66,7 @@ const AdminDashboardLayoutContent = ({ children }: { children: React.ReactNode }
 
 	return (
 		<SidebarProvider>
-			<AdminAppSidebar />
+			<AdminAppSidebar onResetPage={() => setPageKey((key) => key + 1)} />
 
 			<SidebarInset>
 				<header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b-[1.5px]">
@@ -101,7 +103,7 @@ const AdminDashboardLayoutContent = ({ children }: { children: React.ReactNode }
 					<ThemeToggle className="mr-5 shrink-0" />
 				</header>
 
-				{children}
+				<Fragment key={pageKey}>{children}</Fragment>
 			</SidebarInset>
 		</SidebarProvider>
 	);

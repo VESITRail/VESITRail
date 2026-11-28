@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Bell } from "lucide-react";
 import { toTitleCase } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "../ui/theme-toggle";
 import { Separator } from "@/components/ui/separator";
+import { Fragment, useEffect, useState } from "react";
 import { getStudentMobileStatus } from "@/actions/update-mobile";
 import NotificationSheet from "@/components/student/notification-sheet";
 import MobileNumberModal from "@/components/student/mobile-number-modal";
@@ -23,6 +23,7 @@ import { SidebarInset, SidebarTrigger, SidebarProvider } from "@/components/ui/s
 
 const StudentDashboardLayoutContent = ({ children }: { children: React.ReactNode }) => {
 	const pathname = usePathname();
+	const [pageKey, setPageKey] = useState(0);
 	const [needsMobileNumber, setNeedsMobileNumber] = useState<boolean>(false);
 
 	useEffect(() => {
@@ -82,7 +83,7 @@ const StudentDashboardLayoutContent = ({ children }: { children: React.ReactNode
 
 	return (
 		<SidebarProvider>
-			<StudentAppSidebar />
+			<StudentAppSidebar onResetPage={() => setPageKey((key) => key + 1)} />
 
 			<SidebarInset>
 				<header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b-[1.5px]">
@@ -129,7 +130,7 @@ const StudentDashboardLayoutContent = ({ children }: { children: React.ReactNode
 				</header>
 
 				{needsMobileNumber && <MobileNumberModal onSuccess={() => setNeedsMobileNumber(false)} />}
-				{children}
+				<Fragment key={pageKey}>{children}</Fragment>
 			</SidebarInset>
 		</SidebarProvider>
 	);
